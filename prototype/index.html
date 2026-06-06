@@ -1407,8 +1407,13 @@ function formMod(form) { return 0.6 + form * 0.008; }
 
 function buildPlayingXI(squad) {
   var order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
-  var xi = squad.slice().sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
-  return xi.slice(0, 11);
+  var sorted = squad.slice().sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
+  var xi = [], overseas = 0;
+  for (var i = 0; i < sorted.length && xi.length < 11; i++) {
+    if (sorted[i].overseas) { if (overseas >= 4) continue; overseas++; }
+    xi.push(sorted[i]);
+  }
+  return xi;
 }
 
 function generateRivalXI(rival) {
@@ -1694,6 +1699,18 @@ function endMatch() {
   GS.morale = Math.max(20, Math.min(100, GS.morale + (won ? 5 : -3)));
   GS.mafiaBonus = null;
   GS.matchNum++;
+  var heatEvent = '';
+  if (GS.heat >= 90) {
+    var fine = Math.min(GS.coins, Math.round(GS.coins * 0.25));
+    GS.coins -= fine; GS.heat = Math.max(0, GS.heat - 40);
+    heatEvent = 'INVESTIGATION! Fined ' + fine + ' coins. Heat reduced.';
+  } else if (GS.heat >= 70 && Math.random() < 0.4) {
+    heatEvent = 'Board inquiry — under scrutiny. Clean up or face consequences.';
+    GS.morale = Math.max(20, GS.morale - 10);
+  } else if (GS.heat >= 50) {
+    heatEvent = 'Media rumours about your dealings. Sponsor confidence shaken.';
+  }
+  if (GS.heat > 0 && !wasFix) GS.heat = Math.max(0, GS.heat - 2);
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
   if (bmR > 0) rewardsHtml += '<div class="reward-row"><span>Black Money</span><span class="val" style="color:var(--purple)">+' + bmR + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>Alignment</span><span class="val ' + (alignC >= 0 ? 'positive' : 'negative') + '">' + (alignC >= 0 ? '+' : '') + alignC + '</span></div>';
@@ -1706,6 +1723,7 @@ function endMatch() {
     '<div class="result-scores">Your Team ' + match.runs + '/' + match.wkts + ' · ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>' +
     '<div class="result-margin">' + (won ? 'Won by ' + (match.runs - match.oppRuns) + ' runs' : tied ? 'Match tied' : 'Lost by ' + (match.oppRuns - match.runs) + ' runs') + '</div>' +
     (wasFix ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0">Match was fixed — heat increased</div>' : '') +
+    (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:8px">' + heatEvent + '</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:20px">Continue</div>';
   $('match-result').classList.add('show');
