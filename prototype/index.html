@@ -765,6 +765,15 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div id="clean-streak-tag" style="display:none;margin-top:8px;padding:4px 10px;background:rgba(34,212,126,0.08);border:1px solid rgba(34,212,126,0.15);border-radius:8px;font-size:11px;color:var(--green-bright);text-align:center"></div>
       </div>
 
+      <div class="glass" id="facilities-panel">
+        <div class="section-title sm">Facilities<span class="accent-line"></span></div>
+        <div class="flex gap-8">
+          <div class="btn btn-outline flex-1 text-xs" id="morale-boost-btn" style="padding:10px 8px">Pep Talk (150C)<br><span style="color:var(--green-bright);font-family:var(--font-b)">+15 Morale</span></div>
+          <div class="btn btn-outline flex-1 text-xs" id="scout-report-btn" style="padding:10px 8px">Scout Report (200C)<br><span style="color:var(--blue);font-family:var(--font-b)">See Rival XI</span></div>
+          <div class="btn btn-outline flex-1 text-xs" id="heat-bribe-btn" style="padding:10px 8px">Media Bribe (300C)<br><span style="color:var(--amber);font-family:var(--font-b)">-15 Heat</span></div>
+        </div>
+      </div>
+
       <div class="glass accent-gold">
         <div class="section-title sm">Season Progress<span class="accent-line"></span></div>
         <div class="flex justify-between items-center mb-8">
@@ -1652,10 +1661,25 @@ function showPlayerDetail(id) {
       '<div class="flex items-center gap-8"><span class="text-xs text-slip" style="width:56px">Greed</span><div class="stat-bar flex-1"><div class="fill red" style="width:' + p.greed + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.greed + '</span></div>' +
     '</div>' +
     (GS.squad.some(function(s){return s.id===p.id;}) ?
+      '<div class="glass accent-gold" style="margin-top:12px"><div class="section-title sm">Training<span class="accent-line"></span></div>' +
+        '<div class="text-xs text-slip mb-8">Spend coins to improve stats. Cost scales with current level.</div>' +
+        '<div class="flex gap-8 mb-8">' +
+          '<div class="btn btn-outline flex-1 text-xs" id="train-bat-btn" style="padding:8px">BAT +2 (' + getTrainCost(p.bat) + 'C)</div>' +
+          '<div class="btn btn-outline flex-1 text-xs" id="train-bwl-btn" style="padding:8px">BWL +2 (' + getTrainCost(p.bwl) + 'C)</div>' +
+        '</div>' +
+        '<div class="flex gap-8">' +
+          '<div class="btn btn-outline flex-1 text-xs" id="train-fld-btn" style="padding:8px">FLD +2 (' + getTrainCost(p.fld) + 'C)</div>' +
+          '<div class="btn btn-outline flex-1 text-xs" id="train-fit-btn" style="padding:8px">FIT +2 (' + getTrainCost(p.fit) + 'C)</div>' +
+        '</div></div>' +
       '<div class="flex gap-10 mt-12"><div class="btn btn-outline flex-1" id="close-detail-btn">Close</div><div class="btn flex-1" id="release-detail-btn" style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);color:var(--blood)">Release (+' + Math.round(p.bat * 2 + p.bwl * 1.5) + ' coins)</div></div>' :
       '<div class="btn btn-outline full" id="close-detail-btn">Close</div>');
   $('player-detail-overlay').classList.add('show');
   $('close-detail-btn').onclick = function() { $('player-detail-overlay').classList.remove('show'); };
+  var trainStats = [['bat','train-bat-btn'],['bwl','train-bwl-btn'],['fld','train-fld-btn'],['fit','train-fit-btn']];
+  trainStats.forEach(function(ts) {
+    var btn = $(ts[1]);
+    if (btn) btn.onclick = function() { trainPlayer(p.id, ts[0]); };
+  });
   if ($('release-detail-btn')) {
     $('release-detail-btn').onclick = function() {
       var refund = Math.round(p.bat * 2 + p.bwl * 1.5);
@@ -1666,6 +1690,25 @@ function showPlayerDetail(id) {
       toast(p.name + ' released. +' + refund + ' coins', 'success');
     };
   }
+}
+
+function getTrainCost(stat) {
+  return Math.round(50 + stat * 3);
+}
+
+function trainPlayer(id, stat) {
+  var p = GS.squad.find(function(s){return s.id===id;});
+  if (!p) return;
+  var cost = getTrainCost(p[stat]);
+  if (GS.coins < cost) { toast('Need ' + cost + ' coins', 'error'); return; }
+  if (p[stat] >= 95) { toast('Stat already maxed', 'error'); return; }
+  GS.coins -= cost;
+  var gain = 1 + Math.floor(Math.random() * 2);
+  p[stat] = Math.min(99, p[stat] + gain);
+  SFX.reveal();
+  save(); updateCurrency();
+  toast(p.name + ' ' + stat.toUpperCase() + ' +' + gain + ' (now ' + p[stat] + ')', 'success');
+  showPlayerDetail(id);
 }
 
 // =============================================
@@ -3023,6 +3066,43 @@ function bindEvents() {
     });
   }
   $('settings-btn').addEventListener('click', showCustomise);
+  $('morale-boost-btn').addEventListener('click', function() {
+    if (GS.coins < 150) { toast('Need 150 coins', 'error'); return; }
+    if (GS.morale >= 95) { toast('Morale already high', 'error'); return; }
+    GS.coins -= 150; GS.morale = Math.min(100, GS.morale + 15);
+    SFX.reveal(); save(); updateCurrency(); updateHub();
+    toast('Morale boosted to ' + GS.morale + '!', 'success');
+  });
+  $('scout-report-btn').addEventListener('click', function() {
+    if (GS.coins < 200) { toast('Need 200 coins', 'error'); return; }
+    if (GS.squad.length === 0) { toast('No matches to scout', 'error'); return; }
+    GS.coins -= 200; SFX.reveal(); save(); updateCurrency();
+    var rival = getNextRival();
+    var xi = generateRivalXI(rival);
+    var html = '<div class="font-d fw-700 text-center text-blue" style="font-size:20px;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Scout Report</div>';
+    html += '<div class="text-center text-slip text-sm mb-16">' + rival.name + ' · Predicted XI</div>';
+    xi.forEach(function(p) {
+      html += '<div class="flex items-center gap-8 mb-6" style="padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.04)">';
+      html += '<div class="font-d fw-600 text-sm" style="flex:1">' + p.name + '</div>';
+      html += '<div class="text-xs text-slip">' + p.role + '</div>';
+      html += '<div class="font-d fw-600 text-sm" style="width:60px;text-align:right">B' + p.bat + ' W' + p.bwl + '</div>';
+      html += '</div>';
+    });
+    html += '<div class="btn btn-gold full mt-16" id="scout-close-btn">Got It</div>';
+    $('scorecard-content').innerHTML = html;
+    $('scorecard-overlay').classList.add('show');
+    setTimeout(function() {
+      $('scout-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
+    }, 50);
+  });
+  $('heat-bribe-btn').addEventListener('click', function() {
+    if (GS.coins < 300) { toast('Need 300 coins', 'error'); return; }
+    if (GS.heat <= 0) { toast('No heat to reduce', 'error'); return; }
+    GS.coins -= 300; GS.heat = Math.max(0, GS.heat - 15);
+    applyAlignShift(-3);
+    SFX.reveal(); save(); updateCurrency(); updateHub();
+    toast('Media silenced. Heat -15, Alignment -3', 'success');
+  });
   $('custom-back-btn').addEventListener('click', function() { $('custom-overlay').classList.remove('show'); });
   $('custom-save-btn').addEventListener('click', saveCustomisation);
   $('custom-reset-btn').addEventListener('click', function() {
