@@ -581,6 +581,10 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
               <div class="meter-label"><span>Heat</span><span id="heat-val" class="text-slip">0</span></div>
               <div class="meter-bar"><div class="meter-fill" id="heat-fill" style="width:0%"></div></div>
             </div>
+            <div class="hub-meter">
+              <div class="meter-label"><span>Fans</span><span id="fan-val" class="text-blue">50</span></div>
+              <div class="meter-bar"><div class="meter-fill" id="fan-fill" style="width:50%;background:linear-gradient(90deg,var(--blue),#60A5FA)"></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -617,6 +621,21 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="mb-action">View Offer &#8594;</div>
       </div>
 
+      <div class="glass accent-blue" id="sponsor-panel">
+        <div class="flex items-center gap-12">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--glass-bg);border:var(--glass-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0" id="sponsor-icon">&#9733;</div>
+          <div class="flex-1">
+            <div class="text-xs text-slip" style="text-transform:uppercase;letter-spacing:1px">Sponsor</div>
+            <div class="font-d fw-600" id="sponsor-name">Local Brand</div>
+          </div>
+          <div class="text-right">
+            <div class="font-d fw-600 text-sm" id="sponsor-bonus" style="color:var(--green-bright)">+100</div>
+            <div class="text-xs text-slip">Purse</div>
+          </div>
+        </div>
+        <div id="clean-streak-tag" style="display:none;margin-top:8px;padding:4px 10px;background:rgba(34,212,126,0.08);border:1px solid rgba(34,212,126,0.15);border-radius:8px;font-size:11px;color:var(--green-bright);text-align:center"></div>
+      </div>
+
       <div class="glass accent-gold">
         <div class="section-title sm">Season Progress<span class="accent-line"></span></div>
         <div class="flex justify-between items-center mb-8">
@@ -632,11 +651,27 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <div class="flex-1">
             <div class="text-xs text-slip" style="text-transform:uppercase;letter-spacing:1px">Next Opponent</div>
             <div class="font-d fw-700 text-lg" id="rival-name">The Shark</div>
-            <div class="text-xs text-slip" id="rival-align">Alignment: -58</div>
+            <div class="text-xs" id="rival-align">Alignment: -58</div>
           </div>
           <div class="text-right">
             <div class="font-d fw-700" style="font-size:28px" id="rival-str">72</div>
             <div class="text-xs text-slip">Strength</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <div class="flex-1" style="text-align:center">
+            <div class="text-xs text-slip">Relationship</div>
+            <div class="font-d fw-600 text-sm" id="rival-rel-label">Neutral</div>
+          </div>
+          <div style="width:1px;background:var(--border)"></div>
+          <div class="flex-1" style="text-align:center">
+            <div class="text-xs text-slip">H2H Record</div>
+            <div class="font-d fw-600 text-sm" id="rival-h2h">0W - 0L</div>
+          </div>
+          <div style="width:1px;background:var(--border)"></div>
+          <div class="flex-1" style="text-align:center">
+            <div class="text-xs text-slip">Fixes Used</div>
+            <div class="font-d fw-600 text-sm" id="rival-fixes" style="color:var(--slip)">0</div>
           </div>
         </div>
       </div>
@@ -704,6 +739,10 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <div class="team-label" id="opp-name-pm">The Shark</div>
           <div class="team-strength" id="opp-strength">STR: 72</div>
         </div>
+      </div>
+      <div id="pm-rival-info" style="display:flex;justify-content:center;gap:16px;margin-bottom:12px">
+        <div class="text-xs text-slip">Relationship: <span id="pm-rel-label" class="fw-600">Neutral</span></div>
+        <div class="text-xs text-slip">H2H: <span id="pm-h2h" class="fw-600">0-0</span></div>
       </div>
       <div class="pitch-info">
         <div class="pitch-type" id="pitch-type">SEAMING</div>
@@ -869,6 +908,9 @@ var GS = {
   morale: 75, auctionPurse: 2000,
   strategy: 'balanced', league: 'gully',
   mafiaBonus: null,
+  fanLoyalty: 50, cleanStreak: 0,
+  sponsor: { tier: 3, name: 'Local Brand', purseBonus: 0 },
+  rivalData: {},
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -881,10 +923,19 @@ function load() {
       GS.alignment=d.alignment||0; GS.heat=d.heat||0; GS.fans=d.fans||50;
       GS.season=d.season||1; GS.matchNum=d.matchNum||1; GS.wins=d.wins||0; GS.losses=d.losses||0;
       GS.morale=d.morale||75; GS.league=d.league||'gully'; GS.mafiaBonus=d.mafiaBonus||null;
+      GS.fanLoyalty=d.fanLoyalty||50; GS.cleanStreak=d.cleanStreak||0;
+      GS.sponsor=d.sponsor||{tier:3,name:'Local Brand',purseBonus:0};
+      GS.rivalData=d.rivalData||{};
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
   } catch(e) { localStorage.removeItem(SAVE_KEY); }
+}
+function initRivalData() {
+  for (var i = 0; i < RIVALS.length; i++) {
+    var n = RIVALS[i].name;
+    if (!GS.rivalData[n]) GS.rivalData[n] = { rel: 0, winsVs: 0, lossesVs: 0, fixedAgainst: 0, lastResult: null };
+  }
 }
 
 // =============================================
@@ -1035,6 +1086,28 @@ function getTeamStrength() {
   return Math.round(sum / GS.squad.length);
 }
 function getNextRival() { return RIVALS[(GS.matchNum - 1) % RIVALS.length]; }
+function getRivalRel(name) { return GS.rivalData[name] ? GS.rivalData[name].rel : 0; }
+function getRelLabel(rel) {
+  if (rel >= 50) return { text: 'Ally', cls: 'text-green' };
+  if (rel >= 20) return { text: 'Friendly', cls: 'text-green' };
+  if (rel > -20) return { text: 'Neutral', cls: 'text-slip' };
+  if (rel > -50) return { text: 'Hostile', cls: 'text-amber' };
+  return { text: 'Enemy', cls: 'text-red' };
+}
+function getSponsorForZone(zone) {
+  var tiers = [
+    { tier: 1, name: 'Title Sponsor', purseBonus: 500, minAlign: 71 },
+    { tier: 2, name: 'Premium Brand', purseBonus: 300, minAlign: 31 },
+    { tier: 3, name: 'Local Brand', purseBonus: 100, minAlign: -30 },
+    { tier: 4, name: 'Shady Outlet', purseBonus: 0, minAlign: -70 },
+    { tier: 5, name: 'No Sponsor', purseBonus: -200, minAlign: -101 },
+  ];
+  for (var i = 0; i < tiers.length; i++) {
+    if (GS.alignment >= tiers[i].minAlign) return tiers[i];
+  }
+  return tiers[tiers.length - 1];
+}
+function getFanLoyaltyMod() { return 0.8 + GS.fanLoyalty * 0.004; }
 
 // =============================================
 // NAV INDICATOR
@@ -1184,6 +1257,18 @@ function updateHub() {
   $('heat-fill').style.width = GS.heat + '%';
   $('heat-fill').style.background = GS.heat > 50 ? 'linear-gradient(90deg,var(--amber),var(--blood))' : GS.heat > 25 ? 'linear-gradient(90deg,var(--gold),var(--amber))' : 'var(--green-bright)';
   $('heat-val').textContent = GS.heat;
+  $('fan-fill').style.width = GS.fanLoyalty + '%';
+  $('fan-val').textContent = GS.fanLoyalty;
+  var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
+  GS.sponsor = sp;
+  $('sponsor-name').textContent = sp.name;
+  $('sponsor-bonus').textContent = (sp.purseBonus >= 0 ? '+' : '') + sp.purseBonus;
+  $('sponsor-bonus').style.color = sp.purseBonus >= 0 ? 'var(--green-bright)' : 'var(--blood)';
+  $('sponsor-icon').textContent = sp.tier <= 2 ? '★' : sp.tier <= 3 ? '☆' : '✖';
+  if (GS.cleanStreak >= 3) {
+    show('clean-streak-tag');
+    $('clean-streak-tag').textContent = 'Clean Streak: ' + GS.cleanStreak + ' matches — +' + (GS.cleanStreak * 10) + ' bonus coins/win';
+  } else { hide('clean-streak-tag'); }
   if (GS.squad.length > 0) {
     show('hub-next-rival');
     var r = getNextRival();
@@ -1193,6 +1278,15 @@ function updateHub() {
     $('rival-align').textContent = 'Alignment: ' + (r.alignment >= 0 ? '+' : '') + r.alignment;
     $('rival-str').textContent = r.strength;
     $('match-sub').textContent = 'vs ' + r.name;
+    var rd = GS.rivalData[r.name];
+    if (rd) {
+      var rl = getRelLabel(rd.rel);
+      $('rival-rel-label').textContent = rl.text + ' (' + (rd.rel >= 0 ? '+' : '') + rd.rel + ')';
+      $('rival-rel-label').className = 'font-d fw-600 text-sm ' + rl.cls;
+      $('rival-h2h').textContent = rd.winsVs + 'W - ' + rd.lossesVs + 'L';
+      $('rival-fixes').textContent = rd.fixedAgainst;
+      $('rival-fixes').style.color = rd.fixedAgainst > 0 ? 'var(--blood)' : 'var(--slip)';
+    }
   } else { hide('hub-next-rival'); }
   var hubZone = getAlignmentZone(GS.alignment);
   if (GS.matchNum > 2 && hubZone.mafiaAccess) {
@@ -1243,8 +1337,11 @@ function updateCardsScreen() {
 function updateLeagueTable() {
   var teams = [{ name: 'Your Team', wins: GS.wins, losses: GS.losses, pts: GS.wins * 3, you: true }];
   for (var i = 0; i < RIVALS.length; i++) {
-    var w = Math.floor(Math.random() * Math.max(1, GS.matchNum));
-    teams.push({ name: RIVALS[i].name, wins: w, losses: Math.max(0, GS.matchNum - 1 - w), pts: w * 3, you: false });
+    var rd = GS.rivalData[RIVALS[i].name];
+    var baseW = rd ? rd.lossesVs : 0;
+    var simW = baseW + Math.floor(Math.random() * Math.max(1, GS.matchNum - 1 - baseW) * RIVALS[i].strength / 100);
+    simW = Math.min(simW, Math.max(0, GS.matchNum - 1));
+    teams.push({ name: RIVALS[i].name, wins: simW, losses: Math.max(0, GS.matchNum - 1 - simW), pts: simW * 3, you: false });
   }
   teams.sort(function(a, b) { return b.pts - a.pts || b.wins - a.wins; });
   var html = '';
@@ -1520,6 +1617,13 @@ function startPreMatch() {
   $('opp-badge').style.background = bgMap[rival.color] || bgMap.blue;
   $('your-strength').textContent = 'STR: ' + getTeamStrength();
   $('opp-strength').textContent = 'STR: ' + rival.strength;
+  var prd = GS.rivalData[rival.name];
+  if (prd) {
+    var prl = getRelLabel(prd.rel);
+    $('pm-rel-label').textContent = prl.text;
+    $('pm-rel-label').className = 'fw-600 ' + prl.cls;
+    $('pm-h2h').textContent = prd.winsVs + 'W - ' + prd.lossesVs + 'L';
+  }
   var pitches = [{t:'SEAMING',d:'Pace bowlers get extra help'},{t:'TURNING',d:'Spinners dominate this track'},{t:'FLAT',d:'A batting paradise'},{t:'GREEN TOP',d:'Early movement, rewards discipline'}];
   var pitch = pitches[Math.floor(Math.random() * pitches.length)];
   $('pitch-type').textContent = pitch.t;
@@ -1688,15 +1792,34 @@ function endMatch() {
   var tied = match.runs === match.oppRuns;
   if (won) { GS.wins++; SFX.win(); } else if (!tied) { GS.losses++; SFX.lose(); }
   var zone = getAlignmentZone(GS.alignment);
-  var coinR = won ? Math.round(80 * zone.coinMult) : 30;
+  var wasFix = GS.mafiaBonus !== null;
+  var fanMod = getFanLoyaltyMod();
+  var coinR = won ? Math.round(80 * zone.coinMult * fanMod) : 30;
+  var cleanBonus = 0;
+  if (!wasFix) {
+    GS.cleanStreak++;
+    if (GS.cleanStreak >= 3 && won) cleanBonus = GS.cleanStreak * 10;
+  } else { GS.cleanStreak = 0; }
+  coinR += cleanBonus;
   var bmR = zone.bmRate > 0 ? (won ? zone.bmRate : Math.round(zone.bmRate * 0.5)) : 0;
   var alignC = won ? 2 : -1;
-  var wasFix = GS.mafiaBonus !== null;
   if (wasFix) { alignC -= 2; GS.heat = Math.min(100, GS.heat + 5); }
+  var fanC = won ? 2 : -1;
+  if (wasFix) fanC -= 5;
+  if (GS.cleanStreak >= 5) fanC += 1;
+  GS.fanLoyalty = Math.max(0, Math.min(100, GS.fanLoyalty + fanC));
   GS.coins += coinR;
   GS.blackMoney += bmR;
   GS.alignment = Math.max(-100, Math.min(100, GS.alignment + alignC));
   GS.morale = Math.max(20, Math.min(100, GS.morale + (won ? 5 : -3)));
+  var rivalName = match.opponent.name;
+  if (!GS.rivalData[rivalName]) GS.rivalData[rivalName] = { rel: 0, winsVs: 0, lossesVs: 0, fixedAgainst: 0, lastResult: null };
+  var rd = GS.rivalData[rivalName];
+  if (won) { rd.winsVs++; rd.lastResult = 'W'; } else if (!tied) { rd.lossesVs++; rd.lastResult = 'L'; } else { rd.lastResult = 'T'; }
+  var relShift = won ? 3 : -2;
+  if (wasFix) { rd.fixedAgainst++; relShift -= 8; }
+  if (Math.abs(GS.alignment - match.opponent.alignment) > 40) relShift = Math.round(relShift * 0.5);
+  rd.rel = Math.max(-100, Math.min(100, rd.rel + relShift));
   GS.mafiaBonus = null;
   GS.matchNum++;
   for (var fi = 0; fi < GS.squad.length; fi++) {
@@ -1720,12 +1843,17 @@ function endMatch() {
   }
   if (GS.heat > 0 && !wasFix) GS.heat = Math.max(0, GS.heat - 2);
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
+  if (cleanBonus > 0) rewardsHtml += '<div class="reward-row"><span>Clean Streak Bonus</span><span class="val" style="color:var(--green-bright)">+' + cleanBonus + ' (×' + GS.cleanStreak + ')</span></div>';
   if (bmR > 0) rewardsHtml += '<div class="reward-row"><span>Black Money</span><span class="val" style="color:var(--purple)">+' + bmR + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>Alignment</span><span class="val ' + (alignC >= 0 ? 'positive' : 'negative') + '">' + (alignC >= 0 ? '+' : '') + alignC + '</span></div>';
+  rewardsHtml += '<div class="reward-row"><span>Fan Loyalty</span><span class="val ' + (fanC >= 0 ? 'positive' : 'negative') + '">' + (fanC >= 0 ? '+' : '') + fanC + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>Morale</span><span class="val ' + (won ? 'positive' : 'negative') + '">' + (won ? '+5' : '-3') + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>League Points</span><span class="val positive">+' + (won ? 3 : tied ? 1 : 0) + '</span></div>';
   if (wasFix) rewardsHtml += '<div class="reward-row"><span>Fix Heat</span><span class="val negative">+5</span></div>';
-  var sponsorTag = zone.tier <= 2 ? '<div class="text-xs text-gold" style="margin-top:6px;text-align:center">Sponsor Tier ' + zone.tier + ' bonus: +' + Math.round((zone.coinMult - 1) * 100) + '% coins</div>' : '';
+  var rlAfter = getRelLabel(rd.rel);
+  rewardsHtml += '<div class="reward-row"><span>' + rivalName + '</span><span class="val ' + rlAfter.cls + '">' + rlAfter.text + ' (' + (relShift >= 0 ? '+' : '') + relShift + ')</span></div>';
+  var sponsorTag = zone.tier <= 2 ? '<div class="text-xs text-gold" style="margin-top:6px;text-align:center">' + GS.sponsor.name + ' bonus: +' + Math.round((zone.coinMult - 1) * 100) + '% coins</div>' : '';
+  if (GS.fanLoyalty >= 60) sponsorTag += '<div class="text-xs text-blue" style="margin-top:4px;text-align:center">Fan loyalty boost: +' + Math.round((fanMod - 1) * 100) + '% coins</div>';
   $('match-result').innerHTML =
     '<div class="result-text ' + (won ? 'win' : 'loss') + '">' + (won ? 'Victory' : tied ? 'Tied' : 'Defeat') + '</div>' +
     '<div class="result-scores">Your Team ' + match.runs + '/' + match.wkts + ' · ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>' +
@@ -1764,7 +1892,22 @@ function endSeason() {
     GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
   } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
   GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0;
-  GS.morale = Math.min(100, GS.morale + 10); GS.auctionPurse = 2000 + idx * 500;
+  GS.morale = Math.min(100, GS.morale + 10);
+  var basePurse = 2000 + idx * 500;
+  var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
+  GS.sponsor = sp;
+  GS.auctionPurse = basePurse + sp.purseBonus;
+  var fanVoteHtml = '';
+  var fanVoteBonus = 0;
+  if (GS.alignment > 30 && GS.fanLoyalty >= 60) {
+    fanVoteBonus = 200; GS.coins += fanVoteBonus;
+    GS.fanLoyalty = Math.min(100, GS.fanLoyalty + 10);
+    fanVoteHtml = '<div class="reward-row"><span>Fan Vote Award</span><span class="val" style="color:var(--blue)">+200 coins, +10 fans</span></div>';
+  }
+  GS.fanLoyalty = Math.round(50 + (GS.fanLoyalty - 50) * 0.3);
+  for (var rn in GS.rivalData) {
+    GS.rivalData[rn].rel = Math.round(GS.rivalData[rn].rel * 0.8);
+  }
   save();
   $('match-result').innerHTML =
     '<div class="font-d fw-700 text-center" style="font-size:32px;text-transform:uppercase;letter-spacing:3px;margin-bottom:8px;' +
@@ -1773,6 +1916,8 @@ function endSeason() {
     '<div class="glass accent-gold"><div class="section-title sm">Season ' + GS.season + '<span class="accent-line"></span></div>' +
     '<div class="reward-row"><span>League</span><span class="val text-gold">' + (LEAGUE_NAMES[GS.league]) + '</span></div>' +
     '<div class="reward-row"><span>Season Bonus</span><span class="val positive">+' + bonus + ' coins</span></div>' +
+    fanVoteHtml +
+    '<div class="reward-row"><span>Sponsor</span><span class="val">' + sp.name + '</span></div>' +
     '<div class="reward-row"><span>Auction Purse</span><span class="val positive">' + GS.auctionPurse + '</span></div></div>' +
     '<div class="btn btn-gold lg" id="season-continue-btn" style="margin-top:20px">Start Season ' + GS.season + '</div>';
   $('match-result').classList.add('show');
@@ -1945,6 +2090,7 @@ function bindEvents() {
 // =============================================
 try {
   load();
+  initRivalData();
   updateCurrency();
   updateHub();
   bindEvents();
