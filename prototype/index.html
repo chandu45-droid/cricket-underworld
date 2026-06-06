@@ -1729,13 +1729,48 @@ function endMatch() {
   $('match-result').classList.add('show');
   $('match-continue-btn').onclick = function() {
     $('match-result').classList.remove('show');
-    save();
-    var postZone = getAlignmentZone(GS.alignment);
-    if (postZone.mafiaAccess && GS.matchNum > 2 && Math.random() < 0.5) {
-      setTimeout(function() { goScreen('hub'); setTimeout(showMafiaOffer, 400); }, 300);
+    if (GS.matchNum > 14) {
+      endSeason();
     } else {
-      setTimeout(function() { goScreen('hub'); }, 300);
+      save();
+      var postZone = getAlignmentZone(GS.alignment);
+      if (postZone.mafiaAccess && GS.matchNum > 2 && Math.random() < 0.5) {
+        setTimeout(function() { goScreen('hub'); setTimeout(showMafiaOffer, 400); }, 300);
+      } else {
+        setTimeout(function() { goScreen('hub'); }, 300);
+      }
     }
+  };
+}
+
+function endSeason() {
+  var leagueOrder = ['gully','sma','challenger','champions'];
+  var idx = leagueOrder.indexOf(GS.league);
+  var winRate = GS.wins / 14;
+  var promoted = winRate >= 0.57;
+  var relegated = winRate < 0.29 && idx > 0;
+  var result, bonus;
+  if (promoted && idx < leagueOrder.length - 1) {
+    GS.league = leagueOrder[idx + 1]; result = 'PROMOTED'; bonus = 200 * (idx + 2);
+  } else if (relegated) {
+    GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
+  } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
+  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0;
+  GS.morale = Math.min(100, GS.morale + 10); GS.auctionPurse = 2000 + idx * 500;
+  save();
+  $('match-result').innerHTML =
+    '<div class="font-d fw-700 text-center" style="font-size:32px;text-transform:uppercase;letter-spacing:3px;margin-bottom:8px;' +
+    (result==='PROMOTED'?'color:var(--gold-bright)':result==='RELEGATED'?'color:var(--blood)':'color:var(--white)') + '">' + result + '</div>' +
+    '<div class="text-center text-slip mb-16">Season ' + (GS.season - 1) + ' Complete</div>' +
+    '<div class="glass accent-gold"><div class="section-title sm">Season ' + GS.season + '<span class="accent-line"></span></div>' +
+    '<div class="reward-row"><span>League</span><span class="val text-gold">' + (LEAGUE_NAMES[GS.league]) + '</span></div>' +
+    '<div class="reward-row"><span>Season Bonus</span><span class="val positive">+' + bonus + ' coins</span></div>' +
+    '<div class="reward-row"><span>Auction Purse</span><span class="val positive">' + GS.auctionPurse + '</span></div></div>' +
+    '<div class="btn btn-gold lg" id="season-continue-btn" style="margin-top:20px">Start Season ' + GS.season + '</div>';
+  $('match-result').classList.add('show');
+  $('season-continue-btn').onclick = function() {
+    $('match-result').classList.remove('show');
+    setTimeout(function() { goScreen('hub'); }, 300);
   };
 }
 
