@@ -1378,7 +1378,7 @@ function endAuction() {
 // =============================================
 // MATCH
 // =============================================
-var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50 };
+var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[] };
 
 function updateMomentum(runs, wkt, isYou) {
   var shift = runs * 2 + (wkt ? -15 : 0);
@@ -1388,6 +1388,102 @@ function updateMomentum(runs, wkt, isYou) {
   var oppW = Math.max(0, 50 - match.momentum);
   $('momentum-you').style.width = youW + '%';
   $('momentum-opp').style.width = oppW + '%';
+}
+
+function formMod(form) { return 0.6 + form * 0.008; }
+
+function buildPlayingXI(squad) {
+  var order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
+  var xi = squad.slice().sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
+  return xi.slice(0, 11);
+}
+
+function generateRivalXI(rival) {
+  var roles = ['Top-Order Batter','Top-Order Batter','Top-Order Batter','Wicket-Keeper','Middle-Order Batter','Middle-Order Batter','All-Rounder','All-Rounder','Fast Bowler','Fast Bowler','Spin Bowler'];
+  var xi = [];
+  var base = rival.strength;
+  for (var i = 0; i < 11; i++) {
+    var role = roles[i], v = Math.floor(Math.random()*20)-10;
+    var isBat = role.indexOf('Batter')>=0 || role==='Wicket-Keeper';
+    var isBwl = role.indexOf('Bowler')>=0;
+    var isAR = role==='All-Rounder';
+    xi.push({
+      name: rival.name.split(' ')[1]+'-'+(i+1), role: role,
+      bat: isBat ? Math.min(95,base+v) : isAR ? Math.min(90,base-10+v) : 10+Math.floor(Math.random()*15),
+      bwl: isBwl ? Math.min(95,base+v) : isAR ? Math.min(90,base-8+v) : 5+Math.floor(Math.random()*10),
+      form: 35+Math.floor(Math.random()*35), fld: 45+Math.floor(Math.random()*25)
+    });
+  }
+  return xi;
+}
+
+function extractBowlers(xi) {
+  var b = [];
+  for (var i = 0; i < xi.length; i++) {
+    if (xi[i].role==='Fast Bowler'||xi[i].role==='Spin Bowler'||xi[i].role==='All-Rounder') b.push(xi[i]);
+  }
+  return b.length > 0 ? b : [xi[xi.length-1]];
+}
+
+function pickBowler(bowlers, phase, overNum) {
+  if (phase === 1) {
+    var spin = bowlers.filter(function(b){return b.role==='Spin Bowler';});
+    if (spin.length > 0) return spin[overNum % spin.length];
+  } else {
+    var pace = bowlers.filter(function(b){return b.role==='Fast Bowler';});
+    if (pace.length > 0) return pace[overNum % pace.length];
+  }
+  return bowlers[overNum % bowlers.length];
+}
+
+function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isYourBatting, innings, target, runs, ball) {
+  var phaseBat = [1.3, 1.0, 1.4][phase];
+  var phaseBwl = [0.9, 1.1, 1.0][phase];
+  var pitchMods = {
+    'SEAMING':   {pace:1.25, spin:0.65, bat:0.95},
+    'TURNING':   {pace:0.75, spin:1.30, bat:0.95},
+    'FLAT':      {pace:1.00, spin:1.00, bat:1.10},
+    'GREEN TOP': {pace:1.20, spin:0.80, bat:0.95}
+  };
+  var pm = pitchMods[pitchType] || pitchMods['FLAT'];
+  var isSpin = bowler.role==='Spin Bowler';
+  var isPace = bowler.role==='Fast Bowler';
+  var pitchBwlMod = isPace ? pm.pace : isSpin ? pm.spin : (pm.pace+pm.spin)/2;
+  var stratBatMod = 1.0, stratBwlMod = 1.0;
+  if (isYourBatting) { stratBatMod = strategy==='aggressive'?1.15:strategy==='defensive'?0.85:1.0; }
+  else { stratBwlMod = strategy==='aggressive'?1.10:strategy==='defensive'?0.90:1.0; }
+  var moraleMod = 0.9 + morale / 500;
+  var batStr = batter.bat * formMod(batter.form) * phaseBat * stratBatMod * moraleMod * pm.bat;
+  var bwlStr = bowler.bwl * formMod(bowler.form) * phaseBwl * pitchBwlMod * stratBwlMod;
+  if (bwlStr < 1) bwlStr = 1;
+  var ratio = Math.max(0.4, Math.min(2.5, batStr / bwlStr));
+  if (innings === 2 && target > 0) {
+    var ballsLeft = 120 - ball;
+    var needed = target + 1 - runs;
+    var rpo = ballsLeft > 0 ? (needed / ballsLeft) * 6 : 12;
+    if (rpo < 8) ratio *= 1.05;
+    else if (rpo > 10) ratio *= 0.90;
+  }
+  var wktP = Math.max(0.02, Math.min(0.15, 0.06 / ratio));
+  var dotP = Math.max(0.18, Math.min(0.50, 0.35 / Math.sqrt(ratio)));
+  var sixP = Math.max(0.02, Math.min(0.18, 0.07 * Math.pow(ratio, 0.8)));
+  var fourP = Math.max(0.04, Math.min(0.20, 0.11 * Math.pow(ratio, 0.5)));
+  var triP = 0.03, dblP = 0.09;
+  var sglP = Math.max(0.10, 1.0 - wktP - dotP - sixP - fourP - triP - dblP);
+  var total = wktP + dotP + sglP + dblP + triP + fourP + sixP;
+  var r = Math.random() * total;
+  if (r < wktP) return {runs:0, wicket:true};
+  r -= wktP;
+  if (r < dotP) return {runs:0, wicket:false};
+  r -= dotP;
+  if (r < sglP) return {runs:1, wicket:false};
+  r -= sglP;
+  if (r < dblP) return {runs:2, wicket:false};
+  r -= dblP;
+  if (r < triP) return {runs:3, wicket:false};
+  r -= triP;
+  if (r < fourP) return {runs:4, wicket:false};
+  return {runs:6, wicket:false};
 }
 
 function startPreMatch() {
@@ -1405,6 +1501,7 @@ function startPreMatch() {
   var pitch = pitches[Math.floor(Math.random() * pitches.length)];
   $('pitch-type').textContent = pitch.t;
   $('pitch-desc').textContent = pitch.d;
+  match.pitchType = pitch.t;
   var opts = document.querySelectorAll('.strategy-opt');
   for (var i = 0; i < opts.length; i++) { opts[i].className = 'strategy-opt' + (opts[i].getAttribute('data-strat') === 'balanced' ? ' selected' : ''); }
   GS.strategy = 'balanced';
@@ -1418,6 +1515,13 @@ function startMatch() {
   match.runs = 0; match.wkts = 0; match.oppRuns = 0; match.oppWkts = 0;
   match.target = 0; match.phase = 0; match.ball = 0; match.momentum = 50;
   match.phaseScores = [{r:0,w:0},{r:0,w:0},{r:0,w:0}];
+  match.yourXI = buildPlayingXI(GS.squad);
+  match.oppXI = generateRivalXI(match.opponent);
+  match.batXI = match.batting === 'you' ? match.yourXI : match.oppXI;
+  match.bwlXI = match.batting === 'you' ? match.oppXI : match.yourXI;
+  match.bowlers = extractBowlers(match.bwlXI);
+  match.curBatter = match.batXI[0];
+  match.curBowler = pickBowler(match.bowlers, 0, 0);
   $('innings-label').textContent = '1st Innings';
   $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : 'Your Team';
@@ -1439,28 +1543,23 @@ function simBall() {
   match.ball++;
   var ballInOver = (match.ball - 1) % 6;
   var over = Math.floor((match.ball - 1) / 6);
-  var teamStr = match.batting === 'you' ? getTeamStrength() : match.opponent.strength;
-  var stratMod = GS.strategy === 'aggressive' ? 1.2 : GS.strategy === 'defensive' ? 0.7 : 1.0;
-  var factor = teamStr / 70 * stratMod;
-  var r = Math.random(), runs = 0, wkt = false;
-  if (r < 0.05 * (2 - factor)) { wkt = true; }
-  else if (r < 0.15) { runs = 0; }
-  else if (r < 0.45) { runs = 1; }
-  else if (r < 0.60) { runs = 2; }
-  else if (r < 0.70) { runs = 3; }
-  else if (r < 0.85) { runs = 4; }
-  else { runs = 6; }
   var isYou = match.batting === 'you';
+  var cWkts = isYou ? match.wkts : match.oppWkts;
+  var cRuns = isYou ? match.runs : match.oppRuns;
+  var phase = over < 6 ? 0 : over < 15 ? 1 : 2;
+  match.curBatter = match.batXI[Math.min(cWkts, match.batXI.length - 1)];
+  if (ballInOver === 0) match.curBowler = pickBowler(match.bowlers, phase, over);
+  var outcome = calcBallOutcome(match.curBatter, match.curBowler, match.pitchType, phase, GS.strategy, GS.morale, isYou, match.innings, match.target, cRuns, match.ball);
+  var runs = outcome.runs, wkt = outcome.wicket;
   if (isYou) { match.runs += runs; if (wkt) match.wkts++; }
   else { match.oppRuns += runs; if (wkt) match.oppWkts++; }
   updateMomentum(runs, wkt, isYou);
-  var cRuns = isYou ? match.runs : match.oppRuns;
-  var cWkts = isYou ? match.wkts : match.oppWkts;
+  cRuns = isYou ? match.runs : match.oppRuns;
+  cWkts = isYou ? match.wkts : match.oppWkts;
   var displayOvers = over + '.' + (ballInOver + 1);
   if (ballInOver === 5) displayOvers = (over + 1) + '.0';
   $('match-score').textContent = cRuns + '/' + cWkts;
   $('match-overs').textContent = displayOvers + ' overs';
-  var phase = over < 6 ? 0 : over < 15 ? 1 : 2;
   var phaseIds = ['pp','mid','death'];
   if (phase !== match.phase) {
     $('phase-' + phaseIds[match.phase]).className = 'match-phase completed';
@@ -1475,9 +1574,10 @@ function simBall() {
   var pPct = Math.min(100, ((over - phaseStart[phase]) * 6 + ballInOver + 1) / (phaseOvers[phase] * 6) * 100);
   $(phaseIds[phase] + '-fill').style.width = pPct + '%';
   $(phaseIds[phase] + '-score').textContent = match.phaseScores[phase].r + '/' + match.phaseScores[phase].w;
-  if (runs === 6) { addMoment('six', 'SIX! Massive hit!'); SFX.six(); }
-  else if (runs === 4) { addMoment('runs', 'FOUR! Beautiful shot.'); }
-  else if (wkt) { addMoment('wicket', 'WICKET! ' + cWkts + ' down.'); SFX.wicket(); }
+  var batter = match.curBatter, bowler = match.curBowler;
+  if (runs === 6) { addMoment('six', 'SIX! ' + batter.name + ' smashes it!'); SFX.six(); }
+  else if (runs === 4) { addMoment('runs', 'FOUR! ' + batter.name + ' finds the gap.'); }
+  else if (wkt) { addMoment('wicket', batter.name + ' out! ' + bowler.name + ' strikes. ' + cWkts + ' down.'); SFX.wicket(); }
   if (match.innings === 2) {
     if (match.batting === 'you' && match.runs > match.target) { endMatch(); return; }
     if (match.batting === 'opp' && match.oppRuns > match.target) { endMatch(); return; }
@@ -1504,6 +1604,11 @@ function switchInnings() {
   match.batting = match.batting === 'you' ? 'opp' : 'you';
   match.ball = 0; match.phase = 0; match.momentum = 50;
   match.phaseScores = [{r:0,w:0},{r:0,w:0},{r:0,w:0}];
+  match.batXI = match.batting === 'you' ? match.yourXI : match.oppXI;
+  match.bwlXI = match.batting === 'you' ? match.oppXI : match.yourXI;
+  match.bowlers = extractBowlers(match.bwlXI);
+  match.curBatter = match.batXI[0];
+  match.curBowler = pickBowler(match.bowlers, 0, 0);
   $('innings-label').textContent = '2nd Innings · Target: ' + (match.target + 1);
   $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : 'Your Team';
@@ -1523,10 +1628,16 @@ function skipMatch() {
   while (match.active && safety < 300) {
     safety++; match.ball++;
     var bIO = (match.ball-1) % 6, ov = Math.floor((match.ball-1)/6);
-    var r = Math.random(), runs = 0, wkt = false;
-    if (r < 0.06) wkt = true; else if (r < 0.15) runs = 0; else if (r < 0.45) runs = 1; else if (r < 0.60) runs = 2; else if (r < 0.70) runs = 3; else if (r < 0.85) runs = 4; else runs = 6;
-    if (match.batting === 'you') { match.runs += runs; if (wkt) match.wkts++; } else { match.oppRuns += runs; if (wkt) match.oppWkts++; }
-    var cW = match.batting === 'you' ? match.wkts : match.oppWkts;
+    var isYou = match.batting === 'you';
+    var cWkts = isYou ? match.wkts : match.oppWkts;
+    var cRuns = isYou ? match.runs : match.oppRuns;
+    var phase = ov < 6 ? 0 : ov < 15 ? 1 : 2;
+    var batter = match.batXI[Math.min(cWkts, match.batXI.length - 1)];
+    if (bIO === 0) match.curBowler = pickBowler(match.bowlers, phase, ov);
+    var outcome = calcBallOutcome(batter, match.curBowler, match.pitchType, phase, GS.strategy, GS.morale, isYou, match.innings, match.target, cRuns, match.ball);
+    var runs = outcome.runs, wkt = outcome.wicket;
+    if (isYou) { match.runs += runs; if (wkt) match.wkts++; } else { match.oppRuns += runs; if (wkt) match.oppWkts++; }
+    var cW = isYou ? match.wkts : match.oppWkts;
     if (match.innings === 2) {
       if (match.batting === 'you' && match.runs > match.target) { endMatch(); return; }
       if (match.batting === 'opp' && match.oppRuns > match.target) { endMatch(); return; }
@@ -1535,6 +1646,9 @@ function skipMatch() {
       if (match.innings === 1) {
         match.target = match.batting === 'you' ? match.runs : match.oppRuns;
         match.innings = 2; match.batting = match.batting === 'you' ? 'opp' : 'you'; match.ball = 0;
+        match.batXI = match.batting === 'you' ? match.yourXI : match.oppXI;
+        match.bwlXI = match.batting === 'you' ? match.oppXI : match.yourXI;
+        match.bowlers = extractBowlers(match.bwlXI);
       } else { endMatch(); return; }
     }
   }
