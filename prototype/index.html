@@ -453,6 +453,27 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .nickname-row .nn-input:focus{border-color:var(--gold-bright)}
 .reset-section{margin-top:24px;padding-top:16px;border-top:1px solid rgba(220,38,38,0.15)}
 .reset-section .text-xs{color:var(--slip);margin-bottom:8px}
+
+/* ================================================================
+   TUTORIAL / ONBOARDING
+   ================================================================ */
+.tut-overlay{position:fixed;inset:0;z-index:300;background:rgba(6,8,16,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.4s}
+.tut-overlay.show{opacity:1;pointer-events:auto}
+.tut-card{max-width:340px;width:100%;background:linear-gradient(160deg,var(--dugout),var(--pitch));border-radius:var(--r-lg);border:1px solid rgba(240,200,80,0.15);box-shadow:0 12px 48px rgba(0,0,0,0.6),0 0 40px rgba(240,200,80,0.06);padding:28px 24px;text-align:center;transform:translateY(20px) scale(0.95);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
+.tut-overlay.show .tut-card{transform:translateY(0) scale(1)}
+.tut-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent 5%,var(--gold-bright) 50%,transparent 95%)}
+.tut-icon{width:64px;height:64px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(240,200,80,0.08);border:1.5px solid rgba(240,200,80,0.15)}
+.tut-title{font-family:var(--font-d);font-size:24px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold-bright);margin-bottom:8px}
+.tut-body{font-family:var(--font-b);font-size:14px;color:var(--white-60);line-height:1.6;margin-bottom:20px}
+.tut-body strong{color:var(--white);font-weight:700}
+.tut-body .tut-highlight{color:var(--gold-bright);font-weight:700}
+.tut-body .tut-danger{color:var(--blood);font-weight:700}
+.tut-steps{display:flex;justify-content:center;gap:6px;margin-bottom:16px}
+.tut-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all 0.3s}
+.tut-dot.active{background:var(--gold-bright);box-shadow:0 0 8px rgba(240,200,80,0.4)}
+.tut-dot.done{background:var(--green-bright)}
+.tut-actions{display:flex;gap:10px}
+.tut-actions .btn{flex:1}
 .match-scoreboard .teams{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px}
 .match-scoreboard .team-name{font-family:var(--font-d);font-size:16px;font-weight:600;flex:1}
 .match-scoreboard .team-name:first-child{text-align:right}
@@ -1054,6 +1075,20 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
   </div>
 </div>
 
+<!-- TUTORIAL -->
+<div class="tut-overlay" id="tut-overlay">
+  <div class="tut-card">
+    <div class="tut-icon" id="tut-icon"></div>
+    <div class="tut-title" id="tut-title"></div>
+    <div class="tut-body" id="tut-body"></div>
+    <div class="tut-steps" id="tut-steps"></div>
+    <div class="tut-actions">
+      <div class="btn btn-outline" id="tut-skip-btn">Skip</div>
+      <div class="btn btn-gold" id="tut-next-btn">Next</div>
+    </div>
+  </div>
+</div>
+
 <!-- CUSTOMISATION -->
 <div class="custom-overlay" id="custom-overlay">
   <div class="custom-content">
@@ -1123,7 +1158,7 @@ var GS = {
   debts: [], noAlignMatches: 0,
   evidence: [], investigation: null, tribunalBonus: 0,
   captainId: null, selectedXI: [],
-  teamName: 'Your Team', managerName: 'Manager', teamColor: 'gold',
+  teamName: 'Your Team', managerName: 'Manager', teamColor: 'gold', tutorialDone: false,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1142,7 +1177,7 @@ function load() {
       GS.debts=d.debts||[]; GS.noAlignMatches=d.noAlignMatches||0;
       GS.evidence=d.evidence||[]; GS.investigation=d.investigation||null; GS.tribunalBonus=d.tribunalBonus||0;
       GS.captainId=d.captainId||null; GS.selectedXI=d.selectedXI||[];
-      GS.teamName=d.teamName||'Your Team'; GS.managerName=d.managerName||'Manager'; GS.teamColor=d.teamColor||'gold';
+      GS.teamName=d.teamName||'Your Team'; GS.managerName=d.managerName||'Manager'; GS.teamColor=d.teamColor||'gold'; GS.tutorialDone=d.tutorialDone||false;
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -2007,6 +2042,11 @@ function endAuction() {
   hide('auction-active-area'); show('auction-empty-area');
   toast('Auction complete! Squad: ' + GS.squad.length + ' players', 'success');
   save();
+  if (GS.squad.length >= 3 && GS.matchNum === 1 && GS.tutorialDone) {
+    setTimeout(function() {
+      showContextTip('Squad Ready', 'You have <strong>' + GS.squad.length + ' players</strong>. Head back to the <span class="tut-highlight">Hub</span> and tap <strong>Match</strong> to play your first game!<br><br>Remember to <strong>select your XI</strong> and pick a <span class="tut-highlight">captain</span> for a stat boost.', '\u{1F3CF}');
+    }, 500);
+  }
 }
 
 // =============================================
@@ -2675,6 +2715,7 @@ function endMatch() {
   if (Math.abs(GS.alignment - match.opponent.alignment) > 40) relShift = Math.round(relShift * 0.5);
   rd.rel = Math.max(-100, Math.min(100, rd.rel + relShift));
   GS.mafiaBonus = null;
+  var wasFirstMatch = GS.matchNum === 1;
   GS.matchNum++;
   for (var fi = 0; fi < GS.squad.length; fi++) {
     var inXI = match.yourXI.some(function(p){ return p.id === GS.squad[fi].id; });
@@ -2770,7 +2811,14 @@ function endMatch() {
     } else {
       save();
       var postZone = getAlignmentZone(GS.alignment);
-      if (postZone.mafiaAccess && GS.matchNum > 1 && Math.random() < 0.7) {
+      if (wasFirstMatch) {
+        setTimeout(function() {
+          goScreen('hub');
+          setTimeout(function() {
+            showContextTip('The Path Ahead', 'Your <span class="tut-highlight">Alignment</span> and <span class="tut-danger">Heat</span> meters on the hub track your reputation.<br><br>Stay clean for <strong>sponsor bonuses</strong> and fan rewards. Or slip into the <span class="tut-danger">Grey Zone</span> where the mafia waits with tempting offers.<br><br>Check <strong>Facilities</strong> to spend coins on training, scouting, and morale boosts.', '\u{2696}');
+          }, 400);
+        }, 300);
+      } else if (postZone.mafiaAccess && GS.matchNum > 1 && Math.random() < 0.7) {
         setTimeout(function() { goScreen('hub'); setTimeout(showMafiaOffer, 400); }, 300);
       } else {
         setTimeout(function() { goScreen('hub'); }, 300);
@@ -3012,6 +3060,86 @@ function saveCustomisation() {
 }
 
 // =============================================
+// TUTORIAL / ONBOARDING
+// =============================================
+var TUT_STEPS = [
+  {
+    icon: '\u{1F3CF}', title: 'Welcome',
+    body: 'You are a <strong>cricket team manager</strong> in the underground leagues of India.<br><br>Build your squad through <span class="tut-highlight">auctions</span>, compete in matches, climb the league tiers — and decide how far you will go to win.'
+  },
+  {
+    icon: '\u{1F4B0}', title: 'The Auction',
+    body: 'Every player card has <strong>batting, bowling, fielding</strong> and <strong>fitness</strong> stats.<br><br>Bid wisely from your <span class="tut-highlight">purse</span> — rival managers will compete for the same players. You need <strong>at least 3 players</strong> to play a match.'
+  },
+  {
+    icon: '\u{26A1}', title: 'Match Day',
+    body: 'Before each match, <strong>select your Playing XI</strong> and pick a <span class="tut-highlight">captain</span> (+8% stat boost).<br><br>Choose your <strong>strategy</strong> (Aggro / Balanced / Defense) and toggle tactics <strong>mid-match</strong>. Use your one-time <span class="tut-highlight">Boost</span> at the right moment.'
+  },
+  {
+    icon: '\u{2696}', title: 'Alignment',
+    body: 'Your <span class="tut-highlight">Alignment</span> ranges from <span class="tut-danger">-100 (Deep Corrupt)</span> to <span class="tut-highlight">+100 (Clean Hero)</span>.<br><br>Clean play earns <strong>fan loyalty</strong>, better sponsors, and streak bonuses. But the underworld offers shortcuts...'
+  },
+  {
+    icon: '\u{1F47E}', title: 'The Underworld',
+    body: 'In the <span class="tut-danger">Grey Zone</span>, the mafia will approach you with <strong>match fixes, umpire bribes, player taps</strong>.<br><br>Every favor creates a <span class="tut-danger">debt</span>. Miss payments and they seize your players. Get caught and face a <strong>tribunal</strong>.<br><br><em>The choice is yours.</em>'
+  },
+  {
+    icon: '\u{1F3C6}', title: 'Your Goal',
+    body: 'Climb from <strong>Gully Cricket</strong> to the <span class="tut-highlight">Champions League</span> across 4 tiers.<br><br>Win 57%+ matches to get <strong>promoted</strong>. Train players, manage finances, handle heat — and build your empire.<br><br><strong>Tap Auction to start building your squad!</strong>'
+  }
+];
+
+var tutStep = 0;
+
+function showTutorial() {
+  if (GS.tutorialDone) return;
+  tutStep = 0;
+  $('tut-skip-btn').style.display = '';
+  renderTutStep();
+  $('tut-overlay').classList.add('show');
+}
+
+function renderTutStep() {
+  var s = TUT_STEPS[tutStep];
+  $('tut-icon').textContent = s.icon;
+  $('tut-title').textContent = s.title;
+  $('tut-body').innerHTML = s.body;
+  var dotsHtml = '';
+  for (var i = 0; i < TUT_STEPS.length; i++) {
+    dotsHtml += '<div class="tut-dot' + (i === tutStep ? ' active' : i < tutStep ? ' done' : '') + '"></div>';
+  }
+  $('tut-steps').innerHTML = dotsHtml;
+  $('tut-next-btn').textContent = tutStep === TUT_STEPS.length - 1 ? 'Let\'s Go' : 'Next';
+}
+
+function nextTutStep() {
+  SFX.tap();
+  tutStep++;
+  if (tutStep >= TUT_STEPS.length) {
+    closeTutorial();
+    return;
+  }
+  renderTutStep();
+}
+
+function closeTutorial() {
+  GS.tutorialDone = true;
+  save();
+  $('tut-overlay').classList.remove('show');
+}
+
+function showContextTip(title, body, icon) {
+  $('tut-icon').textContent = icon || '\u{1F4A1}';
+  $('tut-title').textContent = title;
+  $('tut-body').innerHTML = body;
+  $('tut-steps').innerHTML = '';
+  $('tut-next-btn').textContent = 'Got It';
+  $('tut-skip-btn').style.display = 'none';
+  tutStep = TUT_STEPS.length;
+  $('tut-overlay').classList.add('show');
+}
+
+// =============================================
 // LOADING
 // =============================================
 function initLoading() {
@@ -3030,6 +3158,7 @@ function initLoading() {
         $('hub-screen').classList.add('active');
         requestAnimationFrame(function() { updateNavIndicator('hub'); });
         setTimeout(function() { var l = $('loading'); if (l) l.remove(); }, 800);
+        if (!GS.tutorialDone) setTimeout(showTutorial, 600);
       }, 500);
     }
   }, 80);
@@ -3094,6 +3223,8 @@ function bindEvents() {
       updateCardsScreen();
     });
   }
+  $('tut-next-btn').addEventListener('click', nextTutStep);
+  $('tut-skip-btn').addEventListener('click', closeTutorial);
   $('settings-btn').addEventListener('click', showCustomise);
   $('morale-boost-btn').addEventListener('click', function() {
     if (GS.coins < 150) { toast('Need 150 coins', 'error'); return; }
