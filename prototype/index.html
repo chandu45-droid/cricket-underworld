@@ -745,6 +745,9 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <div class="team-strength" id="opp-strength">STR: 72</div>
         </div>
       </div>
+      <div style="text-align:center;margin-bottom:8px">
+        <div class="text-xs text-slip" id="pm-rival-trait" style="font-style:italic"></div>
+      </div>
       <div id="pm-rival-info" style="display:flex;justify-content:center;gap:16px;margin-bottom:12px">
         <div class="text-xs text-slip">Relationship: <span id="pm-rel-label" class="fw-600">Neutral</span></div>
         <div class="text-xs text-slip">H2H: <span id="pm-h2h" class="fw-600">0-0</span></div>
@@ -978,11 +981,11 @@ var ALL_PLAYERS = [
 ];
 
 var RIVALS = [
-  {name:'The Shark',short:'S',alignment:-58,strength:72,color:'crimson'},
-  {name:'The Purist',short:'P',alignment:65,strength:68,color:'green'},
-  {name:'The Pragmatist',short:'R',alignment:10,strength:70,color:'blue'},
-  {name:'The Politician',short:'L',alignment:-20,strength:65,color:'crimson'},
-  {name:'The Coward',short:'C',alignment:5,strength:60,color:'blue'},
+  {name:'The Shark',short:'S',alignment:-58,strength:72,color:'crimson',personality:'shark',tendency:-0.7,bidMult:2.5,trait:'Aggressive — doubles down when cornered'},
+  {name:'The Purist',short:'P',alignment:65,strength:68,color:'green',personality:'purist',tendency:0.8,bidMult:1.5,trait:'Clean — will expose corruption'},
+  {name:'The Pragmatist',short:'R',alignment:10,strength:70,color:'blue',personality:'pragmatist',tendency:0.1,bidMult:2.0,trait:'Calculated — adapts to the situation'},
+  {name:'The Politician',short:'L',alignment:-20,strength:65,color:'crimson',personality:'politician',tendency:0.0,bidMult:1.8,trait:'Two-faced — plays both sides'},
+  {name:'The Coward',short:'C',alignment:5,strength:60,color:'blue',personality:'coward',tendency:-0.3,bidMult:1.3,trait:'Nervous — panics under pressure'},
 ];
 
 // =============================================
@@ -1192,6 +1195,59 @@ function getDebtUrgencyClass(d) {
   return 'text-slip';
 }
 
+function getRivalEvent(rival, wasFix, won) {
+  var rd = GS.rivalData[rival.name];
+  if (!rd) return null;
+  var p = rival.personality;
+  if (p === 'shark' && wasFix && rd.fixedAgainst > 1) {
+    GS.heat = Math.min(100, GS.heat + 3);
+    return { text: rival.name + ' is furious. "I know what you did. Watch your back." Heat +3.', cls: 'text-red' };
+  }
+  if (p === 'purist' && wasFix) {
+    GS.heat = Math.min(100, GS.heat + 8);
+    applyAlignShift(-2);
+    return { text: rival.name + ' reported suspicious activity to the board. Heat +8, Alignment -2.', cls: 'text-red' };
+  }
+  if (p === 'coward' && GS.heat >= 50 && rd.rel < -20) {
+    return { text: rival.name + ' is panicking — offering intel on other fixers to save themselves.', cls: 'text-amber' };
+  }
+  if (p === 'politician' && rd.rel > 10 && !wasFix && won) {
+    GS.blackMoney += 15;
+    return { text: rival.name + ' sends a "congratulations" gift. +15 B$. They want something later.', cls: 'text-amber' };
+  }
+  if (p === 'pragmatist' && !won && rd.lossesVs > rd.winsVs && Math.random() < 0.3) {
+    return { text: rival.name + ' studies your tactics closely. Their strength increases next time.', cls: 'text-slip' };
+  }
+  return null;
+}
+
+function driftRivalAlignments() {
+  for (var i = 0; i < RIVALS.length; i++) {
+    var r = RIVALS[i];
+    var drift = Math.round(r.tendency * 5 + (Math.random() * 4 - 2));
+    r.alignment = Math.max(-100, Math.min(100, r.alignment + drift));
+    r.color = r.alignment >= 30 ? 'green' : r.alignment <= -30 ? 'crimson' : 'blue';
+  }
+}
+
+function getSponsorEvent() {
+  if (GS.alignment < 50) return null;
+  var roll = Math.random();
+  if (roll < 0.3) return { type: 'charity', name: 'Charity Match', desc: 'Your sponsor invites you to an exhibition charity match.', reward: '+100 coins, +5 alignment, +3 fan loyalty', apply: function() { GS.coins += 100; applyAlignShift(5); GS.fanLoyalty = Math.min(100, GS.fanLoyalty + 3); } };
+  if (roll < 0.6) return { type: 'campaign', name: 'Brand Campaign', desc: 'Premium brand wants you as their face. Earn bonus coins for 3 matches.', reward: '+50 coins/match for 3 matches', apply: function() { GS.coins += 150; } };
+  if (roll < 0.85) return { type: 'media', name: 'Media Tour', desc: 'Your sponsor arranges a media tour to boost your public image.', reward: '+8 fan loyalty, +2 alignment', apply: function() { GS.fanLoyalty = Math.min(100, GS.fanLoyalty + 8); applyAlignShift(2); } };
+  return null;
+}
+
+function getAcademyCard() {
+  if (GS.alignment < 60) return null;
+  var avail = ALL_PLAYERS.filter(function(p) { return !GS.squad.some(function(s) { return s.id === p.id; }) && (p.rarity === 'common' || p.rarity === 'uncommon'); });
+  if (avail.length === 0) return null;
+  var card = JSON.parse(JSON.stringify(avail[Math.floor(Math.random() * avail.length)]));
+  card.loyalty = Math.max(card.loyalty, 70);
+  return card;
+}
+
 // =============================================
 // NAV INDICATOR
 // =============================================
@@ -1358,7 +1414,8 @@ function updateHub() {
     $('rival-name').textContent = r.name;
     $('rival-avatar').textContent = r.short;
     $('rival-avatar').className = 'avatar ' + r.color;
-    $('rival-align').textContent = 'Alignment: ' + (r.alignment >= 0 ? '+' : '') + r.alignment;
+    $('rival-align').textContent = r.trait;
+    $('rival-align').className = 'text-xs ' + (r.alignment >= 30 ? 'text-green' : r.alignment <= -30 ? 'text-red' : 'text-slip');
     $('rival-str').textContent = r.strength;
     $('match-sub').textContent = 'vs ' + r.name;
     var rd = GS.rivalData[r.name];
@@ -1527,11 +1584,14 @@ function auctionTick() {
 }
 
 function aiBid() {
-  var rival = RIVALS[Math.floor(Math.random() * 3)];
+  var rival = RIVALS[Math.floor(Math.random() * RIVALS.length)];
   var p = auction.pool[auction.idx];
-  var maxB = { common:200, uncommon:300, rare:450, epic:600, legendary:800 }[p.rarity] || 200;
+  var baseMax = { common:200, uncommon:300, rare:450, epic:600, legendary:800 }[p.rarity] || 200;
+  var maxB = Math.round(baseMax * rival.bidMult);
   var newB = auction.bid + auction.step;
   if (newB > maxB) return;
+  if (rival.personality === 'coward' && newB > baseMax * 0.8 && Math.random() < 0.5) return;
+  if (rival.personality === 'purist' && newB > baseMax * 1.2 && Math.random() < 0.3) return;
   auction.bid = newB; auction.bidder = rival.name;
   auction.timer = Math.min(auction.timer + 2, auction.maxTimer);
   addBidLog(rival.name, newB);
@@ -1726,6 +1786,7 @@ function startPreMatch() {
     $('pm-rel-label').className = 'fw-600 ' + prl.cls;
     $('pm-h2h').textContent = prd.winsVs + 'W - ' + prd.lossesVs + 'L';
   }
+  if ($('pm-rival-trait')) $('pm-rival-trait').textContent = rival.trait;
   var pitches = [{t:'SEAMING',d:'Pace bowlers get extra help'},{t:'TURNING',d:'Spinners dominate this track'},{t:'FLAT',d:'A batting paradise'},{t:'GREEN TOP',d:'Early movement, rewards discipline'}];
   var pitch = pitches[Math.floor(Math.random() * pitches.length)];
   $('pitch-type').textContent = pitch.t;
@@ -1945,6 +2006,7 @@ function endMatch() {
     heatEvent = 'Media rumours about your dealings. Sponsor confidence shaken.';
   }
   if (GS.heat > 0 && !wasFix) GS.heat = Math.max(0, GS.heat - 2);
+  var rivalEvent = getRivalEvent(match.opponent, wasFix, won);
   var debtWarnings = processDebts();
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
   if (cleanBonus > 0) rewardsHtml += '<div class="reward-row"><span>Clean Streak Bonus</span><span class="val" style="color:var(--green-bright)">+' + cleanBonus + ' (×' + GS.cleanStreak + ')</span></div>';
@@ -1965,9 +2027,41 @@ function endMatch() {
     '<div class="result-margin">' + (won ? 'Won by ' + (match.runs - match.oppRuns) + ' runs' : tied ? 'Match tied' : 'Lost by ' + (match.oppRuns - match.runs) + ' runs') + '</div>' +
     (wasFix ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0">Match was fixed — heat increased</div>' : '') +
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:8px">' + heatEvent + '</div>' : '') +
+    (rivalEvent ? '<div class="text-xs ' + rivalEvent.cls + '" style="text-align:center;margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:8px">' + rivalEvent.text + '</div>' : '') +
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-radius:8px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
+    '<div id="post-match-events" style="margin-top:12px"></div>' +
     '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:20px">Continue</div>';
+  var postEventsHtml = '';
+  var charityAmount = Math.round(coinR * 0.2);
+  if (won && charityAmount > 0) {
+    postEventsHtml += '<div class="glass accent-blue" style="padding:12px;margin-bottom:8px"><div class="flex items-center justify-between"><div><div class="font-d fw-600 text-sm">Donate to Charity</div><div class="text-xs text-slip">Give ' + charityAmount + ' coins for +5 align, +3 morale, +2 fans</div></div><div class="btn btn-outline text-xs" style="padding:6px 14px" id="charity-btn">Donate</div></div></div>';
+  }
+  var spEvent = won ? getSponsorEvent() : null;
+  if (spEvent) {
+    postEventsHtml += '<div class="glass accent-gold" style="padding:12px;margin-bottom:8px"><div class="font-d fw-600 text-sm text-gold">' + spEvent.name + '</div><div class="text-xs text-slip">' + spEvent.desc + '</div><div class="text-xs text-green" style="margin-top:4px">' + spEvent.reward + '</div><div class="btn btn-gold text-xs" style="padding:6px 14px;margin-top:8px" id="sponsor-event-btn">Accept</div></div>';
+  }
+  $('post-match-events').innerHTML = postEventsHtml;
+  if (won && charityAmount > 0) {
+    var charityBtn = $('charity-btn');
+    if (charityBtn) charityBtn.onclick = function() {
+      GS.coins -= charityAmount; applyAlignShift(5);
+      GS.morale = Math.min(100, GS.morale + 3);
+      GS.fanLoyalty = Math.min(100, GS.fanLoyalty + 2);
+      this.textContent = 'Donated!'; this.classList.add('disabled'); this.onclick = null;
+      updateCurrency(); save();
+      toast('Donated ' + charityAmount + ' coins! Alignment +5', 'success');
+    };
+  }
+  if (spEvent) {
+    var spBtn = $('sponsor-event-btn');
+    if (spBtn) spBtn.onclick = function() {
+      spEvent.apply();
+      this.textContent = 'Claimed!'; this.classList.add('disabled'); this.onclick = null;
+      updateCurrency(); save();
+      toast(spEvent.name + ' completed!', 'success');
+    };
+  }
   $('match-result').classList.add('show');
   $('match-continue-btn').onclick = function() {
     $('match-result').classList.remove('show');
@@ -2014,6 +2108,13 @@ function endSeason() {
   for (var rn in GS.rivalData) {
     GS.rivalData[rn].rel = Math.round(GS.rivalData[rn].rel * 0.8);
   }
+  driftRivalAlignments();
+  var academyCard = getAcademyCard();
+  var academyHtml = '';
+  if (academyCard) {
+    GS.squad.push(academyCard);
+    academyHtml = '<div class="reward-row"><span>Academy Graduate</span><span class="val" style="color:var(--green-bright)">' + academyCard.name + ' (Loyalty ' + academyCard.loyalty + ')</span></div>';
+  }
   save();
   $('match-result').innerHTML =
     '<div class="font-d fw-700 text-center" style="font-size:32px;text-transform:uppercase;letter-spacing:3px;margin-bottom:8px;' +
@@ -2022,7 +2123,7 @@ function endSeason() {
     '<div class="glass accent-gold"><div class="section-title sm">Season ' + GS.season + '<span class="accent-line"></span></div>' +
     '<div class="reward-row"><span>League</span><span class="val text-gold">' + (LEAGUE_NAMES[GS.league]) + '</span></div>' +
     '<div class="reward-row"><span>Season Bonus</span><span class="val positive">+' + bonus + ' coins</span></div>' +
-    fanVoteHtml +
+    fanVoteHtml + academyHtml +
     '<div class="reward-row"><span>Sponsor</span><span class="val">' + sp.name + '</span></div>' +
     '<div class="reward-row"><span>Auction Purse</span><span class="val positive">' + GS.auctionPurse + '</span></div></div>' +
     '<div class="btn btn-gold lg" id="season-continue-btn" style="margin-top:20px">Start Season ' + GS.season + '</div>';
