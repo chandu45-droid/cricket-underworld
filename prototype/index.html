@@ -978,6 +978,8 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         </div>
       </div>
 
+      <div class="field-restriction" id="field-restriction" style="text-align:center;margin-bottom:10px;padding:6px 12px;border-radius:var(--r-sm);font-family:var(--font-d);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;display:none"></div>
+
       <div class="match-phases">
         <div class="match-phase active" id="phase-pp"><div class="phase-name">Power</div><div class="phase-score" id="pp-score">-</div><div class="phase-bar"><div class="phase-fill" id="pp-fill" style="width:0%"></div></div></div>
         <div class="match-phase" id="phase-mid"><div class="phase-name">Middle</div><div class="phase-score" id="mid-score">-</div><div class="phase-bar"><div class="phase-fill" id="mid-fill" style="width:0%"></div></div></div>
@@ -1033,6 +1035,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
     <!-- LEAGUE -->
     <div class="screen" id="league-screen">
       <div class="section-title">League Table<span class="accent-line"></span></div>
+      <div class="btn btn-outline full mb-16" id="season-stats-btn" style="padding:10px">Season Stats & Leaderboard</div>
       <div class="glass">
         <div class="league-header-row">
           <span class="lh-pos">#</span>
@@ -1203,6 +1206,7 @@ var GS = {
   evidence: [], investigation: null, tribunalBonus: 0,
   captainId: null, selectedXI: [],
   teamName: 'Your Team', managerName: 'Manager', teamColor: 'gold', tutorialDone: false,
+  seasonStats: {},
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1222,6 +1226,7 @@ function load() {
       GS.evidence=d.evidence||[]; GS.investigation=d.investigation||null; GS.tribunalBonus=d.tribunalBonus||0;
       GS.captainId=d.captainId||null; GS.selectedXI=d.selectedXI||[];
       GS.teamName=d.teamName||'Your Team'; GS.managerName=d.managerName||'Manager'; GS.teamColor=d.teamColor||'gold'; GS.tutorialDone=d.tutorialDone||false;
+      GS.seasonStats=d.seasonStats||{};
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -2110,6 +2115,27 @@ function updateMomentum(runs, wkt, isYou) {
 
 function formMod(form) { return 0.6 + form * 0.008; }
 
+function updateFieldRestriction(phase) {
+  var el = $('field-restriction');
+  if (phase === 0) {
+    el.textContent = 'Powerplay — Max 2 fielders outside ring · Pace favored';
+    el.style.background = 'rgba(34,212,126,0.08)';
+    el.style.color = 'var(--green-bright)';
+    el.style.border = '1px solid rgba(34,212,126,0.15)';
+  } else if (phase === 1) {
+    el.textContent = 'Middle Overs — Max 5 fielders outside · Spin dominant';
+    el.style.background = 'rgba(59,130,246,0.06)';
+    el.style.color = 'var(--blue)';
+    el.style.border = '1px solid rgba(59,130,246,0.1)';
+  } else {
+    el.textContent = 'Death Overs — Max 5 fielders outside · Yorkers & pace';
+    el.style.background = 'rgba(240,200,80,0.06)';
+    el.style.color = 'var(--gold-bright)';
+    el.style.border = '1px solid rgba(240,200,80,0.1)';
+  }
+  el.style.display = 'block';
+}
+
 function buildPlayingXI(squad) {
   var order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
   var sorted = squad.slice().sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
@@ -2430,6 +2456,7 @@ function startMatch() {
   var phaseIds = ['pp','mid','death'];
   for (var i = 0; i < 3; i++) { $(phaseIds[i] + '-score').textContent = '-'; $(phaseIds[i] + '-fill').style.width = '0%'; $('phase-' + phaseIds[i]).className = 'match-phase' + (i === 0 ? ' active' : ''); }
   show('skip-btn');
+  updateFieldRestriction(0);
   goScreen('match');
   clearInterval(match.interval);
   match.interval = setInterval(simBall, 800);
@@ -2463,6 +2490,7 @@ function simBall() {
     $(phaseIds[match.phase] + '-score').textContent = match.phaseScores[match.phase].r + '/' + match.phaseScores[match.phase].w;
     match.phase = phase;
     $('phase-' + phaseIds[phase]).className = 'match-phase active';
+    updateFieldRestriction(phase);
     SFX.reveal();
   }
   match.phaseScores[phase].r += runs;
@@ -2651,6 +2679,7 @@ function switchInnings() {
   $('momentum-opp').style.width = '0%';
   var phaseIds = ['pp','mid','death'];
   for (var i = 0; i < 3; i++) { $(phaseIds[i] + '-score').textContent = '-'; $(phaseIds[i] + '-fill').style.width = '0%'; $('phase-' + phaseIds[i]).className = 'match-phase' + (i===0?' active':''); }
+  updateFieldRestriction(0);
   addMoment('runs', '<strong>Innings break.</strong> Target: ' + (match.target + 1));
   setTimeout(function() { match.interval = setInterval(simBall, 800); }, 1500);
 }
@@ -2762,6 +2791,7 @@ function endMatch() {
   var wasFirstMatch = GS.matchNum === 1;
   GS.matchNum++;
   generateMarketListings();
+  updateSeasonStats();
   for (var fi = 0; fi < GS.squad.length; fi++) {
     var inXI = match.yourXI.some(function(p){ return p.id === GS.squad[fi].id; });
     if (inXI) {
@@ -2884,7 +2914,7 @@ function endSeason() {
   } else if (relegated) {
     GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
   } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
-  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0;
+  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {};
   GS.morale = Math.min(100, GS.morale + 10);
   var basePurse = 2000 + idx * 500;
   var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
@@ -3206,6 +3236,78 @@ function saveCustomisation() {
 }
 
 // =============================================
+// SEASON STATS
+// =============================================
+function updateSeasonStats() {
+  var sc = match.scorecard;
+  if (!sc) return;
+  sc.you.batters.forEach(function(b) {
+    if (!GS.seasonStats[b.name]) GS.seasonStats[b.name] = {runs:0,balls:0,fours:0,sixes:0,wkts:0,bwlRuns:0,bwlBalls:0,matches:0};
+    var s = GS.seasonStats[b.name];
+    s.runs += b.runs; s.balls += b.balls; s.fours += b.fours; s.sixes += b.sixes;
+  });
+  sc.you.bowlers.forEach(function(b) {
+    if (!GS.seasonStats[b.name]) GS.seasonStats[b.name] = {runs:0,balls:0,fours:0,sixes:0,wkts:0,bwlRuns:0,bwlBalls:0,matches:0};
+    var s = GS.seasonStats[b.name];
+    s.wkts += b.wkts; s.bwlRuns += b.runs; s.bwlBalls += b.balls;
+  });
+  for (var name in GS.seasonStats) {
+    var found = sc.you.batters.some(function(b){return b.name===name;}) || sc.you.bowlers.some(function(b){return b.name===name;});
+    if (found) GS.seasonStats[name].matches++;
+  }
+}
+
+function showSeasonLeaderboard() {
+  SFX.tap();
+  var stats = GS.seasonStats;
+  var names = Object.keys(stats);
+  if (names.length === 0) {
+    $('scorecard-content').innerHTML = '<div class="font-d fw-700 text-center text-gold" style="font-size:20px;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px">Season Stats</div><div class="text-center text-slip">No matches played yet this season.</div><div class="btn btn-gold full mt-16" id="lb-close">Close</div>';
+    $('scorecard-overlay').classList.add('show');
+    setTimeout(function() { $('lb-close').onclick = function() { $('scorecard-overlay').classList.remove('show'); }; }, 50);
+    return;
+  }
+  var batters = names.map(function(n) { return {name:n, runs:stats[n].runs, balls:stats[n].balls, fours:stats[n].fours, sixes:stats[n].sixes, matches:stats[n].matches}; });
+  batters.sort(function(a,b) { return b.runs - a.runs; });
+  var bowlers = names.filter(function(n) { return stats[n].wkts > 0 || stats[n].bwlBalls > 0; }).map(function(n) {
+    var s = stats[n];
+    return {name:n, wkts:s.wkts, runs:s.bwlRuns, balls:s.bwlBalls, matches:s.matches};
+  });
+  bowlers.sort(function(a,b) { return b.wkts - a.wkts || (a.balls > 0 ? a.runs/a.balls : 99) - (b.balls > 0 ? b.runs/b.balls : 99); });
+  var html = '<div class="font-d fw-700 text-center text-gold" style="font-size:20px;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Season ' + GS.season + ' Stats</div>';
+  html += '<div class="text-center text-slip text-xs mb-16">' + (GS.matchNum - 1) + ' matches played</div>';
+  html += '<div class="sc-innings-title your">Top Batters</div>';
+  html += '<table class="sc-table"><tr><th>#</th><th>Player</th><th>R</th><th>B</th><th>4s</th><th>6s</th><th>SR</th></tr>';
+  batters.slice(0, 5).forEach(function(b, i) {
+    var sr = b.balls > 0 ? (b.runs / b.balls * 100).toFixed(0) : '0';
+    var hl = i === 0 ? ' class="sc-highlight"' : '';
+    html += '<tr><td>' + (i+1) + '</td><td' + hl + '>' + b.name + '</td><td' + hl + '>' + b.runs + '</td><td>' + b.balls + '</td><td>' + b.fours + '</td><td>' + b.sixes + '</td><td>' + sr + '</td></tr>';
+  });
+  html += '</table>';
+  if (bowlers.length > 0) {
+    html += '<div class="sc-innings-title opp">Top Bowlers</div>';
+    html += '<table class="sc-table"><tr><th>#</th><th>Player</th><th>W</th><th>O</th><th>R</th><th>Econ</th></tr>';
+    bowlers.slice(0, 5).forEach(function(b, i) {
+      var overs = Math.floor(b.balls / 6) + '.' + (b.balls % 6);
+      var econ = b.balls > 0 ? (b.runs / b.balls * 6).toFixed(1) : '0.0';
+      var hl = i === 0 ? ' class="sc-highlight"' : '';
+      html += '<tr><td>' + (i+1) + '</td><td' + hl + '>' + b.name + '</td><td' + hl + '>' + b.wkts + '</td><td>' + overs + '</td><td>' + b.runs + '</td><td>' + econ + '</td></tr>';
+    });
+    html += '</table>';
+  }
+  if (batters.length > 0) {
+    var mvp = batters[0];
+    var mvpScore = mvp.runs;
+    if (bowlers.length > 0 && bowlers[0].wkts * 30 > mvpScore) { mvp = bowlers[0]; mvpScore = mvp.wkts + ' wkts'; } else { mvpScore = mvp.runs + ' runs'; }
+    html += '<div style="text-align:center;margin-top:16px;padding:12px;background:rgba(240,200,80,0.06);border:1px solid rgba(240,200,80,0.15);border-radius:var(--r-sm)"><div class="text-xs text-slip" style="text-transform:uppercase;letter-spacing:1px">Season MVP</div><div class="font-d fw-700 text-gold" style="font-size:20px">' + mvp.name + '</div><div class="text-sm text-slip">' + mvpScore + '</div></div>';
+  }
+  html += '<div class="btn btn-gold full mt-16" id="lb-close">Close</div>';
+  $('scorecard-content').innerHTML = html;
+  $('scorecard-overlay').classList.add('show');
+  setTimeout(function() { $('lb-close').onclick = function() { $('scorecard-overlay').classList.remove('show'); }; }, 50);
+}
+
+// =============================================
 // TUTORIAL / ONBOARDING
 // =============================================
 var TUT_STEPS = [
@@ -3369,6 +3471,7 @@ function bindEvents() {
       updateCardsScreen();
     });
   }
+  $('season-stats-btn').addEventListener('click', showSeasonLeaderboard);
   $('hub-market-btn').addEventListener('click', showMarket);
   $('market-back-btn').addEventListener('click', function() { $('market-overlay').classList.remove('show'); });
   document.querySelectorAll('.market-tab').forEach(function(tab) {
