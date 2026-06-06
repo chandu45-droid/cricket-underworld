@@ -621,6 +621,20 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="mb-action">View Offer &#8594;</div>
       </div>
 
+      <div class="glass accent-red" id="investigation-panel" style="display:none">
+        <div class="flex items-center gap-10">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">&#9888;</div>
+          <div class="flex-1">
+            <div class="font-d fw-700 text-red text-sm" style="text-transform:uppercase;letter-spacing:1.5px">Under Investigation</div>
+            <div class="text-xs text-slip" id="investigation-info">5 matches until tribunal</div>
+          </div>
+          <div class="text-right">
+            <div class="font-d fw-700 text-red" id="evidence-count">0</div>
+            <div class="text-xs text-slip">Evidence</div>
+          </div>
+        </div>
+      </div>
+
       <div class="glass accent-red" id="debt-panel" style="display:none">
         <div class="section-title sm">Active Debts<span class="accent-line"></span></div>
         <div id="debt-list"></div>
@@ -920,6 +934,7 @@ var GS = {
   sponsor: { tier: 3, name: 'Local Brand', purseBonus: 0 },
   rivalData: {},
   debts: [], noAlignMatches: 0,
+  evidence: [], investigation: null, tribunalBonus: 0,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -936,6 +951,7 @@ function load() {
       GS.sponsor=d.sponsor||{tier:3,name:'Local Brand',purseBonus:0};
       GS.rivalData=d.rivalData||{};
       GS.debts=d.debts||[]; GS.noAlignMatches=d.noAlignMatches||0;
+      GS.evidence=d.evidence||[]; GS.investigation=d.investigation||null; GS.tribunalBonus=d.tribunalBonus||0;
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -1239,6 +1255,111 @@ function getSponsorEvent() {
   return null;
 }
 
+function loyaltyCheck() {
+  if (GS.squad.length === 0) return { success: true, report: false };
+  var avgLoyalty = 0, avgGreed = 0;
+  for (var i = 0; i < GS.squad.length; i++) { avgLoyalty += GS.squad[i].loyalty; avgGreed += GS.squad[i].greed; }
+  avgLoyalty /= GS.squad.length; avgGreed /= GS.squad.length;
+  var chance = 100 - (avgLoyalty * 0.8) + (avgGreed * 0.3);
+  var success = Math.random() * 100 < chance;
+  var report = !success && avgLoyalty > 70 && Math.random() < 0.1;
+  return { success: success, report: report, chance: Math.round(chance) };
+}
+
+function addEvidence(action) {
+  var chances = { matchfix: 0.50, umpire: 0.25, playertap: 0.20, injection: 0.15 };
+  var types = {
+    matchfix: { type: 'Communication Intercept', weight: 4 },
+    umpire: { type: 'Communication Intercept', weight: 4 },
+    playertap: { type: 'Financial Record', weight: 2 },
+    injection: { type: 'Financial Record', weight: 2 },
+  };
+  var ch = chances[action] || 0.10;
+  if (Math.random() < ch) {
+    var ev = types[action] || { type: 'Financial Record', weight: 2 };
+    GS.evidence.push({ type: ev.type, weight: ev.weight, source: action, match: GS.matchNum });
+    return ev.type;
+  }
+  var hiLoyalPlayers = GS.squad.filter(function(p) { return p.loyalty > 70; });
+  if (hiLoyalPlayers.length > 0 && Math.random() < 0.15) {
+    GS.evidence.push({ type: 'Witness Statement', weight: 3, source: 'witness', match: GS.matchNum });
+    return 'Witness Statement';
+  }
+  return null;
+}
+
+function checkInvestigation() {
+  if (GS.investigation) {
+    GS.investigation.matchesLeft--;
+    if (GS.investigation.matchesLeft <= 0) return 'tribunal';
+    return 'ongoing';
+  }
+  if (GS.heat >= 86) { startInvestigation(); return 'started'; }
+  if (GS.heat >= 71 && Math.random() < 0.4) { startInvestigation(); return 'started'; }
+  if (GS.heat >= 56 && Math.random() < 0.15) { startInvestigation(); return 'started'; }
+  return null;
+}
+
+function startInvestigation() {
+  GS.investigation = { matchesLeft: 5 };
+  GS.fanLoyalty = Math.max(0, GS.fanLoyalty - 15);
+}
+
+function resolveTribunal() {
+  var prosecution = GS.tribunalBonus;
+  for (var i = 0; i < GS.evidence.length; i++) prosecution += GS.evidence[i].weight;
+  var defense = 5;
+  if (GS.alignment > 50) defense += 5;
+  else if (GS.alignment > 30) defense += 3;
+  else if (GS.alignment > 0) defense += 1;
+  else if (GS.alignment < -30) defense -= 3;
+  var gap = prosecution - defense;
+  var verdict;
+  if (gap < 0) {
+    verdict = { name: 'CLEARED', desc: 'Not guilty! Reputation restored.', cls: 'text-green' };
+    GS.heat = Math.max(0, GS.heat - 20); GS.fanLoyalty = Math.min(100, GS.fanLoyalty + 10);
+  } else if (gap <= 5) {
+    verdict = { name: 'WARNING', desc: 'Insufficient evidence. But you\'re on notice.', cls: 'text-amber' };
+    GS.heat = Math.max(0, GS.heat - 10); GS.tribunalBonus += 3;
+  } else if (gap <= 10) {
+    verdict = { name: 'FINE', desc: 'Fined 300 coins for misconduct.', cls: 'text-amber' };
+    GS.coins = Math.max(0, GS.coins - 300); GS.heat = Math.max(0, GS.heat - 5);
+  } else if (gap <= 15) {
+    verdict = { name: 'POINTS DEDUCTION', desc: 'Docked 4 league points. Fan loyalty crushed.', cls: 'text-red' };
+    GS.wins = Math.max(0, GS.wins - 1); GS.fanLoyalty = Math.max(0, GS.fanLoyalty - 10);
+  } else if (gap <= 20) {
+    verdict = { name: 'MATCH BAN', desc: 'Banned for 2 matches. Auto-loss applied.', cls: 'text-red' };
+    GS.losses += 2; GS.matchNum = Math.min(15, GS.matchNum + 2); applyAlignShift(5);
+  } else if (gap <= 30) {
+    verdict = { name: 'CARD SEIZURE', desc: 'Your best player has been permanently seized.', cls: 'text-red' };
+    if (GS.squad.length > 0) {
+      var best = GS.squad.reduce(function(a, b) { return getOVR(a) > getOVR(b) ? a : b; });
+      verdict.desc += ' ' + best.name + ' taken.';
+      GS.squad = GS.squad.filter(function(p) { return p.id !== best.id; });
+    }
+    GS.losses += 1; GS.matchNum = Math.min(15, GS.matchNum + 1);
+  } else {
+    verdict = { name: 'SEASON SUSPENSION', desc: 'Banned for the rest of the season. -20% purse next season.', cls: 'text-red' };
+    GS.auctionPurse = Math.round(GS.auctionPurse * 0.8);
+    for (var di = 0; di < GS.debts.length; di++) GS.debts[di].principal = Math.round(GS.debts[di].principal * 1.5);
+    GS.matchNum = 15;
+  }
+  verdict.prosecution = prosecution;
+  verdict.defense = defense;
+  verdict.gap = gap;
+  GS.evidence = [];
+  GS.investigation = null;
+  return verdict;
+}
+
+function driftPlayerLoyalty() {
+  for (var i = 0; i < GS.squad.length; i++) {
+    var p = GS.squad[i];
+    if (GS.alignment > 30) p.loyalty = Math.min(99, p.loyalty + 2);
+    else if (GS.alignment < -30) p.loyalty = Math.max(5, p.loyalty - 3);
+  }
+}
+
 function getAcademyCard() {
   if (GS.alignment < 60) return null;
   var avail = ALL_PLAYERS.filter(function(p) { return !GS.squad.some(function(s) { return s.id === p.id; }) && (p.rarity === 'common' || p.rarity === 'uncommon'); });
@@ -1428,6 +1549,11 @@ function updateHub() {
       $('rival-fixes').style.color = rd.fixedAgainst > 0 ? 'var(--blood)' : 'var(--slip)';
     }
   } else { hide('hub-next-rival'); }
+  if (GS.investigation) {
+    show('investigation-panel');
+    $('investigation-info').textContent = GS.investigation.matchesLeft + ' matches until tribunal · No new favors allowed';
+    $('evidence-count').textContent = GS.evidence.length;
+  } else { hide('investigation-panel'); }
   if (GS.debts.length > 0) {
     show('debt-panel');
     var dHtml = '';
@@ -1444,7 +1570,7 @@ function updateHub() {
     $('debt-list').innerHTML = dHtml;
   } else { hide('debt-panel'); }
   var hubZone = getAlignmentZone(GS.alignment);
-  if (GS.matchNum > 2 && hubZone.mafiaAccess) {
+  if (GS.matchNum > 2 && hubZone.mafiaAccess && !GS.investigation) {
     show('mafia-banner');
     var msgs = ['"I have information about your next opponent..."', '"Need a small favor? It will cost you..."', '"The umpire is... flexible. Interested?"'];
     $('mafia-msg').textContent = GS.mafiaBonus ? '"Fix is set for your next match. Good luck."' : msgs[Math.floor(Math.random() * msgs.length)];
@@ -2006,6 +2132,9 @@ function endMatch() {
     heatEvent = 'Media rumours about your dealings. Sponsor confidence shaken.';
   }
   if (GS.heat > 0 && !wasFix) GS.heat = Math.max(0, GS.heat - 2);
+  var invStatus = checkInvestigation();
+  var tribunalResult = null;
+  if (invStatus === 'tribunal') tribunalResult = resolveTribunal();
   var rivalEvent = getRivalEvent(match.opponent, wasFix, won);
   var debtWarnings = processDebts();
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
@@ -2027,6 +2156,9 @@ function endMatch() {
     '<div class="result-margin">' + (won ? 'Won by ' + (match.runs - match.oppRuns) + ' runs' : tied ? 'Match tied' : 'Lost by ' + (match.oppRuns - match.runs) + ' runs') + '</div>' +
     (wasFix ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0">Match was fixed — heat increased</div>' : '') +
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:8px">' + heatEvent + '</div>' : '') +
+    (invStatus === 'started' ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:10px;border:1px solid rgba(220,38,38,0.3);border-radius:8px;background:rgba(220,38,38,0.05)"><strong>FORMAL INVESTIGATION OPENED</strong><br>The board is reviewing your conduct. Tribunal in 5 matches. No favors allowed.</div>' : '') +
+    (invStatus === 'ongoing' ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:8px">Investigation ongoing — ' + (GS.investigation ? GS.investigation.matchesLeft : 0) + ' matches until tribunal</div>' : '') +
+    (tribunalResult ? '<div style="margin:8px 0;padding:12px;border:2px solid ' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.4)' : 'rgba(220,38,38,0.4)') + ';border-radius:12px;background:' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.05)' : 'rgba(220,38,38,0.05)') + ';text-align:center"><div class="font-d fw-700 ' + tribunalResult.cls + '" style="font-size:20px;text-transform:uppercase;letter-spacing:2px">' + tribunalResult.name + '</div><div class="text-xs text-slip" style="margin:4px 0">Prosecution: ' + tribunalResult.prosecution + ' · Defense: ' + tribunalResult.defense + '</div><div class="text-xs" style="margin-top:4px">' + tribunalResult.desc + '</div></div>' : '') +
     (rivalEvent ? '<div class="text-xs ' + rivalEvent.cls + '" style="text-align:center;margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:8px">' + rivalEvent.text + '</div>' : '') +
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-radius:8px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
@@ -2109,6 +2241,7 @@ function endSeason() {
     GS.rivalData[rn].rel = Math.round(GS.rivalData[rn].rel * 0.8);
   }
   driftRivalAlignments();
+  driftPlayerLoyalty();
   var academyCard = getAcademyCard();
   var academyHtml = '';
   if (academyCard) {
@@ -2184,6 +2317,7 @@ function openPack(type) {
 function showMafiaOffer() {
   SFX.tap();
   if (GS.debts.length >= 5) { toast('Max debts reached — pay up first', 'error'); return; }
+  if (GS.investigation) { toast('Under investigation — no favors allowed', 'error'); return; }
   var zone = getAlignmentZone(GS.alignment);
   var priceMod = zone.tier <= 2 ? 1.5 : zone.tier === 3 ? 1.0 : zone.tier === 4 ? 0.85 : 0.7;
   var deadlineMod = zone.tier <= 2 ? 1 : zone.tier >= 5 ? -1 : 0;
@@ -2213,14 +2347,25 @@ function showMafiaOffer() {
     GS.blackMoney -= offer.cost;
     GS.heat = Math.min(100, GS.heat + offer.heat);
     applyAlignShift(offer.align);
+    var ev = addEvidence(offer.bonus.type);
+    var lc = loyaltyCheck();
     if (offer.bonus.type === 'injection') {
       GS.coins += 500;
-    } else {
+    } else if (lc.success) {
       GS.mafiaBonus = offer.bonus;
     }
     GS.debts.push({ source: offer.name, principal: offer.debt, matchesLeft: offer.deadline, stage: 0, heldPlayer: null });
     updateCurrency(); $('mafia-overlay').classList.remove('show');
-    toast(offer.bonus.type === 'injection' ? '+500 coins! Debt: ' + offer.debt + ' B$' : 'Fix active: ' + offer.name + '. Debt: ' + offer.debt + ' B$', 'error');
+    var msg = '';
+    if (!lc.success && offer.bonus.type !== 'injection') {
+      msg = 'Players refused the fix! (' + lc.chance + '% success rate)';
+      if (lc.report) { GS.heat = Math.min(100, GS.heat + 25); msg += ' A player REPORTED you! +25 heat!'; }
+      toast(msg, 'error');
+    } else {
+      msg = offer.bonus.type === 'injection' ? '+500 coins! Debt: ' + offer.debt + ' B$' : 'Fix active: ' + offer.name + ' (' + lc.chance + '% success)';
+      toast(msg, 'error');
+    }
+    if (ev) toast('Evidence generated: ' + ev, 'error');
     hide('mafia-banner'); save(); updateHub();
   };
   $('decline-mafia-btn').onclick = function() {
