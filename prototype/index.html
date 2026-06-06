@@ -1699,6 +1699,14 @@ function endMatch() {
   GS.morale = Math.max(20, Math.min(100, GS.morale + (won ? 5 : -3)));
   GS.mafiaBonus = null;
   GS.matchNum++;
+  for (var fi = 0; fi < GS.squad.length; fi++) {
+    var inXI = match.yourXI.some(function(p){ return p.id === GS.squad[fi].id; });
+    if (inXI) {
+      GS.squad[fi].form = Math.max(10, Math.min(99, GS.squad[fi].form + (won ? 4 : -3) + Math.floor(Math.random()*5) - 2));
+    } else {
+      GS.squad[fi].form = Math.max(10, Math.min(99, GS.squad[fi].form - 1));
+    }
+  }
   var heatEvent = '';
   if (GS.heat >= 90) {
     var fine = Math.min(GS.coins, Math.round(GS.coins * 0.25));
