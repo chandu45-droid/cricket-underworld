@@ -36,6 +36,7 @@ A **cricket auction + card strategy** mobile game for the Indian market. Players
 | **player-experience** | Any UI flow, onboarding change, session design, or tutorial |
 | **market-scout** | Before major feature decisions — ground them in competitive reality |
 | **balance-tester** | Last gate before committing any design — stress-test for exploits and fairness |
+| **player-advocate** | Reads actual code + tests to find missing features, broken flows, untested paths. Cross-references all agents. The "first real player" |
 
 **Skill:** `design-review` — runs a design through all 5 review agents in parallel.
 
