@@ -409,6 +409,20 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .match-moment .moment-icon.six{background:rgba(240,200,80,0.1);color:var(--gold-bright);border:1px solid rgba(240,200,80,0.1)}
 .match-moment .moment-text{font-size:13px;color:var(--slip);line-height:1.5;align-self:center}
 .match-moment .moment-text strong{color:var(--white);font-weight:600}
+.match-moment.compact{padding:5px 0}
+.match-moment.compact .moment-text{color:var(--white-40);font-size:12px}
+.match-moment .moment-icon.dot{background:rgba(136,150,176,0.05);color:var(--slip);border:1px solid rgba(136,150,176,0.06);font-size:14px;line-height:30px}
+.match-moment .moment-icon.single{background:rgba(34,212,126,0.05);color:rgba(34,212,126,0.6);border:1px solid rgba(34,212,126,0.08)}
+.match-moment .moment-icon.over-sum{background:rgba(59,130,246,0.08);color:var(--blue);border:1px solid rgba(59,130,246,0.12);font-size:9px;letter-spacing:0.5px}
+.match-moment .moment-icon.milestone{background:rgba(240,200,80,0.10);color:var(--gold-bright);border:1px solid rgba(240,200,80,0.15);font-size:9px}
+.batter-bowler-strip{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;margin-bottom:12px;background:var(--glass-bg);border:var(--glass-border);border-radius:var(--r-sm);box-shadow:var(--glass-shadow)}
+.bbs-player{display:flex;align-items:center;gap:8px}
+.bbs-tag{font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:4px;text-transform:uppercase}
+.bbs-tag.bat{background:rgba(34,212,126,0.12);color:var(--green-bright);border:1px solid rgba(34,212,126,0.15)}
+.bbs-tag.bwl{background:rgba(220,38,38,0.10);color:var(--blood);border:1px solid rgba(220,38,38,0.12)}
+.bbs-name{font-family:var(--font-d);font-size:15px;font-weight:600;letter-spacing:0.5px}
+.bbs-stat{font-size:11px;color:var(--slip);margin-top:1px}
+.bbs-vs{font-family:var(--font-d);font-size:11px;color:var(--white-20);letter-spacing:2px;text-transform:uppercase}
 
 .match-result-overlay{position:fixed;inset:0;z-index:200;background:rgba(6,8,16,0.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.6s}
 .match-result-overlay.show{opacity:1;pointer-events:auto}
@@ -822,7 +836,12 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="team-label opp">OPP</div>
       </div>
 
-      <div class="glass"><div class="section-title sm">Key Moments<span class="accent-line"></span></div><div id="match-moments" class="match-moments"></div></div>
+      <div class="batter-bowler-strip" id="bb-strip">
+        <div class="bbs-player"><div class="bbs-tag bat">BAT</div><div><div class="bbs-name" id="bbs-batter">-</div><div class="bbs-stat" id="bbs-bat-stat">-</div></div></div>
+        <div class="bbs-vs">vs</div>
+        <div class="bbs-player"><div><div class="bbs-name" id="bbs-bowler">-</div><div class="bbs-stat" id="bbs-bwl-stat">-</div></div><div class="bbs-tag bwl">BWL</div></div>
+      </div>
+      <div class="glass"><div class="section-title sm">Commentary<span class="accent-line"></span></div><div id="match-moments" class="match-moments"></div></div>
       <div class="btn btn-outline full mt-12" id="skip-btn">Skip to Result</div>
     </div>
 
@@ -923,7 +942,7 @@ window.onerror = function(msg, src, line) {
 // =============================================
 var SAVE_KEY = 'cu_save_v3';
 var GS = {
-  coins: 2000, gems: 50, blackMoney: 0,
+  coins: 2000, gems: 50, blackMoney: 30,
   alignment: 0, heat: 0, fans: 50,
   season: 1, matchNum: 1, wins: 0, losses: 0,
   squad: [], maxSquad: 15,
@@ -1099,7 +1118,7 @@ function getOVR(p) {
 function getStatClass(v) { return v >= 70 ? 'high' : v >= 45 ? 'mid' : 'low'; }
 function getAlignmentZone(a) {
   if (a >= 71) return {name:'Clean Hero',tier:1,coinMult:1.25,mafiaAccess:false,bmRate:0};
-  if (a >= 31) return {name:'Clean',tier:2,coinMult:1.10,mafiaAccess:false,bmRate:0};
+  if (a >= 45) return {name:'Clean',tier:2,coinMult:1.10,mafiaAccess:false,bmRate:0};
   if (a >= -30) return {name:'Grey Zone',tier:3,coinMult:1.0,mafiaAccess:true,bmRate:10};
   if (a >= -70) return {name:'Corrupt',tier:4,coinMult:0.90,mafiaAccess:true,bmRate:25};
   return {name:'Deep Corrupt',tier:5,coinMult:0.75,mafiaAccess:true,bmRate:50};
@@ -1570,7 +1589,7 @@ function updateHub() {
     $('debt-list').innerHTML = dHtml;
   } else { hide('debt-panel'); }
   var hubZone = getAlignmentZone(GS.alignment);
-  if (GS.matchNum > 2 && hubZone.mafiaAccess && !GS.investigation) {
+  if (GS.matchNum > 1 && hubZone.mafiaAccess && !GS.investigation) {
     show('mafia-banner');
     var msgs = ['"I have information about your next opponent..."', '"Need a small favor? It will cost you..."', '"The umpire is... flexible. Interested?"'];
     $('mafia-msg').textContent = GS.mafiaBonus ? '"Fix is set for your next match. Good luck."' : msgs[Math.floor(Math.random() * msgs.length)];
@@ -1943,6 +1962,8 @@ function startMatch() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
+  match.overRuns = 0;
+  updateBBStrip(match.curBatter, match.curBowler);
   $('innings-label').textContent = '1st Innings';
   $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : 'Your Team';
@@ -1996,9 +2017,30 @@ function simBall() {
   $(phaseIds[phase] + '-fill').style.width = pPct + '%';
   $(phaseIds[phase] + '-score').textContent = match.phaseScores[phase].r + '/' + match.phaseScores[phase].w;
   var batter = match.curBatter, bowler = match.curBowler;
-  if (runs === 6) { addMoment('six', 'SIX! ' + batter.name + ' smashes it!'); SFX.six(); }
-  else if (runs === 4) { addMoment('runs', 'FOUR! ' + batter.name + ' finds the gap.'); }
-  else if (wkt) { addMoment('wicket', batter.name + ' out! ' + bowler.name + ' strikes. ' + cWkts + ' down.'); SFX.wicket(); }
+  if (ballInOver === 0) match.overRuns = 0;
+  match.overRuns += runs;
+  var commText = getCommentary(outcome, batter, bowler, phase, match.innings, match.target, cRuns, match.ball, cWkts, match.momentum);
+  if (runs === 6) { addMoment('six', commText); SFX.six(); }
+  else if (runs === 4) { addMoment('runs', commText); }
+  else if (wkt) { addMoment('wicket', commText); SFX.wicket(); }
+  else if (runs >= 2) { addMoment('single', commText, runs.toString()); }
+  else if (runs === 1) { addMoment('single', commText, '1'); }
+  else { addMoment('dot', commText); }
+  updateBBStrip(batter, bowler);
+  var prevRuns = cRuns - runs;
+  var teamBat = match.batting === 'you' ? 'Your Team' : match.opponent.name;
+  if (prevRuns < 50 && cRuns >= 50) addMoment('milestone', 'FIFTY UP for ' + teamBat + '!', '50');
+  if (prevRuns < 100 && cRuns >= 100) addMoment('milestone', teamBat + ' reach 100!', '100');
+  if (prevRuns < 150 && cRuns >= 150) addMoment('milestone', '150 UP for ' + teamBat + '!', '150');
+  if (ballInOver === 5) {
+    var ov = over + 1, rr = (cRuns / ov).toFixed(1);
+    var overSum = match.overRuns === 0 ? 'MAIDEN! End of over ' + ov + '. ' + cRuns + '/' + cWkts : 'End of over ' + ov + '. ' + cRuns + '/' + cWkts + ' (' + match.overRuns + ' off the over). RR: ' + rr;
+    if (match.innings === 2 && match.target > 0) {
+      var n = match.target + 1 - cRuns, bl = 120 - match.ball;
+      if (n > 0 && bl > 0) overSum += ' | Need ' + n + ' off ' + bl;
+    }
+    addMoment('over-sum', overSum, 'OV');
+  }
   if (match.innings === 2) {
     if (match.batting === 'you' && match.runs > match.target) { endMatch(); return; }
     if (match.batting === 'opp' && match.oppRuns > match.target) { endMatch(); return; }
@@ -2008,14 +2050,57 @@ function simBall() {
   }
 }
 
-function addMoment(type, text) {
+function addMoment(type, text, iconLabel) {
   var el = document.createElement('div');
-  el.className = 'match-moment';
-  var icon = type === 'wicket' ? 'W' : type === 'six' ? '6' : '4';
+  var isCompact = type === 'dot' || type === 'single';
+  el.className = 'match-moment' + (isCompact ? ' compact' : '');
+  var defaults = {wicket:'W',six:'6',runs:'4',dot:'·',single:'1','over-sum':'OV',milestone:'★'};
+  var icon = iconLabel || defaults[type] || '·';
   el.innerHTML = '<div class="moment-icon ' + type + '">' + icon + '</div><div class="moment-text">' + text + '</div>';
   var container = $('match-moments');
   container.prepend(el);
-  while (container.children.length > 8) container.removeChild(container.lastChild);
+  while (container.children.length > 10) container.removeChild(container.lastChild);
+}
+
+var COMM = {
+  dot: {gen:['{bo} bowls, {ba} defends.','{ba} plays and misses outside off.','Tight line from {bo}. Dot ball.','{bo} beats the bat. Nothing doing.','{ba} lets it go. Good discipline.','Defended back to {bo}. No run.','{bo} on target. {ba} blocks.'],pp:['{bo} fires it in. {ba} digs it out.','Sharp delivery in the powerplay! Dot.'],death:['Yorker from {bo}! {ba} digs it out.','{bo} nails the blockhole. Excellent.'],chase:['{ba} can\'t find the gap. Pressure building.','Dot ball. Required rate climbing.']},
+  s1: {gen:['{ba} works it for one.','Quick single by {ba}.','{ba} nudges to leg. One run.','{ba} tucks it off the pads. Single.','{ba} rotates the strike. Smart cricket.']},
+  s2: {gen:['{ba} finds the gap. Two runs.','Good placement by {ba}, back for two.','{ba} drives and pushes for a double.','Well run! {ba} gets two.']},
+  s3: {gen:['{ba} pushes hard — three runs!','Misfield! {ba} takes advantage, three.','Great running between the wickets. Three!']},
+  four: {gen:['FOUR! {ba} cracks it through the gap!','FOUR! Short from {bo}, {ba} pulls it away!','FOUR! Beautiful timing from {ba}.','BOUNDARY! {ba} pierces the field.','FOUR! {bo} errs in line, punished by {ba}!','FOUR! {ba} lofts it over the infield!','FOUR! Exquisite cover drive from {ba}.'],pp:['FOUR! {ba} drives through covers! Powerplay hitting.','FOUR! {ba} goes over the top in the powerplay!'],death:['FOUR! {bo} misses the yorker! {ba} cashes in.','FOUR! {ba} slams it to the fence in the death!','FOUR! Full toss from {bo}, dispatched by {ba}!']},
+  six: {gen:['SIX! {ba} launches it into the stands!','MASSIVE! {ba} clears the rope against {bo}!','SIX! Clean hit from {ba}. Maximum!','INTO THE CROWD! {ba} goes downtown!','SIX! {ba} picks the length and sends it sailing!','SIX! That has gone miles! {ba} in beast mode.'],death:['SIX! {ba} clears the boundary in the death!','SIX! {ba} takes on {bo} — game changer!']},
+  wkt: {gen:['OUT! {bo} gets {ba}! {w} down.','WICKET! {ba} departs. {bo} strikes.','Gone! {ba} walks back. {bo} celebrates.','{bo} breaks through! {ba} is out. {w} down.','Timber! {bo} knocks over {ba}\'s stumps!'],collapse:['Another one falls! {ba} out to {bo}. {w} down!','The collapse deepens! {ba} gone. {w} wickets down.']}
+};
+
+function getCommentary(outcome, batter, bowler, phase, innings, target, cRuns, ball, cWkts, momentum) {
+  var ba = batter.name, bo = bowler.name;
+  var pk = phase === 0 ? 'pp' : phase === 2 ? 'death' : null;
+  var isChase = innings === 2 && target > 0;
+  var pool;
+  if (outcome.wicket) {
+    pool = (cWkts >= 3 && momentum < 35 && COMM.wkt.collapse) ? COMM.wkt.collapse : COMM.wkt.gen;
+  } else if (outcome.runs === 6) {
+    pool = (pk === 'death' && COMM.six.death) ? COMM.six.death : COMM.six.gen;
+  } else if (outcome.runs === 4) {
+    pool = (pk && COMM.four[pk]) ? COMM.four[pk] : COMM.four.gen;
+  } else if (outcome.runs === 3) { pool = COMM.s3.gen;
+  } else if (outcome.runs === 2) { pool = COMM.s2.gen;
+  } else if (outcome.runs === 1) { pool = COMM.s1.gen;
+  } else {
+    if (isChase && (target + 1 - cRuns) > (120 - ball) * 1.5 && COMM.dot.chase) pool = COMM.dot.chase;
+    else if (pk && COMM.dot[pk]) pool = COMM.dot[pk];
+    else pool = COMM.dot.gen;
+  }
+  var text = pool[Math.floor(Math.random() * pool.length)];
+  text = text.replace(/\{ba\}/g, ba).replace(/\{bo\}/g, bo).replace(/\{w\}/g, cWkts);
+  return text;
+}
+
+function updateBBStrip(batter, bowler) {
+  $('bbs-batter').textContent = batter.name;
+  $('bbs-bat-stat').textContent = 'BAT ' + batter.bat + ' · Form ' + batter.form;
+  $('bbs-bowler').textContent = bowler.name;
+  $('bbs-bwl-stat').textContent = 'BWL ' + bowler.bwl + ' · Form ' + bowler.form;
 }
 
 function switchInnings() {
@@ -2030,6 +2115,8 @@ function switchInnings() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
+  match.overRuns = 0;
+  updateBBStrip(match.curBatter, match.curBowler);
   $('innings-label').textContent = '2nd Innings · Target: ' + (match.target + 1);
   $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : 'Your Team';
@@ -2202,7 +2289,7 @@ function endMatch() {
     } else {
       save();
       var postZone = getAlignmentZone(GS.alignment);
-      if (postZone.mafiaAccess && GS.matchNum > 2 && Math.random() < 0.5) {
+      if (postZone.mafiaAccess && GS.matchNum > 1 && Math.random() < 0.7) {
         setTimeout(function() { goScreen('hub'); setTimeout(showMafiaOffer, 400); }, 300);
       } else {
         setTimeout(function() { goScreen('hub'); }, 300);
