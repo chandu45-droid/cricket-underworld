@@ -423,6 +423,19 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .bbs-name{font-family:var(--font-d);font-size:15px;font-weight:600;letter-spacing:0.5px}
 .bbs-stat{font-size:11px;color:var(--slip);margin-top:1px}
 .bbs-vs{font-family:var(--font-d);font-size:11px;color:var(--white-20);letter-spacing:2px;text-transform:uppercase}
+.match-tactics{display:flex;gap:6px;margin-bottom:12px;align-items:center}
+.tactic-btn{flex:1;text-align:center;padding:8px 4px;font-family:var(--font-d);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:var(--r-sm);border:1px solid var(--border);color:var(--slip);cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.02)}
+.tactic-btn.active{border-color:rgba(34,212,126,0.4);color:var(--green-bright);background:rgba(34,212,126,0.08);box-shadow:0 0 12px rgba(34,212,126,0.1)}
+.tactic-btn:active{transform:scale(0.95)}
+.tactic-boost{padding:8px 14px;font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:var(--r-sm);border:1px solid rgba(240,200,80,0.3);color:var(--gold-bright);cursor:pointer;background:rgba(240,200,80,0.08);transition:all 0.2s;white-space:nowrap}
+.tactic-boost.used{opacity:0.3;pointer-events:none;border-color:var(--border);color:var(--slip)}
+.tactic-boost:active{transform:scale(0.95)}
+.tactic-boost.active-boost{animation:boostPulse 0.6s ease-in-out infinite;border-color:var(--gold-bright);box-shadow:0 0 16px rgba(240,200,80,0.2)}
+@keyframes boostPulse{0%,100%{box-shadow:0 0 8px rgba(240,200,80,0.15)}50%{box-shadow:0 0 20px rgba(240,200,80,0.35)}}
+.match-hook{text-align:center;padding:12px 16px;margin:8px 0;border-radius:var(--r-sm);font-size:13px;line-height:1.5;font-style:italic}
+.match-hook.taunt{color:var(--blood);border:1px solid rgba(220,38,38,0.15);background:rgba(220,38,38,0.04)}
+.match-hook.streak{color:var(--gold-bright);border:1px solid rgba(240,200,80,0.15);background:rgba(240,200,80,0.04)}
+.match-hook.pressure{color:var(--amber);border:1px solid rgba(224,120,0,0.15);background:rgba(224,120,0,0.04)}
 
 .match-result-overlay{position:fixed;inset:0;z-index:200;background:rgba(6,8,16,0.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.6s}
 .match-result-overlay.show{opacity:1;pointer-events:auto}
@@ -840,6 +853,12 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="bbs-player"><div class="bbs-tag bat">BAT</div><div><div class="bbs-name" id="bbs-batter">-</div><div class="bbs-stat" id="bbs-bat-stat">-</div></div></div>
         <div class="bbs-vs">vs</div>
         <div class="bbs-player"><div><div class="bbs-name" id="bbs-bowler">-</div><div class="bbs-stat" id="bbs-bwl-stat">-</div></div><div class="bbs-tag bwl">BWL</div></div>
+      </div>
+      <div class="match-tactics" id="match-tactics">
+        <div class="tactic-btn" data-strat="aggressive" id="tac-aggro">AGGRO</div>
+        <div class="tactic-btn active" data-strat="balanced" id="tac-balanced">BALANCED</div>
+        <div class="tactic-btn" data-strat="defensive" id="tac-defense">DEFENSE</div>
+        <div class="tactic-boost" id="boost-btn">BOOST</div>
       </div>
       <div class="glass"><div class="section-title sm">Commentary<span class="accent-line"></span></div><div id="match-moments" class="match-moments"></div></div>
       <div class="btn btn-outline full mt-12" id="skip-btn">Skip to Result</div>
@@ -1882,6 +1901,8 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
       else bwlStr *= 0.50;
     }
   }
+  if (match.boostBalls > 0 && isYourBatting) { batStr *= 1.20; match.boostBalls--; }
+  if (match.boostBalls > 0 && !isYourBatting) { bwlStr *= 1.20; match.boostBalls--; }
   if (bwlStr < 1) bwlStr = 1;
   var ratio = Math.max(0.4, Math.min(2.5, batStr / bwlStr));
   if (innings === 2 && target > 0) {
@@ -1962,7 +1983,10 @@ function startMatch() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
-  match.overRuns = 0;
+  match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0;
+  $('boost-btn').classList.remove('used', 'active-boost');
+  $('tac-aggro').classList.remove('active'); $('tac-defense').classList.remove('active');
+  $('tac-balanced').classList.add('active');
   updateBBStrip(match.curBatter, match.curBowler);
   $('innings-label').textContent = '1st Innings';
   $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
@@ -2094,6 +2118,24 @@ function getCommentary(outcome, batter, bowler, phase, innings, target, cRuns, b
   var text = pool[Math.floor(Math.random() * pool.length)];
   text = text.replace(/\{ba\}/g, ba).replace(/\{bo\}/g, bo).replace(/\{w\}/g, cWkts);
   return text;
+}
+
+function getMatchHook(won, tied, opponent, totalWins, matchNum) {
+  var hooks = [];
+  var pName = opponent.personality;
+  if (won && pName === 'shark') hooks.push({cls:'taunt',text:'"You got lucky. Next time, I\'ll crush you." — ' + opponent.name});
+  if (won && pName === 'purist') hooks.push({cls:'streak',text:'"Well played. But can you keep it clean?" — ' + opponent.name});
+  if (!won && pName === 'politician') hooks.push({cls:'taunt',text:'"Maybe you need some... help? I know people." — ' + opponent.name});
+  if (!won && pName === 'coward') hooks.push({cls:'pressure',text:'"Even I beat you. That\'s embarrassing." — ' + opponent.name});
+  if (won && pName === 'pragmatist') hooks.push({cls:'streak',text:'"Respect. But I\'m adjusting my plans." — ' + opponent.name});
+  if (totalWins >= 3 && won) hooks.push({cls:'streak',text:'Win streak! ' + totalWins + ' victories this season. Keep the momentum.'});
+  if (matchNum >= 12) hooks.push({cls:'pressure',text:'Season finale approaching. Every match counts now.'});
+  if (matchNum >= 10 && totalWins < 4) hooks.push({cls:'taunt',text:'Relegation zone. Win or face demotion.'});
+  var winRate = matchNum > 1 ? totalWins / (matchNum - 1) : 0;
+  if (winRate >= 0.57 && matchNum >= 6) hooks.push({cls:'streak',text:'Promotion form! Keep this up and you\'re moving up.'});
+  if (hooks.length === 0) return '';
+  var h = hooks[Math.floor(Math.random() * Math.min(hooks.length, 2))];
+  return '<div class="match-hook ' + h.cls + '">' + h.text + '</div>';
 }
 
 function updateBBStrip(batter, bowler) {
@@ -2250,6 +2292,7 @@ function endMatch() {
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-radius:8px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div id="post-match-events" style="margin-top:12px"></div>' +
+    getMatchHook(won, tied, match.opponent, GS.wins, GS.matchNum) +
     '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:20px">Continue</div>';
   var postEventsHtml = '';
   var charityAmount = Math.round(coinR * 0.2);
@@ -2518,6 +2561,26 @@ function bindEvents() {
     });
   }
   $('skip-btn').addEventListener('click', skipMatch);
+  var tacBtns = document.querySelectorAll('.tactic-btn');
+  for (var tb = 0; tb < tacBtns.length; tb++) {
+    tacBtns[tb].addEventListener('click', function() {
+      SFX.tap();
+      for (var j = 0; j < tacBtns.length; j++) tacBtns[j].classList.remove('active');
+      this.classList.add('active');
+      GS.strategy = this.getAttribute('data-strat');
+      addMoment('over-sum', 'Strategy changed to ' + GS.strategy.toUpperCase() + '!', '>>');
+    });
+  }
+  $('boost-btn').addEventListener('click', function() {
+    if (match.boostUsed || !match.active) return;
+    SFX.reveal();
+    match.boostUsed = true;
+    match.boostBalls = 6;
+    this.classList.add('used');
+    this.classList.add('active-boost');
+    addMoment('milestone', 'BOOST ACTIVATED! +20% power for 6 balls!', '!');
+    setTimeout(function() { $('boost-btn').classList.remove('active-boost'); }, 3600);
+  });
   var filters = document.querySelectorAll('.card-filter');
   for (var f = 0; f < filters.length; f++) {
     filters[f].addEventListener('click', function() {
