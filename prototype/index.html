@@ -621,6 +621,11 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="mb-action">View Offer &#8594;</div>
       </div>
 
+      <div class="glass accent-red" id="debt-panel" style="display:none">
+        <div class="section-title sm">Active Debts<span class="accent-line"></span></div>
+        <div id="debt-list"></div>
+      </div>
+
       <div class="glass accent-blue" id="sponsor-panel">
         <div class="flex items-center gap-12">
           <div style="width:36px;height:36px;border-radius:10px;background:var(--glass-bg);border:var(--glass-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0" id="sponsor-icon">&#9733;</div>
@@ -911,6 +916,7 @@ var GS = {
   fanLoyalty: 50, cleanStreak: 0,
   sponsor: { tier: 3, name: 'Local Brand', purseBonus: 0 },
   rivalData: {},
+  debts: [], noAlignMatches: 0,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -926,6 +932,7 @@ function load() {
       GS.fanLoyalty=d.fanLoyalty||50; GS.cleanStreak=d.cleanStreak||0;
       GS.sponsor=d.sponsor||{tier:3,name:'Local Brand',purseBonus:0};
       GS.rivalData=d.rivalData||{};
+      GS.debts=d.debts||[]; GS.noAlignMatches=d.noAlignMatches||0;
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -1109,6 +1116,82 @@ function getSponsorForZone(zone) {
 }
 function getFanLoyaltyMod() { return 0.8 + GS.fanLoyalty * 0.004; }
 
+function applyAlignShift(raw) {
+  if (raw === 0) return 0;
+  var cur = Math.abs(GS.alignment);
+  var inertia = 1 + 0.5 * Math.max(0, (cur - 30) / 70);
+  var effective = raw > 0 ? Math.ceil(raw / inertia) : Math.floor(raw / inertia);
+  GS.alignment = Math.max(-100, Math.min(100, GS.alignment + effective));
+  GS.noAlignMatches = 0;
+  return effective;
+}
+
+function processAlignDecay() {
+  if (GS.debts.length > 0 || GS.heat > 30) return;
+  GS.noAlignMatches++;
+  if (GS.noAlignMatches >= 3) {
+    var drift = GS.alignment > 0 ? -2 : GS.alignment < 0 ? 2 : 0;
+    GS.alignment = Math.max(-100, Math.min(100, GS.alignment + drift));
+  }
+}
+
+function processDebts() {
+  var warnings = [];
+  for (var i = GS.debts.length - 1; i >= 0; i--) {
+    var d = GS.debts[i];
+    d.matchesLeft--;
+    if (d.matchesLeft < 0) {
+      d.stage = Math.min(3, d.stage + 1);
+      if (d.stage === 1) {
+        d.principal = Math.round(d.principal * 1.2);
+        warnings.push('Debt reminder: ' + d.source + ' — now ' + d.principal + ' B$. Pay up.');
+      } else if (d.stage === 2) {
+        d.principal = Math.round(d.principal * 1.25);
+        if (GS.squad.length > 0) {
+          var held = GS.squad[Math.floor(Math.random() * GS.squad.length)];
+          d.heldPlayer = held.name;
+          warnings.push('PRESSURE: ' + held.name + ' seized as collateral for ' + d.source + ' debt!');
+        }
+        applyAlignShift(-5);
+      } else if (d.stage >= 3) {
+        var seize = GS.squad.length > 0 && Math.random() < 0.5;
+        if (seize) {
+          var best = GS.squad.reduce(function(a, b) { return getOVR(a) > getOVR(b) ? a : b; });
+          warnings.push('FORCED RESOLUTION: ' + best.name + ' permanently seized for unpaid ' + d.source + ' debt!');
+          GS.squad = GS.squad.filter(function(p) { return p.id !== best.id; });
+        } else {
+          warnings.push('FORCED RESOLUTION: Next match auto-loss imposed for unpaid ' + d.source + ' debt!');
+          GS.mafiaBonus = { type: 'forcelose' };
+        }
+        applyAlignShift(-10);
+        GS.heat = Math.min(100, GS.heat + 15);
+        GS.debts.splice(i, 1);
+      }
+    }
+  }
+  return warnings;
+}
+
+function payDebt(idx) {
+  if (idx < 0 || idx >= GS.debts.length) return false;
+  var d = GS.debts[idx];
+  if (GS.blackMoney < d.principal) return false;
+  GS.blackMoney -= d.principal;
+  if (d.heldPlayer) {
+    toast(d.heldPlayer + ' released from mafia hold', 'success');
+  }
+  GS.debts.splice(idx, 1);
+  updateCurrency();
+  save();
+  return true;
+}
+
+function getDebtUrgencyClass(d) {
+  if (d.stage >= 2) return 'text-red';
+  if (d.stage === 1 || d.matchesLeft <= 1) return 'text-amber';
+  return 'text-slip';
+}
+
 // =============================================
 // NAV INDICATOR
 // =============================================
@@ -1288,6 +1371,21 @@ function updateHub() {
       $('rival-fixes').style.color = rd.fixedAgainst > 0 ? 'var(--blood)' : 'var(--slip)';
     }
   } else { hide('hub-next-rival'); }
+  if (GS.debts.length > 0) {
+    show('debt-panel');
+    var dHtml = '';
+    for (var di = 0; di < GS.debts.length; di++) {
+      var db = GS.debts[di];
+      var urgCls = getDebtUrgencyClass(db);
+      var stageLabel = db.stage === 0 ? '' : db.stage === 1 ? ' · WARNING' : db.stage === 2 ? ' · PRESSURE' : '';
+      var heldTag = db.heldPlayer ? '<div class="text-xs text-red">' + db.heldPlayer + ' held</div>' : '';
+      dHtml += '<div class="flex items-center gap-10 mb-8" style="padding:8px;border:1px solid var(--border);border-radius:var(--r-sm)">' +
+        '<div class="flex-1"><div class="font-d fw-600 text-sm">' + db.source + '<span class="' + urgCls + '">' + stageLabel + '</span></div>' +
+        '<div class="text-xs text-slip">' + db.principal + ' B$ · ' + (db.matchesLeft >= 0 ? db.matchesLeft + ' matches left' : Math.abs(db.matchesLeft) + ' overdue') + '</div>' + heldTag + '</div>' +
+        '<div class="btn btn-outline text-xs" style="padding:4px 10px;font-size:11px" onclick="if(payDebt(' + di + ')){updateHub();toast(\'Debt paid\',\'success\')}else{toast(\'Not enough B$\',\'error\')}" data-debt="' + di + '">Pay</div></div>';
+    }
+    $('debt-list').innerHTML = dHtml;
+  } else { hide('debt-panel'); }
   var hubZone = getAlignmentZone(GS.alignment);
   if (GS.matchNum > 2 && hubZone.mafiaAccess) {
     show('mafia-banner');
@@ -1574,6 +1672,10 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
     if (GS.mafiaBonus.type==='matchfix' && isYourBatting) batStr *= 1.30;
     if (GS.mafiaBonus.type==='umpire' && !isYourBatting) bwlStr *= 1.25;
     if (GS.mafiaBonus.type==='playertap' && !isYourBatting) batStr *= 0.60;
+    if (GS.mafiaBonus.type==='forcelose') {
+      if (isYourBatting) batStr *= 0.50;
+      else bwlStr *= 0.50;
+    }
   }
   if (bwlStr < 1) bwlStr = 1;
   var ratio = Math.max(0.4, Math.min(2.5, batStr / bwlStr));
@@ -1634,7 +1736,7 @@ function startPreMatch() {
   GS.strategy = 'balanced';
   if (GS.mafiaBonus) {
     show('fix-active-banner');
-    var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%'};
+    var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',forcelose:'FORCED LOSS — Mafia debt punishment'};
     $('fix-active-text').textContent = fixNames[GS.mafiaBonus.type] || 'Fix Active';
   } else { hide('fix-active-banner'); }
   goScreen('prematch');
@@ -1802,15 +1904,16 @@ function endMatch() {
   } else { GS.cleanStreak = 0; }
   coinR += cleanBonus;
   var bmR = zone.bmRate > 0 ? (won ? zone.bmRate : Math.round(zone.bmRate * 0.5)) : 0;
-  var alignC = won ? 2 : -1;
-  if (wasFix) { alignC -= 2; GS.heat = Math.min(100, GS.heat + 5); }
+  var rawAlignC = won ? 2 : -1;
+  if (wasFix) { rawAlignC -= 2; GS.heat = Math.min(100, GS.heat + 5); }
+  var alignC = applyAlignShift(rawAlignC);
+  if (!wasFix && rawAlignC === 0) processAlignDecay();
   var fanC = won ? 2 : -1;
   if (wasFix) fanC -= 5;
   if (GS.cleanStreak >= 5) fanC += 1;
   GS.fanLoyalty = Math.max(0, Math.min(100, GS.fanLoyalty + fanC));
   GS.coins += coinR;
   GS.blackMoney += bmR;
-  GS.alignment = Math.max(-100, Math.min(100, GS.alignment + alignC));
   GS.morale = Math.max(20, Math.min(100, GS.morale + (won ? 5 : -3)));
   var rivalName = match.opponent.name;
   if (!GS.rivalData[rivalName]) GS.rivalData[rivalName] = { rel: 0, winsVs: 0, lossesVs: 0, fixedAgainst: 0, lastResult: null };
@@ -1842,10 +1945,12 @@ function endMatch() {
     heatEvent = 'Media rumours about your dealings. Sponsor confidence shaken.';
   }
   if (GS.heat > 0 && !wasFix) GS.heat = Math.max(0, GS.heat - 2);
+  var debtWarnings = processDebts();
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
   if (cleanBonus > 0) rewardsHtml += '<div class="reward-row"><span>Clean Streak Bonus</span><span class="val" style="color:var(--green-bright)">+' + cleanBonus + ' (×' + GS.cleanStreak + ')</span></div>';
   if (bmR > 0) rewardsHtml += '<div class="reward-row"><span>Black Money</span><span class="val" style="color:var(--purple)">+' + bmR + '</span></div>';
-  rewardsHtml += '<div class="reward-row"><span>Alignment</span><span class="val ' + (alignC >= 0 ? 'positive' : 'negative') + '">' + (alignC >= 0 ? '+' : '') + alignC + '</span></div>';
+  var inertiaNote = (alignC !== rawAlignC) ? ' (inertia: ' + rawAlignC + '→' + alignC + ')' : '';
+  rewardsHtml += '<div class="reward-row"><span>Alignment</span><span class="val ' + (alignC >= 0 ? 'positive' : 'negative') + '">' + (alignC >= 0 ? '+' : '') + alignC + inertiaNote + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>Fan Loyalty</span><span class="val ' + (fanC >= 0 ? 'positive' : 'negative') + '">' + (fanC >= 0 ? '+' : '') + fanC + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>Morale</span><span class="val ' + (won ? 'positive' : 'negative') + '">' + (won ? '+5' : '-3') + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>League Points</span><span class="val positive">+' + (won ? 3 : tied ? 1 : 0) + '</span></div>';
@@ -1860,6 +1965,7 @@ function endMatch() {
     '<div class="result-margin">' + (won ? 'Won by ' + (match.runs - match.oppRuns) + ' runs' : tied ? 'Match tied' : 'Lost by ' + (match.oppRuns - match.runs) + ' runs') + '</div>' +
     (wasFix ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0">Match was fixed — heat increased</div>' : '') +
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:8px">' + heatEvent + '</div>' : '') +
+    (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-radius:8px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:20px">Continue</div>';
   $('match-result').classList.add('show');
@@ -1976,19 +2082,28 @@ function openPack(type) {
 // =============================================
 function showMafiaOffer() {
   SFX.tap();
+  if (GS.debts.length >= 5) { toast('Max debts reached — pay up first', 'error'); return; }
+  var zone = getAlignmentZone(GS.alignment);
+  var priceMod = zone.tier <= 2 ? 1.5 : zone.tier === 3 ? 1.0 : zone.tier === 4 ? 0.85 : 0.7;
+  var deadlineMod = zone.tier <= 2 ? 1 : zone.tier >= 5 ? -1 : 0;
   var offers = [
-    {name:'Match Fix',desc:'Your batters get +30% power next match. The bookies handle the rest.',cost:50,heat:15,align:-8,bonus:{type:'matchfix'}},
-    {name:'Umpire Influence',desc:'The umpire favors your bowlers next match. +25% bowling effectiveness.',cost:40,heat:10,align:-5,bonus:{type:'umpire'}},
-    {name:'Player Tap',desc:'Opponent star batter plays at 60% next match. An offer they can\'t refuse.',cost:60,heat:8,align:-6,bonus:{type:'playertap'}},
+    {name:'Match Fix',desc:'Your batters get +30% power next match. The bookies handle the rest.',cost:30,heat:15,align:-8,bonus:{type:'matchfix'},debt:150,deadline:2},
+    {name:'Umpire Influence',desc:'The umpire favors your bowlers next match. +25% bowling effectiveness.',cost:20,heat:10,align:-5,bonus:{type:'umpire'},debt:100,deadline:3},
+    {name:'Player Tap',desc:'Opponent star batter plays at 60% next match. An offer they can\'t refuse.',cost:25,heat:8,align:-6,bonus:{type:'playertap'},debt:120,deadline:2},
+    {name:'Budget Injection',desc:'500 coins added to your purse. Free upfront — but the debt will come calling.',cost:0,heat:3,align:-4,bonus:{type:'injection'},debt:200,deadline:4},
   ];
   var offer = offers[Math.floor(Math.random() * offers.length)];
+  offer.cost = Math.round(offer.cost * priceMod);
+  offer.deadline = Math.max(1, offer.deadline + deadlineMod);
   $('mafia-offer-content').innerHTML =
     '<div class="font-d fw-700 text-red" style="font-size:22px;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px">' + offer.name + '</div>' +
     '<div class="text-slip text-sm mb-16" style="line-height:1.5">' + offer.desc + '</div>' +
     '<div class="glass accent-red">' +
-    '<div class="flex justify-between mb-8"><span class="text-sm">Cost</span><span class="font-d fw-600" style="color:var(--purple)">' + offer.cost + ' B$</span></div>' +
+    (offer.cost > 0 ? '<div class="flex justify-between mb-8"><span class="text-sm">Upfront</span><span class="font-d fw-600" style="color:var(--purple)">' + offer.cost + ' B$</span></div>' : '') +
+    '<div class="flex justify-between mb-8"><span class="text-sm">Debt Created</span><span class="font-d fw-600 text-red">' + offer.debt + ' B$ in ' + offer.deadline + ' matches</span></div>' +
     '<div class="flex justify-between mb-8"><span class="text-sm">Heat</span><span class="font-d fw-600 text-amber">+' + offer.heat + '</span></div>' +
     '<div class="flex justify-between"><span class="text-sm">Alignment</span><span class="font-d fw-600 text-red">' + offer.align + '</span></div></div>' +
+    (GS.debts.length >= 4 ? '<div class="text-xs text-amber text-center" style="margin-top:8px">Warning: ' + GS.debts.length + '/5 debt slots used</div>' : '') +
     (GS.blackMoney < offer.cost ? '<div class="text-xs text-red text-center" style="margin-top:8px">Not enough Black Money (need ' + offer.cost + ' B$)</div>' : '') +
     '<div class="flex gap-10 mt-16"><div class="btn btn-red flex-1' + (GS.blackMoney < offer.cost ? ' disabled' : '') + '" id="accept-mafia-btn">Accept</div><div class="btn btn-outline flex-1" id="decline-mafia-btn">Decline</div></div>';
   $('mafia-overlay').classList.add('show');
@@ -1996,16 +2111,21 @@ function showMafiaOffer() {
     if (GS.blackMoney < offer.cost) { toast('Not enough Black Money', 'error'); return; }
     GS.blackMoney -= offer.cost;
     GS.heat = Math.min(100, GS.heat + offer.heat);
-    GS.alignment = Math.max(-100, Math.min(100, GS.alignment + offer.align));
-    GS.mafiaBonus = offer.bonus;
+    applyAlignShift(offer.align);
+    if (offer.bonus.type === 'injection') {
+      GS.coins += 500;
+    } else {
+      GS.mafiaBonus = offer.bonus;
+    }
+    GS.debts.push({ source: offer.name, principal: offer.debt, matchesLeft: offer.deadline, stage: 0, heldPlayer: null });
     updateCurrency(); $('mafia-overlay').classList.remove('show');
-    toast('Fix active for next match: ' + offer.name, 'error');
-    hide('mafia-banner'); save();
+    toast(offer.bonus.type === 'injection' ? '+500 coins! Debt: ' + offer.debt + ' B$' : 'Fix active: ' + offer.name + '. Debt: ' + offer.debt + ' B$', 'error');
+    hide('mafia-banner'); save(); updateHub();
   };
   $('decline-mafia-btn').onclick = function() {
-    GS.alignment = Math.min(100, GS.alignment + 3);
+    var declineShift = applyAlignShift(3);
     $('mafia-overlay').classList.remove('show');
-    toast('Offer declined. Alignment +3', 'success');
+    toast('Offer declined. Alignment +' + declineShift, 'success');
     save();
   };
 }
