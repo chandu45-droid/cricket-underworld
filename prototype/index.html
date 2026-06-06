@@ -2611,6 +2611,32 @@ function skipMatch() {
   }
 }
 
+function getExternalHeat(won, opponent, wasFix) {
+  if (wasFix) return {amount:0,reason:''};
+  var events = [];
+  var rd = GS.rivalData[opponent.name];
+  if (rd && rd.fixedAgainst > 0 && opponent.personality === 'purist' && Math.random() < 0.35) {
+    events.push({amount:5,reason:opponent.name + ' leaked old fix records to the media'});
+  }
+  if (rd && rd.rel <= -50 && Math.random() < 0.25) {
+    events.push({amount:4,reason:opponent.name + ' filed a complaint against your team'});
+  }
+  if (GS.wins >= 5 && won && Math.random() < 0.2) {
+    events.push({amount:3,reason:'Media spotlight — win streak draws scrutiny'});
+  }
+  if (GS.matchNum >= 10 && GS.alignment > 60 && Math.random() < 0.15) {
+    events.push({amount:3,reason:'Rival managers question your clean image publicly'});
+  }
+  if (won && Math.random() < 0.08) {
+    events.push({amount:2,reason:'Controversial umpiring decision sparks debate'});
+  }
+  if (GS.league === 'challenger' || GS.league === 'champions') {
+    if (Math.random() < 0.12) events.push({amount:3,reason:'Higher league = more media scrutiny'});
+  }
+  if (events.length === 0) return {amount:0,reason:''};
+  return events[Math.floor(Math.random() * events.length)];
+}
+
 function endMatch() {
   match.active = false; clearInterval(match.interval); hide('skip-btn');
   var won = match.runs > match.oppRuns;
@@ -2629,6 +2655,8 @@ function endMatch() {
   var bmR = zone.bmRate > 0 ? (won ? zone.bmRate : Math.round(zone.bmRate * 0.5)) : 0;
   var rawAlignC = won ? 2 : -1;
   if (wasFix) { rawAlignC -= 2; GS.heat = Math.min(100, GS.heat + 5); }
+  var externalHeat = getExternalHeat(won, match.opponent, wasFix);
+  if (externalHeat.amount > 0) GS.heat = Math.min(100, GS.heat + externalHeat.amount);
   var alignC = applyAlignShift(rawAlignC);
   if (!wasFix && rawAlignC === 0) processAlignDecay();
   var fanC = won ? 2 : -1;
@@ -2691,6 +2719,7 @@ function endMatch() {
     '<div class="result-scores">' + GS.teamName + ' ' + match.runs + '/' + match.wkts + ' · ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>' +
     '<div class="result-margin">' + (won ? 'Won by ' + (match.runs - match.oppRuns) + ' runs' : tied ? 'Match tied' : 'Lost by ' + (match.oppRuns - match.runs) + ' runs') + '</div>' +
     (wasFix ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0">Match was fixed — heat increased</div>' : '') +
+    (externalHeat.amount > 0 ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.15);border-radius:8px;background:rgba(224,120,0,0.04)">' + externalHeat.reason + ' (+' + externalHeat.amount + ' heat)</div>' : '') +
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:8px">' + heatEvent + '</div>' : '') +
     (invStatus === 'started' ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:10px;border:1px solid rgba(220,38,38,0.3);border-radius:8px;background:rgba(220,38,38,0.05)"><strong>FORMAL INVESTIGATION OPENED</strong><br>The board is reviewing your conduct. Tribunal in 5 matches. No favors allowed.</div>' : '') +
     (invStatus === 'ongoing' ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:8px">Investigation ongoing — ' + (GS.investigation ? GS.investigation.matchesLeft : 0) + ' matches until tribunal</div>' : '') +
