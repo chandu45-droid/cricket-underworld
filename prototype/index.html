@@ -388,6 +388,43 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .sc-total{font-family:var(--font-d);font-size:18px;font-weight:700;padding:6px 12px;margin-bottom:8px}
 .release-btn{font-family:var(--font-d);font-size:10px;font-weight:600;color:var(--blood);border:1px solid rgba(220,38,38,0.2);padding:3px 8px;border-radius:6px;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;background:rgba(220,38,38,0.05)}
 .release-btn:active{background:rgba(220,38,38,0.15)}
+
+/* ================================================================
+   SQUAD SELECTION OVERLAY
+   ================================================================ */
+.squad-select-overlay{position:fixed;inset:0;z-index:200;background:rgba(6,8,16,0.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.35s}
+.squad-select-overlay.show{opacity:1;pointer-events:auto}
+.ss-header{padding:14px 16px 0;flex-shrink:0}
+.ss-title{font-family:var(--font-d);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:2px;text-align:center;color:var(--gold-bright)}
+.ss-counters{display:flex;justify-content:center;gap:16px;margin-top:8px}
+.ss-counter{font-family:var(--font-b);font-size:12px;font-weight:600;color:var(--slip);padding:4px 12px;border-radius:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.ss-counter .num{color:var(--white);font-family:var(--font-d);font-size:14px}
+.ss-counter.full .num{color:var(--green-bright)}
+.ss-counter.over .num{color:var(--blood)}
+.ss-roles{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.ss-role-tag{font-family:var(--font-b);font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:0.5px;background:rgba(255,255,255,0.04);color:var(--slip);border:1px solid rgba(255,255,255,0.06)}
+.ss-role-tag.has{color:var(--green-bright);border-color:rgba(34,212,126,0.15);background:rgba(34,212,126,0.05)}
+.ss-player-list{flex:1;overflow-y:auto;padding:12px 16px;-webkit-overflow-scrolling:touch}
+.ss-player{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border-radius:var(--r-sm);border:1.5px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);cursor:pointer;transition:all 0.2s;position:relative}
+.ss-player:active{transform:scale(0.98)}
+.ss-player.selected{border-color:rgba(34,212,126,0.4);background:rgba(34,212,126,0.06)}
+.ss-player.selected .ss-check{background:var(--green-bright);color:var(--void);border-color:var(--green-bright)}
+.ss-player.captain .ss-cap-badge{display:flex}
+.ss-player.overseas::after{content:'OS';position:absolute;top:4px;right:8px;font-family:var(--font-d);font-size:9px;font-weight:700;color:var(--amber);background:rgba(224,120,0,0.1);padding:1px 5px;border-radius:4px;letter-spacing:0.5px}
+.ss-check{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;transition:all 0.2s;color:transparent}
+.ss-player.selected .ss-check::after{content:'✓'}
+.ss-ovr{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.ss-info{flex:1;min-width:0}
+.ss-name{font-family:var(--font-d);font-size:15px;font-weight:600;line-height:1.1;display:flex;align-items:center;gap:6px}
+.ss-role{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:0.3px;margin-top:1px}
+.ss-stats{font-family:var(--font-d);font-size:12px;color:var(--slip);white-space:nowrap;text-align:right}
+.ss-stats span{color:var(--white)}
+.ss-cap-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(240,200,80,0.2);background:rgba(240,200,80,0.04);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--slip);cursor:pointer;transition:all 0.2s;flex-shrink:0}
+.ss-cap-btn:active{transform:scale(0.9)}
+.ss-player.captain .ss-cap-btn{background:linear-gradient(135deg,var(--gold-bright),var(--gold));color:var(--void);border-color:var(--gold-bright);box-shadow:0 0 10px rgba(240,200,80,0.3)}
+.ss-cap-badge{display:none;position:absolute;top:-4px;left:-4px;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--gold-bright),var(--gold));align-items:center;justify-content:center;font-family:var(--font-d);font-size:10px;font-weight:700;color:var(--void);box-shadow:0 2px 8px rgba(240,200,80,0.4);z-index:2}
+.ss-footer{padding:10px 16px 20px;flex-shrink:0;display:flex;gap:10px}
+.ss-footer .btn{flex:1}
 .match-scoreboard .teams{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px}
 .match-scoreboard .team-name{font-family:var(--font-d);font-size:16px;font-weight:600;flex:1}
 .match-scoreboard .team-name:first-child{text-align:right}
@@ -795,6 +832,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <div class="team-badge" style="background:linear-gradient(135deg,var(--gold-bright),var(--gold))"><span style="color:var(--void)">Y</span></div>
           <div class="team-label">Your Team</div>
           <div class="team-strength" id="your-strength">STR: 70</div>
+          <div class="text-xs text-gold" id="pm-captain" style="margin-top:3px"></div>
         </div>
         <div class="prematch-vs-divider">VS</div>
         <div class="prematch-team">
@@ -961,6 +999,23 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 <div class="match-result-overlay" id="pack-overlay"><div id="pack-opening-content" style="width:100%;max-width:400px"></div></div>
 <div class="scorecard-overlay" id="scorecard-overlay"><div id="scorecard-content" style="width:100%;max-width:400px;margin:auto"></div></div>
 
+<!-- SQUAD SELECTION -->
+<div class="squad-select-overlay" id="squad-select-overlay">
+  <div class="ss-header">
+    <div class="ss-title">Select Playing XI</div>
+    <div class="ss-counters">
+      <div class="ss-counter" id="ss-count-xi"><span class="num" id="ss-xi-num">0</span>/11 Selected</div>
+      <div class="ss-counter" id="ss-count-os"><span class="num" id="ss-os-num">0</span>/4 Overseas</div>
+    </div>
+    <div class="ss-roles" id="ss-roles"></div>
+  </div>
+  <div class="ss-player-list" id="ss-player-list"></div>
+  <div class="ss-footer">
+    <div class="btn btn-outline" id="ss-auto-btn">Auto</div>
+    <div class="btn btn-gold disabled" id="ss-confirm-btn">Confirm XI</div>
+  </div>
+</div>
+
 <div class="vignette"></div>
 <canvas id="particle-canvas"></canvas>
 <div class="toast" id="toast"></div>
@@ -992,6 +1047,7 @@ var GS = {
   rivalData: {},
   debts: [], noAlignMatches: 0,
   evidence: [], investigation: null, tribunalBonus: 0,
+  captainId: null, selectedXI: [],
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1009,6 +1065,7 @@ function load() {
       GS.rivalData=d.rivalData||{};
       GS.debts=d.debts||[]; GS.noAlignMatches=d.noAlignMatches||0;
       GS.evidence=d.evidence||[]; GS.investigation=d.investigation||null; GS.tribunalBonus=d.tribunalBonus||0;
+      GS.captainId=d.captainId||null; GS.selectedXI=d.selectedXI||[];
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -1922,8 +1979,10 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   if (isYourBatting) { stratBatMod = strategy==='aggressive'?1.15:strategy==='defensive'?0.85:1.0; }
   else { stratBwlMod = strategy==='aggressive'?1.10:strategy==='defensive'?0.90:1.0; }
   var moraleMod = 0.9 + morale / 500;
-  var batStr = batter.bat * formMod(batter.form) * phaseBat * stratBatMod * moraleMod * pm.bat;
-  var bwlStr = bowler.bwl * formMod(bowler.form) * phaseBwl * pitchBwlMod * stratBwlMod;
+  var capBatMod = (batter.id && batter.id === GS.captainId) ? 1.08 : 1.0;
+  var capBwlMod = (bowler.id && bowler.id === GS.captainId) ? 1.08 : 1.0;
+  var batStr = batter.bat * formMod(batter.form) * phaseBat * stratBatMod * moraleMod * pm.bat * capBatMod;
+  var bwlStr = bowler.bwl * formMod(bowler.form) * phaseBwl * pitchBwlMod * stratBwlMod * capBwlMod;
   if (GS.mafiaBonus) {
     if (GS.mafiaBonus.type==='matchfix' && isYourBatting) batStr *= 1.30;
     if (GS.mafiaBonus.type==='umpire' && !isYourBatting) bwlStr *= 1.25;
@@ -1966,6 +2025,139 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   return {runs:6, wicket:false};
 }
 
+function showSquadSelect() {
+  if (GS.squad.length < 3) { toast('Need at least 3 players', 'error'); return; }
+  SFX.tap();
+  var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id;}); });
+  if (sel.length > 11) sel = sel.slice(0, 11);
+  var capValid = sel.indexOf(GS.captainId) >= 0;
+  if (!capValid) GS.captainId = null;
+  renderSquadSelect(sel);
+  $('squad-select-overlay').classList.add('show');
+}
+
+function renderSquadSelect(sel) {
+  var osCount = 0;
+  sel.forEach(function(id) {
+    var p = GS.squad.find(function(q){return q.id===id;});
+    if (p && p.overseas) osCount++;
+  });
+  $('ss-xi-num').textContent = sel.length;
+  $('ss-os-num').textContent = osCount;
+  var xiCounter = $('ss-count-xi');
+  xiCounter.className = 'ss-counter' + (sel.length === 11 ? ' full' : sel.length > 11 ? ' over' : '');
+  var osCounter = $('ss-count-os');
+  osCounter.className = 'ss-counter' + (osCount > 4 ? ' over' : osCount === 4 ? ' full' : '');
+  var roles = {};
+  sel.forEach(function(id) {
+    var p = GS.squad.find(function(q){return q.id===id;});
+    if (p) { var rs = ROLE_SHORT[p.role] || 'OTH'; roles[rs] = (roles[rs]||0) + 1; }
+  });
+  var roleHtml = '';
+  ['BAT','WK','AR','PACE','SPIN'].forEach(function(r) {
+    roleHtml += '<div class="ss-role-tag' + (roles[r] ? ' has' : '') + '">' + r + ' ' + (roles[r]||0) + '</div>';
+  });
+  $('ss-roles').innerHTML = roleHtml;
+  var order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
+  var sorted = GS.squad.slice().sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
+  var html = '';
+  sorted.forEach(function(p) {
+    var isSel = sel.indexOf(p.id) >= 0;
+    var isCap = GS.captainId === p.id;
+    var ovr = Math.round((p.bat + p.bwl) / 2);
+    var rc = RARITY_COLORS[p.rarity] || RARITY_COLORS.common;
+    html += '<div class="ss-player' + (isSel ? ' selected' : '') + (isCap ? ' captain' : '') + (p.overseas ? ' overseas' : '') + '" data-sid="' + p.id + '">' +
+      '<div class="ss-cap-badge">C</div>' +
+      '<div class="ss-check"></div>' +
+      '<div class="ss-ovr" style="background:' + rc + '">' + ovr + '</div>' +
+      '<div class="ss-info"><div class="ss-name">' + p.name + '</div><div class="ss-role">' + p.role + '</div></div>' +
+      '<div class="ss-stats">B <span>' + p.bat + '</span> · W <span>' + p.bwl + '</span></div>' +
+      '<div class="ss-cap-btn" data-capid="' + p.id + '">C</div>' +
+      '</div>';
+  });
+  $('ss-player-list').innerHTML = html;
+  $('ss-confirm-btn').className = 'btn btn-gold' + (sel.length >= 3 && sel.length <= 11 && osCount <= 4 ? '' : ' disabled');
+}
+
+function toggleSquadPlayer(id) {
+  var sel = getCurrentSSSelection();
+  var idx = sel.indexOf(id);
+  var p = GS.squad.find(function(q){return q.id===id;});
+  if (!p) return;
+  if (idx >= 0) {
+    sel.splice(idx, 1);
+    if (GS.captainId === id) GS.captainId = null;
+  } else {
+    if (sel.length >= 11) { toast('XI is full — deselect someone first', 'error'); return; }
+    var osCount = 0;
+    sel.forEach(function(sid) { var sp = GS.squad.find(function(q){return q.id===sid;}); if (sp && sp.overseas) osCount++; });
+    if (p.overseas && osCount >= 4) { toast('Max 4 overseas players', 'error'); return; }
+    sel.push(id);
+  }
+  SFX.tap();
+  renderSquadSelect(sel);
+}
+
+function setCaptain(id) {
+  var sel = getCurrentSSSelection();
+  if (sel.indexOf(id) < 0) { toast('Select player first', 'error'); return; }
+  SFX.reveal();
+  GS.captainId = GS.captainId === id ? null : id;
+  renderSquadSelect(sel);
+}
+
+function getCurrentSSSelection() {
+  var sel = [];
+  var items = document.querySelectorAll('.ss-player.selected');
+  for (var i = 0; i < items.length; i++) { sel.push(parseInt(items[i].getAttribute('data-sid'))); }
+  return sel;
+}
+
+function autoSelectXI() {
+  SFX.tap();
+  var xi = buildPlayingXI(GS.squad);
+  var sel = xi.map(function(p){return p.id;});
+  if (!GS.captainId || sel.indexOf(GS.captainId) < 0) {
+    var best = xi.reduce(function(a,b){return (a.bat+a.bwl) > (b.bat+b.bwl) ? a : b;});
+    GS.captainId = best.id;
+  }
+  renderSquadSelect(sel);
+}
+
+function confirmSquadSelect() {
+  var sel = getCurrentSSSelection();
+  if (sel.length < 3) { toast('Select at least 3 players', 'error'); return; }
+  if (sel.length > 11) { toast('Max 11 players', 'error'); return; }
+  var osCount = 0;
+  sel.forEach(function(id) { var p = GS.squad.find(function(q){return q.id===id;}); if (p && p.overseas) osCount++; });
+  if (osCount > 4) { toast('Max 4 overseas', 'error'); return; }
+  if (!GS.captainId || sel.indexOf(GS.captainId) < 0) {
+    var bestP = null, bestOvr = 0;
+    sel.forEach(function(id) {
+      var p = GS.squad.find(function(q){return q.id===id;});
+      if (p && (p.bat+p.bwl) > bestOvr) { bestP = p; bestOvr = p.bat+p.bwl; }
+    });
+    if (bestP) GS.captainId = bestP.id;
+  }
+  GS.selectedXI = sel;
+  save();
+  $('squad-select-overlay').classList.remove('show');
+  startPreMatch();
+}
+
+function buildSelectedXI() {
+  var sel = GS.selectedXI;
+  if (!sel || sel.length < 3) return buildPlayingXI(GS.squad);
+  var xi = [];
+  var order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
+  sel.forEach(function(id) {
+    var p = GS.squad.find(function(q){return q.id===id;});
+    if (p) xi.push(p);
+  });
+  xi.sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
+  return xi;
+}
+
 function startPreMatch() {
   if (GS.squad.length < 3) { toast('Need at least 3 players', 'error'); return; }
   SFX.tap();
@@ -1976,6 +2168,8 @@ function startPreMatch() {
   var bgMap = { crimson:'linear-gradient(135deg,var(--blood),var(--crimson))', green:'linear-gradient(135deg,var(--green-bright),var(--green))', blue:'linear-gradient(135deg,#60A5FA,var(--blue))' };
   $('opp-badge').style.background = bgMap[rival.color] || bgMap.blue;
   $('your-strength').textContent = 'STR: ' + getTeamStrength();
+  var capP = GS.captainId ? GS.squad.find(function(p){return p.id===GS.captainId;}) : null;
+  if ($('pm-captain')) $('pm-captain').textContent = capP ? 'Captain: ' + capP.name : '';
   $('opp-strength').textContent = 'STR: ' + rival.strength;
   var prd = GS.rivalData[rival.name];
   if (prd) {
@@ -2008,7 +2202,7 @@ function startMatch() {
   match.runs = 0; match.wkts = 0; match.oppRuns = 0; match.oppWkts = 0;
   match.target = 0; match.phase = 0; match.ball = 0; match.momentum = 50;
   match.phaseScores = [{r:0,w:0},{r:0,w:0},{r:0,w:0}];
-  match.yourXI = buildPlayingXI(GS.squad);
+  match.yourXI = buildSelectedXI();
   match.oppXI = generateRivalXI(match.opponent);
   match.batXI = match.batting === 'you' ? match.yourXI : match.oppXI;
   match.bwlXI = match.batting === 'you' ? match.oppXI : match.yourXI;
@@ -2081,7 +2275,7 @@ function simBall() {
   var scSide = isYou ? 'you' : 'opp';
   var scBat = match.scorecard[scSide].batters;
   var batEntry = scBat.find(function(b){return b.name===batter.name;});
-  if (!batEntry) { batEntry = {name:batter.name,runs:0,balls:0,fours:0,sixes:0,out:false}; scBat.push(batEntry); }
+  if (!batEntry) { batEntry = {id:batter.id,name:batter.name,runs:0,balls:0,fours:0,sixes:0,out:false}; scBat.push(batEntry); }
   batEntry.runs += runs; batEntry.balls++; if (runs===4) batEntry.fours++; if (runs===6) batEntry.sixes++; if (wkt) batEntry.out = true;
   var bowlSide = isYou ? 'opp' : 'you';
   var scBwl = match.scorecard[bowlSide].bowlers;
@@ -2176,7 +2370,8 @@ function showScorecard() {
     sc[side].batters.forEach(function(b) {
       var sr = b.balls > 0 ? (b.runs / b.balls * 100).toFixed(0) : '0';
       var highlight = b.runs >= 30 ? ' class="sc-highlight"' : '';
-      h += '<tr><td' + highlight + '>' + b.name + (b.out ? '' : '*') + '</td><td' + highlight + '>' + b.runs + '</td><td>' + b.balls + '</td><td>' + b.fours + '</td><td>' + b.sixes + '</td><td>' + sr + '</td></tr>';
+      var capTag = (b.id && b.id === GS.captainId) ? ' (C)' : '';
+      h += '<tr><td' + highlight + '>' + b.name + capTag + (b.out ? '' : '*') + '</td><td' + highlight + '>' + b.runs + '</td><td>' + b.balls + '</td><td>' + b.fours + '</td><td>' + b.sixes + '</td><td>' + sr + '</td></tr>';
     });
     h += '</table>';
     if (sc[side].bowlers.length > 0) {
@@ -2221,9 +2416,11 @@ function getMatchHook(won, tied, opponent, totalWins, matchNum) {
 }
 
 function updateBBStrip(batter, bowler) {
-  $('bbs-batter').textContent = batter.name;
+  var batCap = (batter.id && batter.id === GS.captainId) ? ' (C)' : '';
+  var bwlCap = (bowler.id && bowler.id === GS.captainId) ? ' (C)' : '';
+  $('bbs-batter').textContent = batter.name + batCap;
   $('bbs-bat-stat').textContent = 'BAT ' + batter.bat + ' · Form ' + batter.form;
-  $('bbs-bowler').textContent = bowler.name;
+  $('bbs-bowler').textContent = bowler.name + bwlCap;
   $('bbs-bwl-stat').textContent = 'BWL ' + bowler.bwl + ' · Form ' + bowler.form;
 }
 
@@ -2633,7 +2830,7 @@ function bindEvents() {
     navItems[i].addEventListener('click', function() { goScreen(this.getAttribute('data-screen')); });
   }
   $('hub-auction-btn').addEventListener('click', function() { goScreen('auction'); if (!auction.active) startAuction(); });
-  $('hub-match-btn').addEventListener('click', startPreMatch);
+  $('hub-match-btn').addEventListener('click', showSquadSelect);
   $('hub-squad-btn').addEventListener('click', function() { goScreen('squad'); });
   $('hub-league-btn').addEventListener('click', function() { goScreen('league'); });
   $('hub-cards-btn').addEventListener('click', function() { goScreen('cards'); });
@@ -2683,6 +2880,14 @@ function bindEvents() {
       updateCardsScreen();
     });
   }
+  $('ss-auto-btn').addEventListener('click', autoSelectXI);
+  $('ss-confirm-btn').addEventListener('click', confirmSquadSelect);
+  $('ss-player-list').addEventListener('click', function(e) {
+    var capBtn = e.target.closest('.ss-cap-btn');
+    if (capBtn) { setCaptain(parseInt(capBtn.getAttribute('data-capid'))); e.stopPropagation(); return; }
+    var row = e.target.closest('.ss-player');
+    if (row) toggleSquadPlayer(parseInt(row.getAttribute('data-sid')));
+  });
   $('pack-standard').addEventListener('click', function() { openPack('standard'); });
   $('pack-premium').addEventListener('click', function() { openPack('premium'); });
   var overlays = document.querySelectorAll('.overlay');
