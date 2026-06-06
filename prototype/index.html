@@ -425,6 +425,34 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .ss-cap-badge{display:none;position:absolute;top:-4px;left:-4px;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--gold-bright),var(--gold));align-items:center;justify-content:center;font-family:var(--font-d);font-size:10px;font-weight:700;color:var(--void);box-shadow:0 2px 8px rgba(240,200,80,0.4);z-index:2}
 .ss-footer{padding:10px 16px 20px;flex-shrink:0;display:flex;gap:10px}
 .ss-footer .btn{flex:1}
+
+/* ================================================================
+   CUSTOMISATION / SETTINGS
+   ================================================================ */
+.settings-btn{position:absolute;top:4px;right:4px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;z-index:5}
+.settings-btn:active{transform:scale(0.9);background:rgba(255,255,255,0.08)}
+.settings-btn svg{width:18px;height:18px;stroke:var(--slip);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.custom-overlay{position:fixed;inset:0;z-index:210;background:rgba(6,8,16,0.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.35s;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.custom-overlay.show{opacity:1;pointer-events:auto}
+.custom-content{padding:20px 16px;max-width:400px;margin:0 auto;width:100%}
+.custom-field{margin-bottom:18px}
+.custom-label{font-family:var(--font-d);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--slip);margin-bottom:6px}
+.custom-input{width:100%;padding:12px 14px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--r-sm);color:var(--white);font-family:var(--font-b);font-size:15px;font-weight:600;outline:none;transition:border-color 0.2s}
+.custom-input:focus{border-color:var(--gold-bright)}
+.custom-input::placeholder{color:var(--white-20)}
+.color-picker{display:flex;gap:10px;flex-wrap:wrap}
+.color-swatch{width:44px;height:44px;border-radius:12px;cursor:pointer;border:2.5px solid transparent;transition:all 0.2s;position:relative}
+.color-swatch:active{transform:scale(0.9)}
+.color-swatch.selected{border-color:var(--white);box-shadow:0 0 16px rgba(255,255,255,0.2)}
+.color-swatch.selected::after{content:'';position:absolute;inset:3px;border-radius:8px;border:1px solid rgba(255,255,255,0.3)}
+.custom-section{padding:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:var(--r);margin-bottom:14px}
+.custom-section-title{font-family:var(--font-d);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold-bright);margin-bottom:12px}
+.nickname-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.nickname-row .nn-name{flex:1;font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--white)}
+.nickname-row .nn-input{width:120px;padding:6px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--white);font-family:var(--font-b);font-size:13px;font-weight:600;outline:none}
+.nickname-row .nn-input:focus{border-color:var(--gold-bright)}
+.reset-section{margin-top:24px;padding-top:16px;border-top:1px solid rgba(220,38,38,0.15)}
+.reset-section .text-xs{color:var(--slip);margin-bottom:8px}
 .match-scoreboard .teams{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px}
 .match-scoreboard .team-name{font-family:var(--font-d);font-size:16px;font-weight:600;flex:1}
 .match-scoreboard .team-name:first-child{text-align:right}
@@ -648,8 +676,9 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
   <div id="screens">
     <!-- HUB -->
     <div class="screen" id="hub-screen">
+      <div class="settings-btn" id="settings-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
       <div class="hub-header">
-        <div class="manager-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg></div>
+        <div class="manager-avatar" id="manager-avatar" style="border-color:rgba(240,200,80,0.4)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg></div>
         <div class="manager-info">
           <div class="manager-name" id="manager-name">Manager</div>
           <div class="league-name" id="league-label">Gully Cricket League</div>
@@ -829,8 +858,8 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
       <div class="section-title text-center" style="justify-content:center">Match Day</div>
       <div class="prematch-vs">
         <div class="prematch-team">
-          <div class="team-badge" style="background:linear-gradient(135deg,var(--gold-bright),var(--gold))"><span style="color:var(--void)">Y</span></div>
-          <div class="team-label">Your Team</div>
+          <div class="team-badge" id="your-badge" style="background:linear-gradient(135deg,var(--gold-bright),var(--gold))"><span style="color:var(--void)" id="your-initial">Y</span></div>
+          <div class="team-label" id="your-team-label">Your Team</div>
           <div class="team-strength" id="your-strength">STR: 70</div>
           <div class="text-xs text-gold" id="pm-captain" style="margin-top:3px"></div>
         </div>
@@ -1016,6 +1045,43 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
   </div>
 </div>
 
+<!-- CUSTOMISATION -->
+<div class="custom-overlay" id="custom-overlay">
+  <div class="custom-content">
+    <div class="back-btn" id="custom-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back</div>
+    <div class="section-title" style="justify-content:center">Customise<span class="accent-line"></span></div>
+
+    <div class="custom-section">
+      <div class="custom-section-title">Identity</div>
+      <div class="custom-field">
+        <div class="custom-label">Team Name</div>
+        <input class="custom-input" id="custom-team-name" type="text" maxlength="20" placeholder="Your Team">
+      </div>
+      <div class="custom-field">
+        <div class="custom-label">Manager Name</div>
+        <input class="custom-input" id="custom-manager-name" type="text" maxlength="20" placeholder="Manager">
+      </div>
+    </div>
+
+    <div class="custom-section">
+      <div class="custom-section-title">Team Color</div>
+      <div class="color-picker" id="color-picker"></div>
+    </div>
+
+    <div class="custom-section">
+      <div class="custom-section-title">Player Nicknames</div>
+      <div id="nickname-list"></div>
+    </div>
+
+    <div class="btn btn-gold full lg" id="custom-save-btn">Save Changes</div>
+
+    <div class="reset-section">
+      <div class="text-xs">Danger zone</div>
+      <div class="btn btn-red full" id="custom-reset-btn">Reset All Progress</div>
+    </div>
+  </div>
+</div>
+
 <div class="vignette"></div>
 <canvas id="particle-canvas"></canvas>
 <div class="toast" id="toast"></div>
@@ -1048,6 +1114,7 @@ var GS = {
   debts: [], noAlignMatches: 0,
   evidence: [], investigation: null, tribunalBonus: 0,
   captainId: null, selectedXI: [],
+  teamName: 'Your Team', managerName: 'Manager', teamColor: 'gold',
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1066,6 +1133,7 @@ function load() {
       GS.debts=d.debts||[]; GS.noAlignMatches=d.noAlignMatches||0;
       GS.evidence=d.evidence||[]; GS.investigation=d.investigation||null; GS.tribunalBonus=d.tribunalBonus||0;
       GS.captainId=d.captainId||null; GS.selectedXI=d.selectedXI||[];
+      GS.teamName=d.teamName||'Your Team'; GS.managerName=d.managerName||'Manager'; GS.teamColor=d.teamColor||'gold';
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -1629,6 +1697,9 @@ function goScreen(name) {
 // HUB
 // =============================================
 function updateHub() {
+  $('manager-name').textContent = GS.managerName;
+  var tc = getTeamColor();
+  $('manager-avatar').style.borderColor = tc.border;
   $('league-label').textContent = LEAGUE_NAMES[GS.league] || 'Gully Cricket League';
   $('season-badge').textContent = 'S' + GS.season + ' · ' + (LEAGUE_NAMES[GS.league] || 'Gully');
   $('match-num').textContent = GS.matchNum;
@@ -1742,7 +1813,7 @@ function updateCardsScreen() {
 // LEAGUE — With form dots and zones
 // =============================================
 function updateLeagueTable() {
-  var teams = [{ name: 'Your Team', wins: GS.wins, losses: GS.losses, pts: GS.wins * 3, you: true }];
+  var teams = [{ name: GS.teamName, wins: GS.wins, losses: GS.losses, pts: GS.wins * 3, you: true }];
   for (var i = 0; i < RIVALS.length; i++) {
     var rd = GS.rivalData[RIVALS[i].name];
     var baseW = rd ? rd.lossesVs : 0;
@@ -2167,6 +2238,10 @@ function startPreMatch() {
   $('opp-initial').textContent = rival.short;
   var bgMap = { crimson:'linear-gradient(135deg,var(--blood),var(--crimson))', green:'linear-gradient(135deg,var(--green-bright),var(--green))', blue:'linear-gradient(135deg,#60A5FA,var(--blue))' };
   $('opp-badge').style.background = bgMap[rival.color] || bgMap.blue;
+  var tc = getTeamColor();
+  $('your-badge').style.background = tc.bg;
+  $('your-initial').textContent = getTeamInitial();
+  $('your-team-label').textContent = GS.teamName;
   $('your-strength').textContent = 'STR: ' + getTeamStrength();
   var capP = GS.captainId ? GS.squad.find(function(p){return p.id===GS.captainId;}) : null;
   if ($('pm-captain')) $('pm-captain').textContent = capP ? 'Captain: ' + capP.name : '';
@@ -2218,8 +2293,8 @@ function startMatch() {
   $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
   $('you-status').className = 'you-status ' + (match.batting === 'you' ? 'batting' : 'bowling');
   $('innings-label').textContent = '1st Innings';
-  $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
-  $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : 'Your Team';
+  $('batting-team').textContent = match.batting === 'you' ? GS.teamName : match.opponent.name;
+  $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : GS.teamName;
   $('match-score').textContent = '0/0';
   $('match-overs').textContent = '0.0 overs';
   $('match-moments').innerHTML = '';
@@ -2291,7 +2366,7 @@ function simBall() {
   else { addMoment('dot', commText); }
   updateBBStrip(batter, bowler);
   var prevRuns = cRuns - runs;
-  var teamBat = match.batting === 'you' ? 'Your Team' : match.opponent.name;
+  var teamBat = match.batting === 'you' ? GS.teamName : match.opponent.name;
   if (prevRuns < 50 && cRuns >= 50) addMoment('milestone', 'FIFTY UP for ' + teamBat + '!', '50');
   if (prevRuns < 100 && cRuns >= 100) addMoment('milestone', teamBat + ' reach 100!', '100');
   if (prevRuns < 150 && cRuns >= 150) addMoment('milestone', '150 UP for ' + teamBat + '!', '150');
@@ -2388,8 +2463,8 @@ function showScorecard() {
     return h;
   }
   var html = '<div class="font-d fw-700 text-center" style="font-size:24px;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px">Scorecard</div>';
-  html += '<div class="text-center text-slip text-xs mb-16">Your Team ' + match.runs + '/' + match.wkts + ' vs ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>';
-  html += renderInnings('you', 'Your Team', 'your');
+  html += '<div class="text-center text-slip text-xs mb-16">' + GS.teamName + ' ' + match.runs + '/' + match.wkts + ' vs ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>';
+  html += renderInnings('you', GS.teamName, 'your');
   html += renderInnings('opp', match.opponent.name, 'opp');
   html += '<div class="btn btn-gold lg" style="margin-top:16px" id="sc-close-btn">Close</div>';
   $('scorecard-content').innerHTML = html;
@@ -2441,8 +2516,8 @@ function switchInnings() {
   $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
   $('you-status').className = 'you-status ' + (match.batting === 'you' ? 'batting' : 'bowling');
   $('innings-label').textContent = '2nd Innings · Target: ' + (match.target + 1);
-  $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
-  $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : 'Your Team';
+  $('batting-team').textContent = match.batting === 'you' ? GS.teamName : match.opponent.name;
+  $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : GS.teamName;
   $('match-score').textContent = '0/0';
   $('match-overs').textContent = '0.0 overs';
   $('momentum-you').style.width = '0%';
@@ -2570,7 +2645,7 @@ function endMatch() {
   if (GS.fanLoyalty >= 60) sponsorTag += '<div class="text-xs text-blue" style="margin-top:4px;text-align:center">Fan loyalty boost: +' + Math.round((fanMod - 1) * 100) + '% coins</div>';
   $('match-result').innerHTML =
     '<div class="result-text ' + (won ? 'win' : 'loss') + '">' + (won ? 'Victory' : tied ? 'Tied' : 'Defeat') + '</div>' +
-    '<div class="result-scores">Your Team ' + match.runs + '/' + match.wkts + ' · ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>' +
+    '<div class="result-scores">' + GS.teamName + ' ' + match.runs + '/' + match.wkts + ' · ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>' +
     '<div class="result-margin">' + (won ? 'Won by ' + (match.runs - match.oppRuns) + ' runs' : tied ? 'Match tied' : 'Lost by ' + (match.oppRuns - match.runs) + ' runs') + '</div>' +
     (wasFix ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0">Match was fixed — heat increased</div>' : '') +
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:8px">' + heatEvent + '</div>' : '') +
@@ -2798,6 +2873,73 @@ function showMafiaOffer() {
 }
 
 // =============================================
+// CUSTOMISATION
+// =============================================
+var TEAM_COLORS = [
+  {id:'gold',bg:'linear-gradient(135deg,var(--gold-bright),var(--gold))',border:'rgba(240,200,80,0.4)'},
+  {id:'crimson',bg:'linear-gradient(135deg,var(--blood),var(--crimson))',border:'rgba(220,38,38,0.4)'},
+  {id:'blue',bg:'linear-gradient(135deg,#60A5FA,var(--blue))',border:'rgba(59,130,246,0.4)'},
+  {id:'green',bg:'linear-gradient(135deg,var(--green-bright),var(--green))',border:'rgba(34,212,126,0.4)'},
+  {id:'purple',bg:'linear-gradient(135deg,#A78BFA,var(--purple))',border:'rgba(139,92,246,0.4)'},
+  {id:'amber',bg:'linear-gradient(135deg,#F59E0B,var(--amber))',border:'rgba(245,158,11,0.4)'},
+  {id:'white',bg:'linear-gradient(135deg,#E5E7EB,#9CA3AF)',border:'rgba(229,231,235,0.4)'},
+  {id:'dark',bg:'linear-gradient(135deg,#374151,#1F2937)',border:'rgba(55,65,81,0.4)'},
+];
+
+function getTeamColor() {
+  return TEAM_COLORS.find(function(c){return c.id===GS.teamColor;}) || TEAM_COLORS[0];
+}
+
+function getTeamInitial() {
+  return (GS.teamName || 'Y').charAt(0).toUpperCase();
+}
+
+function showCustomise() {
+  SFX.tap();
+  $('custom-team-name').value = GS.teamName === 'Your Team' ? '' : GS.teamName;
+  $('custom-team-name').placeholder = 'Your Team';
+  $('custom-manager-name').value = GS.managerName === 'Manager' ? '' : GS.managerName;
+  $('custom-manager-name').placeholder = 'Manager';
+  var colorHtml = '';
+  TEAM_COLORS.forEach(function(c) {
+    colorHtml += '<div class="color-swatch' + (GS.teamColor === c.id ? ' selected' : '') + '" data-color="' + c.id + '" style="background:' + c.bg + '"></div>';
+  });
+  $('color-picker').innerHTML = colorHtml;
+  var nnHtml = '';
+  GS.squad.forEach(function(p) {
+    nnHtml += '<div class="nickname-row"><div class="nn-name">' + (p.originalName || p.name) + '</div><input class="nn-input" data-nnid="' + p.id + '" type="text" maxlength="16" placeholder="' + p.name + '" value="' + (p.nickname || '') + '"></div>';
+  });
+  if (GS.squad.length === 0) nnHtml = '<div class="text-xs text-slip">No players in squad yet</div>';
+  $('nickname-list').innerHTML = nnHtml;
+  $('custom-overlay').classList.add('show');
+}
+
+function saveCustomisation() {
+  var tn = $('custom-team-name').value.trim();
+  var mn = $('custom-manager-name').value.trim();
+  GS.teamName = tn || 'Your Team';
+  GS.managerName = mn || 'Manager';
+  var selectedColor = document.querySelector('.color-swatch.selected');
+  if (selectedColor) GS.teamColor = selectedColor.getAttribute('data-color');
+  var nnInputs = document.querySelectorAll('.nn-input');
+  for (var i = 0; i < nnInputs.length; i++) {
+    var pid = parseInt(nnInputs[i].getAttribute('data-nnid'));
+    var nn = nnInputs[i].value.trim();
+    var player = GS.squad.find(function(p){return p.id===pid;});
+    if (player) {
+      if (!player.originalName) player.originalName = player.name;
+      player.nickname = nn || '';
+      player.name = nn || player.originalName;
+    }
+  }
+  save();
+  updateHub();
+  updateCurrency();
+  $('custom-overlay').classList.remove('show');
+  toast('Customisation saved', 'success');
+}
+
+// =============================================
 // LOADING
 // =============================================
 function initLoading() {
@@ -2880,6 +3022,22 @@ function bindEvents() {
       updateCardsScreen();
     });
   }
+  $('settings-btn').addEventListener('click', showCustomise);
+  $('custom-back-btn').addEventListener('click', function() { $('custom-overlay').classList.remove('show'); });
+  $('custom-save-btn').addEventListener('click', saveCustomisation);
+  $('custom-reset-btn').addEventListener('click', function() {
+    if (confirm('Reset ALL progress? This cannot be undone.')) {
+      localStorage.removeItem(SAVE_KEY); location.reload();
+    }
+  });
+  $('color-picker').addEventListener('click', function(e) {
+    var swatch = e.target.closest('.color-swatch');
+    if (!swatch) return;
+    SFX.tap();
+    var all = document.querySelectorAll('.color-swatch');
+    for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+    swatch.classList.add('selected');
+  });
   $('ss-auto-btn').addEventListener('click', autoSelectXI);
   $('ss-confirm-btn').addEventListener('click', confirmSquadSelect);
   $('ss-player-list').addEventListener('click', function(e) {
