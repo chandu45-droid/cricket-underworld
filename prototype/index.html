@@ -370,7 +370,24 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .pitch-svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;opacity:0.06;pointer-events:none}
 
 .match-scoreboard{text-align:center;position:relative;z-index:1}
+.you-status{font-family:var(--font-d);font-size:14px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:6px 16px;border-radius:20px;display:inline-block;margin-bottom:8px;animation:statusPulse 2s ease-in-out infinite}
+.you-status.batting{background:rgba(34,212,126,0.12);color:var(--green-bright);border:1px solid rgba(34,212,126,0.25)}
+.you-status.bowling{background:rgba(59,130,246,0.12);color:var(--blue);border:1px solid rgba(59,130,246,0.25)}
+@keyframes statusPulse{0%,100%{opacity:1}50%{opacity:0.7}}
 .match-scoreboard .innings-label{font-family:var(--font-d);font-size:13px;color:var(--gold-bright);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;font-weight:600}
+.scorecard-overlay{position:fixed;inset:0;z-index:250;background:rgba(6,8,16,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.4s;overflow-y:auto}
+.scorecard-overlay.show{opacity:1;pointer-events:auto}
+.sc-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+.sc-table th{font-family:var(--font-d);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--slip);padding:6px 4px;border-bottom:1px solid var(--border);text-align:left}
+.sc-table td{padding:5px 4px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--white-60)}
+.sc-table td:first-child{color:var(--white);font-weight:600}
+.sc-table .sc-highlight{color:var(--gold-bright);font-weight:700}
+.sc-innings-title{font-family:var(--font-d);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:12px 0 6px;padding:8px 12px;border-radius:var(--r-sm)}
+.sc-innings-title.your{color:var(--green-bright);border-left:3px solid var(--green-bright);background:rgba(34,212,126,0.04)}
+.sc-innings-title.opp{color:var(--blood);border-left:3px solid var(--blood);background:rgba(220,38,38,0.04)}
+.sc-total{font-family:var(--font-d);font-size:18px;font-weight:700;padding:6px 12px;margin-bottom:8px}
+.release-btn{font-family:var(--font-d);font-size:10px;font-weight:600;color:var(--blood);border:1px solid rgba(220,38,38,0.2);padding:3px 8px;border-radius:6px;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;background:rgba(220,38,38,0.05)}
+.release-btn:active{background:rgba(220,38,38,0.15)}
 .match-scoreboard .teams{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px}
 .match-scoreboard .team-name{font-family:var(--font-d);font-size:16px;font-weight:600;flex:1}
 .match-scoreboard .team-name:first-child{text-align:right}
@@ -822,6 +839,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <line x1="138" y1="182" x2="162" y2="182" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
         </svg>
         <div class="match-scoreboard">
+          <div class="you-status" id="you-status">YOU ARE BATTING</div>
           <div class="innings-label" id="innings-label">1st Innings</div>
           <div class="teams">
             <div class="team-name" id="batting-team">Your Team</div>
@@ -941,6 +959,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 <div class="overlay" id="mafia-overlay"><div class="modal"><div class="modal-handle"></div><div id="mafia-offer-content"></div></div></div>
 <div class="overlay" id="player-detail-overlay"><div class="modal"><div class="modal-handle"></div><div id="player-detail-content"></div></div></div>
 <div class="match-result-overlay" id="pack-overlay"><div id="pack-opening-content" style="width:100%;max-width:400px"></div></div>
+<div class="scorecard-overlay" id="scorecard-overlay"><div id="scorecard-content" style="width:100%;max-width:400px;margin:auto"></div></div>
 
 <div class="vignette"></div>
 <canvas id="particle-canvas"></canvas>
@@ -1507,9 +1526,21 @@ function showPlayerDetail(id) {
       '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">Loyalty</span><div class="stat-bar flex-1"><div class="fill green" style="width:' + p.loyalty + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.loyalty + '</span></div>' +
       '<div class="flex items-center gap-8"><span class="text-xs text-slip" style="width:56px">Greed</span><div class="stat-bar flex-1"><div class="fill red" style="width:' + p.greed + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.greed + '</span></div>' +
     '</div>' +
-    '<div class="btn btn-outline full" id="close-detail-btn">Close</div>';
+    (GS.squad.some(function(s){return s.id===p.id;}) ?
+      '<div class="flex gap-10 mt-12"><div class="btn btn-outline flex-1" id="close-detail-btn">Close</div><div class="btn flex-1" id="release-detail-btn" style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);color:var(--blood)">Release (+' + Math.round(p.bat * 2 + p.bwl * 1.5) + ' coins)</div></div>' :
+      '<div class="btn btn-outline full" id="close-detail-btn">Close</div>');
   $('player-detail-overlay').classList.add('show');
   $('close-detail-btn').onclick = function() { $('player-detail-overlay').classList.remove('show'); };
+  if ($('release-detail-btn')) {
+    $('release-detail-btn').onclick = function() {
+      var refund = Math.round(p.bat * 2 + p.bwl * 1.5);
+      GS.squad = GS.squad.filter(function(s){return s.id !== p.id;});
+      GS.coins += refund;
+      updateCurrency(); save(); updateSquadScreen();
+      $('player-detail-overlay').classList.remove('show');
+      toast(p.name + ' released. +' + refund + ' coins', 'success');
+    };
+  }
 }
 
 // =============================================
@@ -1838,17 +1869,18 @@ function buildPlayingXI(squad) {
 function generateRivalXI(rival) {
   var roles = ['Top-Order Batter','Top-Order Batter','Top-Order Batter','Wicket-Keeper','Middle-Order Batter','Middle-Order Batter','All-Rounder','All-Rounder','Fast Bowler','Fast Bowler','Spin Bowler'];
   var xi = [];
-  var base = rival.strength;
+  var teamStr = getTeamStrength ? getTeamStrength() : 65;
+  var base = teamStr + Math.floor(Math.random() * 8) - 3;
   for (var i = 0; i < 11; i++) {
-    var role = roles[i], v = Math.floor(Math.random()*20)-10;
+    var role = roles[i], v = Math.floor(Math.random()*16)-8;
     var isBat = role.indexOf('Batter')>=0 || role==='Wicket-Keeper';
     var isBwl = role.indexOf('Bowler')>=0;
     var isAR = role==='All-Rounder';
     xi.push({
       name: rival.name.split(' ')[1]+'-'+(i+1), role: role,
-      bat: isBat ? Math.min(95,base+v) : isAR ? Math.min(90,base-10+v) : 10+Math.floor(Math.random()*15),
-      bwl: isBwl ? Math.min(95,base+v) : isAR ? Math.min(90,base-8+v) : 5+Math.floor(Math.random()*10),
-      form: 35+Math.floor(Math.random()*35), fld: 45+Math.floor(Math.random()*25)
+      bat: isBat ? Math.min(95,base+v) : isAR ? Math.min(92,base-8+v) : 12+Math.floor(Math.random()*15),
+      bwl: isBwl ? Math.min(95,base+v) : isAR ? Math.min(92,base-6+v) : 8+Math.floor(Math.random()*10),
+      form: 40+Math.floor(Math.random()*35), fld: 48+Math.floor(Math.random()*25)
     });
   }
   return xi;
@@ -1987,7 +2019,10 @@ function startMatch() {
   $('boost-btn').classList.remove('used', 'active-boost');
   $('tac-aggro').classList.remove('active'); $('tac-defense').classList.remove('active');
   $('tac-balanced').classList.add('active');
+  match.scorecard = {you:{batters:[],bowlers:[],total:0,wkts:0,overs:''},opp:{batters:[],bowlers:[],total:0,wkts:0,overs:''}};
   updateBBStrip(match.curBatter, match.curBowler);
+  $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
+  $('you-status').className = 'you-status ' + (match.batting === 'you' ? 'batting' : 'bowling');
   $('innings-label').textContent = '1st Innings';
   $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : 'Your Team';
@@ -2043,6 +2078,16 @@ function simBall() {
   var batter = match.curBatter, bowler = match.curBowler;
   if (ballInOver === 0) match.overRuns = 0;
   match.overRuns += runs;
+  var scSide = isYou ? 'you' : 'opp';
+  var scBat = match.scorecard[scSide].batters;
+  var batEntry = scBat.find(function(b){return b.name===batter.name;});
+  if (!batEntry) { batEntry = {name:batter.name,runs:0,balls:0,fours:0,sixes:0,out:false}; scBat.push(batEntry); }
+  batEntry.runs += runs; batEntry.balls++; if (runs===4) batEntry.fours++; if (runs===6) batEntry.sixes++; if (wkt) batEntry.out = true;
+  var bowlSide = isYou ? 'opp' : 'you';
+  var scBwl = match.scorecard[bowlSide].bowlers;
+  var bwlEntry = scBwl.find(function(b){return b.name===bowler.name;});
+  if (!bwlEntry) { bwlEntry = {name:bowler.name,runs:0,balls:0,wkts:0}; scBwl.push(bwlEntry); }
+  bwlEntry.runs += runs; bwlEntry.balls++; if (wkt) bwlEntry.wkts++;
   var commText = getCommentary(outcome, batter, bowler, phase, match.innings, match.target, cRuns, match.ball, cWkts, match.momentum);
   if (runs === 6) { addMoment('six', commText); SFX.six(); }
   else if (runs === 4) { addMoment('runs', commText); }
@@ -2120,6 +2165,43 @@ function getCommentary(outcome, batter, bowler, phase, innings, target, cRuns, b
   return text;
 }
 
+function showScorecard() {
+  var sc = match.scorecard;
+  sc.you.total = match.runs; sc.you.wkts = match.wkts;
+  sc.opp.total = match.oppRuns; sc.opp.wkts = match.oppWkts;
+  function renderInnings(side, label, cls) {
+    var h = '<div class="sc-innings-title ' + cls + '">' + label + '</div>';
+    h += '<div class="sc-total">' + sc[side].total + '/' + sc[side].wkts + '</div>';
+    h += '<table class="sc-table"><tr><th>Batter</th><th>R</th><th>B</th><th>4s</th><th>6s</th><th>SR</th></tr>';
+    sc[side].batters.forEach(function(b) {
+      var sr = b.balls > 0 ? (b.runs / b.balls * 100).toFixed(0) : '0';
+      var highlight = b.runs >= 30 ? ' class="sc-highlight"' : '';
+      h += '<tr><td' + highlight + '>' + b.name + (b.out ? '' : '*') + '</td><td' + highlight + '>' + b.runs + '</td><td>' + b.balls + '</td><td>' + b.fours + '</td><td>' + b.sixes + '</td><td>' + sr + '</td></tr>';
+    });
+    h += '</table>';
+    if (sc[side].bowlers.length > 0) {
+      h += '<table class="sc-table"><tr><th>Bowler</th><th>O</th><th>R</th><th>W</th><th>Econ</th></tr>';
+      var otherSide = side === 'you' ? 'opp' : 'you';
+      sc[otherSide].bowlers.forEach(function(b) {
+        var overs = Math.floor(b.balls / 6) + '.' + (b.balls % 6);
+        var econ = b.balls > 0 ? (b.runs / b.balls * 6).toFixed(1) : '0.0';
+        var highlight = b.wkts >= 2 ? ' class="sc-highlight"' : '';
+        h += '<tr><td' + highlight + '>' + b.name + '</td><td>' + overs + '</td><td>' + b.runs + '</td><td' + highlight + '>' + b.wkts + '</td><td>' + econ + '</td></tr>';
+      });
+      h += '</table>';
+    }
+    return h;
+  }
+  var html = '<div class="font-d fw-700 text-center" style="font-size:24px;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px">Scorecard</div>';
+  html += '<div class="text-center text-slip text-xs mb-16">Your Team ' + match.runs + '/' + match.wkts + ' vs ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>';
+  html += renderInnings('you', 'Your Team', 'your');
+  html += renderInnings('opp', match.opponent.name, 'opp');
+  html += '<div class="btn btn-gold lg" style="margin-top:16px" id="sc-close-btn">Close</div>';
+  $('scorecard-content').innerHTML = html;
+  $('scorecard-overlay').classList.add('show');
+  $('sc-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
+}
+
 function getMatchHook(won, tied, opponent, totalWins, matchNum) {
   var hooks = [];
   var pName = opponent.personality;
@@ -2159,6 +2241,8 @@ function switchInnings() {
   match.curBowler = pickBowler(match.bowlers, 0, 0);
   match.overRuns = 0;
   updateBBStrip(match.curBatter, match.curBowler);
+  $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
+  $('you-status').className = 'you-status ' + (match.batting === 'you' ? 'batting' : 'bowling');
   $('innings-label').textContent = '2nd Innings · Target: ' + (match.target + 1);
   $('batting-team').textContent = match.batting === 'you' ? 'Your Team' : match.opponent.name;
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : 'Your Team';
@@ -2187,6 +2271,14 @@ function skipMatch() {
     var outcome = calcBallOutcome(batter, match.curBowler, match.pitchType, phase, GS.strategy, GS.morale, isYou, match.innings, match.target, cRuns, match.ball);
     var runs = outcome.runs, wkt = outcome.wicket;
     if (isYou) { match.runs += runs; if (wkt) match.wkts++; } else { match.oppRuns += runs; if (wkt) match.oppWkts++; }
+    var scS = isYou ? 'you' : 'opp';
+    var scB = match.scorecard[scS].batters, be = scB.find(function(b){return b.name===batter.name;});
+    if (!be) { be = {name:batter.name,runs:0,balls:0,fours:0,sixes:0,out:false}; scB.push(be); }
+    be.runs += runs; be.balls++; if (runs===4) be.fours++; if (runs===6) be.sixes++; if (wkt) be.out = true;
+    var bwS = isYou ? 'opp' : 'you', scW = match.scorecard[bwS].bowlers;
+    var we = scW.find(function(b){return b.name===match.curBowler.name;});
+    if (!we) { we = {name:match.curBowler.name,runs:0,balls:0,wkts:0}; scW.push(we); }
+    we.runs += runs; we.balls++; if (wkt) we.wkts++;
     var cW = isYou ? match.wkts : match.oppWkts;
     if (match.innings === 2) {
       if (match.batting === 'you' && match.runs > match.target) { endMatch(); return; }
@@ -2293,7 +2385,8 @@ function endMatch() {
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div id="post-match-events" style="margin-top:12px"></div>' +
     getMatchHook(won, tied, match.opponent, GS.wins, GS.matchNum) +
-    '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:20px">Continue</div>';
+    '<div class="btn btn-outline full" id="view-scorecard-btn" style="margin-top:16px">View Scorecard</div>' +
+    '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:10px">Continue</div>';
   var postEventsHtml = '';
   var charityAmount = Math.round(coinR * 0.2);
   if (won && charityAmount > 0) {
@@ -2325,6 +2418,7 @@ function endMatch() {
     };
   }
   $('match-result').classList.add('show');
+  $('view-scorecard-btn').onclick = showScorecard;
   $('match-continue-btn').onclick = function() {
     $('match-result').classList.remove('show');
     if (GS.matchNum > 14) {
