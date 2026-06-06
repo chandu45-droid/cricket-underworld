@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#07090C">
+<title>Cricket Underworld</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:#07090C;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+'use strict';
+
+// ===== CANVAS =====
+const cvs = document.getElementById('c');
+const ctx = cvs.getContext('2d');
+let W, H, dpr, cx, cy;
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  cvs.width = W * dpr; cvs.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cx = W / 2; cy = H / 2;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ===== COLORS =====
+const C = {
+  void: '#07090C', pitch: '#0D1117', dugout: '#161B26', pavilion: '#1E2536', sight: '#2A3247',
+  gold: '#B8860B', goldBright: '#DAA520', crimson: '#8B0000', blood: '#CC1100', amber: '#CF6A00',
+  green: '#0E6B3A', greenBright: '#10B068', white: '#E8E0D4', slip: '#7A8299',
+  border: '#3D4A63', disabled: '#4A5568', blackMoney: '#1A1A2E', fixerBlue: '#1A3A5C',
+};
+const RARITY_COLORS = {
+  common: '#4A5568', uncommon: '#2D6A9F', rare: '#0E6B3A', epic: '#B8860B', legendary: '#CC1100'
+};
+
+// ===== AUDIO =====
+let audioCtx;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq, dur, type, vol, delay) {
+  try {
+    const a = getAudio(), t = a.currentTime + (delay || 0);
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || 0.08, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + dur);
+  } catch(e) {}
+}
+const SFX = {
+  tap() { playTone(600, 0.04, 'sine', 0.06); },
+  bid() { playTone(400, 0.08, 'triangle', 0.1); playTone(520, 0.06, 'sine', 0.06, 0.05); },
+  cardWon() { playTone(523, 0.12, 'sine', 0.1); playTone(659, 0.12, 'sine', 0.08, 0.1); playTone(784, 0.15, 'sine', 0.1, 0.2); },
+  cardReveal() { playTone(300, 0.15, 'triangle', 0.06); },
+  pass() { playTone(250, 0.12, 'sawtooth', 0.04); },
+  wicket() { playTone(800, 0.08, 'sine', 0.1); playTone(600, 0.15, 'sine', 0.06, 0.06); },
+  runs() { playTone(500, 0.05, 'sine', 0.04); },
+  six() { playTone(700, 0.2, 'sine', 0.12); playTone(880, 0.15, 'sine', 0.1, 0.1); playTone(1047, 0.2, 'sine', 0.08, 0.2); },
+  win() { [0,100,200,300].forEach((d,i) => playTone([523,659,784,1047][i], 0.4, 'sine', 0.1, d/1000)); },
+  lose() { playTone(300, 0.5, 'sawtooth', 0.06); playTone(200, 0.6, 'sawtooth', 0.04, 0.2); },
+  mafia() { playTone(80, 1.2, 'sawtooth', 0.04); playTone(120, 0.8, 'triangle', 0.03, 0.3); },
+  timer() { playTone(1000, 0.03, 'square', 0.05); },
+  phaseEnd() { playTone(440, 0.15, 'sine', 0.08); playTone(550, 0.15, 'sine', 0.06, 0.1); },
+};
+
+// ===== PARTICLES =====
+let particles = [];
+function spawnParticles(x, y, color, count, spread, life) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * spread;
+    particles.push({
+      x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 0.5,
+      life: life || 1, maxLife: life || 1, size: 1.5 + Math.random() * 2.5, color
+    });
+  }
+}
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.3 * dt; p.life -= dt;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * (p.life / p.maxLife), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// Ambient smoke particles for atmosphere
+let smokeParticles = [];
+function updateSmoke(dt) {
+  if (smokeParticles.length < 15 && Math.random() < 0.05) {
+    smokeParticles.push({
+      x: Math.random() * W, y: H + 10,
+      vx: (Math.random() - 0.5) * 0.3, vy: -0.2 - Math.random() * 0.3,
+      life: 8 + Math.random() * 6, maxLife: 14, size: 30 + Math.random() * 50,
+      alpha: 0.01 + Math.random() * 0.02
+    });
+  }
+  for (let i = smokeParticles.length - 1; i >= 0; i--) {
+    const s = smokeParticles[i];
+    s.x += s.vx; s.y += s.vy; s.life -= dt;
+    if (s.life <= 0) smokeParticles.splice(i, 1);
+  }
+}
+function drawSmoke() {
+  for (const s of smokeParticles) {
+    const a = s.alpha * Math.min(1, s.life / s.maxLife);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = '#1a1a2e';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ===== EASING =====
+function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+function easeInOut(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+
+// ===== TWEENS =====
+let tweens = [];
+function tween(obj, prop, to, dur, easeFn, onDone) {
+  const from = obj[prop];
+  tweens.push({ obj, prop, from, to, dur, elapsed: 0, ease: easeFn || easeOut, onDone });
+}
+function updateTweens(dt) {
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const t = tweens[i];
+    t.elapsed += dt;
+    const p = Math.min(1, t.elapsed / t.dur);
+    t.obj[t.prop] = t.from + (t.to - t.from) * t.ease(p);
+    if (p >= 1) { if (t.onDone) t.onDone(); tweens.splice(i, 1); }
+  }
+}
+
+// ===== DRAWING HELPERS =====
+function drawBg() {
+  ctx.fillStyle = C.void;
+  ctx.fillRect(0, 0, W, H);
+  // Subtle noise texture
+  ctx.globalAlpha = 0.015;
+  for (let i = 0; i < 200; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
+    ctx.fillRect(Math.random()*W, Math.random()*H, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawVignette(color, intensity) {
+  const grd = ctx.createRadialGradient(cx, cy, Math.min(W,H)*0.3, cx, cy, Math.max(W,H)*0.8);
+  grd.addColorStop(0, 'transparent');
+  grd.addColorStop(1, color || 'rgba(0,0,0,0.6)');
+  ctx.globalAlpha = intensity || 0.5;
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalAlpha = 1;
+}
+
+function drawPanel(x, y, w, h, opts = {}) {
+  const accentColor = opts.accent || C.gold;
+  ctx.fillStyle = opts.bg || C.dugout;
+  ctx.fillRect(x, y, w, h);
+  // Top accent line
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(x, y, w, opts.accentHeight || 2);
+  // Border
+  ctx.strokeStyle = opts.borderColor || C.border;
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(x, y, w, h);
+  if (opts.glow) {
+    ctx.save();
+    ctx.shadowColor = accentColor;
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, w, h);
+    ctx.restore();
+  }
+}
+
+function drawBtn(x, y, w, h, text, opts = {}) {
+  const bg = opts.bg || C.gold;
+  const textColor = opts.textColor || C.void;
+  const hover = opts.hover || false;
+  const disabled = opts.disabled || false;
+
+  ctx.save();
+  if (disabled) ctx.globalAlpha = 0.4;
+
+  // Chamfered shape
+  const clip = 8;
+  ctx.beginPath();
+  ctx.moveTo(x + clip, y);
+  ctx.lineTo(x + w - clip, y);
+  ctx.lineTo(x + w, y + h / 2);
+  ctx.lineTo(x + w - clip, y + h);
+  ctx.lineTo(x + clip, y + h);
+  ctx.lineTo(x, y + h / 2);
+  ctx.closePath();
+
+  // Gradient fill
+  const grd = ctx.createLinearGradient(x, y, x + w, y + h);
+  grd.addColorStop(0, bg);
+  grd.addColorStop(1, darken(bg, 0.25));
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  if (hover && !disabled) {
+    ctx.shadowColor = bg;
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // Text
+  ctx.font = `600 ${opts.fontSize || 16}px Teko, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = textColor;
+  ctx.letterSpacing = '1px';
+  ctx.fillText(text.toUpperCase(), x + w/2, y + h/2 + 1);
+
+  ctx.restore();
+
+  return { x, y, w, h, id: opts.id };
+}
+
+function drawText(text, x, y, opts = {}) {
+  const font = opts.font || 'Rajdhani';
+  const weight = opts.weight || 500;
+  const size = opts.size || 14;
+  ctx.font = `${weight} ${size}px ${font}, sans-serif`;
+  ctx.textAlign = opts.align || 'left';
+  ctx.textBaseline = opts.baseline || 'top';
+  ctx.fillStyle = opts.color || C.white;
+  if (opts.glow) {
+    ctx.save();
+    ctx.shadowColor = opts.color || C.white;
+    ctx.shadowBlur = opts.glow;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+  ctx.fillText(text, x, y);
+}
+
+function darken(hex, amount) {
+  const num = parseInt(hex.replace('#',''), 16);
+  const r = Math.max(0, ((num >> 16) & 0xFF) * (1 - amount));
+  const g = Math.max(0, ((num >> 8) & 0xFF) * (1 - amount));
+  const b = Math.max(0, (num & 0xFF) * (1 - amount));
+  return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+}
+
+function drawStatBar(x, y, w, h, value, max, color) {
+  ctx.fillStyle = C.sight;
+  ctx.fillRect(x, y, w, h);
+  const pct = Math.min(1, value / max);
+  const grd = ctx.createLinearGradient(x, y, x + w * pct, y);
+  grd.addColorStop(0, color);
+  grd.addColorStop(1, darken(color, 0.2));
+  ctx.fillStyle = grd;
+  ctx.fillRect(x, y, w * pct, h);
+}
+
+// ===== CARD RENDERER =====
+function drawCard(card, x, y, w, opts = {}) {
+  const h = w * 1.45;
+  const rarityCol = RARITY_COLORS[card.rarity] || C.disabled;
+  const selected = opts.selected || false;
+  const scale = opts.scale || 1;
+  const alpha = opts.alpha != null ? opts.alpha : 1;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  if (scale !== 1) {
+    ctx.translate(x + w/2, y + h/2);
+    ctx.scale(scale, scale);
+    ctx.translate(-(x + w/2), -(y + h/2));
+  }
+
+  // Card shadow
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 4;
+  ctx.fillStyle = C.dugout;
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+
+  // Card background
+  ctx.fillStyle = C.dugout;
+  ctx.fillRect(x, y, w, h);
+
+  // Rarity strip at top
+  if (card.rarity === 'legendary') {
+    const shimmer = ctx.createLinearGradient(x, y, x + w, y);
+    shimmer.addColorStop(0, C.gold);
+    shimmer.addColorStop(0.5, C.blood);
+    shimmer.addColorStop(1, C.green);
+    ctx.fillStyle = shimmer;
+  } else {
+    ctx.fillStyle = rarityCol;
+  }
+  ctx.fillRect(x, y, w, 4);
+
+  // Glow for selected/rare+
+  if (selected || card.rarity === 'legendary' || card.rarity === 'epic') {
+    ctx.save();
+    ctx.shadowColor = selected ? C.goldBright : rarityCol;
+    ctx.shadowBlur = selected ? 20 : 10;
+    ctx.strokeStyle = selected ? C.goldBright : rarityCol;
+    ctx.lineWidth = selected ? 2 : 1;
+    ctx.strokeRect(x, y, w, h);
+    ctx.restore();
+  }
+
+  // Border
+  ctx.strokeStyle = selected ? C.goldBright : C.border;
+  ctx.lineWidth = selected ? 1.5 : 0.5;
+  ctx.strokeRect(x, y, w, h);
+
+  // Player avatar area (abstract)
+  const avatarY = y + 10;
+  const avatarH = w * 0.45;
+  const grd = ctx.createLinearGradient(x, avatarY, x, avatarY + avatarH);
+  grd.addColorStop(0, C.pavilion);
+  grd.addColorStop(1, C.dugout);
+  ctx.fillStyle = grd;
+  ctx.fillRect(x + 8, avatarY, w - 16, avatarH);
+
+  // Role icon in avatar area
+  const roleIcon = card.role.includes('Bat') ? '🏏' : card.role.includes('Pace') ? '💨' :
+    card.role === 'Spinner' ? '🌀' : card.role.includes('All') ? '⚡' :
+    card.role === 'Wicketkeeper' ? '🧤' : '🏏';
+  ctx.font = `${w * 0.22}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(roleIcon, x + w/2, avatarY + avatarH/2);
+
+  // Origin badge
+  ctx.font = `700 ${w * 0.06}px Rajdhani, sans-serif`;
+  ctx.textAlign = 'right';
+  ctx.fillStyle = card.overseas ? C.fixerBlue : C.slip;
+  const badge = card.overseas ? 'OVERSEAS' : 'DOMESTIC';
+  const bw = ctx.measureText(badge).width + 6;
+  ctx.strokeStyle = card.overseas ? C.fixerBlue : C.border;
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(x + w - bw - 6, avatarY + 4, bw + 2, 10);
+  ctx.fillText(badge, x + w - 8, avatarY + 12);
+
+  // Name
+  const nameY = avatarY + avatarH + 6;
+  ctx.font = `600 ${w * 0.12}px Teko, sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = C.white;
+  const displayName = card.name.length > 14 ? card.name.split(' ').pop() : card.name;
+  ctx.fillText(displayName, x + 8, nameY);
+
+  // Role
+  ctx.font = `500 ${w * 0.07}px Rajdhani, sans-serif`;
+  ctx.fillStyle = C.slip;
+  let roleText = card.role;
+  if (card.bowlType && card.bowlType !== 'none') roleText += ` (${card.bowlType})`;
+  ctx.fillText(roleText, x + 8, nameY + w * 0.12);
+
+  // Divider
+  const divY = nameY + w * 0.21;
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(x + 8, divY); ctx.lineTo(x + w - 8, divY); ctx.stroke();
+
+  // Stats
+  const statY = divY + 5;
+  const statH = 4;
+  const statW = w * 0.45;
+  const statGap = w * 0.09;
+  const stats = [
+    { label: 'BAT', val: card.bat, col: card.bat >= 60 ? C.green : C.slip },
+    { label: 'BWL', val: card.bowl, col: card.bowl >= 60 ? C.green : C.slip },
+    { label: 'FLD', val: card.fld, col: C.slip },
+    { label: 'FIT', val: card.fit, col: card.fit < 40 ? C.blood : C.slip },
+  ];
+
+  stats.forEach((s, i) => {
+    const row = Math.floor(i / 2);
+    const col = i % 2;
+    const sx = x + 8 + col * (statW + 10);
+    const sy = statY + row * (statH + statGap);
+
+    ctx.font = `500 ${w * 0.06}px Rajdhani, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = C.slip;
+    ctx.fillText(s.label, sx, sy);
+
+    ctx.font = `700 ${w * 0.07}px Rajdhani, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = s.col;
+    ctx.fillText(s.val, sx + statW, sy);
+
+    drawStatBar(sx + 20, sy + 4, statW - 24, statH, s.val, 99, s.col);
+  });
+
+  // Form indicator
+  const formY = statY + 2 * (statH + statGap) + 4;
+  ctx.font = `600 ${w * 0.065}px Rajdhani, sans-serif`;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = C.slip;
+  ctx.fillText('FORM', x + 8, formY);
+  const formArrow = card.form > 55 ? '▲' : card.form < 45 ? '▼' : '─';
+  const formCol = card.form > 55 ? C.greenBright : card.form < 45 ? C.blood : C.slip;
+  ctx.fillStyle = formCol;
+  ctx.textAlign = 'right';
+  ctx.fillText(`${formArrow} ${card.form}`, x + w - 8, formY);
+
+  ctx.restore();
+  return { x, y, w, h };
+}
+
+// ===== GAME DATA =====
+const FIRST_NAMES = ['Rohit','Vikas','Arjun','Kiran','Ravi','Sanjay','Deepak','Anil','Suresh','Manoj',
+  'Pradeep','Rajesh','Amit','Vikram','Nikhil','Sachin','Rahul','Yuvraj','Ajay','Sunil',
+  'Ishant','Naveen','Gaurav','Harsh','Dev','Pranav','Kartik','Varun','Ashwin','Jadeja'];
+const LAST_NAMES = ['Sharma','Patel','Reddy','Kumar','Singh','Rao','Nair','Iyer','Pillai','Verma',
+  'Chopra','Gupta','Mishra','Joshi','Desai','Malhotra','Bhat','Chauhan','Yadav','Kulkarni'];
+const RIVAL_NAMES = [
+  { name: 'The Shark', personality: 'Aggressive and ruthless', color: C.blood, maxBidMul: 2.5 },
+  { name: 'The Purist', personality: 'Plays it clean', color: C.green, maxBidMul: 1.4 },
+  { name: 'The Pragmatist', personality: 'Adapts to survive', color: C.goldBright, maxBidMul: 1.8 },
+];
+const ROLES = ['Top-Order Batter','Middle-Order Batter','All-Rounder','Pace Bowler','Spinner','Wicketkeeper'];
+const PITCHES = [
+  { name: 'SEAMING', desc: 'Pace bowlers dominate, spinners struggle', paceBonus: 1.25, spinBonus: 0.65, batBonus: 0.95, color: C.green },
+  { name: 'TURNING', desc: 'Spinners are deadly, pace less effective', paceBonus: 0.75, spinBonus: 1.30, batBonus: 0.95, color: C.amber },
+  { name: 'FLAT', desc: 'A batting paradise — big scores expected', paceBonus: 1.0, spinBonus: 1.0, batBonus: 1.10, color: C.goldBright },
+];
+
+function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+function genCard(minStat, maxStat, forceRole) {
+  const role = forceRole || ROLES[rand(0, ROLES.length - 1)];
+  const overseas = Math.random() < 0.3;
+  const bowlType = role === 'Pace Bowler' ? 'pace' : role === 'Spinner' ? 'spin' :
+    role === 'All-Rounder' ? (Math.random() < 0.5 ? 'pace' : 'spin') : 'none';
+  let bat = rand(minStat, maxStat), bowl = rand(minStat, maxStat);
+  if (role.includes('Bat') || role === 'Wicketkeeper') { bat = rand(Math.max(minStat,55), maxStat); bowl = rand(10, 40); }
+  if (role === 'Pace Bowler' || role === 'Spinner') { bowl = rand(Math.max(minStat,55), maxStat); bat = rand(15, 45); }
+  if (role === 'All-Rounder') { bat = rand(Math.max(minStat,45), maxStat-5); bowl = rand(Math.max(minStat,45), maxStat-5); }
+  const loyalty = rand(20,95), greed = Math.max(5, rand(10, 100 - Math.floor(loyalty * 0.6)));
+  const rarity = (bat >= 85 || bowl >= 85) ? 'legendary' : (bat >= 72 || bowl >= 72) ? 'epic' :
+    (bat >= 60 || bowl >= 60) ? 'rare' : (bat >= 45 || bowl >= 45) ? 'uncommon' : 'common';
+  const basePrice = { common: 30, uncommon: 60, rare: 120, epic: 250, legendary: 500 }[rarity];
+  const name = FIRST_NAMES[rand(0, FIRST_NAMES.length-1)] + ' ' + LAST_NAMES[rand(0, LAST_NAMES.length-1)];
+  return { name, role, overseas, bowlType, rarity, basePrice, bat, bowl, fld: rand(30,80),
+    fit: rand(40,90), form: rand(42,68), exp: rand(10,85), loyalty, greed,
+    captaincy: Math.random() < 0.15, leadership: rand(40,85) };
+}
+
+function genRivalSquad(str) {
+  const roles = ['Top-Order Batter','Top-Order Batter','Top-Order Batter','Middle-Order Batter','Middle-Order Batter',
+    'All-Rounder','All-Rounder','Pace Bowler','Pace Bowler','Spinner','Wicketkeeper'];
+  return roles.map(r => genCard(Math.max(30,str-25), Math.min(95,str+10), r));
+}
+
+// ===== GAME STATE =====
+let G = {
+  coins: 500, gems: 10, bm: 0, alignment: 10, heat: 0, morale: 50,
+  wins: 0, losses: 0, matchNum: 0, season: 1,
+  squad: [], xi: [],
+  auctionPool: [], aucIdx: 0, aucPurse: 500,
+  mafiaShown: false, mafiaAccepted: false,
+};
+let screen = 'splash';
+let screenTransition = { active: false, from: '', to: '', progress: 0, dur: 0.4 };
+let buttons = [];
+let time = 0;
+let lastT = 0;
+
+// ===== AUCTION STATE =====
+let auc = {
+  phase: 'idle', // idle, reveal, bidding, won, sold, unsold, done
+  currentCard: null, bid: 0, bidder: '', timer: 0, maxTimer: 6,
+  revealProgress: 0, cardScale: 0, wonAnim: 0,
+  log: [], rivalsPassed: [],
+};
+
+// ===== MATCH STATE =====
+let match = {
+  phase: 'idle', // idle, innings1, break, innings2, drama, result
+  pitch: null, bowlStrat: 'balanced', tossChoice: 'bat',
+  rival: null, rivalSquad: [],
+  inn1: null, inn2: null, battingFirst: 'you',
+  yourScore: { runs: 0, wickets: 0 }, rivalScore: { runs: 0, wickets: 0 },
+  currentPhase: 0, phaseTimer: 0, phaseDur: 2.0,
+  commentary: [], comTimer: 0,
+  result: null, resultTimer: 0,
+};
+
+// ===== SCREEN MANAGEMENT =====
+function goTo(s) {
+  screenTransition = { active: true, from: screen, to: s, progress: 0, dur: 0.35 };
+}
+
+function updateTransition(dt) {
+  if (!screenTransition.active) return;
+  screenTransition.progress += dt / screenTransition.dur;
+  if (screenTransition.progress >= 1) {
+    screen = screenTransition.to;
+    screenTransition.active = false;
+  }
+}
+
+// ===== SPLASH SCREEN =====
+function drawSplash() {
+  drawBg();
+  drawSmoke();
+  drawVignette('rgba(139,0,0,0.3)', 0.6);
+
+  const pulse = Math.sin(time * 1.5) * 0.1 + 0.9;
+
+  // Diamond ornament
+  ctx.save();
+  ctx.translate(cx, cy - 60);
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = C.gold;
+  ctx.globalAlpha = 0.3 * pulse;
+  ctx.fillRect(-6, -6, 12, 12);
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // Title
+  drawText('C R I C K E T', cx, cy - 40, { font: 'Teko', weight: 700, size: 22, color: C.slip, align: 'center', glow: 4 });
+  drawText('UNDERWORLD', cx, cy - 15, { font: 'Teko', weight: 700, size: 54, color: C.blood, align: 'center', glow: 12 });
+
+  // Tagline
+  drawText('Strategy  •  Corruption  •  Cricket', cx, cy + 50, { size: 12, color: C.disabled, align: 'center' });
+
+  // Play button
+  const btnW = 180, btnH = 48;
+  buttons.push(drawBtn(cx - btnW/2, cy + 90, btnW, btnH, 'ENTER THE GAME', {
+    id: 'start', bg: C.gold, fontSize: 18
+  }));
+
+  // Version
+  drawText('PROTOTYPE v2.0', cx, H - 30, { size: 10, color: C.disabled, align: 'center' });
+}
+
+// ===== HUB SCREEN =====
+function drawHub() {
+  drawBg();
+  drawSmoke();
+
+  // Currency bar
+  ctx.fillStyle = 'rgba(7,9,12,0.92)';
+  ctx.fillRect(0, 0, W, 36);
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(0, 36); ctx.lineTo(W, 36); ctx.stroke();
+
+  // Coins
+  ctx.fillStyle = C.gold;
+  ctx.beginPath(); ctx.arc(16, 18, 7, 0, Math.PI*2); ctx.fill();
+  drawText('C', 16, 18, { font: 'Rajdhani', weight: 700, size: 9, color: C.void, align: 'center', baseline: 'middle' });
+  drawText(G.coins.toString(), 28, 11, { weight: 700, size: 14, color: C.white });
+
+  // Gems
+  ctx.fillStyle = C.fixerBlue;
+  ctx.beginPath(); ctx.arc(90, 18, 7, 0, Math.PI*2); ctx.fill();
+  drawText('G', 90, 18, { font: 'Rajdhani', weight: 700, size: 9, color: C.void, align: 'center', baseline: 'middle' });
+  drawText(G.gems.toString(), 102, 11, { weight: 700, size: 14, color: C.white });
+
+  // Season
+  drawText(`SEASON ${'I'.repeat(G.season)}`, W - 16, 12, { font: 'Teko', weight: 600, size: 14, color: C.slip, align: 'right' });
+
+  // Manager panel
+  const py = 50;
+  drawPanel(16, py, W - 32, 100, { accent: C.gold });
+  drawText('MANAGER', 28, py + 12, { font: 'Teko', weight: 700, size: 22, color: C.white });
+  drawText('Gully Cricket League', 28, py + 34, { size: 12, color: C.slip });
+  drawText(`${G.wins}W  ${G.losses}L`, W - 28, py + 14, { weight: 700, size: 16, color: C.white, align: 'right' });
+
+  // Alignment bar
+  const abY = py + 58;
+  drawText('ALIGNMENT', 28, abY, { size: 11, color: C.slip });
+  const aVal = G.alignment;
+  const aCol = aVal > 30 ? C.gold : aVal < -30 ? C.crimson : C.amber;
+  drawStatBar(28, abY + 16, W - 72, 6, (aVal + 100) / 2, 100, aCol);
+  drawText((aVal >= 0 ? '+' : '') + aVal, W - 28, abY, { weight: 700, size: 12, color: aCol, align: 'right' });
+
+  // Heat bar
+  const hbY = py + 80;
+  drawText('HEAT', 28, hbY, { size: 11, color: C.slip });
+  const hCol = G.heat > 50 ? C.blood : G.heat > 25 ? C.amber : C.green;
+  drawStatBar(28, hbY + 16, W - 72, 4, G.heat, 100, hCol);
+  drawText(G.heat.toString(), W - 28, hbY, { weight: 700, size: 12, color: hCol, align: 'right' });
+
+  // Action tiles
+  const tileY = py + 116;
+  const tileW = (W - 48) / 2;
+  const tileH = 80;
+
+  // Auction tile
+  drawPanel(16, tileY, tileW, tileH, { accent: C.gold });
+  ctx.fillStyle = C.gold;
+  ctx.fillRect(16, tileY, 3, tileH);
+  drawText('AUCTION', 28, tileY + 12, { font: 'Teko', weight: 700, size: 20, color: C.white });
+  const aucSub = G.squad.length >= 11 ? 'Squad complete' : `Need ${11 - G.squad.length} more`;
+  drawText(aucSub, 28, tileY + 34, { size: 11, color: C.slip });
+  drawText('🏏', 16 + tileW - 24, tileY + tileH/2, { size: 22, align: 'center', baseline: 'middle' });
+  buttons.push({ x: 16, y: tileY, w: tileW, h: tileH, id: 'hub-auction' });
+
+  // Match tile
+  const mx = 32 + tileW;
+  drawPanel(mx, tileY, tileW, tileH, { accent: C.green });
+  ctx.fillStyle = C.green;
+  ctx.fillRect(mx, tileY, 3, tileH);
+  drawText('MATCH', mx + 12, tileY + 12, { font: 'Teko', weight: 700, size: 20, color: C.white });
+  drawText(`Match ${G.matchNum + 1}`, mx + 12, tileY + 34, { size: 11, color: C.slip });
+  drawText('⚡', mx + tileW - 24, tileY + tileH/2, { size: 22, align: 'center', baseline: 'middle' });
+  buttons.push({ x: mx, y: tileY, w: tileW, h: tileH, id: 'hub-match' });
+
+  // Squad tile
+  const sqY = tileY + tileH + 10;
+  drawPanel(16, sqY, W - 32, 50, { accent: C.fixerBlue });
+  ctx.fillStyle = C.fixerBlue;
+  ctx.fillRect(16, sqY, 3, 50);
+  drawText('SQUAD', 28, sqY + 10, { font: 'Teko', weight: 700, size: 20, color: C.white });
+  drawText(`${G.squad.length} players`, 28, sqY + 30, { size: 11, color: C.slip });
+  buttons.push({ x: 16, y: sqY, w: W - 32, h: 50, id: 'hub-squad' });
+
+  // Mafia teaser
+  if (G.mafiaShown && !G.mafiaAccepted) {
+    const mY = sqY + 64;
+    drawPanel(16, mY, W - 32, 60, { accent: C.crimson, bg: C.blackMoney, glow: true });
+    const mPulse = Math.sin(time * 2) * 0.15 + 0.85;
+    ctx.globalAlpha = mPulse;
+    drawText('◆', 30, mY + 20, { size: 16, color: C.crimson, baseline: 'middle' });
+    ctx.globalAlpha = 1;
+    drawText('A MESSAGE', 48, mY + 8, { font: 'Teko', weight: 700, size: 14, color: C.blood });
+    drawText('"I have information about your next opponent..."', 48, mY + 26, { size: 11, color: C.slip });
+    drawText('VIEW →', W - 28, mY + 20, { size: 11, color: C.slip, align: 'right' });
+    buttons.push({ x: 16, y: mY, w: W - 32, h: 60, id: 'hub-mafia' });
+  }
+
+  // Session cliffhanger
+  if (G.matchNum > 0) {
+    const rival = RIVAL_NAMES[G.matchNum % RIVAL_NAMES.length];
+    const cY = H - 50;
+    drawText(`Next: ${rival.name}. Rumor has it they've been talking to the bookies...`, cx, cY,
+      { size: 11, color: C.disabled, align: 'center' });
+  }
+}
+
+// ===== AUCTION SCREEN =====
+function initAuction() {
+  G.auctionPool = [];
+  const roles = ['Top-Order Batter','Top-Order Batter','Top-Order Batter','Middle-Order Batter','Middle-Order Batter',
+    'All-Rounder','All-Rounder','Pace Bowler','Pace Bowler','Spinner','Wicketkeeper'];
+  // Shuffle roles
+  for (let i = roles.length - 1; i > 0; i--) {
+    const j = rand(0, i);
+    [roles[i], roles[j]] = [roles[j], roles[i]];
+  }
+  // Take 8 for quicker auction
+  for (let i = 0; i < 8; i++) {
+    G.auctionPool.push(genCard(45, 85, roles[i % roles.length]));
+  }
+  G.aucIdx = 0;
+  G.aucPurse = G.coins;
+  auc = { phase: 'idle', currentCard: null, bid: 0, bidder: '', timer: 0, maxTimer: 6,
+    revealProgress: 0, cardScale: 0, wonAnim: 0, log: [], rivalsPassed: [] };
+  nextAuctionCard();
+}
+
+function nextAuctionCard() {
+  if (G.aucIdx >= G.auctionPool.length) { auc.phase = 'done'; return; }
+  auc.currentCard = G.auctionPool[G.aucIdx];
+  auc.bid = auc.currentCard.basePrice;
+  auc.bidder = '';
+  auc.phase = 'reveal';
+  auc.revealProgress = 0;
+  auc.cardScale = 0;
+  auc.timer = auc.maxTimer;
+  auc.rivalsPassed = [];
+  auc.log = [`${auc.currentCard.name} — Base: ${auc.currentCard.basePrice}`];
+  SFX.cardReveal();
+}
+
+function updateAuction(dt) {
+  if (auc.phase === 'reveal') {
+    auc.revealProgress += dt * 2.5;
+    auc.cardScale = easeOut(Math.min(1, auc.revealProgress));
+    if (auc.revealProgress >= 1) {
+      auc.phase = 'bidding';
+      auc.cardScale = 1;
+    }
+  }
+  if (auc.phase === 'bidding') {
+    auc.timer -= dt;
+    if (auc.timer <= 1.5 && auc.timer > 1.4) SFX.timer();
+    if (auc.timer <= 1.0 && auc.timer > 0.9) SFX.timer();
+    if (auc.timer <= 0.5 && auc.timer > 0.4) SFX.timer();
+    if (auc.timer <= 0) {
+      if (auc.bidder === 'YOU') {
+        auc.phase = 'won';
+        auc.wonAnim = 0;
+        G.squad.push(auc.currentCard);
+        G.aucPurse -= auc.bid;
+        G.coins = G.aucPurse;
+        auc.log.unshift(`WON for ${auc.bid}!`);
+        SFX.cardWon();
+        spawnParticles(cx, cy, C.goldBright, 30, 4, 1.5);
+      } else if (auc.bidder) {
+        auc.phase = 'sold';
+        auc.wonAnim = 0;
+        auc.log.unshift(`Sold to ${auc.bidder} for ${auc.bid}`);
+      } else {
+        auc.phase = 'unsold';
+        auc.wonAnim = 0;
+        auc.log.unshift('Unsold — no bids');
+      }
+    }
+  }
+  if (auc.phase === 'won' || auc.phase === 'sold' || auc.phase === 'unsold') {
+    auc.wonAnim += dt;
+    if (auc.wonAnim > 1.5) {
+      G.aucIdx++;
+      nextAuctionCard();
+    }
+  }
+  if (auc.phase === 'done') {
+    // Fill remaining squad with free agents
+    while (G.squad.length < 11) {
+      const needed = ['Top-Order Batter','Middle-Order Batter','All-Rounder','Pace Bowler','Spinner','Wicketkeeper'];
+      G.squad.push(genCard(30, 50, needed[G.squad.length % needed.length]));
+    }
+    G.xi = G.squad.slice(0, 11);
+  }
+}
+
+function drawAuction() {
+  drawBg();
+  drawVignette('rgba(184,134,11,0.1)', 0.4);
+
+  // Top bar
+  ctx.fillStyle = 'rgba(7,9,12,0.92)';
+  ctx.fillRect(0, 0, W, 40);
+  drawText(`PURSE: ${G.aucPurse}`, W - 16, 12, { font: 'Teko', weight: 700, size: 18, color: C.goldBright, align: 'right' });
+  drawText(`Card ${G.aucIdx + 1} / ${G.auctionPool.length}`, 16, 12, { size: 13, color: C.slip });
+  drawText(`Won: ${G.squad.length}`, cx, 12, { size: 12, color: C.slip, align: 'center' });
+
+  if (auc.phase === 'done') {
+    drawText('AUCTION COMPLETE', cx, cy - 40, { font: 'Teko', weight: 700, size: 36, color: C.gold, align: 'center', glow: 8 });
+    drawText(`${G.squad.length} players acquired`, cx, cy + 10, { size: 14, color: C.slip, align: 'center' });
+    buttons.push(drawBtn(cx - 90, cy + 50, 180, 48, 'CONTINUE', { id: 'auc-done', bg: C.gold, fontSize: 18 }));
+    return;
+  }
+
+  if (!auc.currentCard) return;
+
+  // Card display
+  const cardW = Math.min(160, W * 0.4);
+  const cardX = cx - cardW / 2;
+  const cardY = 55;
+  drawCard(auc.currentCard, cardX, cardY, cardW, {
+    scale: auc.cardScale,
+    alpha: auc.phase === 'unsold' ? 0.4 : 1
+  });
+
+  // Bid info
+  const bidY = cardY + cardW * 1.45 + 16;
+  drawText('CURRENT BID', cx, bidY, { size: 11, color: C.slip, align: 'center' });
+  const bidCol = auc.bidder === 'YOU' ? C.goldBright : auc.bidder ? RIVAL_NAMES.find(r=>r.name===auc.bidder)?.color || C.white : C.slip;
+  drawText(auc.bid.toString(), cx, bidY + 14, { font: 'Teko', weight: 700, size: 42, color: bidCol, align: 'center', glow: 6 });
+  drawText(auc.bidder || 'Base Price', cx, bidY + 54, { size: 13, color: auc.bidder === 'YOU' ? C.gold : C.slip, align: 'center' });
+
+  // Timer bar
+  if (auc.phase === 'bidding') {
+    const tbY = bidY + 72;
+    const tbW = W * 0.7;
+    const tbX = cx - tbW / 2;
+    const pct = Math.max(0, auc.timer / auc.maxTimer);
+    const tCol = pct > 0.5 ? C.green : pct > 0.2 ? C.amber : C.blood;
+    ctx.fillStyle = C.sight;
+    ctx.fillRect(tbX, tbY, tbW, 4);
+    ctx.fillStyle = tCol;
+    ctx.fillRect(tbX, tbY, tbW * pct, 4);
+    if (pct < 0.2) {
+      ctx.save();
+      ctx.shadowColor = C.blood;
+      ctx.shadowBlur = 8;
+      ctx.fillRect(tbX, tbY, tbW * pct, 4);
+      ctx.restore();
+    }
+
+    // Buttons
+    const btnY = tbY + 20;
+    const bidAmt = auc.bid + 10;
+    const canBid = bidAmt <= G.aucPurse;
+    buttons.push(drawBtn(cx - 110, btnY, 100, 44, `BID ${bidAmt}`, {
+      id: 'auc-bid', bg: C.gold, disabled: !canBid, fontSize: 15
+    }));
+    buttons.push(drawBtn(cx + 10, btnY, 100, 44, 'PASS', {
+      id: 'auc-pass', bg: C.dugout, textColor: C.slip, fontSize: 15
+    }));
+  }
+
+  // Result label
+  if (auc.phase === 'won') {
+    const p = easeOut(Math.min(1, auc.wonAnim / 0.5));
+    ctx.globalAlpha = p;
+    drawText('YOU WON!', cx, bidY + 10, { font: 'Teko', weight: 700, size: 36, color: C.goldBright, align: 'center', glow: 15 });
+    ctx.globalAlpha = 1;
+  }
+  if (auc.phase === 'sold') {
+    drawText(`SOLD TO ${auc.bidder.toUpperCase()}`, cx, bidY + 10, { font: 'Teko', weight: 700, size: 24, color: C.slip, align: 'center' });
+  }
+  if (auc.phase === 'unsold') {
+    drawText('UNSOLD', cx, bidY + 10, { font: 'Teko', weight: 700, size: 28, color: C.disabled, align: 'center' });
+  }
+
+  // Auction log
+  const logY = H - 100;
+  ctx.fillStyle = 'rgba(13,17,23,0.8)';
+  ctx.fillRect(16, logY, W - 32, 80);
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(16, logY, W - 32, 80);
+  auc.log.slice(0, 4).forEach((msg, i) => {
+    const isYou = msg.includes('You') || msg.includes('WON');
+    drawText(msg, 24, logY + 8 + i * 18, { size: 11, color: isYou ? C.goldBright : C.slip });
+  });
+
+  // Rival portraits
+  const rpY = 55;
+  RIVAL_NAMES.forEach((r, i) => {
+    const rpX = i < 2 ? 8 : W - 38;
+    const rpYi = rpY + (i === 2 ? 80 : i * 70);
+    if (rpX > cx) return; // Only show on sides if space allows
+    ctx.fillStyle = r.color;
+    ctx.globalAlpha = auc.bidder === r.name ? 1 : 0.3;
+    ctx.beginPath(); ctx.arc(rpX + 14, rpYi + 14, 12, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    drawText(r.name.split(' ')[1][0], rpX + 14, rpYi + 14, { font: 'Teko', weight: 700, size: 14, color: C.void, align: 'center', baseline: 'middle' });
+  });
+}
+
+function auctionBid() {
+  if (auc.phase !== 'bidding') return;
+  const bidAmt = auc.bid + 10;
+  if (bidAmt > G.aucPurse) return;
+  auc.bid = bidAmt;
+  auc.bidder = 'YOU';
+  auc.timer = auc.maxTimer;
+  auc.log.unshift(`You bid ${auc.bid}`);
+  SFX.bid();
+  spawnParticles(cx, cy + 80, C.gold, 5, 2, 0.6);
+
+  // Rival counter-bid
+  setTimeout(() => {
+    if (auc.phase !== 'bidding' || auc.bidder !== 'YOU') return;
+    const rivalIdx = rand(0, 2);
+    const rival = RIVAL_NAMES[rivalIdx];
+    if (auc.rivalsPassed.includes(rival.name)) return;
+    const maxBid = Math.floor(auc.currentCard.basePrice * rival.maxBidMul);
+    if (auc.bid + 10 > maxBid || Math.random() < 0.25) {
+      auc.rivalsPassed.push(rival.name);
+      auc.log.unshift(`${rival.name} passes`);
+      SFX.pass();
+      return;
+    }
+    auc.bid += 10;
+    auc.bidder = rival.name;
+    auc.timer = auc.maxTimer;
+    auc.log.unshift(`${rival.name} bids ${auc.bid}`);
+    SFX.bid();
+  }, 600 + Math.random() * 1000);
+}
+
+function auctionPass() {
+  if (auc.phase !== 'bidding') return;
+  SFX.pass();
+  auc.log.unshift('You pass');
+  if (!auc.bidder || auc.bidder === 'YOU') {
+    // See if any rival bids
+    for (let i = 0; i < 3; i++) {
+      const r = RIVAL_NAMES[i];
+      if (!auc.rivalsPassed.includes(r.name) && Math.random() < 0.4) {
+        auc.bid = auc.currentCard.basePrice + rand(0, 30);
+        auc.bidder = r.name;
+        auc.log.unshift(`${r.name} bids ${auc.bid}`);
+        break;
+      }
+    }
+  }
+  auc.timer = 0.01; // Force timer end
+}
+
+// ===== SQUAD SCREEN =====
+function drawSquad() {
+  drawBg();
+
+  drawText('← BACK', 16, 14, { font: 'Teko', weight: 600, size: 16, color: C.slip });
+  buttons.push({ x: 0, y: 0, w: 80, h: 40, id: 'squad-back' });
+
+  drawText('YOUR SQUAD', cx, 12, { font: 'Teko', weight: 700, size: 22, color: C.white, align: 'center' });
+  drawText(`${G.xi.length}/11`, W - 16, 14, { size: 13, color: C.slip, align: 'right' });
+
+  const xi = G.xi.length > 0 ? G.xi : G.squad.slice(0, 11);
+  let overseasCount = 0;
+  xi.forEach((c, i) => {
+    if (c.overseas) overseasCount++;
+    const rowY = 44 + i * 40;
+    const rowH = 36;
+    drawPanel(12, rowY, W - 24, rowH, { accent: c.overseas ? C.fixerBlue : C.green, accentHeight: 0 });
+    ctx.fillStyle = c.overseas ? C.fixerBlue : C.green;
+    ctx.fillRect(12, rowY, 3, rowH);
+
+    drawText(`${i + 1}`, 24, rowY + 10, { weight: 700, size: 14, color: C.disabled });
+    drawText(c.name, 44, rowY + 4, { weight: 600, size: 13, color: C.white });
+    drawText(`${c.role}${c.overseas ? ' • OS' : ''}`, 44, rowY + 20, { size: 10, color: C.slip });
+
+    const batCol = c.bat >= 60 ? C.greenBright : C.slip;
+    const bwlCol = c.bowl >= 60 ? C.greenBright : C.slip;
+    drawText(`BAT:${c.bat}`, W - 90, rowY + 6, { weight: 700, size: 11, color: batCol, align: 'right' });
+    drawText(`BWL:${c.bowl}`, W - 24, rowY + 6, { weight: 700, size: 11, color: bwlCol, align: 'right' });
+    drawText(`FRM:${c.form}`, W - 55, rowY + 20, { size: 10, color: C.slip, align: 'right' });
+  });
+
+  const infoY = 44 + xi.length * 40 + 8;
+  const osColor = overseasCount > 4 ? C.blood : C.slip;
+  drawText(`Overseas: ${overseasCount}/4`, 16, infoY, { size: 12, color: osColor });
+  const avgStr = xi.length > 0 ? Math.round(xi.reduce((s,c) => s + (c.bat + c.bowl)/2, 0) / xi.length) : 0;
+  drawText(`Squad Strength: ${avgStr}`, W - 16, infoY, { size: 12, color: C.gold, align: 'right' });
+}
+
+// ===== PRE-MATCH SCREEN =====
+function initPreMatch() {
+  match.rival = RIVAL_NAMES[G.matchNum % RIVAL_NAMES.length];
+  match.rivalSquad = genRivalSquad(55 + G.matchNum * 5);
+  match.pitch = PITCHES[rand(0, PITCHES.length - 1)];
+  match.bowlStrat = 'balanced';
+  match.tossChoice = 'bat';
+  match.phase = 'idle';
+}
+
+function drawPreMatch() {
+  drawBg();
+  drawVignette('rgba(14,107,58,0.15)', 0.5);
+
+  drawText('MATCH DAY', cx, 30, { font: 'Teko', weight: 700, size: 40, color: C.white, align: 'center', glow: 4 });
+  drawText(`Season I — Match ${G.matchNum + 1}`, cx, 72, { size: 13, color: C.slip, align: 'center' });
+
+  // VS display
+  const vsY = 110;
+  drawText('YOU', cx - 60, vsY, { font: 'Teko', weight: 700, size: 28, color: C.gold, align: 'center' });
+  drawText('VS', cx, vsY + 5, { font: 'Teko', weight: 700, size: 20, color: C.disabled, align: 'center' });
+  drawText(match.rival.name.toUpperCase(), cx + 70, vsY, { font: 'Teko', weight: 700, size: 28, color: match.rival.color, align: 'center' });
+
+  const yourStr = G.xi.length > 0 ? Math.round(G.xi.reduce((s,c) => s + (c.bat+c.bowl)/2, 0) / G.xi.length) : 50;
+  const rivalStr = Math.round(match.rivalSquad.reduce((s,c) => s + (c.bat+c.bowl)/2, 0) / 11);
+  drawText(`STR: ${yourStr}`, cx - 60, vsY + 28, { size: 12, color: C.slip, align: 'center' });
+  drawText(`STR: ${rivalStr}`, cx + 70, vsY + 28, { size: 12, color: C.slip, align: 'center' });
+
+  // Pitch panel
+  const pitchY = vsY + 56;
+  drawPanel(24, pitchY, W - 48, 55, { accent: match.pitch.color });
+  drawText('PITCH', 36, pitchY + 8, { size: 11, color: C.slip });
+  drawText(match.pitch.name, 36, pitchY + 22, { font: 'Teko', weight: 700, size: 22, color: match.pitch.color });
+  drawText(match.pitch.desc, W - 36, pitchY + 34, { size: 10, color: C.slip, align: 'right' });
+
+  // Bowling strategy
+  const bsY = pitchY + 68;
+  drawText('BOWLING STRATEGY', 24, bsY, { size: 12, color: C.slip });
+  const strats = ['AGGRESSIVE', 'BALANCED', 'DEFENSIVE'];
+  const stratW = (W - 64) / 3;
+  strats.forEach((s, i) => {
+    const sx = 24 + i * (stratW + 4);
+    const selected = match.bowlStrat === s.toLowerCase();
+    buttons.push(drawBtn(sx, bsY + 18, stratW, 36, s, {
+      id: 'strat-' + s.toLowerCase(),
+      bg: selected ? C.gold : C.dugout,
+      textColor: selected ? C.void : C.slip,
+      fontSize: 11
+    }));
+  });
+
+  // Toss
+  const tossY = bsY + 68;
+  drawText('TOSS CHOICE', 24, tossY, { size: 12, color: C.slip });
+  const tw = (W - 56) / 2;
+  ['BAT FIRST', 'BOWL FIRST'].forEach((t, i) => {
+    const tx = 24 + i * (tw + 8);
+    const choice = i === 0 ? 'bat' : 'bowl';
+    const selected = match.tossChoice === choice;
+    buttons.push(drawBtn(tx, tossY + 18, tw, 36, t, {
+      id: 'toss-' + choice,
+      bg: selected ? C.gold : C.dugout,
+      textColor: selected ? C.void : C.slip,
+      fontSize: 12
+    }));
+  });
+
+  // Start button
+  const startY = tossY + 72;
+  buttons.push(drawBtn(cx - 100, startY, 200, 52, 'START MATCH', {
+    id: 'start-match', bg: C.green, textColor: C.white, fontSize: 20
+  }));
+}
+
+// ===== MATCH SIMULATION =====
+function simulateInnings(batTeam, bowlTeam, pitch, strategy, target) {
+  const phases = [
+    { name: 'Powerplay', batMul: 1.3, bowlMul: 0.9, batIdx: [0,1,2] },
+    { name: 'Middle Overs', batMul: 1.0, bowlMul: 1.1, batIdx: [2,3,4] },
+    { name: 'Death Overs', batMul: 1.4, bowlMul: 1.0, batIdx: [4,5,6] },
+  ];
+  const stratMod = strategy === 'aggressive' ? { bat:1.05, bowl:1.15, wkt:1.1 } :
+    strategy === 'defensive' ? { bat:0.92, bowl:0.88, wkt:0.9 } : { bat:1, bowl:1, wkt:1 };
+  let totalRuns = 0, totalWickets = 0;
+  const phaseResults = [];
+  const moments = [];
+
+  for (const phase of phases) {
+    const bats = phase.batIdx.map(i => batTeam[Math.min(i, batTeam.length-1)]);
+    const bowlers = bowlTeam.filter(p => p.bowl > 40).slice(0, 4);
+    if (bowlers.length === 0) bowlers.push(bowlTeam[0]);
+
+    const batSum = bats.reduce((s,p) => s + p.bat * (0.6+p.form*0.008) * pitch.batBonus, 0);
+    const bowlSum = bowlers.reduce((s,p) => {
+      const tm = p.bowlType === 'pace' ? pitch.paceBonus : p.bowlType === 'spin' ? pitch.spinBonus : 1;
+      return s + p.bowl * (0.6+p.form*0.008) * tm;
+    }, 0);
+
+    const baseRuns = batSum * phase.batMul / bats.length * 3.5 * stratMod.bat;
+    const reduction = bowlSum * phase.bowlMul / bowlers.length * 2.0 * stratMod.bowl;
+    const pRuns = Math.max(0, Math.round(baseRuns - reduction + rand(-12,12)));
+    const bowlAdv = Math.max(0, bowlSum - batSum * 0.7);
+    const pWickets = Math.min(3, Math.floor(bowlAdv / 25 * stratMod.wkt) + rand(0,1));
+
+    totalRuns += pRuns;
+    totalWickets = Math.min(10, totalWickets + pWickets);
+    phaseResults.push({ name: phase.name, runs: pRuns, wickets: pWickets });
+
+    if (totalWickets >= 10) { moments.push('ALL OUT!'); break; }
+    if (target != null && totalRuns > target) { moments.push('Target chased!'); break; }
+  }
+
+  if (target != null && Math.abs(totalRuns - target) < 8) moments.push('Last Over Thriller!');
+  return { totalRuns, totalWickets, phases: phaseResults, moments };
+}
+
+function startMatchSim() {
+  if (G.xi.length < 11) G.xi = G.squad.slice(0, 11);
+  const batFirst = match.tossChoice === 'bat' ? 'you' : 'rival';
+  const team1 = batFirst === 'you' ? G.xi : match.rivalSquad;
+  const team2 = batFirst === 'you' ? match.rivalSquad : G.xi;
+  match.inn1 = simulateInnings(team1, team2, match.pitch, batFirst === 'you' ? match.bowlStrat : 'balanced');
+  match.inn2 = simulateInnings(team2, team1, match.pitch, batFirst === 'you' ? 'balanced' : match.bowlStrat, match.inn1.totalRuns);
+  match.battingFirst = batFirst;
+  match.currentPhase = 0;
+  match.phaseTimer = 0;
+  match.commentary = [];
+  match.yourScore = { runs: 0, wickets: 0 };
+  match.rivalScore = { runs: 0, wickets: 0 };
+  match.phase = 'innings1';
+  match.resultTimer = 0;
+}
+
+function updateMatch(dt) {
+  if (match.phase === 'innings1' || match.phase === 'innings2') {
+    match.phaseTimer += dt;
+    const inn = match.phase === 'innings1' ? match.inn1 : match.inn2;
+    const phaseDur = 1.8;
+
+    if (match.phaseTimer >= phaseDur && match.currentPhase < inn.phases.length) {
+      const p = inn.phases[match.currentPhase];
+      const isYouBatting = (match.phase === 'innings1' && match.battingFirst === 'you') ||
+        (match.phase === 'innings2' && match.battingFirst !== 'you');
+      const scoreObj = isYouBatting ? match.yourScore : match.rivalScore;
+      scoreObj.runs += p.runs;
+      scoreObj.wickets += p.wickets;
+
+      match.commentary.push({ text: `${p.name}: ${p.runs}/${p.wickets}`, color: C.white });
+      if (p.wickets >= 2) { match.commentary.push({ text: 'Bowling breakthrough!', color: C.amber }); SFX.wicket(); }
+      else if (p.runs > 50) { match.commentary.push({ text: 'Big hitting!', color: C.goldBright }); SFX.six(); }
+      else { SFX.runs(); }
+      SFX.phaseEnd();
+      spawnParticles(cx, cy - 20, p.runs > 50 ? C.goldBright : C.green, 8, 2, 0.8);
+
+      match.currentPhase++;
+      match.phaseTimer = 0;
+
+      if (match.currentPhase >= inn.phases.length) {
+        if (match.phase === 'innings1') {
+          match.commentary.push({ text: `--- INNINGS BREAK ---`, color: C.slip });
+          match.commentary.push({ text: `Target: ${match.inn1.totalRuns + 1}`, color: C.goldBright });
+          match.phase = 'break';
+          match.phaseTimer = 0;
+        } else {
+          inn.moments.forEach(m => match.commentary.push({ text: `⚡ ${m}`, color: C.goldBright }));
+          match.phase = 'result';
+          match.resultTimer = 0;
+        }
+      }
+    }
+  }
+  if (match.phase === 'break') {
+    match.phaseTimer += dt;
+    if (match.phaseTimer >= 2) {
+      match.phase = 'innings2';
+      match.currentPhase = 0;
+      match.phaseTimer = 0;
+    }
+  }
+  if (match.phase === 'result') {
+    match.resultTimer += dt;
+  }
+}
+
+function drawMatch() {
+  drawBg();
+
+  // Header
+  drawText('YOU', cx - 50, 16, { font: 'Teko', weight: 700, size: 18, color: C.gold, align: 'center' });
+  drawText('vs', cx, 20, { font: 'Teko', size: 14, color: C.disabled, align: 'center' });
+  drawText(match.rival.name.toUpperCase(), cx + 60, 16, { font: 'Teko', weight: 700, size: 18, color: match.rival.color, align: 'center' });
+
+  // Scoreboard
+  const sbY = 50;
+  drawPanel(20, sbY, W - 40, 90, { accent: C.gold, bg: 'rgba(13,17,23,0.9)' });
+
+  const inn = match.phase === 'innings2' || match.phase === 'result' ? '2nd Innings' : '1st Innings';
+  const isYouBat = (match.phase === 'innings1' && match.battingFirst === 'you') ||
+    (match.phase === 'innings2' && match.battingFirst !== 'you') ||
+    (match.phase === 'break');
+  const batLabel = match.phase === 'break' ? 'BREAK' : isYouBat ? 'YOU BAT' : `${match.rival.name.toUpperCase()} BATS`;
+
+  drawText(inn, cx, sbY + 8, { size: 11, color: C.slip, align: 'center' });
+  drawText(batLabel, cx, sbY + 22, { font: 'Teko', weight: 600, size: 14, color: isYouBat ? C.gold : match.rival.color, align: 'center' });
+
+  // Scores
+  drawText(`${match.yourScore.runs}/${match.yourScore.wickets}`, cx - 40, sbY + 42, {
+    font: 'Teko', weight: 700, size: 32, color: C.gold, align: 'center', glow: 4
+  });
+  drawText('—', cx, sbY + 48, { font: 'Teko', size: 18, color: C.disabled, align: 'center' });
+  drawText(`${match.rivalScore.runs}/${match.rivalScore.wickets}`, cx + 40, sbY + 42, {
+    font: 'Teko', weight: 700, size: 32, color: match.rival.color, align: 'center', glow: 4
+  });
+  drawText('YOU', cx - 40, sbY + 72, { size: 10, color: C.slip, align: 'center' });
+  drawText(match.rival.name.split(' ')[1].toUpperCase(), cx + 40, sbY + 72, { size: 10, color: C.slip, align: 'center' });
+
+  // Phase progress bars
+  const ppY = sbY + 100;
+  const inn1 = match.battingFirst === 'you' ? match.inn1 : match.inn2;
+  const phaseNames = ['Powerplay', 'Middle Overs', 'Death Overs'];
+  const currentInn = match.phase === 'innings2' ? match.inn2 : match.inn1;
+
+  phaseNames.forEach((pn, i) => {
+    const py = ppY + i * 38;
+    const isDone = match.currentPhase > i || match.phase === 'result' || match.phase === 'break' ||
+      (match.phase === 'innings2' && match.currentPhase > i);
+    const isCurrent = (match.phase === 'innings1' || match.phase === 'innings2') && match.currentPhase === i;
+    const phaseData = currentInn && currentInn.phases[i];
+
+    drawPanel(20, py, W - 40, 32, { accent: isDone ? C.gold : C.border, accentHeight: 0 });
+    drawText(pn, 32, py + 8, { size: 12, color: isDone ? C.white : C.disabled });
+
+    const barW = W * 0.35;
+    const barX = W - 32 - barW - 50;
+    if (isDone || isCurrent) {
+      const pct = isDone ? 1 : Math.min(1, match.phaseTimer / 1.8);
+      const barCol = isDone ? C.gold : C.amber;
+      drawStatBar(barX, py + 14, barW, 5, pct * 100, 100, barCol);
+      if (isCurrent) {
+        ctx.save();
+        ctx.shadowColor = C.goldBright;
+        ctx.shadowBlur = 6;
+        ctx.fillStyle = C.goldBright;
+        ctx.fillRect(barX + barW * pct - 2, py + 12, 4, 9);
+        ctx.restore();
+      }
+    } else {
+      drawStatBar(barX, py + 14, barW, 5, 0, 100, C.disabled);
+    }
+
+    if (isDone && phaseData) {
+      drawText(`${phaseData.runs}/${phaseData.wickets}`, W - 28, py + 8, {
+        weight: 700, size: 14, color: C.white, align: 'right'
+      });
+    } else {
+      drawText('—', W - 28, py + 8, { size: 14, color: C.disabled, align: 'right' });
+    }
+  });
+
+  // Commentary ticker
+  const comY = ppY + 3 * 38 + 10;
+  const comH = H - comY - 60;
+  ctx.fillStyle = 'rgba(13,17,23,0.6)';
+  ctx.fillRect(16, comY, W - 32, comH);
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(16, comY, W - 32, comH);
+
+  const visibleCom = match.commentary.slice(-Math.floor(comH / 20));
+  visibleCom.forEach((c, i) => {
+    drawText(c.text, 24, comY + 6 + i * 20, { size: 12, color: c.color });
+  });
+
+  // Skip button
+  if (match.phase !== 'result') {
+    buttons.push(drawBtn(W - 100, H - 50, 80, 36, 'SKIP →', {
+      id: 'skip-match', bg: C.dugout, textColor: C.slip, fontSize: 13
+    }));
+  }
+
+  // Result overlay
+  if (match.phase === 'result' && match.resultTimer > 0.5) {
+    showPostMatch();
+  }
+}
+
+function skipToResult() {
+  // Fill in remaining phases
+  const fillInn = (inn, scoreObj) => {
+    inn.phases.forEach(p => { scoreObj.runs += p.runs; scoreObj.wickets += p.wickets; });
+  };
+  match.yourScore = { runs: 0, wickets: 0 };
+  match.rivalScore = { runs: 0, wickets: 0 };
+  if (match.battingFirst === 'you') {
+    fillInn(match.inn1, match.yourScore);
+    fillInn(match.inn2, match.rivalScore);
+  } else {
+    fillInn(match.inn1, match.rivalScore);
+    fillInn(match.inn2, match.yourScore);
+  }
+  match.inn1.moments.forEach(m => match.commentary.push({ text: `⚡ ${m}`, color: C.goldBright }));
+  match.inn2.moments.forEach(m => match.commentary.push({ text: `⚡ ${m}`, color: C.goldBright }));
+  match.phase = 'result';
+  match.resultTimer = 1;
+}
+
+// ===== POST-MATCH =====
+function showPostMatch() {
+  const won = match.yourScore.runs > match.rivalScore.runs;
+  const tied = match.yourScore.runs === match.rivalScore.runs;
+
+  if (!match.resultProcessed) {
+    match.resultProcessed = true;
+    if (won) { G.wins++; G.coins += 50; G.morale = Math.min(100, G.morale + 5); SFX.win(); }
+    else if (tied) { G.coins += 35; }
+    else { G.losses++; G.coins += 20; G.morale = Math.max(0, G.morale - 5); SFX.lose(); }
+    if (won && G.alignment > 30) { G.alignment = Math.min(100, G.alignment + 2); G.coins += 20; }
+    G.xi.forEach(p => p.form = Math.min(100, Math.max(0, p.form + (won ? 5 : -3))));
+    G.matchNum++;
+    if (G.matchNum >= 2 && !G.mafiaShown) G.mafiaShown = true;
+  }
+
+  // Overlay
+  ctx.fillStyle = 'rgba(7,9,12,0.85)';
+  ctx.fillRect(0, 0, W, H);
+  drawVignette(won ? 'rgba(14,107,58,0.3)' : 'rgba(139,0,0,0.3)', 0.5);
+
+  const p = easeOut(Math.min(1, (match.resultTimer - 0.5) / 0.5));
+  ctx.globalAlpha = p;
+
+  // Title
+  const titleCol = won ? C.greenBright : tied ? C.amber : C.blood;
+  drawText(won ? 'V I C T O R Y' : tied ? 'D R A W' : 'D E F E A T', cx, cy - 100, {
+    font: 'Teko', weight: 700, size: 36, color: titleCol, align: 'center', glow: 15
+  });
+
+  // Scores
+  drawText(`${match.yourScore.runs}/${match.yourScore.wickets}`, cx - 30, cy - 50, {
+    font: 'Teko', weight: 700, size: 48, color: C.white, align: 'center'
+  });
+  drawText('—', cx, cy - 42, { font: 'Teko', size: 20, color: C.disabled, align: 'center' });
+  drawText(`${match.rivalScore.runs}/${match.rivalScore.wickets}`, cx + 30, cy - 50, {
+    font: 'Teko', weight: 700, size: 48, color: C.slip, align: 'center'
+  });
+
+  const diff = Math.abs(match.yourScore.runs - match.rivalScore.runs);
+  drawText(won ? `Won by ${diff} runs` : tied ? 'Match tied!' : `Lost by ${diff} runs`, cx, cy - 5, {
+    size: 14, color: C.slip, align: 'center'
+  });
+
+  // Rewards panel
+  const rY = cy + 25;
+  drawPanel(cx - 130, rY, 260, won ? 85 : 55, { accent: won ? C.gold : C.border });
+  drawText('REWARDS', cx - 120, rY + 8, { font: 'Teko', weight: 700, size: 16, color: C.white });
+  if (won) {
+    drawText('+50 coins', cx - 120, rY + 28, { size: 12, color: C.greenBright });
+    drawText('+3 league points', cx - 120, rY + 44, { size: 12, color: C.greenBright });
+    drawText('+5 morale', cx - 120, rY + 60, { size: 12, color: C.greenBright });
+    if (G.alignment > 30) drawText('+2 alignment (clean win)', cx + 120, rY + 28, { size: 11, color: C.gold, align: 'right' });
+  } else {
+    drawText(tied ? '+35 coins' : '+20 coins', cx - 120, rY + 28, { size: 12, color: C.slip });
+  }
+
+  buttons.push(drawBtn(cx - 90, rY + (won ? 95 : 65), 180, 48, 'CONTINUE', {
+    id: 'post-continue', bg: C.gold, fontSize: 18
+  }));
+
+  ctx.globalAlpha = 1;
+
+  if (won) {
+    spawnParticles(cx + rand(-80,80), cy - 80, C.goldBright, 1, 2, 2);
+  }
+}
+
+// ===== MAFIA OVERLAY =====
+let mafiaOverlay = false;
+function drawMafiaOverlay() {
+  if (!mafiaOverlay) return;
+  ctx.fillStyle = 'rgba(7,9,12,0.9)';
+  ctx.fillRect(0, 0, W, H);
+  drawVignette('rgba(139,0,0,0.4)', 0.8);
+  drawSmoke();
+
+  const pw = Math.min(320, W - 40);
+  const ph = 320;
+  const px = cx - pw/2, py = cy - ph/2;
+
+  drawPanel(px, py, pw, ph, { accent: C.crimson, bg: C.blackMoney, glow: true });
+
+  // Diamond
+  const pulse = Math.sin(time * 2) * 0.2 + 0.8;
+  ctx.globalAlpha = pulse;
+  drawText('◆', cx, py + 30, { size: 28, color: C.crimson, align: 'center', baseline: 'middle' });
+  ctx.globalAlpha = 1;
+
+  drawText('A FAVOR', cx, py + 55, { font: 'Teko', weight: 700, size: 22, color: C.blood, align: 'center' });
+  drawText('I know things about your next opponent.', cx, py + 82, { size: 12, color: C.slip, align: 'center' });
+  drawText('Their key player has a weakness — greed.', cx, py + 98, { size: 12, color: C.slip, align: 'center' });
+  drawText('For a small fee, he underperforms.', cx, py + 114, { size: 12, color: C.slip, align: 'center' });
+
+  // Details panel
+  const dY = py + 135;
+  drawPanel(px + 16, dY, pw - 32, 80, { accent: C.border, bg: C.void });
+  const details = [
+    ['Cost', '80 B$', C.white],
+    ['Heat', '+8', C.amber],
+    ['Debt', '150 B$ in 2 matches', C.blood],
+    ['Alignment', '-5', C.slip],
+  ];
+  details.forEach((d, i) => {
+    drawText(d[0], px + 28, dY + 10 + i * 17, { size: 12, color: C.slip });
+    drawText(d[1], px + pw - 28, dY + 10 + i * 17, { size: 12, color: d[2], align: 'right', weight: 600 });
+  });
+
+  // Buttons
+  const btnY = dY + 95;
+  buttons.push(drawBtn(cx - pw/2 + 16, btnY, pw/2 - 24, 44, 'ACCEPT', {
+    id: 'mafia-accept', bg: C.crimson, textColor: C.white, fontSize: 15
+  }));
+  buttons.push(drawBtn(cx + 8, btnY, pw/2 - 24, 44, 'REFUSE', {
+    id: 'mafia-refuse', bg: C.dugout, textColor: C.slip, fontSize: 15
+  }));
+}
+
+// ===== INPUT =====
+function handleTap(px, py) {
+  try { getAudio(); } catch(e) {}
+
+  for (const btn of buttons) {
+    if (px >= btn.x && px <= btn.x + btn.w && py >= btn.y && py <= btn.y + btn.h) {
+      SFX.tap();
+      handleButton(btn.id);
+      return;
+    }
+  }
+}
+
+function handleButton(id) {
+  if (!id) return;
+  if (id === 'start') goTo('hub');
+  if (id === 'hub-auction') {
+    if (G.squad.length >= 11) return;
+    initAuction();
+    goTo('auction');
+  }
+  if (id === 'hub-match') {
+    if (G.squad.length < 11) return;
+    initPreMatch();
+    goTo('prematch');
+  }
+  if (id === 'hub-squad') goTo('squad');
+  if (id === 'hub-mafia') { mafiaOverlay = true; SFX.mafia(); }
+  if (id === 'auc-bid') auctionBid();
+  if (id === 'auc-pass') auctionPass();
+  if (id === 'auc-done') goTo('hub');
+  if (id === 'squad-back') goTo('hub');
+  if (id.startsWith('strat-')) match.bowlStrat = id.replace('strat-', '');
+  if (id.startsWith('toss-')) match.tossChoice = id.replace('toss-', '');
+  if (id === 'start-match') { startMatchSim(); goTo('match'); }
+  if (id === 'skip-match') skipToResult();
+  if (id === 'post-continue') {
+    match.resultProcessed = false;
+    match.phase = 'idle';
+    goTo('hub');
+  }
+  if (id === 'mafia-accept') {
+    G.mafiaAccepted = true; G.alignment -= 5; G.heat += 8;
+    mafiaOverlay = false;
+  }
+  if (id === 'mafia-refuse') {
+    G.alignment += 3;
+    G.mafiaAccepted = true;
+    mafiaOverlay = false;
+  }
+}
+
+let touchUsed = false;
+cvs.addEventListener('touchstart', e => {
+  e.preventDefault(); touchUsed = true;
+  const t = e.touches[0], r = cvs.getBoundingClientRect();
+  handleTap(t.clientX - r.left, t.clientY - r.top);
+}, { passive: false });
+cvs.addEventListener('click', e => {
+  if (touchUsed) return;
+  const r = cvs.getBoundingClientRect();
+  handleTap(e.clientX - r.left, e.clientY - r.top);
+});
+
+// ===== MAIN LOOP =====
+function loop(ts) {
+  const dt = Math.min((ts - lastT) / 1000, 0.05);
+  lastT = ts;
+  time += dt;
+
+  buttons = [];
+
+  updateParticles(dt);
+  updateSmoke(dt);
+  updateTweens(dt);
+  updateTransition(dt);
+
+  const activeScreen = screenTransition.active ? screenTransition.to : screen;
+
+  if (activeScreen === 'auction') updateAuction(dt);
+  if (activeScreen === 'match') updateMatch(dt);
+
+  // Draw with transition
+  if (screenTransition.active) {
+    const p = screenTransition.progress;
+    ctx.globalAlpha = 1 - p;
+    drawScreen(screenTransition.from);
+    ctx.globalAlpha = p;
+    drawScreen(screenTransition.to);
+    ctx.globalAlpha = 1;
+  } else {
+    drawScreen(screen);
+  }
+
+  drawParticles();
+  if (mafiaOverlay) drawMafiaOverlay();
+
+  requestAnimationFrame(loop);
+}
+
+function drawScreen(s) {
+  if (s === 'splash') drawSplash();
+  else if (s === 'hub') drawHub();
+  else if (s === 'auction') drawAuction();
+  else if (s === 'squad') drawSquad();
+  else if (s === 'prematch') drawPreMatch();
+  else if (s === 'match') drawMatch();
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
