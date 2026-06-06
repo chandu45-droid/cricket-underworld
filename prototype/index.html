@@ -314,7 +314,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .bid-timer-circle{flex-shrink:0;width:90px;height:90px;position:relative}
 .bid-timer-circle svg{width:90px;height:90px;transform:rotate(-90deg)}
 .bid-timer-circle .timer-track{fill:none;stroke:rgba(136,150,176,0.08);stroke-width:4}
-.bid-timer-circle .timer-progress{fill:none;stroke:var(--green-bright);stroke-width:4;stroke-linecap:round;stroke-dasharray:264;stroke-dashoffset:0;transition:stroke-dashoffset 0.1s linear,stroke 0.3s}
+.bid-timer-circle .timer-progress{fill:none;stroke:var(--green-bright);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.1s linear,stroke 0.3s}
 .bid-timer-circle .timer-progress.warn{stroke:var(--amber)}
 .bid-timer-circle .timer-progress.danger{stroke:var(--blood);filter:drop-shadow(0 0 4px rgba(220,38,38,0.5))}
 .bid-timer-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -1281,6 +1281,8 @@ function showNextCard() {
   $('auction-spotlight').innerHTML = renderPlayerCard(p);
   $('bid-log').innerHTML = '';
   updateBidUI();
+  resetTimerVisual(1);
+  $('timer-sec').textContent = auction.maxTimer.toFixed(1);
   clearInterval(auction.interval);
   auction.interval = setInterval(auctionTick, 100);
 }
@@ -1296,16 +1298,20 @@ function updateBidUI() {
   else { $('bid-btn').setAttribute('disabled', ''); $('bid-btn').classList.add('disabled'); }
 }
 
+function resetTimerVisual(pct) {
+  var circle = $('timer-circle');
+  if (!circle) return;
+  var offset = TIMER_CIRCUMFERENCE * (1 - pct);
+  circle.setAttribute('stroke-dasharray', TIMER_CIRCUMFERENCE);
+  circle.setAttribute('stroke-dashoffset', offset);
+  var cls = 'timer-progress' + (pct < 0.25 ? ' danger' : pct < 0.5 ? ' warn' : '');
+  circle.setAttribute('class', cls);
+}
+
 function auctionTick() {
   auction.timer -= 0.1;
   var pct = Math.max(0, auction.timer / auction.maxTimer);
-  var offset = TIMER_CIRCUMFERENCE * (1 - pct);
-  var circle = $('timer-circle');
-  if (circle) {
-    circle.style.strokeDasharray = TIMER_CIRCUMFERENCE;
-    circle.style.strokeDashoffset = offset;
-    circle.className = 'timer-progress' + (pct < 0.25 ? ' danger' : pct < 0.5 ? ' warn' : '');
-  }
+  resetTimerVisual(pct);
   $('timer-sec').textContent = Math.max(0, auction.timer).toFixed(1);
   if (auction.timer <= 0) { clearInterval(auction.interval); resolveCard(); return; }
   if (auction.timer > 2 && auction.bidder !== 'you' && Math.random() < 0.025) aiBid();
@@ -1655,7 +1661,7 @@ function initLoading() {
         $('loading').classList.add('hide');
         $('app').style.display = 'flex';
         $('hub-screen').classList.add('active');
-        updateNavIndicator('hub');
+        requestAnimationFrame(function() { updateNavIndicator('hub'); });
         setTimeout(function() { var l = $('loading'); if (l) l.remove(); }, 800);
       }, 500);
     }
