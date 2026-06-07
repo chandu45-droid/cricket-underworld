@@ -626,6 +626,23 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .match-hook.taunt{color:var(--blood);border:1px solid rgba(220,38,38,0.15);background:rgba(220,38,38,0.04)}
 .match-hook.streak{color:var(--gold-bright);border:1px solid rgba(240,200,80,0.15);background:rgba(240,200,80,0.04)}
 .match-hook.pressure{color:var(--amber);border:1px solid rgba(224,120,0,0.15);background:rgba(224,120,0,0.04)}
+.match-hook.challenge{color:var(--blue-bright);border:1px solid rgba(59,130,246,0.2);background:rgba(59,130,246,0.04)}
+.streak-milestone{text-align:center;padding:14px 16px;margin:10px 0;border-radius:3px;border:1.5px solid rgba(240,200,80,0.3);background:linear-gradient(135deg,rgba(240,200,80,0.06),rgba(220,170,40,0.02))}
+.streak-milestone .sm-icon{font-size:28px;margin-bottom:4px}
+.streak-milestone .sm-title{font-family:var(--font-d);font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold-bright)}
+.streak-milestone .sm-reward{font-size:12px;color:var(--green-bright);margin-top:4px}
+.daily-challenge{padding:12px 14px;margin:10px 0;border-radius:3px;border:1px solid rgba(59,130,246,0.2);background:rgba(59,130,246,0.03)}
+.daily-challenge .dc-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.daily-challenge .dc-tag{font-family:var(--font-d);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:2px 8px;border-radius:2px;background:rgba(59,130,246,0.12);color:var(--blue-bright)}
+.daily-challenge .dc-title{font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--white)}
+.daily-challenge .dc-desc{font-size:12px;color:var(--slip);line-height:1.4}
+.daily-challenge .dc-result{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:6px;padding:4px 8px;border-radius:2px;text-align:center}
+.daily-challenge .dc-result.pass{color:var(--green-bright);background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.15)}
+.daily-challenge .dc-result.fail{color:var(--slip);background:rgba(148,163,184,0.06);border:1px solid rgba(148,163,184,0.1)}
+.play-again-row{display:flex;gap:10px;margin-top:10px}
+.play-again-row .btn{flex:1}
+.next-opponent-tease{text-align:center;padding:10px;margin:8px 0;border-radius:3px;border:1px dashed rgba(255,255,255,0.08);font-size:12px;color:var(--slip)}
+.next-opponent-tease strong{color:var(--white)}
 
 .match-result-overlay{position:fixed;inset:0;z-index:200;background:rgba(6,8,16,0.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.6s}
 .match-result-overlay.show{opacity:1;pointer-events:auto}
@@ -994,6 +1011,17 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           </div>
         </div>
         <div id="clean-streak-tag" style="display:none;margin-top:8px;padding:4px 10px;background:rgba(34,212,126,0.08);border:1px solid rgba(34,212,126,0.15);border-radius:3px;font-size:11px;color:var(--green-bright);text-align:center;font-weight:600;letter-spacing:0.5px"></div>
+      </div>
+
+      <div class="glass" id="hub-hooks-panel" style="display:none">
+        <div style="display:flex;gap:10px;align-items:stretch">
+          <div id="hub-daily-challenge" style="flex:1"></div>
+          <div id="hub-win-streak" style="flex:0 0 auto;min-width:80px;text-align:center;display:flex;flex-direction:column;justify-content:center;padding:8px 12px;border-radius:3px;border:1px solid rgba(240,200,80,0.12);background:rgba(240,200,80,0.03)">
+            <div class="font-d fw-700" style="font-size:22px;color:var(--gold-bright)" id="hub-streak-num">0</div>
+            <div style="font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:1px">Win Streak</div>
+            <div style="font-size:9px;color:var(--gold);margin-top:2px" id="hub-streak-best"></div>
+          </div>
+        </div>
       </div>
 
       <div class="glass" id="facilities-panel">
@@ -1429,6 +1457,10 @@ var GS = {
   seasonStats: {},
   rivalWins: {},
   pepTalkUsed: false,
+  winStreak: 0,
+  bestStreak: 0,
+  dailyChallenge: null,
+  lastChallengeDate: null,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1451,6 +1483,8 @@ function load() {
       GS.teamName=v(d.teamName,'Your Team'); GS.managerName=v(d.managerName,'Manager'); GS.teamColor=v(d.teamColor,'gold'); GS.tutorialDone=v(d.tutorialDone,false);
       GS.seasonStats=v(d.seasonStats,{});
       GS.rivalWins=v(d.rivalWins,{}); GS.pepTalkUsed=v(d.pepTalkUsed,false);
+      GS.winStreak=v(d.winStreak,0); GS.bestStreak=v(d.bestStreak,0);
+      GS.dailyChallenge=v(d.dailyChallenge,null); GS.lastChallengeDate=v(d.lastChallengeDate,null);
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -2180,6 +2214,22 @@ function updateHub() {
     var msgs = ['"I have information about your next opponent..."', '"Need a small favor? It will cost you..."', '"The umpire is... flexible. Interested?"'];
     $('mafia-msg').textContent = GS.mafiaBonus ? '"Fix is set for your next match. Good luck."' : msgs[Math.floor(Math.random() * msgs.length)];
   } else { hide('mafia-banner'); }
+  var dc = getDailyChallenge();
+  var dcTpl = DAILY_CHALLENGES.find(function(c){return c.id===dc.id});
+  if (dcTpl) {
+    show('hub-hooks-panel');
+    $('hub-daily-challenge').innerHTML =
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
+        '<span style="font-family:var(--font-d);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:2px 6px;border-radius:2px;background:rgba(59,130,246,0.12);color:var(--blue-bright)">Daily</span>' +
+        '<span class="font-d fw-600 text-sm">' + dcTpl.name + '</span>' +
+      '</div>' +
+      '<div class="text-xs text-slip">' + dcTpl.desc + '</div>' +
+      '<div class="text-xs" style="margin-top:4px;color:' + (dc.completed ? 'var(--green-bright)' : 'var(--gold)') + '">' +
+        (dc.completed ? 'Completed! +' + dcTpl.reward + (dcTpl.currency === 'coins' ? 'C' : ' B$') : dcTpl.reward + (dcTpl.currency === 'coins' ? 'C' : ' B$') + ' reward') +
+      '</div>';
+    $('hub-streak-num').textContent = GS.winStreak;
+    $('hub-streak-best').textContent = GS.bestStreak > 0 ? 'Best: ' + GS.bestStreak : '';
+  }
   updateCurrency();
 }
 
@@ -2985,6 +3035,76 @@ function showScorecard() {
   $('sc-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
 }
 
+var DAILY_CHALLENGES = [
+  {id:'clean_win',name:'Clean Victory',desc:'Win a match without using any mafia fix',check:function(w,t,fix){return w && !fix},reward:100,currency:'coins'},
+  {id:'big_score',name:'Big Score',desc:'Score 150+ runs in a match',check:function(w,t,fix){return match.runs >= 150},reward:120,currency:'coins'},
+  {id:'bowling_dom',name:'Bowling Domination',desc:'Bowl the opponent out for under 100 runs',check:function(w,t,fix){return match.oppRuns < 100 && match.oppWkts >= 10},reward:100,currency:'coins'},
+  {id:'close_win',name:'Clutch Win',desc:'Win a match by 20 runs or fewer (or 3 wickets or fewer)',check:function(w,t,fix){if(!w)return false;if(match.youBatFirst)return(match.runs-match.oppRuns)<=20;return(10-match.wkts)<=3},reward:150,currency:'coins'},
+  {id:'wicket_haul',name:'Wicket Haul',desc:'Take 5 or more wickets in a match',check:function(w,t,fix){return match.oppWkts>=5},reward:80,currency:'coins'},
+  {id:'unbeaten',name:'Unbeaten',desc:'Win while losing fewer than 5 wickets',check:function(w,t,fix){return w && match.wkts<5},reward:130,currency:'coins'},
+  {id:'grey_win',name:'Shady Business',desc:'Win a match with a mafia fix active',check:function(w,t,fix){return w && fix},reward:20,currency:'blackMoney'},
+  {id:'comeback',name:'Comeback King',desc:'Win while chasing (bat second and win)',check:function(w,t,fix){return w && !match.youBatFirst},reward:100,currency:'coins'},
+];
+
+function getTodayStr() { var d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+
+function getDailyChallenge() {
+  var today = getTodayStr();
+  if (GS.dailyChallenge && GS.lastChallengeDate === today) return GS.dailyChallenge;
+  var seed = 0; for (var i = 0; i < today.length; i++) seed += today.charCodeAt(i);
+  var idx = seed % DAILY_CHALLENGES.length;
+  GS.dailyChallenge = {id: DAILY_CHALLENGES[idx].id, completed: false};
+  GS.lastChallengeDate = today;
+  save();
+  return GS.dailyChallenge;
+}
+
+function checkDailyChallenge(won, tied, wasFix) {
+  var dc = getDailyChallenge();
+  if (dc.completed) return null;
+  var tpl = DAILY_CHALLENGES.find(function(c){return c.id === dc.id});
+  if (!tpl) return null;
+  var passed = tpl.check(won, tied, wasFix);
+  if (passed) {
+    dc.completed = true;
+    if (tpl.currency === 'coins') GS.coins += tpl.reward;
+    else GS.blackMoney += tpl.reward;
+    save();
+  }
+  return {name:tpl.name, desc:tpl.desc, passed:passed, reward:tpl.reward, currency:tpl.currency};
+}
+
+var STREAK_MILESTONES = [
+  {at:3, label:'Hat-trick!', reward:50, icon:'\u{1F525}'},
+  {at:5, label:'Dominant!', reward:150, icon:'⚡'},
+  {at:7, label:'Unstoppable!', reward:300, icon:'\u{1F3C6}'},
+  {at:10, label:'LEGENDARY!', reward:500, icon:'\u{1F451}'},
+];
+
+function processWinStreak(won) {
+  if (won) {
+    GS.winStreak++;
+    if (GS.winStreak > GS.bestStreak) GS.bestStreak = GS.winStreak;
+  } else { GS.winStreak = 0; }
+  var milestone = null;
+  for (var i = STREAK_MILESTONES.length - 1; i >= 0; i--) {
+    if (GS.winStreak === STREAK_MILESTONES[i].at) { milestone = STREAK_MILESTONES[i]; break; }
+  }
+  if (milestone) { GS.coins += milestone.reward; save(); }
+  return milestone;
+}
+
+function getNextOpponentTease() {
+  if (GS.matchNum > 14) return '';
+  var next = getNextRival();
+  var rd = GS.rivalData[next.name];
+  var relLabel = rd ? getRelLabel(rd.rel) : {text:'Unknown',cls:'text-slip'};
+  var trait = next.trait || '';
+  return '<div class="next-opponent-tease">Next up: <strong>' + next.name + '</strong> · ' +
+    '<span class="' + relLabel.cls + '">' + relLabel.text + '</span>' +
+    (trait ? ' · <em>' + trait.split(' — ')[0] + '</em>' : '') + '</div>';
+}
+
 function getMatchHook(won, tied, opponent, totalWins, matchNum) {
   var hooks = [];
   var pName = opponent.personality;
@@ -3195,6 +3315,8 @@ function endMatch() {
   if (invStatus === 'tribunal') tribunalResult = resolveTribunal();
   var rivalEvent = getRivalEvent(match.opponent, wasFix, won);
   var debtWarnings = processDebts();
+  var streakMilestone = processWinStreak(won);
+  var challengeResult = checkDailyChallenge(won, tied, wasFix);
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
   if (cleanBonus > 0) rewardsHtml += '<div class="reward-row"><span>Clean Streak Bonus</span><span class="val" style="color:var(--green-bright)">+' + cleanBonus + ' (×' + GS.cleanStreak + ')</span></div>';
   if (bmR > 0) rewardsHtml += '<div class="reward-row"><span>Black Money</span><span class="val" style="color:var(--purple)">+' + bmR + '</span></div>';
@@ -3204,6 +3326,8 @@ function endMatch() {
   rewardsHtml += '<div class="reward-row"><span>Morale</span><span class="val ' + (won ? 'positive' : 'negative') + '">' + (won ? '+5' : '-3') + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>League Points</span><span class="val positive">+' + (won ? 3 : tied ? 1 : 0) + '</span></div>';
   if (wasFix) rewardsHtml += '<div class="reward-row"><span>Fix Heat</span><span class="val negative">+5</span></div>';
+  if (streakMilestone) rewardsHtml += '<div class="reward-row"><span>Streak Bonus (' + streakMilestone.label + ')</span><span class="val" style="color:var(--gold-bright)">+' + streakMilestone.reward + '</span></div>';
+  if (challengeResult && challengeResult.passed) rewardsHtml += '<div class="reward-row"><span>Daily Challenge</span><span class="val" style="color:var(--blue-bright)">+' + challengeResult.reward + (challengeResult.currency === 'coins' ? '' : ' B$') + '</span></div>';
   var rlAfter = getRelLabel(rd.rel);
   rewardsHtml += '<div class="reward-row"><span>' + rivalName + '</span><span class="val ' + rlAfter.cls + '">' + rlAfter.text + ' (' + (relShift >= 0 ? '+' : '') + relShift + ')</span></div>';
   var sponsorTag = zone.tier <= 2 ? '<div class="text-xs text-gold" style="margin-top:6px;text-align:center">' + GS.sponsor.name + ' bonus: +' + Math.round((zone.coinMult - 1) * 100) + '% coins</div>' : '';
@@ -3230,9 +3354,12 @@ function endMatch() {
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div id="post-match-events" style="margin-top:12px"></div>' +
+    (streakMilestone ? '<div class="streak-milestone"><div class="sm-icon">' + streakMilestone.icon + '</div><div class="sm-title">' + GS.winStreak + ' Win Streak — ' + streakMilestone.label + '</div><div class="sm-reward">+' + streakMilestone.reward + ' coins</div></div>' : (GS.winStreak >= 2 && won ? '<div class="match-hook streak">' + GS.winStreak + ' wins in a row! ' + (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}) ? (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}).at - GS.winStreak) + ' more for bonus' : '') + '</div>' : '')) +
+    (challengeResult ? '<div class="daily-challenge"><div class="dc-header"><span class="dc-tag">Daily</span><span class="dc-title">' + challengeResult.name + '</span></div><div class="dc-desc">' + challengeResult.desc + '</div><div class="dc-result ' + (challengeResult.passed ? 'pass' : 'fail') + '">' + (challengeResult.passed ? 'Completed! +' + challengeResult.reward + (challengeResult.currency === 'coins' ? ' coins' : ' B$') : 'Not completed — try again') + '</div></div>' : '') +
     getMatchHook(won, tied, match.opponent, GS.wins, GS.matchNum) +
+    getNextOpponentTease() +
     '<div class="btn btn-outline full" id="view-scorecard-btn" style="margin-top:16px">View Scorecard</div>' +
-    '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:10px">Continue</div>';
+    (GS.matchNum <= 14 ? '<div class="play-again-row"><div class="btn btn-gold lg" id="match-play-again-btn">Play Again</div><div class="btn btn-outline lg" id="match-continue-btn">Hub</div></div>' : '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:10px">Continue</div>');
   var postEventsHtml = '';
   var charityAmount = Math.round(coinR * 0.2);
   if (won && charityAmount > 0) {
@@ -3287,6 +3414,14 @@ function endMatch() {
       }
     }
   };
+  var playAgainBtn = $('match-play-again-btn');
+  if (playAgainBtn) {
+    playAgainBtn.onclick = function() {
+      $('match-result').classList.remove('show');
+      save();
+      setTimeout(function() { showSquadSelect(); }, 300);
+    };
+  }
 }
 
 function endSeason() {
@@ -3301,7 +3436,7 @@ function endSeason() {
   } else if (relegated) {
     GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
   } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
-  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {};
+  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0;
   GS.morale = Math.min(100, GS.morale + 10);
   var basePurse = 2000 + idx * 500;
   var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
