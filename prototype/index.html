@@ -564,7 +564,9 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .match-scoreboard .team-name:first-child{text-align:right}
 .match-scoreboard .team-name:last-child{text-align:left}
 .match-scoreboard .vs{font-family:var(--font-d);font-size:12px;color:var(--void);padding:4px 10px;background:var(--green-bright);border-radius:20px;font-weight:700;letter-spacing:1px}
-.match-scoreboard .score{font-family:var(--font-d);font-size:60px;font-weight:700;line-height:1;letter-spacing:3px;text-shadow:0 0 40px rgba(255,255,255,0.1)}
+.match-scoreboard .score{font-family:var(--font-d);font-size:60px;font-weight:700;line-height:1;letter-spacing:3px;text-shadow:0 0 40px rgba(255,255,255,0.1);display:flex;align-items:baseline;justify-content:center}
+.score-char{display:inline-block}
+.score-char.roll{animation:digitRoll 0.35s ease-out both}
 .match-scoreboard .overs{font-size:13px;color:var(--slip);margin-top:4px;letter-spacing:1px}
 
 .match-phases{display:flex;align-items:center;gap:2px;margin-bottom:16px;padding:0}
@@ -595,7 +597,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .match-moment .moment-icon.runs{background:rgba(34,212,126,0.1);color:var(--green-bright);border:1px solid rgba(34,212,126,0.1)}
 .match-moment .moment-icon.wicket{background:rgba(220,38,38,0.1);color:var(--blood);border:1px solid rgba(220,38,38,0.1)}
 .match-moment .moment-icon.six{background:rgba(240,200,80,0.1);color:var(--gold-bright);border:1px solid rgba(240,200,80,0.1)}
-.match-moment .moment-text{font-size:13px;color:var(--slip);line-height:1.5;align-self:center}
+.match-moment .moment-text{font-size:13px;color:var(--slip);line-height:1.5;align-self:center;animation:textReveal 0.45s ease-out both}
 .match-moment .moment-text strong{color:var(--white);font-weight:600}
 .match-moment.compact{padding:5px 0}
 .match-moment.compact .moment-text{color:var(--white-40);font-size:12px}
@@ -815,6 +817,24 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 @keyframes timerPulse{0%,100%{opacity:1}50%{opacity:0.5}}
 @keyframes stagger1{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes cardFlip{0%{transform:perspective(600px) rotateY(180deg);opacity:0}60%{transform:perspective(600px) rotateY(-10deg);opacity:1}80%{transform:perspective(600px) rotateY(5deg)}100%{transform:perspective(600px) rotateY(0deg);opacity:1}}
+@keyframes digitRoll{0%{transform:translateY(60%);opacity:0}50%{opacity:1}100%{transform:translateY(0);opacity:1}}
+@keyframes textReveal{0%{clip-path:inset(0 100% 0 0);opacity:0.2}50%{clip-path:inset(0 30% 0 0);opacity:0.8}100%{clip-path:inset(0 0 0 0);opacity:1}}
+@keyframes packBurst{0%{filter:brightness(1.6) drop-shadow(0 0 25px rgba(255,207,68,0.6))}100%{filter:brightness(1) drop-shadow(0 0 0 transparent)}}
+
+/* Pack opening 3D card flip */
+.pack-flip-container{width:140px;perspective:800px}
+.pack-flip-inner{position:relative;transform-style:preserve-3d;transform:rotateY(180deg);transition:transform 0.9s cubic-bezier(0.25,0.46,0.45,0.94)}
+.pack-flip-inner.flipped{transform:rotateY(0deg)}
+.pack-card-front{position:relative;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.pack-card-back{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(160deg,var(--pavilion) 0%,var(--dugout) 40%,var(--pitch) 100%);border:1px solid var(--border-strong);clip-path:var(--clip-card-tr);display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:hidden}
+.pack-card-back::before{content:'';position:absolute;inset:6px;border:1px dashed rgba(255,207,68,0.08);pointer-events:none}
+.pack-card-back::after{content:'CU';font-family:var(--font-d);font-size:32px;font-weight:700;color:rgba(255,207,68,0.1);letter-spacing:10px}
+.pack-card-back .back-pattern{position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,207,68,0.015) 8px,rgba(255,207,68,0.015) 9px),repeating-linear-gradient(-45deg,transparent,transparent 8px,rgba(255,207,68,0.015) 8px,rgba(255,207,68,0.015) 9px);pointer-events:none}
+.pack-flip-inner.flipped .pack-card-front{animation:packBurst 0.5s ease-out 0.45s both}
+
+/* Tribunal typewriter cursor */
+.typewriter-cursor{border-right:2px solid currentColor;padding-right:2px;animation:cursorBlink 0.7s step-end infinite}
+@keyframes cursorBlink{0%,100%{border-color:currentColor}50%{border-color:transparent}}
 </style>
 </head>
 <body>
@@ -878,11 +898,11 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 
       <div class="action-tiles">
         <div class="action-tile auction" id="hub-auction-btn">
-          <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+          <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M16.5 3.5l4 4"/><path d="M14 2l7 7-3 3-7-7 3-3z"/><path d="M7 9l5 5"/><path d="M4 20h16"/><path d="M10 16h4v4h-4z"/></svg></div>
           <div><div class="tile-title">Auction</div><div class="tile-sub" id="auction-sub">Build your squad</div></div>
         </div>
         <div class="action-tile match" id="hub-match-btn">
-          <div class="tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+          <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M6 3l3 1 3 12-1.5 1.5L6 16z"/><path d="M5.5 17.5L3 21"/><circle cx="18" cy="6" r="2.5"/><path d="M16.2 4.2l3.6 3.6"/></svg></div>
           <div><div class="tile-title">Match</div><div class="tile-sub" id="match-sub">Play next game</div></div>
         </div>
       </div>
@@ -897,7 +917,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <div class="qt-label">League</div>
         </div>
         <div class="quick-tile" id="hub-cards-btn">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="18" rx="1.5"/><path d="M2 6l3-2v16l-3-2z"/><path d="M22 6l-3-2v16l3-2z"/><path d="M9 8h6"/><path d="M12 8v6"/></svg>
           <div class="qt-label">Cards</div>
         </div>
         <div class="quick-tile" id="hub-market-btn">
@@ -1511,6 +1531,37 @@ function updateCurrency() {
   $('coins-val').textContent = GS.coins.toLocaleString();
   $('gems-val').textContent = GS.gems;
   $('bmoney-val').textContent = GS.blackMoney;
+}
+
+var _lastScoreText = '';
+function updateMatchScore(runs, wkts) {
+  var newText = runs + '/' + wkts;
+  var el = $('match-score');
+  var oldText = _lastScoreText;
+  var html = '';
+  for (var i = 0; i < newText.length; i++) {
+    var changed = i >= oldText.length || newText[i] !== oldText[i];
+    html += '<span class="score-char' + (changed ? ' roll' : '') + '"' + (changed ? ' style="animation-delay:' + (i * 0.06) + 's"' : '') + '>' + newText[i] + '</span>';
+  }
+  el.innerHTML = html;
+  _lastScoreText = newText;
+}
+
+function typewriterEffect(id, text, charDelay) {
+  var el = $(id);
+  if (!el) return;
+  el.textContent = '';
+  el.classList.add('typewriter-cursor');
+  var i = 0;
+  var timer = setInterval(function() {
+    if (i < text.length) {
+      el.textContent += text[i];
+      i++;
+    } else {
+      clearInterval(timer);
+      setTimeout(function() { el.classList.remove('typewriter-cursor'); }, 600);
+    }
+  }, charDelay);
 }
 
 function getOVR(p) {
@@ -2620,7 +2671,7 @@ function startMatch() {
   $('innings-label').textContent = '1st Innings';
   $('batting-team').textContent = match.batting === 'you' ? GS.teamName : match.opponent.name;
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : GS.teamName;
-  $('match-score').textContent = '0/0';
+  _lastScoreText = ''; updateMatchScore(0, 0);
   $('match-overs').textContent = '0.0 overs';
   $('match-moments').innerHTML = '';
   $('momentum-you').style.width = '0%';
@@ -2654,7 +2705,7 @@ function simBall() {
   cWkts = isYou ? match.wkts : match.oppWkts;
   var displayOvers = over + '.' + (ballInOver + 1);
   if (ballInOver === 5) displayOvers = (over + 1) + '.0';
-  $('match-score').textContent = cRuns + '/' + cWkts;
+  updateMatchScore(cRuns, cWkts);
   $('match-overs').textContent = displayOvers + ' overs';
   var phaseIds = ['pp','mid','death'];
   if (phase !== match.phase) {
@@ -2845,7 +2896,7 @@ function switchInnings() {
   $('innings-label').textContent = '2nd Innings · Target: ' + (match.target + 1);
   $('batting-team').textContent = match.batting === 'you' ? GS.teamName : match.opponent.name;
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : GS.teamName;
-  $('match-score').textContent = '0/0';
+  _lastScoreText = ''; updateMatchScore(0, 0);
   $('match-overs').textContent = '0.0 overs';
   $('momentum-you').style.width = '0%';
   $('momentum-opp').style.width = '0%';
@@ -3011,7 +3062,7 @@ function endMatch() {
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:3px;border-left:3px solid var(--amber)">' + heatEvent + '</div>' : '') +
     (invStatus === 'started' ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:10px;border:2px dashed var(--amber);border-radius:3px;background:rgba(245,158,11,0.04)"><strong>FORMAL INVESTIGATION OPENED</strong><br>The board is reviewing your conduct. Tribunal in 5 matches. No favors allowed.</div>' : '') +
     (invStatus === 'ongoing' ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:2px dashed var(--amber);border-radius:3px">Investigation ongoing — ' + (GS.investigation ? GS.investigation.matchesLeft : 0) + ' matches until tribunal</div>' : '') +
-    (tribunalResult ? '<div style="margin:8px 0;padding:14px;border:2px solid ' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.4)' : 'rgba(220,38,38,0.4)') + ';border-radius:3px;background:' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.05)' : 'rgba(220,38,38,0.05)') + ';text-align:center"><div class="font-d fw-700 ' + tribunalResult.cls + '" style="font-size:24px;text-transform:uppercase;letter-spacing:4px">' + tribunalResult.name + '</div><div class="text-xs text-slip" style="margin:6px 0">Prosecution: ' + tribunalResult.prosecution + ' · Defense: ' + tribunalResult.defense + '</div><div class="text-xs" style="margin-top:4px">' + tribunalResult.desc + '</div></div>' : '') +
+    (tribunalResult ? '<div style="margin:8px 0;padding:14px;border:2px solid ' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.4)' : 'rgba(220,38,38,0.4)') + ';border-radius:3px;background:' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.05)' : 'rgba(220,38,38,0.05)') + ';text-align:center"><div class="font-d fw-700 ' + tribunalResult.cls + '" style="font-size:24px;text-transform:uppercase;letter-spacing:4px" id="tribunal-verdict-text"></div><div class="text-xs text-slip" style="margin:6px 0">Prosecution: ' + tribunalResult.prosecution + ' · Defense: ' + tribunalResult.defense + '</div><div class="text-xs" style="margin-top:4px">' + tribunalResult.desc + '</div></div>' : '') +
     (rivalEvent ? '<div class="text-xs ' + rivalEvent.cls + '" style="text-align:center;margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:3px">' + rivalEvent.text + '</div>' : '') +
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
@@ -3050,6 +3101,7 @@ function endMatch() {
     };
   }
   $('match-result').classList.add('show');
+  if (tribunalResult) { setTimeout(function() { typewriterEffect('tribunal-verdict-text', tribunalResult.name, 100); }, 400); }
   $('view-scorecard-btn').onclick = showScorecard;
   $('match-continue-btn').onclick = function() {
     $('match-result').classList.remove('show');
@@ -3161,18 +3213,21 @@ function openPack(type) {
   }
   save();
   var html = '<div class="font-d fw-700 text-center" style="font-size:26px;text-transform:uppercase;letter-spacing:3px;background:linear-gradient(135deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">' + (type === 'premium' ? 'Premium' : 'Standard') + ' Pack</div>' +
-    '<div class="text-center text-slip text-sm mb-16">' + cards.length + ' cards revealed</div>' +
+    '<div class="text-center text-slip text-sm mb-16">Tap to reveal</div>' +
     '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:16px 0" id="pack-cards">';
   for (var c = 0; c < cards.length; c++) {
-    html += '<div style="width:140px;opacity:0;transform:perspective(600px) rotateY(90deg);transition:all 0.6s cubic-bezier(0.4,0,0.2,1) ' + (0.3 + c * 0.3) + 's" class="pack-card-reveal">' + renderPlayerCard(cards[c]) + '</div>';
+    html += '<div class="pack-flip-container" data-idx="' + c + '"><div class="pack-flip-inner"><div class="pack-card-front">' + renderPlayerCard(cards[c]) + '</div><div class="pack-card-back"><div class="back-pattern"></div></div></div></div>';
   }
   html += '</div><div class="btn btn-gold lg" id="pack-collect-btn" style="margin-top:20px">Collect All</div>';
   $('pack-opening-content').innerHTML = html;
   $('pack-overlay').classList.add('show');
-  setTimeout(function() {
-    var reveals = document.querySelectorAll('.pack-card-reveal');
-    for (var r = 0; r < reveals.length; r++) { reveals[r].style.opacity = '1'; reveals[r].style.transform = 'perspective(600px) rotateY(0deg)'; }
-  }, 50);
+  var flips = document.querySelectorAll('.pack-flip-inner');
+  var flipped = 0;
+  for (var f = 0; f < flips.length; f++) {
+    (function(el, delay) {
+      setTimeout(function() { el.classList.add('flipped'); SFX.reveal(); flipped++; }, delay);
+    })(flips[f], 600 + f * 500);
+  }
   $('pack-collect-btn').onclick = function() {
     $('pack-overlay').classList.remove('show');
     updateCardsScreen(); updateCurrency();
