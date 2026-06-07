@@ -845,6 +845,22 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .bowler-opt .bo-meta{font-size:11px;color:var(--slip);text-align:right;white-space:nowrap}
 .bowler-opt.recommended{border-color:rgba(59,130,246,0.25);background:rgba(59,130,246,0.04)}
 .bowler-opt.recommended::after{content:'REC';font-family:var(--font-d);font-size:9px;font-weight:700;color:var(--blue-bright);background:rgba(59,130,246,0.12);padding:2px 6px;border-radius:3px;letter-spacing:1px}
+.field-setting{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06)}
+.field-setting .fs-title{font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--green-bright);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.field-setting .fs-title .accent-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(52,211,153,0.2),transparent)}
+.fs-options{display:flex;gap:6px}
+.fs-opt{flex:1;padding:8px 6px;text-align:center;border:1.5px solid rgba(255,255,255,0.08);border-radius:3px;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.02)}
+.fs-opt:active{transform:scale(0.96)}
+.fs-opt .fs-icon{font-size:16px;margin-bottom:2px}
+.fs-opt .fs-label{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.fs-opt .fs-desc{font-size:9px;color:var(--slip);margin-top:2px;line-height:1.2}
+.fs-opt.active-atk{border-color:rgba(239,45,45,0.35);background:rgba(239,45,45,0.08);color:var(--blood)}
+.fs-opt.active-std{border-color:rgba(59,130,246,0.35);background:rgba(59,130,246,0.08);color:var(--blue-bright)}
+.fs-opt.active-def{border-color:rgba(52,211,153,0.35);background:rgba(52,211,153,0.08);color:var(--green-bright)}
+.fs-badge{display:inline-block;font-family:var(--font-d);font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:0.5px;margin-left:6px;vertical-align:middle}
+.fs-badge.atk{background:rgba(239,45,45,0.12);color:var(--blood)}
+.fs-badge.std{background:rgba(59,130,246,0.12);color:var(--blue-bright)}
+.fs-badge.def{background:rgba(52,211,153,0.12);color:var(--green-bright)}
 
 /* Tribunal typewriter cursor */
 .typewriter-cursor{border-right:2px solid currentColor;padding-right:2px;animation:cursorBlink 0.7s step-end infinite}
@@ -1189,6 +1205,26 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
       <div class="bowler-picker glass accent-blue" id="bowler-picker" style="display:none">
         <div class="bp-title">Choose Bowler<span class="accent-line"></span></div>
         <div id="bowler-options"></div>
+        <div class="field-setting">
+          <div class="fs-title">Field Setting<span class="accent-line"></span></div>
+          <div class="fs-options">
+            <div class="fs-opt" data-field="attacking" id="fs-atk">
+              <div class="fs-icon">&#9876;</div>
+              <div class="fs-label">Attack</div>
+              <div class="fs-desc">More wickets, more runs</div>
+            </div>
+            <div class="fs-opt active-std" data-field="standard" id="fs-std">
+              <div class="fs-icon">&#9881;</div>
+              <div class="fs-label">Standard</div>
+              <div class="fs-desc">Balanced field</div>
+            </div>
+            <div class="fs-opt" data-field="defensive" id="fs-def">
+              <div class="fs-icon">&#128737;</div>
+              <div class="fs-label">Contain</div>
+              <div class="fs-desc">Fewer runs, fewer wickets</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="glass"><div class="section-title sm">Commentary<span class="accent-line"></span></div><div id="match-moments" class="match-moments"></div></div>
       <div class="btn btn-outline full mt-12" id="skip-btn">Skip to Result</div>
@@ -2431,6 +2467,8 @@ function pickBowler(bowlers, phase, overNum) {
 }
 
 function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isYourBatting, innings, target, runs, ball) {
+  if (!batter) batter = {name:'Sub',bat:30,bwl:20,form:50,fld:40,role:'All-Rounder'};
+  if (!bowler) bowler = {name:'Sub',bat:20,bwl:30,form:50,fld:40,role:'All-Rounder'};
   var phaseBat = [1.3, 1.0, 1.4][phase];
   var phaseBwl = [0.9, 1.1, 1.0][phase];
   var pitchMods = {
@@ -2476,6 +2514,9 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   var sixP = Math.max(0.02, Math.min(0.18, 0.07 * Math.pow(ratio, 0.8)));
   var fourP = Math.max(0.04, Math.min(0.20, 0.11 * Math.pow(ratio, 0.5)));
   var triP = 0.03, dblP = 0.09;
+  var fs = match.fieldSetting || 'standard';
+  if (!isYourBatting && fs === 'attacking') { wktP *= 1.30; fourP *= 1.15; sixP *= 1.15; dotP *= 0.85; }
+  else if (!isYourBatting && fs === 'defensive') { wktP *= 0.70; fourP *= 0.75; sixP *= 0.70; dblP *= 1.20; dotP *= 1.15; }
   var sglP = Math.max(0.10, 1.0 - wktP - dotP - sixP - fourP - triP - dblP);
   var total = wktP + dotP + sglP + dblP + triP + fourP + sixP;
   var r = Math.random() * total;
@@ -2577,7 +2618,7 @@ function setCaptain(id) {
 function getCurrentSSSelection() {
   var sel = [];
   var items = document.querySelectorAll('.ss-player.selected');
-  for (var i = 0; i < items.length; i++) { sel.push(parseInt(items[i].getAttribute('data-sid'))); }
+  for (var i = 0; i < items.length; i++) { sel.push(items[i].getAttribute('data-sid')); }
   return sel;
 }
 
@@ -2681,7 +2722,7 @@ function startMatch() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
-  match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false;
+  match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false; match.fieldSetting = 'standard';
   $('boost-btn').classList.remove('used', 'active-boost');
   $('tac-aggro').classList.remove('active'); $('tac-defense').classList.remove('active');
   $('tac-balanced').classList.add('active');
@@ -2721,8 +2762,9 @@ function showBowlerPicker(bowlers, phase, over) {
       '<div class="bo-meta">Form ' + b.form + '</div></div>';
   }
   $('bowler-options').innerHTML = html;
+  updateFieldSettingUI();
   show('bowler-picker');
-  addMoment('over-sum', 'Over ' + over + ' complete. Choose your bowler.', '?');
+  addMoment('over-sum', 'Over ' + over + ' complete. Choose your bowler & field.', '?');
   var opts = $('bowler-picker').querySelectorAll('.bowler-opt');
   for (var j = 0; j < opts.length; j++) {
     opts[j].onclick = function() {
@@ -2737,6 +2779,22 @@ function showBowlerPicker(bowlers, phase, over) {
   }
 }
 
+function updateFieldSettingUI() {
+  var fs = match.fieldSetting || 'standard';
+  $('fs-atk').className = 'fs-opt' + (fs === 'attacking' ? ' active-atk' : '');
+  $('fs-std').className = 'fs-opt' + (fs === 'standard' ? ' active-std' : '');
+  $('fs-def').className = 'fs-opt' + (fs === 'defensive' ? ' active-def' : '');
+}
+
+function setFieldSetting(setting) {
+  if (match.fieldSetting === setting) return;
+  match.fieldSetting = setting;
+  updateFieldSettingUI();
+  SFX.tap();
+  var labels = {attacking:'ATTACKING — slips & close catchers',standard:'STANDARD — balanced field',defensive:'CONTAIN — deep boundary riders'};
+  addMoment('over-sum', 'Field set to ' + (labels[setting] || setting), '>>');
+}
+
 function simBall() {
   if (!match.active) return;
   match.ball++;
@@ -2746,7 +2804,9 @@ function simBall() {
   var cWkts = isYou ? match.wkts : match.oppWkts;
   var cRuns = isYou ? match.runs : match.oppRuns;
   var phase = over < 6 ? 0 : over < 15 ? 1 : 2;
-  match.curBatter = match.batXI[Math.min(cWkts, match.batXI.length - 1)];
+  var batIdx = Math.min(cWkts, match.batXI.length - 1);
+  match.curBatter = batIdx >= 0 ? match.batXI[batIdx] : null;
+  if (!match.curBatter) match.curBatter = match.batXI[0];
   if (!match.curBatter) { endMatch(); return; }
   if (ballInOver === 0) {
     if (match.batting !== 'you' && !match.skipMode && !match.bowlerSelected && over > 0) {
@@ -2939,7 +2999,9 @@ function updateBBStrip(batter, bowler) {
   $('bbs-batter').textContent = batter.name + batCap;
   $('bbs-bat-stat').textContent = 'BAT ' + batter.bat + ' · Form ' + batter.form;
   $('bbs-bowler').textContent = bowler.name + bwlCap;
-  $('bbs-bwl-stat').textContent = 'BWL ' + bowler.bwl + ' · Form ' + bowler.form;
+  var fs = match.fieldSetting || 'standard';
+  var fsBadge = match.batting !== 'you' && fs !== 'standard' ? ' <span class="fs-badge ' + (fs==='attacking'?'atk':'def') + '">' + (fs==='attacking'?'ATK':'DEF') + '</span>' : '';
+  $('bbs-bwl-stat').innerHTML = 'BWL ' + bowler.bwl + ' · Form ' + bowler.form + fsBadge;
 }
 
 function switchInnings() {
@@ -2954,7 +3016,7 @@ function switchInnings() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
-  match.overRuns = 0; match.bowlerSelected = false;
+  match.overRuns = 0; match.bowlerSelected = false; match.fieldSetting = 'standard';
   hide('bowler-picker');
   updateBBStrip(match.curBatter, match.curBowler);
   $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
@@ -2986,7 +3048,9 @@ function skipMatch() {
     var cRuns = isYou ? match.runs : match.oppRuns;
     var phase = ov < 6 ? 0 : ov < 15 ? 1 : 2;
     var batter = match.batXI[Math.min(cWkts, match.batXI.length - 1)];
+    if (!batter) { endMatch(); return; }
     if (bIO === 0) match.curBowler = pickBowler(match.bowlers, phase, ov);
+    if (!match.curBowler) match.curBowler = pickBowler(match.bowlers, phase, ov);
     var outcome = calcBallOutcome(batter, match.curBowler, match.pitchType, phase, GS.strategy, GS.morale, isYou, match.innings, match.target, cRuns, match.ball);
     var runs = outcome.runs, wkt = outcome.wicket;
     if (isYou) { match.runs += runs; if (wkt) match.wkts++; } else { match.oppRuns += runs; if (wkt) match.oppWkts++; }
@@ -3753,6 +3817,12 @@ function bindEvents() {
       this.classList.add('active');
       GS.strategy = this.getAttribute('data-strat');
       addMoment('over-sum', 'Strategy changed to ' + GS.strategy.toUpperCase() + '!', '>>');
+    });
+  }
+  var fsOpts = document.querySelectorAll('.fs-opt');
+  for (var fi = 0; fi < fsOpts.length; fi++) {
+    fsOpts[fi].addEventListener('click', function() {
+      setFieldSetting(this.getAttribute('data-field'));
     });
   }
   $('boost-btn').addEventListener('click', function() {

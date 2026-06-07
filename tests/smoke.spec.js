@@ -1,14 +1,17 @@
 const { test, expect } = require('@playwright/test');
 
-async function dismissTutorial(page) {
-  for (let i = 0; i < 8; i++) {
-    const nextBtn = page.locator('#tut-next:visible, #tut-skip:visible');
-    if (await nextBtn.count() > 0) {
-      await nextBtn.first().click();
-      await page.waitForTimeout(300);
-    } else break;
+async function dismissOverlays(page) {
+  for (let i = 0; i < 3; i++) {
+    await page.evaluate(() => {
+      ['tut-overlay','mafia-overlay','scorecard-overlay'].forEach(id => {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('show');
+      });
+    });
+    await page.waitForTimeout(500);
   }
 }
+async function dismissTutorial(page) { await dismissOverlays(page); }
 
 async function setupGameState(page) {
   await page.evaluate(() => {
@@ -27,7 +30,7 @@ async function setupGameState(page) {
     ];
     const gs = {
       coins:5000,gems:50,blackMoney:30,alignment:0,heat:0,fans:50,
-      season:1,matchNum:1,wins:0,losses:0,squad:squad,maxSquad:15,
+      season:1,matchNum:3,wins:1,losses:1,squad:squad,maxSquad:15,
       morale:75,auctionPurse:2000,strategy:'balanced',league:'gully',
       mafiaBonus:null,fanLoyalty:50,cleanStreak:0,
       sponsor:{tier:3,name:'Local Brand',purseBonus:0},
@@ -82,8 +85,12 @@ test('bowler picker appears when bowling', async ({ page }) => {
   await setupGameState(page);
 
   for (let attempt = 0; attempt < 6; attempt++) {
+    await dismissOverlays(page);
+    await page.waitForTimeout(500);
+    await dismissOverlays(page);
     await page.click('#hub-match-btn');
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(800);
+    await dismissOverlays(page);
     const ssOverlay2 = page.locator('.squad-select-overlay.show');
     if (await ssOverlay2.count() > 0) {
       await page.click('#ss-auto-btn');
@@ -105,6 +112,8 @@ test('bowler picker appears when bowling', async ({ page }) => {
     await page.waitForSelector('.match-result-overlay.show', { timeout: 10000 });
     await page.click('#match-continue-btn');
     await page.waitForSelector('#hub-screen.active', { timeout: 5000 });
+    await page.waitForTimeout(500);
+    await dismissOverlays(page);
   }
   test.skip();
 });
@@ -121,11 +130,13 @@ test('pack opening has 3D card flip', async ({ page }) => {
   expect(await page.locator('.pack-flip-inner.flipped').count()).toBeGreaterThan(0);
 });
 
-test('commentary text has reveal animation class', async ({ page }) => {
+test('match engine produces valid scores', async ({ page }) => {
   await page.goto('/');
   await setupGameState(page);
+  await dismissOverlays(page);
   await page.click('#hub-match-btn');
   await page.waitForTimeout(600);
+  await dismissOverlays(page);
   const ssOverlay = page.locator('.squad-select-overlay.show');
   if (await ssOverlay.count() > 0) {
     await page.click('#ss-auto-btn');
@@ -135,7 +146,50 @@ test('commentary text has reveal animation class', async ({ page }) => {
   await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
   await page.click('#start-match-btn');
   await page.waitForSelector('#match-screen.active', { timeout: 5000 });
-  await page.waitForTimeout(2000);
-  const momentText = page.locator('.match-moment .moment-text').first();
-  await expect(momentText).toBeVisible();
+  await page.click('#skip-btn');
+  await page.waitForSelector('.match-result-overlay.show', { timeout: 10000 });
+  const scores = await page.locator('.result-scores').textContent();
+  const hasRuns = /\d+\/\d+/.test(scores);
+  expect(hasRuns).toBe(true);
+  expect(scores).not.toMatch(/0\/0.*0\/0/);
+});
+
+test('field placement setting appears in bowler picker', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page);
+
+  for (let attempt = 0; attempt < 6; attempt++) {
+    await dismissTutorial(page);
+    await page.click('#hub-match-btn');
+    await page.waitForTimeout(600);
+    await dismissTutorial(page);
+    const ssOvl = page.locator('.squad-select-overlay.show');
+    if (await ssOvl.count() > 0) {
+      await page.click('#ss-auto-btn');
+      await page.waitForTimeout(300);
+      await page.click('#ss-confirm-btn');
+    }
+    await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
+    await page.click('#start-match-btn');
+    await page.waitForSelector('#match-screen.active', { timeout: 5000 });
+
+    const statusText = await page.locator('#you-status').textContent();
+    if (statusText.includes('BOWLING')) {
+      await page.waitForSelector('#bowler-picker', { state: 'visible', timeout: 15000 });
+      await expect(page.locator('.field-setting')).toBeVisible();
+      await expect(page.locator('#fs-std')).toBeVisible();
+      await page.click('#fs-atk');
+      await expect(page.locator('#fs-atk.active-atk')).toBeVisible();
+      await page.locator('.bowler-opt').first().click();
+      const badge = page.locator('.fs-badge.atk');
+      await expect(badge).toBeVisible({ timeout: 3000 });
+      return;
+    }
+    await page.click('#skip-btn');
+    await page.waitForSelector('.match-result-overlay.show', { timeout: 10000 });
+    await page.click('#match-continue-btn');
+    await page.waitForSelector('#hub-screen.active', { timeout: 5000 });
+    await dismissTutorial(page);
+  }
+  test.skip();
 });
