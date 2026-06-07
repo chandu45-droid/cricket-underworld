@@ -643,6 +643,16 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .play-again-row .btn{flex:1}
 .next-opponent-tease{text-align:center;padding:10px;margin:8px 0;border-radius:3px;border:1px dashed rgba(255,255,255,0.08);font-size:12px;color:var(--slip)}
 .next-opponent-tease strong{color:var(--white)}
+.ss-player.banned{opacity:0.4;pointer-events:none;position:relative}
+.ss-player.banned::after{content:'BANNED';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--blood);background:rgba(6,8,16,0.8);padding:3px 10px;border-radius:2px;border:1px solid rgba(220,38,38,0.3)}
+.ban-event{padding:10px 14px;margin:6px 0;border-radius:3px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--blood);background:rgba(220,38,38,0.04)}
+.ban-event .be-title{font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blood);margin-bottom:2px}
+.ban-event .be-desc{font-size:11px;color:var(--slip);line-height:1.4}
+.hub-bans{margin-bottom:14px}
+.hub-ban-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid rgba(220,38,38,0.15);border-radius:3px;margin-bottom:6px;background:rgba(220,38,38,0.03)}
+.hub-ban-item .hb-name{font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--white);flex:1}
+.hub-ban-item .hb-reason{font-size:11px;color:var(--slip)}
+.hub-ban-item .hb-left{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--blood)}
 
 .match-result-overlay{position:fixed;inset:0;z-index:200;background:rgba(6,8,16,0.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.6s}
 .match-result-overlay.show{opacity:1;pointer-events:auto}
@@ -996,6 +1006,11 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
       <div class="glass accent-red" id="debt-panel" style="display:none">
         <div class="section-title sm">Active Debts<span class="accent-line"></span></div>
         <div id="debt-list"></div>
+      </div>
+
+      <div class="glass accent-red" id="ban-panel" style="display:none">
+        <div class="section-title sm" style="color:var(--blood)">Player Bans<span class="accent-line"></span></div>
+        <div id="ban-list" class="hub-bans"></div>
       </div>
 
       <div class="glass accent-blue" id="sponsor-panel">
@@ -2008,9 +2023,10 @@ function renderPlayerMini(p) {
   var ovr = getOVR(p);
   var rc = RARITY_COLORS[p.rarity] || '#4A5568';
   var roleShort = ROLE_SHORT[p.role] || 'AR';
-  return '<div class="player-card-mini" data-pid="' + p.id + '">' +
+  var banTag = p.banned ? '<span style="color:var(--blood);font-size:10px;font-weight:700;margin-left:6px">BANNED ' + p.banned.matchesLeft + 'M</span>' : '';
+  return '<div class="player-card-mini" data-pid="' + p.id + '"' + (p.banned ? ' style="opacity:0.5"' : '') + '>' +
     '<div class="mini-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.4))">' + ovr + '</div>' +
-    '<div class="mini-info"><div class="mini-name">' + p.name + '</div><div class="mini-role">' + p.role + (p.overseas ? ' · OS' : '') + '</div></div>' +
+    '<div class="mini-info"><div class="mini-name">' + p.name + banTag + '</div><div class="mini-role">' + p.role + (p.overseas ? ' · OS' : '') + '</div></div>' +
     '<div class="mini-stats"><span>' + (p.role.indexOf('Bowler') >= 0 ? p.bwl : p.bat) + '</span> ' + roleShort + '</div>' +
     '<div class="status-dot playing"></div></div>';
 }
@@ -2050,6 +2066,7 @@ function showPlayerDetail(id) {
       '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">Loyalty</span><div class="stat-bar flex-1"><div class="fill green" style="width:' + p.loyalty + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.loyalty + '</span></div>' +
       '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">Greed</span><div class="stat-bar flex-1"><div class="fill red" style="width:' + p.greed + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.greed + '</span></div>' +
       '<div style="padding:8px 10px;background:rgba(15,13,26,0.6);border:1px solid rgba(220,38,38,0.1);border-radius:3px;display:flex;justify-content:space-between;align-items:center"><span class="text-xs text-slip">Fix Success Rate</span><span class="font-d fw-700 ' + (fixChance >= 70 ? 'text-green' : fixChance >= 40 ? 'text-amber' : 'text-red') + '">' + fixChance + '%</span></div>' +
+      (p.banned ? '<div style="padding:10px;margin-top:8px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.2);border-radius:3px;text-align:center"><div class="font-d fw-700 text-red" style="font-size:13px;text-transform:uppercase;letter-spacing:2px">BANNED</div><div class="text-xs text-slip" style="margin-top:2px">' + (BAN_REASONS[p.banned.reason] ? BAN_REASONS[p.banned.reason].label : 'Banned') + ' · ' + p.banned.matchesLeft + ' match' + (p.banned.matchesLeft > 1 ? 'es' : '') + ' remaining</div></div>' : '') +
     '</div>' +
     (GS.squad.some(function(s){return s.id===p.id;}) ?
       '<div class="glass accent-gold" style="margin-top:12px"><div class="section-title sm">Training<span class="accent-line"></span></div>' +
@@ -2207,6 +2224,14 @@ function updateHub() {
     }
     $('debt-list').innerHTML = dHtml;
   } else { hide('debt-panel'); }
+  var bannedPlayers = GS.squad.filter(function(p){return p.banned;});
+  if (bannedPlayers.length > 0) {
+    show('ban-panel');
+    $('ban-list').innerHTML = bannedPlayers.map(function(p) {
+      var r = BAN_REASONS[p.banned.reason] || {label:'Banned',desc:''};
+      return '<div class="hub-ban-item"><div class="hb-name">' + p.name + '</div><div class="hb-reason">' + r.label + '</div><div class="hb-left">' + p.banned.matchesLeft + ' match' + (p.banned.matchesLeft > 1 ? 'es' : '') + '</div></div>';
+    }).join('');
+  } else { hide('ban-panel'); }
   var hubZone = getAlignmentZone(GS.alignment);
   $('align-zone-tag').textContent = hubZone.name;
   if (GS.matchNum > 1 && hubZone.mafiaAccess && !GS.investigation) {
@@ -2597,7 +2622,7 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
 function showSquadSelect() {
   if (GS.squad.length < 3) { toast('Need at least 3 players', 'error'); return; }
   SFX.tap();
-  var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id;}); });
+  var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id && !p.banned;}); });
   if (sel.length > 11) sel = sel.slice(0, 11);
   var capValid = sel.indexOf(GS.captainId) >= 0;
   if (!capValid) GS.captainId = null;
@@ -2635,11 +2660,12 @@ function renderSquadSelect(sel) {
     var isCap = GS.captainId === p.id;
     var ovr = Math.round((p.bat + p.bwl) / 2);
     var rc = RARITY_COLORS[p.rarity] || RARITY_COLORS.common;
-    html += '<div class="ss-player' + (isSel ? ' selected' : '') + (isCap ? ' captain' : '') + (p.overseas ? ' overseas' : '') + '" data-sid="' + p.id + '">' +
+    var isBanned = !!p.banned;
+    html += '<div class="ss-player' + (isSel ? ' selected' : '') + (isCap ? ' captain' : '') + (p.overseas ? ' overseas' : '') + (isBanned ? ' banned' : '') + '" data-sid="' + p.id + '">' +
       '<div class="ss-cap-badge">C</div>' +
       '<div class="ss-check"></div>' +
       '<div class="ss-ovr" style="background:' + rc + '">' + ovr + '</div>' +
-      '<div class="ss-info"><div class="ss-name">' + p.name + '</div><div class="ss-role">' + p.role + '</div></div>' +
+      '<div class="ss-info"><div class="ss-name">' + p.name + '</div><div class="ss-role">' + p.role + (isBanned ? ' · ' + p.banned.matchesLeft + 'M ban' : '') + '</div></div>' +
       '<div class="ss-stats">B <span>' + p.bat + '</span> · W <span>' + p.bwl + '</span></div>' +
       '<div class="ss-cap-btn" data-capid="' + p.id + '">C</div>' +
       '</div>';
@@ -2653,6 +2679,7 @@ function toggleSquadPlayer(id) {
   var idx = sel.indexOf(id);
   var p = GS.squad.find(function(q){return q.id===id;});
   if (!p) return;
+  if (p.banned) { toast(p.name + ' is banned', 'error'); return; }
   if (idx >= 0) {
     sel.splice(idx, 1);
     if (GS.captainId === id) GS.captainId = null;
@@ -2684,7 +2711,8 @@ function getCurrentSSSelection() {
 
 function autoSelectXI() {
   SFX.tap();
-  var xi = buildPlayingXI(GS.squad);
+  var available = GS.squad.filter(function(p){return !p.banned;});
+  var xi = buildPlayingXI(available);
   var sel = xi.map(function(p){return p.id;});
   if (!GS.captainId || sel.indexOf(GS.captainId) < 0) {
     var best = xi.reduce(function(a,b){return (a.bat+a.bwl) > (b.bat+b.bwl) ? a : b;});
@@ -2716,13 +2744,15 @@ function confirmSquadSelect() {
 
 function buildSelectedXI() {
   var sel = GS.selectedXI;
-  if (!sel || sel.length < 3) return buildPlayingXI(GS.squad);
+  var available = GS.squad.filter(function(p){return !p.banned;});
+  if (!sel || sel.length < 3) return buildPlayingXI(available);
   var xi = [];
   var order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
   sel.forEach(function(id) {
-    var p = GS.squad.find(function(q){return q.id===id;});
+    var p = available.find(function(q){return q.id===id;});
     if (p) xi.push(p);
   });
+  if (xi.length < 3) return buildPlayingXI(available);
   xi.sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
   return xi;
 }
@@ -3035,6 +3065,84 @@ function showScorecard() {
   $('sc-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
 }
 
+// =============================================
+// PLAYER BAN SYSTEM
+// =============================================
+var BAN_REASONS = {
+  doping: {label:'Doping Violation',desc:'Failed a random drug test',matches:3,heat:12},
+  conduct: {label:'Conduct Ban',desc:'Charged with on-field misconduct',matches:2,heat:5},
+  corruption: {label:'Corruption Exposure',desc:'Caught involved in match-fixing',matches:4,heat:18},
+  board: {label:'Board Sanction',desc:'Suspended by the cricket board',matches:2,heat:8},
+};
+
+function processBanTick() {
+  var unbanned = [];
+  for (var i = 0; i < GS.squad.length; i++) {
+    var p = GS.squad[i];
+    if (p.banned) {
+      p.banned.matchesLeft--;
+      if (p.banned.matchesLeft <= 0) {
+        unbanned.push(p.name);
+        delete p.banned;
+      }
+    }
+  }
+  return unbanned;
+}
+
+function rollBanEvents(won, wasFix) {
+  var events = [];
+  var xiIds = match.yourXI ? match.yourXI.map(function(p){return p.id;}) : [];
+  for (var i = 0; i < GS.squad.length; i++) {
+    var p = GS.squad[i];
+    if (p.banned) continue;
+    if (!xiIds.length || xiIds.indexOf(p.id) < 0) continue;
+    if (p.fit >= 85 && Math.random() < 0.03) {
+      var ban = JSON.parse(JSON.stringify(BAN_REASONS.doping));
+      p.banned = {reason:'doping', matchesLeft: ban.matches};
+      GS.heat = Math.min(100, GS.heat + ban.heat);
+      events.push({player:p.name, ban:ban});
+    }
+    if (p.form <= 25 && p.greed >= 60 && Math.random() < 0.06) {
+      var ban2 = JSON.parse(JSON.stringify(BAN_REASONS.conduct));
+      p.banned = {reason:'conduct', matchesLeft: ban2.matches};
+      GS.heat = Math.min(100, GS.heat + ban2.heat);
+      events.push({player:p.name, ban:ban2});
+    }
+  }
+  if (wasFix && Math.random() < 0.15) {
+    var candidates = GS.squad.filter(function(p){
+      return !p.banned && xiIds.indexOf(p.id) >= 0 && p.loyalty < 60;
+    });
+    if (candidates.length > 0) {
+      var target = candidates[Math.floor(Math.random() * candidates.length)];
+      var ban3 = JSON.parse(JSON.stringify(BAN_REASONS.corruption));
+      target.banned = {reason:'corruption', matchesLeft: ban3.matches};
+      GS.heat = Math.min(100, GS.heat + ban3.heat);
+      events.push({player:target.name, ban:ban3});
+    }
+  }
+  if (!wasFix && GS.heat >= 60 && Math.random() < 0.05) {
+    var boardTargets = GS.squad.filter(function(p){
+      return !p.banned && xiIds.indexOf(p.id) >= 0;
+    });
+    if (boardTargets.length > 0) {
+      var bt = boardTargets[Math.floor(Math.random() * boardTargets.length)];
+      var ban4 = JSON.parse(JSON.stringify(BAN_REASONS.board));
+      bt.banned = {reason:'board', matchesLeft: ban4.matches};
+      GS.heat = Math.min(100, GS.heat + ban4.heat);
+      events.push({player:bt.name, ban:ban4});
+    }
+  }
+  return events;
+}
+
+function getBannedCount() {
+  var c = 0;
+  for (var i = 0; i < GS.squad.length; i++) if (GS.squad[i].banned) c++;
+  return c;
+}
+
 var DAILY_CHALLENGES = [
   {id:'clean_win',name:'Clean Victory',desc:'Win a match without using any mafia fix',check:function(w,t,fix){return w && !fix},reward:100,currency:'coins'},
   {id:'big_score',name:'Big Score',desc:'Score 150+ runs in a match',check:function(w,t,fix){return match.runs >= 150},reward:120,currency:'coins'},
@@ -3315,6 +3423,8 @@ function endMatch() {
   if (invStatus === 'tribunal') tribunalResult = resolveTribunal();
   var rivalEvent = getRivalEvent(match.opponent, wasFix, won);
   var debtWarnings = processDebts();
+  var unbannedPlayers = processBanTick();
+  var banEvents = rollBanEvents(won, wasFix);
   var streakMilestone = processWinStreak(won);
   var challengeResult = checkDailyChallenge(won, tied, wasFix);
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
@@ -3352,6 +3462,8 @@ function endMatch() {
     (tribunalResult ? '<div style="margin:8px 0;padding:14px;border:2px solid ' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.4)' : 'rgba(220,38,38,0.4)') + ';border-radius:3px;background:' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.05)' : 'rgba(220,38,38,0.05)') + ';text-align:center"><div class="font-d fw-700 ' + tribunalResult.cls + '" style="font-size:24px;text-transform:uppercase;letter-spacing:4px" id="tribunal-verdict-text"></div><div class="text-xs text-slip" style="margin:6px 0">Prosecution: ' + tribunalResult.prosecution + ' · Defense: ' + tribunalResult.defense + '</div><div class="text-xs" style="margin-top:4px">' + tribunalResult.desc + '</div></div>' : '') +
     (rivalEvent ? '<div class="text-xs ' + rivalEvent.cls + '" style="text-align:center;margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:3px">' + rivalEvent.text + '</div>' : '') +
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
+    (banEvents.length > 0 ? banEvents.map(function(e) { return '<div class="ban-event"><div class="be-title">' + e.ban.label + '</div><div class="be-desc">' + e.player + ' — ' + e.ban.desc + '. Banned for ' + e.ban.matchesLeft + ' matches. (+' + e.ban.heat + ' heat)</div></div>'; }).join('') : '') +
+    (unbannedPlayers.length > 0 ? '<div class="text-xs text-green" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(52,211,153,0.2);border-radius:3px;background:rgba(52,211,153,0.04)">Ban served: ' + unbannedPlayers.join(', ') + ' available again</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div id="post-match-events" style="margin-top:12px"></div>' +
     (streakMilestone ? '<div class="streak-milestone"><div class="sm-icon">' + streakMilestone.icon + '</div><div class="sm-title">' + GS.winStreak + ' Win Streak — ' + streakMilestone.label + '</div><div class="sm-reward">+' + streakMilestone.reward + ' coins</div></div>' : (GS.winStreak >= 2 && won ? '<div class="match-hook streak">' + GS.winStreak + ' wins in a row! ' + (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}) ? (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}).at - GS.winStreak) + ' more for bonus' : '') + '</div>' : '')) +
