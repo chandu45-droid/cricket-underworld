@@ -832,6 +832,20 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .pack-card-back .back-pattern{position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,207,68,0.015) 8px,rgba(255,207,68,0.015) 9px),repeating-linear-gradient(-45deg,transparent,transparent 8px,rgba(255,207,68,0.015) 8px,rgba(255,207,68,0.015) 9px);pointer-events:none}
 .pack-flip-inner.flipped .pack-card-front{animation:packBurst 0.5s ease-out 0.45s both}
 
+/* Bowler picker between overs */
+.bowler-picker{margin-bottom:12px;animation:fadeSlideUp 0.3s ease-out}
+.bowler-picker .bp-title{font-family:var(--font-d);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--blue-bright);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.bowler-picker .bp-title .accent-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(59,130,246,0.2),transparent)}
+.bowler-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border-radius:3px;border:1.5px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);cursor:pointer;transition:all 0.2s}
+.bowler-opt:active{transform:scale(0.97);background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.3)}
+.bowler-opt .bo-bwl{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.bowler-opt .bo-info{flex:1;min-width:0}
+.bowler-opt .bo-name{font-family:var(--font-d);font-size:15px;font-weight:600;line-height:1.1}
+.bowler-opt .bo-role{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:0.3px}
+.bowler-opt .bo-meta{font-size:11px;color:var(--slip);text-align:right;white-space:nowrap}
+.bowler-opt.recommended{border-color:rgba(59,130,246,0.25);background:rgba(59,130,246,0.04)}
+.bowler-opt.recommended::after{content:'REC';font-family:var(--font-d);font-size:9px;font-weight:700;color:var(--blue-bright);background:rgba(59,130,246,0.12);padding:2px 6px;border-radius:3px;letter-spacing:1px}
+
 /* Tribunal typewriter cursor */
 .typewriter-cursor{border-right:2px solid currentColor;padding-right:2px;animation:cursorBlink 0.7s step-end infinite}
 @keyframes cursorBlink{0%,100%{border-color:currentColor}50%{border-color:transparent}}
@@ -1171,6 +1185,10 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="tactic-btn active" data-strat="balanced" id="tac-balanced">BALANCED</div>
         <div class="tactic-btn" data-strat="defensive" id="tac-defense">DEFENSE</div>
         <div class="tactic-boost" id="boost-btn">BOOST</div>
+      </div>
+      <div class="bowler-picker glass accent-blue" id="bowler-picker" style="display:none">
+        <div class="bp-title">Choose Bowler<span class="accent-line"></span></div>
+        <div id="bowler-options"></div>
       </div>
       <div class="glass"><div class="section-title sm">Commentary<span class="accent-line"></span></div><div id="match-moments" class="match-moments"></div></div>
       <div class="btn btn-outline full mt-12" id="skip-btn">Skip to Result</div>
@@ -2660,7 +2678,7 @@ function startMatch() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
-  match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0;
+  match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false;
   $('boost-btn').classList.remove('used', 'active-boost');
   $('tac-aggro').classList.remove('active'); $('tac-defense').classList.remove('active');
   $('tac-balanced').classList.add('active');
@@ -2685,6 +2703,37 @@ function startMatch() {
   match.interval = setInterval(simBall, 800);
 }
 
+function showBowlerPicker(bowlers, phase, over) {
+  var recommended = pickBowler(bowlers, phase, over);
+  var html = '';
+  for (var i = 0; i < bowlers.length; i++) {
+    var b = bowlers[i];
+    var isRec = b === recommended;
+    var bg = b.role === 'Spin Bowler' ? 'background:linear-gradient(135deg,var(--purple),#7C3AED)' :
+             b.role === 'Fast Bowler' ? 'background:linear-gradient(135deg,var(--green-bright),var(--green))' :
+             'background:linear-gradient(135deg,var(--blue-bright),var(--blue))';
+    html += '<div class="bowler-opt' + (isRec ? ' recommended' : '') + '" data-bidx="' + i + '">' +
+      '<div class="bo-bwl" style="' + bg + '">' + b.bwl + '</div>' +
+      '<div class="bo-info"><div class="bo-name">' + b.name + '</div><div class="bo-role">' + b.role + '</div></div>' +
+      '<div class="bo-meta">Form ' + b.form + '</div></div>';
+  }
+  $('bowler-options').innerHTML = html;
+  show('bowler-picker');
+  addMoment('over-sum', 'Over ' + over + ' complete. Choose your bowler.', '?');
+  var opts = $('bowler-picker').querySelectorAll('.bowler-opt');
+  for (var j = 0; j < opts.length; j++) {
+    opts[j].onclick = function() {
+      var idx = parseInt(this.getAttribute('data-bidx'));
+      match.curBowler = bowlers[idx];
+      match.bowlerSelected = true;
+      hide('bowler-picker');
+      updateBBStrip(match.curBatter, match.curBowler);
+      SFX.tap();
+      match.interval = setInterval(simBall, 800);
+    };
+  }
+}
+
 function simBall() {
   if (!match.active) return;
   match.ball++;
@@ -2695,7 +2744,16 @@ function simBall() {
   var cRuns = isYou ? match.runs : match.oppRuns;
   var phase = over < 6 ? 0 : over < 15 ? 1 : 2;
   match.curBatter = match.batXI[Math.min(cWkts, match.batXI.length - 1)];
-  if (ballInOver === 0) match.curBowler = pickBowler(match.bowlers, phase, over);
+  if (ballInOver === 0) {
+    if (match.batting !== 'you' && !match.skipMode && !match.bowlerSelected && over > 0) {
+      match.ball--;
+      clearInterval(match.interval);
+      showBowlerPicker(match.bowlers, phase, over);
+      return;
+    }
+    if (!match.bowlerSelected) match.curBowler = pickBowler(match.bowlers, phase, over);
+  }
+  if (ballInOver === 5) match.bowlerSelected = false;
   var outcome = calcBallOutcome(match.curBatter, match.curBowler, match.pitchType, phase, GS.strategy, GS.morale, isYou, match.innings, match.target, cRuns, match.ball);
   var runs = outcome.runs, wkt = outcome.wicket;
   if (isYou) { match.runs += runs; if (wkt) match.wkts++; }
@@ -2889,7 +2947,8 @@ function switchInnings() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
-  match.overRuns = 0;
+  match.overRuns = 0; match.bowlerSelected = false;
+  hide('bowler-picker');
   updateBBStrip(match.curBatter, match.curBowler);
   $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
   $('you-status').className = 'you-status ' + (match.batting === 'you' ? 'batting' : 'bowling');
@@ -2909,6 +2968,8 @@ function switchInnings() {
 
 function skipMatch() {
   clearInterval(match.interval);
+  match.skipMode = true;
+  hide('bowler-picker');
   var safety = 0;
   while (match.active && safety < 300) {
     safety++; match.ball++;
