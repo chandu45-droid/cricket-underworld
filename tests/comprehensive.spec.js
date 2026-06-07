@@ -266,8 +266,7 @@ test.describe('Squad', () => {
 
   test('training fails without coins', async ({ page }) => {
     await page.goto('/');
-    // BUG: load() uses || so coins:0 reloads as 2000. Use coins:1 instead.
-    await injectState(page, { coins: 1 });
+    await injectState(page, { coins: 0 });
     await navigateTo(page, 'cards');
     await page.locator('.player-card').first().click();
     await expect(page.locator('#player-detail-overlay.show')).toBeVisible({ timeout: 3000 });

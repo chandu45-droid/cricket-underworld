@@ -1427,6 +1427,8 @@ var GS = {
   captainId: null, selectedXI: [],
   teamName: 'Your Team', managerName: 'Manager', teamColor: 'gold', tutorialDone: false,
   seasonStats: {},
+  rivalWins: {},
+  pepTalkUsed: false,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1435,18 +1437,20 @@ function load() {
   try {
     var d = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (d && d.coins !== undefined && Array.isArray(d.squad)) {
-      GS.coins=d.coins||2000; GS.gems=d.gems||50; GS.blackMoney=d.blackMoney||0;
-      GS.alignment=d.alignment||0; GS.heat=d.heat||0; GS.fans=d.fans||50;
-      GS.season=d.season||1; GS.matchNum=d.matchNum||1; GS.wins=d.wins||0; GS.losses=d.losses||0;
-      GS.morale=d.morale||75; GS.league=d.league||'gully'; GS.mafiaBonus=d.mafiaBonus||null;
-      GS.fanLoyalty=d.fanLoyalty||50; GS.cleanStreak=d.cleanStreak||0;
-      GS.sponsor=d.sponsor||{tier:3,name:'Local Brand',purseBonus:0};
-      GS.rivalData=d.rivalData||{};
-      GS.debts=d.debts||[]; GS.noAlignMatches=d.noAlignMatches||0;
-      GS.evidence=d.evidence||[]; GS.investigation=d.investigation||null; GS.tribunalBonus=d.tribunalBonus||0;
-      GS.captainId=d.captainId||null; GS.selectedXI=d.selectedXI||[];
-      GS.teamName=d.teamName||'Your Team'; GS.managerName=d.managerName||'Manager'; GS.teamColor=d.teamColor||'gold'; GS.tutorialDone=d.tutorialDone||false;
-      GS.seasonStats=d.seasonStats||{};
+      function v(val, def) { return val != null ? val : def; }
+      GS.coins=v(d.coins,2000); GS.gems=v(d.gems,50); GS.blackMoney=v(d.blackMoney,0);
+      GS.alignment=v(d.alignment,0); GS.heat=v(d.heat,0); GS.fans=v(d.fans,50);
+      GS.season=v(d.season,1); GS.matchNum=v(d.matchNum,1); GS.wins=v(d.wins,0); GS.losses=v(d.losses,0);
+      GS.morale=v(d.morale,75); GS.league=v(d.league,'gully'); GS.mafiaBonus=v(d.mafiaBonus,null);
+      GS.fanLoyalty=v(d.fanLoyalty,50); GS.cleanStreak=v(d.cleanStreak,0);
+      GS.sponsor=v(d.sponsor,{tier:3,name:'Local Brand',purseBonus:0});
+      GS.rivalData=v(d.rivalData,{});
+      GS.debts=v(d.debts,[]); GS.noAlignMatches=v(d.noAlignMatches,0);
+      GS.evidence=v(d.evidence,[]); GS.investigation=v(d.investigation,null); GS.tribunalBonus=v(d.tribunalBonus,0);
+      GS.captainId=v(d.captainId,null); GS.selectedXI=v(d.selectedXI,[]);
+      GS.teamName=v(d.teamName,'Your Team'); GS.managerName=v(d.managerName,'Manager'); GS.teamColor=v(d.teamColor,'gold'); GS.tutorialDone=v(d.tutorialDone,false);
+      GS.seasonStats=v(d.seasonStats,{});
+      GS.rivalWins=v(d.rivalWins,{}); GS.pepTalkUsed=v(d.pepTalkUsed,false);
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -1640,7 +1644,7 @@ function updateAlignTheme() {
   for (var ci = 0; ci < classes.length; ci++) app.classList.remove(classes[ci]);
   var a = GS.alignment;
   if (a >= 71) app.classList.add('align-spotless');
-  else if (a >= 31) app.classList.add('align-clean');
+  else if (a >= 45) app.classList.add('align-clean');
   else if (a >= -30) app.classList.add('align-grey');
   else if (a >= -70) app.classList.add('align-corrupt');
   else app.classList.add('align-deep');
@@ -1982,8 +1986,8 @@ function renderPlayerMini(p) {
 // =============================================
 function showPlayerDetail(id) {
   var p = null;
-  for (var i = 0; i < ALL_PLAYERS.length; i++) { if (ALL_PLAYERS[i].id === id) { p = ALL_PLAYERS[i]; break; } }
-  if (!p) { for (var j = 0; j < GS.squad.length; j++) { if (GS.squad[j].id === id) { p = GS.squad[j]; break; } } }
+  for (var j = 0; j < GS.squad.length; j++) { if (GS.squad[j].id === id) { p = GS.squad[j]; break; } }
+  if (!p) { for (var i = 0; i < ALL_PLAYERS.length; i++) { if (ALL_PLAYERS[i].id === id) { p = ALL_PLAYERS[i]; break; } } }
   if (!p) return;
   SFX.tap();
   var ovr = getOVR(p);
@@ -2195,6 +2199,7 @@ function updateSquadScreen() {
   $('ts-bat').textContent = Math.round(batSum / GS.squad.length);
   $('ts-bwl').textContent = Math.round(bwlSum / GS.squad.length);
   $('ts-ovr').textContent = getTeamStrength();
+  if ($('ts-morale')) $('ts-morale').textContent = GS.morale;
   var roleOrder = ['Top-Order Batter','Middle-Order Batter','All-Rounder','Wicket-Keeper','Fast Bowler','Spin Bowler'];
   var sorted = GS.squad.slice().sort(function(a,b) { return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role); });
   $('squad-list').innerHTML = sorted.map(renderPlayerMini).join('');
@@ -2217,13 +2222,18 @@ function updateCardsScreen() {
 // LEAGUE — With form dots and zones
 // =============================================
 function updateLeagueTable() {
+  if (!GS.rivalWins) GS.rivalWins = {};
   var teams = [{ name: GS.teamName, wins: GS.wins, losses: GS.losses, pts: GS.wins * 3, you: true }];
   for (var i = 0; i < RIVALS.length; i++) {
-    var rd = GS.rivalData[RIVALS[i].name];
+    var rn = RIVALS[i].name;
+    var rd = GS.rivalData[rn];
     var baseW = rd ? rd.lossesVs : 0;
-    var simW = baseW + Math.floor(Math.random() * Math.max(1, GS.matchNum - 1 - baseW) * RIVALS[i].strength / 100);
-    simW = Math.min(simW, Math.max(0, GS.matchNum - 1));
-    teams.push({ name: RIVALS[i].name, wins: simW, losses: Math.max(0, GS.matchNum - 1 - simW), pts: simW * 3, you: false });
+    if (GS.rivalWins[rn] === undefined || GS.rivalWins[rn] < baseW) {
+      var simW = baseW + Math.floor(Math.random() * Math.max(1, GS.matchNum - 1 - baseW) * RIVALS[i].strength / 100);
+      GS.rivalWins[rn] = Math.min(simW, Math.max(0, GS.matchNum - 1));
+    }
+    var rw = GS.rivalWins[rn];
+    teams.push({ name: rn, wins: rw, losses: Math.max(0, GS.matchNum - 1 - rw), pts: rw * 3, you: false });
   }
   teams.sort(function(a, b) { return b.pts - a.pts || b.wins - a.wins; });
   var html = '';
@@ -2712,6 +2722,7 @@ function startMatch() {
   SFX.tap();
   match.active = true; match.innings = 1;
   match.batting = Math.random() < 0.5 ? 'you' : 'opp';
+  match.youBatFirst = match.batting === 'you';
   match.runs = 0; match.wkts = 0; match.oppRuns = 0; match.oppWkts = 0;
   match.target = 0; match.phase = 0; match.ball = 0; match.momentum = 50;
   match.phaseScores = [{r:0,w:0},{r:0,w:0},{r:0,w:0}];
@@ -3143,8 +3154,20 @@ function endMatch() {
   if (Math.abs(GS.alignment - match.opponent.alignment) > 40) relShift = Math.round(relShift * 0.5);
   rd.rel = Math.max(-100, Math.min(100, rd.rel + relShift));
   GS.mafiaBonus = null;
+  GS.pepTalkUsed = false;
   var wasFirstMatch = GS.matchNum === 1;
   GS.matchNum++;
+  if (!GS.rivalWins) GS.rivalWins = {};
+  for (var ri = 0; ri < RIVALS.length; ri++) {
+    var rn = RIVALS[ri].name;
+    var rrd = GS.rivalData[rn];
+    var rBaseW = rrd ? rrd.lossesVs : 0;
+    var prev = GS.rivalWins[rn] || 0;
+    if (Math.random() < RIVALS[ri].strength / 100) GS.rivalWins[rn] = prev + 1;
+    else GS.rivalWins[rn] = prev;
+    GS.rivalWins[rn] = Math.max(GS.rivalWins[rn], rBaseW);
+    GS.rivalWins[rn] = Math.min(GS.rivalWins[rn], Math.max(0, GS.matchNum - 1));
+  }
   generateMarketListings();
   updateSeasonStats();
   for (var fi = 0; fi < GS.squad.length; fi++) {
@@ -3188,7 +3211,15 @@ function endMatch() {
   $('match-result').innerHTML =
     '<div class="result-text ' + (won ? 'win' : 'loss') + '">' + (won ? 'Victory' : tied ? 'Tied' : 'Defeat') + '</div>' +
     '<div class="result-scores">' + GS.teamName + ' ' + match.runs + '/' + match.wkts + ' · ' + match.opponent.name + ' ' + match.oppRuns + '/' + match.oppWkts + '</div>' +
-    '<div class="result-margin">' + (won ? 'Won by ' + (match.runs - match.oppRuns) + ' runs' : tied ? 'Match tied' : 'Lost by ' + (match.oppRuns - match.runs) + ' runs') + '</div>' +
+    '<div class="result-margin">' + (function() {
+      if (tied) return 'Match tied';
+      if (won) {
+        if (match.youBatFirst) return 'Won by ' + (match.runs - match.oppRuns) + ' runs';
+        return 'Won by ' + (10 - match.wkts) + ' wickets';
+      }
+      if (!match.youBatFirst) return 'Lost by ' + (match.oppRuns - match.runs) + ' runs';
+      return 'Lost by ' + (10 - match.oppWkts) + ' wickets';
+    })() + '</div>' +
     (wasFix ? '<div class="corruption-report"><div class="cr-title">Corruption Report</div><div class="text-xs text-slip">Match was fixed — heat increased</div></div>' : '') +
     (externalHeat.amount > 0 ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.15);border-radius:3px;border-left:3px solid var(--amber);background:rgba(224,120,0,0.04)">' + externalHeat.reason + ' (+' + externalHeat.amount + ' heat)</div>' : '') +
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:3px;border-left:3px solid var(--amber)">' + heatEvent + '</div>' : '') +
@@ -3270,7 +3301,7 @@ function endSeason() {
   } else if (relegated) {
     GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
   } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
-  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {};
+  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {};
   GS.morale = Math.min(100, GS.morale + 10);
   var basePurse = 2000 + idx * 500;
   var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
@@ -3325,11 +3356,14 @@ function endSeason() {
 function openPack(type) {
   var avail = ALL_PLAYERS.filter(function(p) { return !GS.squad.some(function(s) { return s.id === p.id; }); });
   if (avail.length === 0) { toast('All players already owned!', 'error'); return; }
+  if (GS.squad.length >= GS.maxSquad) { toast('Squad full (' + GS.maxSquad + ' max) — release a player first', 'error'); return; }
   if (type === 'standard' && GS.coins < 500) { toast('Not enough coins', 'error'); return; }
   if (type === 'premium' && GS.gems < 15) { toast('Not enough gems', 'error'); return; }
   if (type === 'standard') GS.coins -= 500; else GS.gems -= 15;
   updateCurrency();
   var count = type === 'standard' ? 3 : 5;
+  var slotsLeft = GS.maxSquad - GS.squad.length;
+  if (count > slotsLeft) count = slotsLeft;
   var minRar = type === 'standard' ? 1 : 2;
   var cards = [];
   for (var i = 0; i < count && avail.length > 0; i++) {
@@ -3867,9 +3901,11 @@ function bindEvents() {
   $('tut-skip-btn').addEventListener('click', closeTutorial);
   $('settings-btn').addEventListener('click', showCustomise);
   $('morale-boost-btn').addEventListener('click', function() {
+    if (GS.pepTalkUsed) { toast('Already used this match day', 'error'); return; }
     if (GS.coins < 150) { toast('Need 150 coins', 'error'); return; }
     if (GS.morale >= 95) { toast('Morale already high', 'error'); return; }
     GS.coins -= 150; GS.morale = Math.min(100, GS.morale + 15);
+    GS.pepTalkUsed = true;
     SFX.reveal(); save(); updateCurrency(); updateHub();
     toast('Morale boosted to ' + GS.morale + '!', 'success');
   });
