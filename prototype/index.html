@@ -425,8 +425,9 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 /* ================================================================
    MATCH SCREEN — Pitch + momentum
    ================================================================ */
-.match-pitch-bg{position:relative;margin:-16px -16px 0;padding:20px 16px;background:radial-gradient(ellipse at 50% 60%,rgba(12,122,66,0.08) 0%,transparent 60%);border-bottom:1px solid rgba(34,212,126,0.06);margin-bottom:16px}
-.pitch-svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;opacity:0.06;pointer-events:none}
+.match-pitch-bg{position:relative;margin:-16px -16px 0;padding:20px 16px;background:radial-gradient(ellipse at 50% 60%,rgba(12,122,66,0.08) 0%,transparent 60%);border-bottom:1px solid rgba(34,212,126,0.06);margin-bottom:16px;overflow:hidden}
+.pitch-svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;opacity:0.08;pointer-events:none}
+#fielder-dots{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;pointer-events:none;z-index:2}
 
 .match-scoreboard{text-align:center;position:relative;z-index:1}
 .you-status{font-family:var(--font-d);font-size:14px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:6px 16px;border-radius:20px;display:inline-block;margin-bottom:8px;animation:statusPulse 2s ease-in-out infinite}
@@ -901,6 +902,86 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 /* Tribunal typewriter cursor */
 .typewriter-cursor{border-right:2px solid currentColor;padding-right:2px;animation:cursorBlink 0.7s step-end infinite}
 @keyframes cursorBlink{0%,100%{border-color:currentColor}50%{border-color:transparent}}
+
+/* ================================================================
+   GRAPHICS & ANIMATIONS SYSTEM
+   ================================================================ */
+
+/* --- Outcome flash overlay --- */
+#outcome-flash{position:fixed;inset:0;pointer-events:none;z-index:300;opacity:0;transition:opacity 0.15s}
+#outcome-flash.six{background:radial-gradient(circle at 50% 50%,rgba(255,207,68,0.35) 0%,rgba(255,180,0,0.15) 30%,transparent 70%);animation:outcomeBurst 0.6s ease-out forwards}
+#outcome-flash.four{background:radial-gradient(circle at 50% 50%,rgba(34,211,153,0.3) 0%,rgba(34,211,153,0.1) 30%,transparent 70%);animation:outcomeBurst 0.5s ease-out forwards}
+#outcome-flash.wicket{background:radial-gradient(circle at 50% 50%,rgba(239,45,45,0.35) 0%,rgba(180,20,20,0.15) 30%,transparent 70%);animation:outcomeBurst 0.6s ease-out forwards}
+#outcome-flash.win{background:radial-gradient(circle at 50% 50%,rgba(255,207,68,0.4) 0%,rgba(255,180,0,0.2) 40%,transparent 75%);animation:outcomeBurst 0.8s ease-out forwards}
+@keyframes outcomeBurst{0%{opacity:1;transform:scale(0.8)}30%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.3)}}
+
+/* --- Ball delivery animation --- */
+.ball-delivery{position:absolute;z-index:5;pointer-events:none}
+.ball-delivery .ball{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff4444,#cc0000 40%,#880000);box-shadow:0 0 8px rgba(255,60,60,0.4),inset -2px -2px 3px rgba(0,0,0,0.4),inset 1px 1px 2px rgba(255,150,150,0.3);position:relative}
+.ball-delivery .ball::after{content:'';position:absolute;top:3px;left:2px;width:10px;height:5px;border:1px solid rgba(255,255,255,0.3);border-radius:50%;transform:rotate(-30deg)}
+.ball-delivery .ball-trail{position:absolute;width:14px;height:2px;border-radius:1px;top:6px;right:14px;background:linear-gradient(90deg,transparent,rgba(255,100,100,0.4));animation:trailFade 0.3s ease-out forwards}
+@keyframes trailFade{to{opacity:0;width:30px}}
+@keyframes ballDeliver{0%{transform:translate(0,0) scale(0.6);opacity:0}10%{opacity:1;transform:translate(0,0) scale(0.8)}50%{transform:translate(0,-60px) scale(1)}100%{transform:translate(0,-120px) scale(1.1)}}
+@keyframes ballSix{0%{transform:translate(0,0) scale(0.6);opacity:0}15%{opacity:1;transform:translate(0,0) scale(0.9)}40%{transform:translate(0,-50px) scale(1)}100%{transform:translate(0,-180px) scale(0.3);opacity:0}}
+@keyframes ballWicket{0%{transform:translate(0,0) scale(0.6);opacity:0}15%{opacity:1}60%{transform:translate(0,-80px) scale(1)}70%{transform:translate(0,-80px) scale(1.3)}100%{transform:translate(0,-80px) scale(0);opacity:0}}
+@keyframes ballBounce{0%{transform:translate(0,0) scale(0.6);opacity:0}15%{opacity:1}50%{transform:translate(0,-70px) scale(1)}65%{transform:translate(0,-60px) scale(0.9)}80%{transform:translate(0,-65px) scale(1)}100%{transform:translate(0,-65px) scale(0.9);opacity:0.6}}
+
+/* --- Animated fielder dots on pitch --- */
+.fielder-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(34,212,126,0.5);transition:all 0.8s cubic-bezier(0.25,0.46,0.45,0.94);box-shadow:0 0 6px rgba(34,212,126,0.3)}
+.fielder-dot.keeper{background:rgba(255,207,68,0.6);box-shadow:0 0 6px rgba(255,207,68,0.3)}
+.fielder-dot.bowler{background:rgba(59,130,246,0.6);box-shadow:0 0 6px rgba(59,130,246,0.3)}
+.fielder-dot.batter{background:rgba(255,255,255,0.7);box-shadow:0 0 6px rgba(255,255,255,0.3);width:7px;height:7px}
+@keyframes fielderIdle{0%,100%{transform:translate(0,0)}25%{transform:translate(1px,-1px)}50%{transform:translate(-1px,0)}75%{transform:translate(0,1px)}}
+
+/* --- Button ripple effect --- */
+.btn{position:relative;overflow:hidden}
+.btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.2);transform:scale(0);animation:btnRipple 0.5s ease-out forwards;pointer-events:none}
+@keyframes btnRipple{to{transform:scale(3);opacity:0}}
+
+/* --- Card shine sweep --- */
+.player-card::before,.pack-card-front::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,0.04) 45%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 55%,transparent 60%);transform:translateX(-100%);pointer-events:none;z-index:2}
+.player-card:active::before,.pack-card-front:active::before{animation:cardShine 0.6s ease-out}
+@keyframes cardShine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* --- Enhanced match moment animations --- */
+.match-moment.moment-six{animation:momentSix 0.4s ease-out}
+.match-moment.moment-wicket{animation:momentWicket 0.4s ease-out}
+.match-moment.moment-four{animation:momentFour 0.35s ease-out}
+@keyframes momentSix{0%{transform:translateX(-20px) scale(1.1);opacity:0;background:rgba(255,207,68,0.08)}40%{transform:translateX(4px) scale(1.02)}100%{transform:translateX(0) scale(1);opacity:1;background:transparent}}
+@keyframes momentWicket{0%{transform:translateX(20px) scale(1.1);opacity:0;background:rgba(239,45,45,0.08)}40%{transform:translateX(-4px) scale(1.02)}100%{transform:translateX(0) scale(1);opacity:1;background:transparent}}
+@keyframes momentFour{0%{transform:translateY(-8px) scale(1.05);opacity:0;background:rgba(34,212,126,0.06)}100%{transform:translateY(0) scale(1);opacity:1;background:transparent}}
+
+/* --- Score pulse on change --- */
+.score-char.roll{animation:digitRoll 0.35s cubic-bezier(0.2,0.6,0.35,1) both}
+.score-pulse{animation:scorePulse 0.3s ease-out}
+@keyframes scorePulse{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+/* --- Pitch ambient glow --- */
+.match-pitch-bg::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:120px;height:60px;background:radial-gradient(ellipse,rgba(34,212,126,0.08),transparent);pointer-events:none;animation:pitchGlow 3s ease-in-out infinite alternate}
+@keyframes pitchGlow{0%{opacity:0.5;width:100px}100%{opacity:1;width:140px}}
+
+/* --- Confetti for wins --- */
+@keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.confetti-piece{position:fixed;top:-10px;width:8px;height:8px;z-index:301;pointer-events:none;animation:confettiFall 2.5s ease-in forwards}
+
+/* --- Stumps break animation --- */
+@keyframes stumpFlyL{0%{transform:translate(0,0) rotate(0deg);opacity:1}100%{transform:translate(-30px,-60px) rotate(-45deg);opacity:0}}
+@keyframes stumpFlyR{0%{transform:translate(0,0) rotate(0deg);opacity:1}100%{transform:translate(30px,-50px) rotate(40deg);opacity:0}}
+@keyframes bailFly{0%{transform:translate(0,0) rotate(0deg);opacity:1}100%{transform:translate(10px,-80px) rotate(180deg);opacity:0}}
+
+/* --- Momentum bar animation --- */
+.bar-fill-left,.bar-fill-right{transition:width 0.5s cubic-bezier(0.25,0.46,0.45,0.94)}
+
+/* --- Hub tile hover/press breathing --- */
+.hub-tile{transition:transform 0.2s,box-shadow 0.3s}
+.hub-tile:active{transform:scale(0.96) !important}
+
+/* --- Win streak fire animation --- */
+@keyframes fireGlow{0%,100%{text-shadow:0 0 10px rgba(255,160,0,0.4),0 0 30px rgba(255,80,0,0.2)}50%{text-shadow:0 0 20px rgba(255,160,0,0.6),0 0 50px rgba(255,80,0,0.3)}}
+.streak-milestone{animation:fireGlow 1.5s ease-in-out infinite}
+
+/* --- Enhanced screen transitions --- */
+.screen{transition:opacity 0.35s ease-out,transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94),filter 0.35s}
 </style>
 </head>
 <body>
@@ -1204,14 +1285,25 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 
     <!-- MATCH SIM -->
     <div class="screen" id="match-screen">
-      <div class="match-pitch-bg">
+      <div class="match-pitch-bg" id="match-pitch-bg">
         <svg class="pitch-svg" viewBox="0 0 300 300">
           <ellipse cx="150" cy="150" rx="138" ry="128" fill="none" stroke="rgba(34,212,126,0.25)" stroke-width="1"/>
+          <ellipse cx="150" cy="150" rx="90" ry="82" fill="none" stroke="rgba(34,212,126,0.06)" stroke-width="0.5" stroke-dasharray="4 4"/>
           <circle cx="150" cy="150" r="40" fill="none" stroke="rgba(34,212,126,0.12)" stroke-width="0.5"/>
           <rect x="143" y="105" width="14" height="90" rx="2" fill="rgba(34,212,126,0.06)" stroke="rgba(34,212,126,0.15)" stroke-width="0.5"/>
           <line x1="138" y1="118" x2="162" y2="118" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
           <line x1="138" y1="182" x2="162" y2="182" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+          <rect x="147" y="113" width="6" height="1.5" fill="rgba(255,255,255,0.12)"/>
+          <rect x="146" y="115" width="2" height="6" fill="rgba(255,255,255,0.08)"/>
+          <rect x="149" y="115" width="2" height="6" fill="rgba(255,255,255,0.08)"/>
+          <rect x="152" y="115" width="2" height="6" fill="rgba(255,255,255,0.08)"/>
+          <rect x="147" y="181" width="6" height="1.5" fill="rgba(255,255,255,0.12)"/>
+          <rect x="146" y="175" width="2" height="6" fill="rgba(255,255,255,0.08)"/>
+          <rect x="149" y="175" width="2" height="6" fill="rgba(255,255,255,0.08)"/>
+          <rect x="152" y="175" width="2" height="6" fill="rgba(255,255,255,0.08)"/>
         </svg>
+        <div id="fielder-dots"></div>
+        <div id="ball-anim-container" style="position:absolute;bottom:40%;left:50%;transform:translateX(-50%);pointer-events:none;z-index:5"></div>
         <div class="match-scoreboard">
           <div class="you-status" id="you-status">YOU ARE BATTING</div>
           <div class="innings-label" id="innings-label">1st Innings</div>
@@ -1447,6 +1539,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 <div class="vignette"></div>
 <div id="align-vignette"></div>
 <canvas id="particle-canvas"></canvas>
+<div id="outcome-flash"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1625,9 +1718,185 @@ function particleLoop() {
     pCtx.beginPath(); pCtx.arc(s.x, s.y, s.size * (1 + (1-ratio)*0.3), 0, Math.PI * 2); pCtx.fill();
   }
   pCtx.globalAlpha = 1;
+  if (typeof renderCelebParticles === 'function') renderCelebParticles();
   requestAnimationFrame(particleLoop);
 }
 requestAnimationFrame(particleLoop);
+
+// =============================================
+// CELEBRATION PARTICLES & EFFECTS
+// =============================================
+var celebParticles = [];
+
+function spawnCelebration(type) {
+  var cx = window.innerWidth / 2, cy = window.innerHeight / 3;
+  if (type === 'six') {
+    for (var i = 0; i < 35; i++) {
+      var angle = (Math.PI * 2 / 35) * i + (Math.random() - 0.5) * 0.3;
+      var speed = 2 + Math.random() * 4;
+      celebParticles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
+        life: 1.2 + Math.random() * 0.6, max: 1.8,
+        size: 3 + Math.random() * 4,
+        color: ['#FFD700','#FFA500','#FF6347','#FFCF44','#FFE066'][Math.floor(Math.random() * 5)],
+        shape: Math.random() > 0.5 ? 'circle' : 'rect',
+        gravity: 0.08 + Math.random() * 0.04,
+        spin: (Math.random() - 0.5) * 0.2
+      });
+    }
+  } else if (type === 'wicket') {
+    for (var i = 0; i < 20; i++) {
+      var angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.2;
+      var speed = 1.5 + Math.random() * 3;
+      celebParticles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+        life: 0.8 + Math.random() * 0.5, max: 1.3,
+        size: 2 + Math.random() * 3,
+        color: ['#EF2D2D','#FF4444','#CC2222','#FF6666','#AA1111'][Math.floor(Math.random() * 5)],
+        shape: 'rect',
+        gravity: 0.1,
+        spin: (Math.random() - 0.5) * 0.3
+      });
+    }
+  } else if (type === 'four') {
+    for (var i = 0; i < 15; i++) {
+      var angle = (Math.PI * 2 / 15) * i;
+      celebParticles.push({
+        x: cx, y: cy,
+        vx: Math.cos(angle) * (1.5 + Math.random() * 2), vy: Math.sin(angle) * (1.5 + Math.random() * 2),
+        life: 0.6 + Math.random() * 0.3, max: 0.9,
+        size: 2 + Math.random() * 2,
+        color: ['#34D399','#22D3EE','#60A5FA'][Math.floor(Math.random() * 3)],
+        shape: 'circle',
+        gravity: 0.02,
+        spin: 0
+      });
+    }
+  } else if (type === 'win') {
+    for (var i = 0; i < 60; i++) {
+      celebParticles.push({
+        x: Math.random() * window.innerWidth, y: -10 - Math.random() * 100,
+        vx: (Math.random() - 0.5) * 2, vy: 1 + Math.random() * 3,
+        life: 2 + Math.random() * 2, max: 4,
+        size: 4 + Math.random() * 6,
+        color: ['#FFD700','#FF6347','#34D399','#60A5FA','#A78BFA','#FF69B4','#FFCF44'][Math.floor(Math.random() * 7)],
+        shape: Math.random() > 0.3 ? 'rect' : 'circle',
+        gravity: 0.02,
+        spin: (Math.random() - 0.5) * 0.15,
+        wobble: Math.random() * Math.PI * 2
+      });
+    }
+  }
+}
+
+function renderCelebParticles() {
+  for (var i = celebParticles.length - 1; i >= 0; i--) {
+    var p = celebParticles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += p.gravity;
+    if (p.wobble !== undefined) { p.x += Math.sin(p.wobble) * 0.5; p.wobble += 0.05; }
+    p.life -= 0.016;
+    if (p.life <= 0 || p.y > window.innerHeight + 20) { celebParticles.splice(i, 1); continue; }
+    var alpha = Math.min(1, p.life / (p.max * 0.3));
+    pCtx.globalAlpha = alpha;
+    pCtx.fillStyle = p.color;
+    pCtx.save();
+    pCtx.translate(p.x, p.y);
+    if (p.spin) pCtx.rotate(p.spin * (p.max - p.life) * 10);
+    if (p.shape === 'rect') {
+      pCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+    } else {
+      pCtx.beginPath(); pCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2); pCtx.fill();
+    }
+    pCtx.restore();
+  }
+  pCtx.globalAlpha = 1;
+}
+
+function flashOutcome(type) {
+  var el = document.getElementById('outcome-flash');
+  el.className = '';
+  void el.offsetWidth;
+  el.className = type;
+}
+
+function animateBallDelivery(outcome) {
+  var container = document.getElementById('ball-anim-container');
+  if (!container || currentScreen !== 'match') return;
+  container.innerHTML = '';
+  var ball = document.createElement('div');
+  ball.className = 'ball-delivery';
+  ball.innerHTML = '<div class="ball"></div>';
+  container.appendChild(ball);
+  var animName = 'ballBounce';
+  var dur = '0.5s';
+  if (outcome === 'six') { animName = 'ballSix'; dur = '0.7s'; }
+  else if (outcome === 'wicket') { animName = 'ballWicket'; dur = '0.6s'; }
+  else if (outcome === 'four') { animName = 'ballDeliver'; dur = '0.5s'; }
+  ball.style.animation = animName + ' ' + dur + ' ease-out forwards';
+  setTimeout(function() { container.innerHTML = ''; }, parseFloat(dur) * 1000 + 100);
+}
+
+// Fielder dot positions for different field settings
+var FIELDER_POSITIONS = {
+  standard: [
+    {x:50,y:20},{x:25,y:35},{x:75,y:35},{x:15,y:55},{x:85,y:55},
+    {x:30,y:70},{x:70,y:70},{x:50,y:85},{x:50,y:42}
+  ],
+  attacking: [
+    {x:45,y:30},{x:55,y:30},{x:30,y:40},{x:70,y:40},{x:20,y:50},
+    {x:80,y:50},{x:40,y:55},{x:60,y:55},{x:50,y:42}
+  ],
+  defensive: [
+    {x:15,y:25},{x:85,y:25},{x:10,y:50},{x:90,y:50},{x:20,y:75},
+    {x:80,y:75},{x:40,y:85},{x:60,y:85},{x:50,y:42}
+  ]
+};
+
+function updateFielderDots(setting) {
+  var container = document.getElementById('fielder-dots');
+  if (!container) return;
+  var positions = FIELDER_POSITIONS[setting || 'standard'];
+  if (!container.children.length) {
+    container.innerHTML = '';
+    for (var i = 0; i < positions.length; i++) {
+      var dot = document.createElement('div');
+      dot.className = 'fielder-dot' + (i === 8 ? ' bowler' : '');
+      dot.style.cssText = 'position:absolute;left:' + positions[i].x + '%;top:' + positions[i].y + '%;animation:fielderIdle ' + (2 + Math.random() * 2) + 's ease-in-out infinite ' + (Math.random() * 2) + 's';
+      container.appendChild(dot);
+    }
+    var batter = document.createElement('div');
+    batter.className = 'fielder-dot batter';
+    batter.style.cssText = 'position:absolute;left:49%;top:58%';
+    container.appendChild(batter);
+    var keeper = document.createElement('div');
+    keeper.className = 'fielder-dot keeper';
+    keeper.style.cssText = 'position:absolute;left:51%;top:62%';
+    container.appendChild(keeper);
+  } else {
+    var dots = container.querySelectorAll('.fielder-dot:not(.batter):not(.keeper)');
+    for (var i = 0; i < dots.length && i < positions.length; i++) {
+      dots[i].style.left = positions[i].x + '%';
+      dots[i].style.top = positions[i].y + '%';
+    }
+  }
+}
+
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.btn');
+  if (!btn || !btn.getBoundingClientRect) return;
+  var ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  var rect = btn.getBoundingClientRect();
+  var size = Math.max(rect.width, rect.height);
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+  ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+  btn.appendChild(ripple);
+  setTimeout(function() { ripple.remove(); }, 500);
+});
 
 // =============================================
 // HELPERS
@@ -1655,11 +1924,18 @@ function updateMatchScore(runs, wkts) {
   var el = $('match-score');
   var oldText = _lastScoreText;
   var html = '';
+  var anyChanged = false;
   for (var i = 0; i < newText.length; i++) {
     var changed = i >= oldText.length || newText[i] !== oldText[i];
+    if (changed) anyChanged = true;
     html += '<span class="score-char' + (changed ? ' roll' : '') + '"' + (changed ? ' style="animation-delay:' + (i * 0.06) + 's"' : '') + '>' + newText[i] + '</span>';
   }
   el.innerHTML = html;
+  if (anyChanged && oldText) {
+    el.classList.remove('score-pulse');
+    void el.offsetWidth;
+    el.classList.add('score-pulse');
+  }
   _lastScoreText = newText;
 }
 
@@ -2842,6 +3118,9 @@ function startMatch() {
   for (var i = 0; i < 3; i++) { $(phaseIds[i] + '-score').textContent = '-'; $(phaseIds[i] + '-fill').style.width = '0%'; $('phase-' + phaseIds[i]).className = 'match-phase' + (i === 0 ? ' active' : ''); }
   show('skip-btn');
   updateFieldRestriction(0);
+  var fdc = document.getElementById('fielder-dots');
+  if (fdc) fdc.innerHTML = '';
+  updateFielderDots('standard');
   goScreen('match');
   clearInterval(match.interval);
   match.interval = setInterval(simBall, 800);
@@ -2890,6 +3169,7 @@ function setFieldSetting(setting) {
   if (match.fieldSetting === setting) return;
   match.fieldSetting = setting;
   updateFieldSettingUI();
+  updateFielderDots(setting);
   SFX.tap();
   var labels = {attacking:'ATTACKING — slips & close catchers',standard:'STANDARD — balanced field',defensive:'CONTAIN — deep boundary riders'};
   addMoment('over-sum', 'Field set to ' + (labels[setting] || setting), '>>');
@@ -2960,12 +3240,12 @@ function simBall() {
   if (!bwlEntry) { bwlEntry = {name:bowler.name,runs:0,balls:0,wkts:0}; scBwl.push(bwlEntry); }
   bwlEntry.runs += runs; bwlEntry.balls++; if (wkt) bwlEntry.wkts++;
   var commText = getCommentary(outcome, batter, bowler, phase, match.innings, match.target, cRuns, match.ball, cWkts, match.momentum);
-  if (runs === 6) { addMoment('six', commText); SFX.six(); }
-  else if (runs === 4) { addMoment('runs', commText); }
-  else if (wkt) { addMoment('wicket', commText); SFX.wicket(); }
-  else if (runs >= 2) { addMoment('single', commText, runs.toString()); }
-  else if (runs === 1) { addMoment('single', commText, '1'); }
-  else { addMoment('dot', commText); }
+  if (runs === 6) { addMoment('six', commText); SFX.six(); if (!match.skipMode) { flashOutcome('six'); spawnCelebration('six'); animateBallDelivery('six'); } }
+  else if (runs === 4) { addMoment('runs', commText); if (!match.skipMode) { flashOutcome('four'); spawnCelebration('four'); animateBallDelivery('four'); } }
+  else if (wkt) { addMoment('wicket', commText); SFX.wicket(); if (!match.skipMode) { flashOutcome('wicket'); spawnCelebration('wicket'); animateBallDelivery('wicket'); } }
+  else if (runs >= 2) { addMoment('single', commText, runs.toString()); if (!match.skipMode) animateBallDelivery('run'); }
+  else if (runs === 1) { addMoment('single', commText, '1'); if (!match.skipMode) animateBallDelivery('run'); }
+  else { addMoment('dot', commText); if (!match.skipMode) animateBallDelivery('dot'); }
   updateBBStrip(batter, bowler);
   var prevRuns = cRuns - runs;
   var teamBat = match.batting === 'you' ? GS.teamName : match.opponent.name;
@@ -2993,7 +3273,8 @@ function simBall() {
 function addMoment(type, text, iconLabel) {
   var el = document.createElement('div');
   var isCompact = type === 'dot' || type === 'single';
-  el.className = 'match-moment' + (isCompact ? ' compact' : '');
+  var momentCls = type === 'six' ? ' moment-six' : type === 'wicket' ? ' moment-wicket' : type === 'runs' ? ' moment-four' : '';
+  el.className = 'match-moment' + (isCompact ? ' compact' : '') + momentCls;
   var defaults = {wicket:'W',six:'6',runs:'4',dot:'·',single:'1','over-sum':'OV',milestone:'★'};
   var icon = iconLabel || defaults[type] || '·';
   el.innerHTML = '<div class="moment-icon ' + type + '">' + icon + '</div><div class="moment-text">' + text + '</div>';
@@ -3357,7 +3638,7 @@ function endMatch() {
   match.active = false; clearInterval(match.interval); hide('skip-btn');
   var won = match.runs > match.oppRuns;
   var tied = match.runs === match.oppRuns;
-  if (won) { GS.wins++; SFX.win(); } else if (!tied) { GS.losses++; SFX.lose(); }
+  if (won) { GS.wins++; SFX.win(); flashOutcome('win'); spawnCelebration('win'); } else if (!tied) { GS.losses++; SFX.lose(); }
   var zone = getAlignmentZone(GS.alignment);
   var wasFix = GS.mafiaBonus !== null;
   var fanMod = getFanLoyaltyMod();
