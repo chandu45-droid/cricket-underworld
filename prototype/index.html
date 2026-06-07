@@ -84,6 +84,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);font-family:var(--font-b);font-weight:500;font-size:14px;-webkit-font-smoothing:antialiased;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+#app::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-repeat:repeat;background-size:200px 200px}
 *::-webkit-scrollbar{width:3px}
 *::-webkit-scrollbar-track{background:transparent}
 *::-webkit-scrollbar-thumb{background:rgba(136,150,176,0.15);border-radius:3px}
@@ -1230,7 +1231,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 
 <!-- OVERLAYS -->
 <div class="match-result-overlay" id="match-result"></div>
-<div class="overlay" id="mafia-overlay"><div class="modal"><div class="modal-handle"></div><div id="mafia-offer-content"></div></div></div>
+<div class="overlay" id="mafia-overlay"><div class="modal" style="background:linear-gradient(180deg,rgba(15,13,26,0.98) 0%,rgba(8,6,16,0.98) 100%);border-color:rgba(220,38,38,0.12)"><div class="modal-handle" style="background:rgba(220,38,38,0.3)"></div><div id="mafia-offer-content"></div></div></div>
 <div class="overlay" id="player-detail-overlay"><div class="modal"><div class="modal-handle"></div><div id="player-detail-content"></div></div></div>
 <div class="match-result-overlay" id="pack-overlay"><div id="pack-opening-content" style="width:100%;max-width:400px"></div></div>
 <div class="scorecard-overlay" id="scorecard-overlay"><div id="scorecard-content" style="width:100%;max-width:400px;margin:auto"></div></div>
@@ -1891,18 +1892,21 @@ function showPlayerDetail(id) {
     var color = v >= 70 ? 'green' : v >= 45 ? 'gold' : 'red';
     statsHtml += '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">' + label + '</span><div class="stat-bar flex-1"><div class="fill ' + color + '" style="width:' + v + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + v + '</span></div>';
   }
+  var fixChance = Math.round(100 - (p.loyalty * 0.8) + (p.greed * 0.3));
+  fixChance = Math.max(5, Math.min(95, fixChance));
   $('player-detail-content').innerHTML =
     '<div class="text-center mb-12">' +
-      '<div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.4));display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:26px;font-weight:700;color:#fff;margin-bottom:10px;box-shadow:0 4px 20px rgba(0,0,0,0.4)">' + ovr + '</div>' +
-      '<div class="font-d fw-700" style="font-size:30px">' + p.name + '</div>' +
-      '<div class="text-slip text-sm">' + p.role + (p.overseas ? ' · Overseas' : '') + '</div>' +
+      '<div style="width:64px;height:64px;border-radius:4px;background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.5));display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:28px;font-weight:700;color:#fff;margin-bottom:12px;box-shadow:0 4px 24px rgba(0,0,0,0.5),0 0 20px ' + rc + '33;border:1px solid rgba(255,255,255,0.1)">' + ovr + '</div>' +
+      '<div class="font-d fw-700" style="font-size:32px;letter-spacing:1px">' + p.name + '</div>' +
+      '<div class="text-slip text-sm" style="margin-top:2px">' + p.role + (p.overseas ? ' · <span class="text-amber">Overseas</span>' : '') + '</div>' +
       '<div class="star" style="font-size:16px;margin-top:6px;letter-spacing:3px">' + starsHtml + '</div>' +
-      '<div class="badge rarity-' + p.rarity + '" style="margin-top:8px">' + p.rarity.toUpperCase() + '</div>' +
+      '<div style="margin-top:8px"><span class="badge rarity-' + p.rarity + '">' + p.rarity.toUpperCase() + '</span></div>' +
     '</div>' +
     '<div class="glass"><div class="section-title sm">Stats<span class="accent-line"></span></div>' + statsHtml + '</div>' +
     '<div class="glass"><div class="section-title sm">Character<span class="accent-line"></span></div>' +
       '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">Loyalty</span><div class="stat-bar flex-1"><div class="fill green" style="width:' + p.loyalty + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.loyalty + '</span></div>' +
-      '<div class="flex items-center gap-8"><span class="text-xs text-slip" style="width:56px">Greed</span><div class="stat-bar flex-1"><div class="fill red" style="width:' + p.greed + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.greed + '</span></div>' +
+      '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">Greed</span><div class="stat-bar flex-1"><div class="fill red" style="width:' + p.greed + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.greed + '</span></div>' +
+      '<div style="padding:8px 10px;background:rgba(15,13,26,0.6);border:1px solid rgba(220,38,38,0.1);border-radius:3px;display:flex;justify-content:space-between;align-items:center"><span class="text-xs text-slip">Fix Success Rate</span><span class="font-d fw-700 ' + (fixChance >= 70 ? 'text-green' : fixChance >= 40 ? 'text-amber' : 'text-red') + '">' + fixChance + '%</span></div>' +
     '</div>' +
     (GS.squad.some(function(s){return s.id===p.id;}) ?
       '<div class="glass accent-gold" style="margin-top:12px"><div class="section-title sm">Training<span class="accent-line"></span></div>' +
@@ -3195,16 +3199,18 @@ function showMafiaOffer() {
   offer.cost = Math.round(offer.cost * priceMod);
   offer.deadline = Math.max(1, offer.deadline + deadlineMod);
   $('mafia-offer-content').innerHTML =
-    '<div class="font-d fw-700 text-red" style="font-size:22px;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px">' + offer.name + '</div>' +
-    '<div class="text-slip text-sm mb-16" style="line-height:1.5">' + offer.desc + '</div>' +
-    '<div class="glass accent-red">' +
-    (offer.cost > 0 ? '<div class="flex justify-between mb-8"><span class="text-sm">Upfront</span><span class="font-d fw-600" style="color:var(--purple)">' + offer.cost + ' B$</span></div>' : '') +
-    '<div class="flex justify-between mb-8"><span class="text-sm">Debt Created</span><span class="font-d fw-600 text-red">' + offer.debt + ' B$ in ' + offer.deadline + ' matches</span></div>' +
-    '<div class="flex justify-between mb-8"><span class="text-sm">Heat</span><span class="font-d fw-600 text-amber">+' + offer.heat + '</span></div>' +
-    '<div class="flex justify-between"><span class="text-sm">Alignment</span><span class="font-d fw-600 text-red">' + offer.align + '</span></div></div>' +
-    (GS.debts.length >= 4 ? '<div class="text-xs text-amber text-center" style="margin-top:8px">Warning: ' + GS.debts.length + '/5 debt slots used</div>' : '') +
-    (GS.blackMoney < offer.cost ? '<div class="text-xs text-red text-center" style="margin-top:8px">Not enough Black Money (need ' + offer.cost + ' B$)</div>' : '') +
-    '<div class="flex gap-10 mt-16"><div class="btn btn-red flex-1' + (GS.blackMoney < offer.cost ? ' disabled' : '') + '" id="accept-mafia-btn">Accept</div><div class="btn btn-outline flex-1" id="decline-mafia-btn">Decline</div></div>';
+    '<div style="text-align:center;margin-bottom:16px"><div style="width:48px;height:48px;margin:0 auto 12px;border-radius:4px;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.2);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blood)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>' +
+    '<div class="font-d fw-700 text-red" style="font-size:24px;text-transform:uppercase;letter-spacing:3px">' + offer.name + '</div></div>' +
+    '<div class="text-slip text-sm mb-16" style="line-height:1.6;text-align:center;font-style:italic">"' + offer.desc + '"</div>' +
+    '<div style="padding:14px;background:rgba(15,13,26,0.9);border:1px solid rgba(220,38,38,0.15);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:12px">' +
+    (offer.cost > 0 ? '<div class="flex justify-between mb-8"><span class="text-sm text-slip">Upfront Cost</span><span class="font-d fw-700" style="color:var(--purple)">' + offer.cost + ' B$</span></div>' : '') +
+    '<div class="flex justify-between mb-8"><span class="text-sm text-slip">Debt Created</span><span class="font-d fw-700 text-red">' + offer.debt + ' B$</span></div>' +
+    '<div class="flex justify-between mb-8"><span class="text-sm text-slip">Deadline</span><span class="font-d fw-700 text-amber">' + offer.deadline + ' matches</span></div>' +
+    '<div class="flex justify-between mb-8"><span class="text-sm text-slip">Heat</span><span class="font-d fw-700 text-amber">+' + offer.heat + '</span></div>' +
+    '<div class="flex justify-between"><span class="text-sm text-slip">Alignment</span><span class="font-d fw-700 text-red">' + offer.align + '</span></div></div>' +
+    (GS.debts.length >= 4 ? '<div class="text-xs text-amber text-center" style="margin-top:8px;padding:6px;border:1px solid rgba(245,158,11,0.2);border-radius:3px;background:rgba(245,158,11,0.04)">Warning: ' + GS.debts.length + '/5 debt slots used</div>' : '') +
+    (GS.blackMoney < offer.cost ? '<div class="text-xs text-red text-center" style="margin-top:8px;padding:6px;border:1px solid rgba(220,38,38,0.2);border-radius:3px;background:rgba(220,38,38,0.04)">Not enough Black Money (need ' + offer.cost + ' B$)</div>' : '') +
+    '<div class="flex gap-10 mt-16"><div class="btn btn-red pulse flex-1' + (GS.blackMoney < offer.cost ? ' disabled' : '') + '" id="accept-mafia-btn">Accept Favor</div><div class="btn btn-outline flex-1" id="decline-mafia-btn">Decline</div></div>';
   $('mafia-overlay').classList.add('show');
   $('accept-mafia-btn').onclick = function() {
     if (GS.blackMoney < offer.cost) { toast('Not enough Black Money', 'error'); return; }
