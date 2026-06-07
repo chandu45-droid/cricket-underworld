@@ -1,0 +1,141 @@
+const { test, expect } = require('@playwright/test');
+
+async function dismissTutorial(page) {
+  for (let i = 0; i < 8; i++) {
+    const nextBtn = page.locator('#tut-next:visible, #tut-skip:visible');
+    if (await nextBtn.count() > 0) {
+      await nextBtn.first().click();
+      await page.waitForTimeout(300);
+    } else break;
+  }
+}
+
+async function setupGameState(page) {
+  await page.evaluate(() => {
+    const squad = [
+      {id:'p1',name:'The Wall',role:'Top-Order Batter',bat:87,bwl:12,fld:65,fit:78,form:72,loyalty:82,greed:28,rarity:'epic',overseas:false},
+      {id:'p2',name:'Quick Gun',role:'Top-Order Batter',bat:82,bwl:15,fld:58,fit:75,form:65,loyalty:45,greed:55,rarity:'rare',overseas:false},
+      {id:'p3',name:'The Anchor',role:'Middle-Order Batter',bat:75,bwl:20,fld:60,fit:70,form:68,loyalty:70,greed:35,rarity:'uncommon',overseas:false},
+      {id:'p4',name:'Power Hitter',role:'Middle-Order Batter',bat:78,bwl:10,fld:55,fit:72,form:70,loyalty:50,greed:45,rarity:'rare',overseas:true},
+      {id:'p5',name:'Captain Cool',role:'All-Rounder',bat:68,bwl:65,fld:70,fit:80,form:74,loyalty:85,greed:20,rarity:'epic',overseas:false},
+      {id:'p6',name:'Spin King',role:'Spin Bowler',bat:25,bwl:88,fld:55,fit:68,form:78,loyalty:75,greed:30,rarity:'epic',overseas:false},
+      {id:'p7',name:'Speed Demon',role:'Fast Bowler',bat:15,bwl:85,fld:50,fit:82,form:72,loyalty:60,greed:40,rarity:'rare',overseas:true},
+      {id:'p8',name:'The Keeper',role:'Wicket-Keeper',bat:62,bwl:8,fld:85,fit:76,form:66,loyalty:72,greed:32,rarity:'uncommon',overseas:false},
+      {id:'p9',name:'Swing Master',role:'Fast Bowler',bat:20,bwl:80,fld:45,fit:75,form:70,loyalty:55,greed:38,rarity:'uncommon',overseas:true},
+      {id:'p10',name:'The Finisher',role:'All-Rounder',bat:72,bwl:55,fld:65,fit:74,form:69,loyalty:48,greed:50,rarity:'rare',overseas:false},
+      {id:'p11',name:'Mystery Man',role:'Spin Bowler',bat:18,bwl:78,fld:52,fit:70,form:67,loyalty:65,greed:35,rarity:'uncommon',overseas:true},
+    ];
+    const gs = {
+      coins:5000,gems:50,blackMoney:30,alignment:0,heat:0,fans:50,
+      season:1,matchNum:1,wins:0,losses:0,squad:squad,maxSquad:15,
+      morale:75,auctionPurse:2000,strategy:'balanced',league:'gully',
+      mafiaBonus:null,fanLoyalty:50,cleanStreak:0,
+      sponsor:{tier:3,name:'Local Brand',purseBonus:0},
+      rivalData:{},debts:[],noAlignMatches:0,
+      evidence:[],investigation:null,tribunalBonus:0,
+      captainId:'p5',selectedXI:['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10','p11'],
+      teamName:'Test XI',managerName:'Tester',teamColor:'gold',tutorialDone:true,
+      seasonStats:{}
+    };
+    localStorage.setItem('cu_save_v3', JSON.stringify(gs));
+  });
+  await page.reload();
+  await page.waitForSelector('#loading.hide', { timeout: 10000 });
+}
+
+test('game loads and shows hub', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForSelector('#loading.hide', { timeout: 10000 });
+  await dismissTutorial(page);
+  const hub = page.locator('#hub-screen');
+  await expect(hub).toBeVisible();
+});
+
+test('hub has cricket SVG icons', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page);
+  await expect(page.locator('#hub-auction-btn .tile-icon svg')).toBeVisible();
+  await expect(page.locator('#hub-match-btn .tile-icon svg')).toBeVisible();
+});
+
+test('score display uses animated digit spans', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page);
+  await page.click('#hub-match-btn');
+  await page.waitForTimeout(600);
+  const ssOverlay = page.locator('.squad-select-overlay.show');
+  if (await ssOverlay.count() > 0) {
+    await page.click('#ss-auto-btn');
+    await page.waitForTimeout(300);
+    await page.click('#ss-confirm-btn');
+  }
+  await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
+  await page.click('#start-match-btn');
+  await page.waitForSelector('#match-screen.active', { timeout: 5000 });
+  await page.waitForTimeout(2000);
+  const scoreChars = page.locator('#match-score .score-char');
+  expect(await scoreChars.count()).toBeGreaterThan(0);
+});
+
+test('bowler picker appears when bowling', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page);
+
+  for (let attempt = 0; attempt < 6; attempt++) {
+    await page.click('#hub-match-btn');
+    await page.waitForTimeout(600);
+    const ssOverlay2 = page.locator('.squad-select-overlay.show');
+    if (await ssOverlay2.count() > 0) {
+      await page.click('#ss-auto-btn');
+      await page.waitForTimeout(300);
+      await page.click('#ss-confirm-btn');
+    }
+    await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
+    await page.click('#start-match-btn');
+    await page.waitForSelector('#match-screen.active', { timeout: 5000 });
+
+    const statusText = await page.locator('#you-status').textContent();
+    if (statusText.includes('BOWLING')) {
+      await page.waitForSelector('#bowler-picker', { state: 'visible', timeout: 15000 });
+      await expect(page.locator('#bowler-picker')).toBeVisible();
+      expect(await page.locator('.bowler-opt').count()).toBeGreaterThan(0);
+      return;
+    }
+    await page.click('#skip-btn');
+    await page.waitForSelector('.match-result-overlay.show', { timeout: 10000 });
+    await page.click('#match-continue-btn');
+    await page.waitForSelector('#hub-screen.active', { timeout: 5000 });
+  }
+  test.skip();
+});
+
+test('pack opening has 3D card flip', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page);
+  await page.click('#hub-cards-btn');
+  await page.waitForSelector('#cards-screen.active', { timeout: 5000 });
+  await page.click('#pack-standard');
+  await page.waitForTimeout(500);
+  expect(await page.locator('.pack-flip-container').count()).toBeGreaterThan(0);
+  await page.waitForTimeout(3000);
+  expect(await page.locator('.pack-flip-inner.flipped').count()).toBeGreaterThan(0);
+});
+
+test('commentary text has reveal animation class', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page);
+  await page.click('#hub-match-btn');
+  await page.waitForTimeout(600);
+  const ssOverlay = page.locator('.squad-select-overlay.show');
+  if (await ssOverlay.count() > 0) {
+    await page.click('#ss-auto-btn');
+    await page.waitForTimeout(300);
+    await page.click('#ss-confirm-btn');
+  }
+  await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
+  await page.click('#start-match-btn');
+  await page.waitForSelector('#match-screen.active', { timeout: 5000 });
+  await page.waitForTimeout(2000);
+  const momentText = page.locator('.match-moment .moment-text').first();
+  await expect(momentText).toBeVisible();
+});

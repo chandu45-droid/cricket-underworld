@@ -2411,12 +2411,15 @@ function generateRivalXI(rival) {
 function extractBowlers(xi) {
   var b = [];
   for (var i = 0; i < xi.length; i++) {
-    if (xi[i].role==='Fast Bowler'||xi[i].role==='Spin Bowler'||xi[i].role==='All-Rounder') b.push(xi[i]);
+    if (xi[i] && (xi[i].role==='Fast Bowler'||xi[i].role==='Spin Bowler'||xi[i].role==='All-Rounder')) b.push(xi[i]);
   }
-  return b.length > 0 ? b : [xi[xi.length-1]];
+  if (b.length > 0) return b;
+  for (var j = xi.length - 1; j >= 0; j--) { if (xi[j]) return [xi[j]]; }
+  return [{name:'Sub',role:'All-Rounder',bat:30,bwl:30,form:50,fld:40}];
 }
 
 function pickBowler(bowlers, phase, overNum) {
+  if (!bowlers || bowlers.length === 0) return {name:'Sub',role:'All-Rounder',bat:30,bwl:30,form:50,fld:40};
   if (phase === 1) {
     var spin = bowlers.filter(function(b){return b.role==='Spin Bowler';});
     if (spin.length > 0) return spin[overNum % spin.length];
@@ -2744,6 +2747,7 @@ function simBall() {
   var cRuns = isYou ? match.runs : match.oppRuns;
   var phase = over < 6 ? 0 : over < 15 ? 1 : 2;
   match.curBatter = match.batXI[Math.min(cWkts, match.batXI.length - 1)];
+  if (!match.curBatter) { endMatch(); return; }
   if (ballInOver === 0) {
     if (match.batting !== 'you' && !match.skipMode && !match.bowlerSelected && over > 0) {
       match.ball--;
@@ -2754,6 +2758,8 @@ function simBall() {
     if (!match.bowlerSelected) match.curBowler = pickBowler(match.bowlers, phase, over);
   }
   if (ballInOver === 5) match.bowlerSelected = false;
+  if (!match.curBowler) match.curBowler = pickBowler(match.bowlers, phase, over);
+  if (!match.curBatter) match.curBatter = match.batXI[0];
   var outcome = calcBallOutcome(match.curBatter, match.curBowler, match.pitchType, phase, GS.strategy, GS.morale, isYou, match.innings, match.target, cRuns, match.ball);
   var runs = outcome.runs, wkt = outcome.wicket;
   if (isYou) { match.runs += runs; if (wkt) match.wkts++; }
@@ -2927,6 +2933,7 @@ function getMatchHook(won, tied, opponent, totalWins, matchNum) {
 }
 
 function updateBBStrip(batter, bowler) {
+  if (!batter || !bowler) return;
   var batCap = (batter.id && batter.id === GS.captainId) ? ' (C)' : '';
   var bwlCap = (bowler.id && bowler.id === GS.captainId) ? ' (C)' : '';
   $('bbs-batter').textContent = batter.name + batCap;
