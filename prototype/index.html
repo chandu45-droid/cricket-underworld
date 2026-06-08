@@ -727,6 +727,19 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .daily-challenge .dc-result.pass{color:var(--green-bright);background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.15)}
 .daily-challenge .dc-result.fail{color:var(--slip);background:rgba(148,163,184,0.06);border:1px solid rgba(148,163,184,0.1)}
 
+/* Weather banner */
+.weather-banner{padding:6px 12px;text-align:center;font-family:var(--font-d);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;margin-bottom:8px}
+.weather-banner.rain{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);color:var(--blue-bright)}
+.weather-banner.overcast{background:rgba(148,163,184,0.08);border:1px solid rgba(148,163,184,0.15);color:var(--slip)}
+.weather-banner.dew{background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.15);color:var(--cyan)}
+/* DRS + Impact buttons */
+.tactic-btn.drs{background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.25);color:var(--purple);font-size:11px;padding:6px 10px}
+.tactic-btn.drs.used{opacity:0.3;pointer-events:none;text-decoration:line-through}
+.tactic-btn.impact{background:rgba(34,211,238,0.12);border-color:rgba(34,211,238,0.25);color:var(--cyan);font-size:11px;padding:6px 10px}
+.tactic-btn.impact.used{opacity:0.3;pointer-events:none;text-decoration:line-through}
+/* Injury indicator */
+.injury-tag{display:inline-block;font-size:9px;font-weight:700;color:var(--blood);background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.2);padding:1px 5px;border-radius:2px;margin-left:4px;text-transform:uppercase;letter-spacing:0.5px}
+
 /* Knockout bracket */
 .ko-bracket{max-width:360px;margin:0 auto}
 .ko-match{display:flex;align-items:center;gap:8px;padding:12px !important;margin-bottom:8px}
@@ -1340,6 +1353,8 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div id="ban-list" class="hub-bans"></div>
       </div>
 
+      <div class="glass accent-red" id="injury-panel" style="display:none"></div>
+
       <div class="glass accent-blue" id="sponsor-panel">
         <div class="flex items-center gap-12">
           <div style="width:36px;height:36px;border-radius:10px;background:var(--glass-bg);border:var(--glass-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0" id="sponsor-icon">&#9733;</div>
@@ -1574,11 +1589,14 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="bbs-vs">vs</div>
         <div class="bbs-player"><div><div class="bbs-name" id="bbs-bowler">-</div><div class="bbs-stat" id="bbs-bwl-stat">-</div></div><div class="bbs-tag bwl">BWL</div></div>
       </div>
+      <div id="weather-banner" class="weather-banner" style="display:none"></div>
       <div class="match-tactics" id="match-tactics">
         <div class="tactic-btn" data-strat="aggressive" id="tac-aggro">AGGRO</div>
         <div class="tactic-btn active" data-strat="balanced" id="tac-balanced">BALANCED</div>
         <div class="tactic-btn" data-strat="defensive" id="tac-defense">DEFENSE</div>
         <div class="tactic-boost" id="boost-btn">BOOST</div>
+        <div class="tactic-btn drs" id="drs-btn">DRS</div>
+        <div class="tactic-btn impact" id="impact-btn" style="display:none">IMPACT</div>
       </div>
       <div class="bowler-picker glass accent-blue" id="bowler-picker" style="display:none">
         <div class="bp-title">Choose Bowler<span class="accent-line"></span></div>
@@ -3060,8 +3078,8 @@ function renderPlayerMini(p) {
   var ovr = getOVR(p);
   var rc = RARITY_COLORS[p.rarity] || '#4A5568';
   var roleShort = ROLE_SHORT[p.role] || 'AR';
-  var banTag = p.banned ? '<span style="color:var(--blood);font-size:10px;font-weight:700;margin-left:6px">BANNED ' + p.banned.matchesLeft + 'M</span>' : '';
-  return '<div class="player-card-mini" data-pid="' + p.id + '"' + (p.banned ? ' style="opacity:0.5"' : '') + '>' +
+  var banTag = p.banned ? '<span style="color:var(--blood);font-size:10px;font-weight:700;margin-left:6px">BANNED ' + p.banned.matchesLeft + 'M</span>' : p.injured ? '<span class="injury-tag">INJ ' + p.injured.matchesLeft + 'M</span>' : '';
+  return '<div class="player-card-mini" data-pid="' + p.id + '"' + (p.banned || p.injured ? ' style="opacity:0.5"' : '') + '>' +
     '<div class="mini-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.4))">' + ovr + '</div>' +
     '<div class="mini-info"><div class="mini-name">' + p.name + banTag + '</div><div class="mini-role">' + p.role + (p.overseas ? ' · OS' : '') + '</div></div>' +
     '<div class="mini-stats"><span>' + (p.role.indexOf('Bowler') >= 0 ? p.bwl : p.bat) + '</span> ' + roleShort + '</div>' +
@@ -3287,6 +3305,17 @@ function updateHub() {
       return '<div class="hub-ban-item"><div class="hb-name">' + p.name + '</div><div class="hb-reason">' + r.label + '</div><div class="hb-left">' + p.banned.matchesLeft + ' match' + (p.banned.matchesLeft > 1 ? 'es' : '') + '</div></div>';
     }).join('');
   } else { hide('ban-panel'); }
+  var injuredPlayers = GS.squad.filter(function(p){return p.injured;});
+  var injPanel = $('injury-panel');
+  if (injPanel) {
+    if (injuredPlayers.length > 0) {
+      injPanel.style.display = '';
+      injPanel.innerHTML = '<div class="section-title sm" style="color:var(--blood)">Injuries<span class="accent-line"></span></div>' +
+        injuredPlayers.map(function(p) {
+          return '<div class="hub-ban-item"><div class="hb-name">' + p.name + '</div><div class="hb-reason">' + p.injured.type + '</div><div class="hb-left">' + p.injured.matchesLeft + ' match' + (p.injured.matchesLeft > 1 ? 'es' : '') + '</div></div>';
+        }).join('');
+    } else { injPanel.style.display = 'none'; }
+  }
   var hubZone = getAlignmentZone(GS.alignment);
   $('align-zone-tag').textContent = hubZone.name;
   if (GS.matchNum > 1 && hubZone.mafiaAccess && !GS.investigation) {
@@ -3533,7 +3562,7 @@ function endAuction() {
 // =============================================
 // MATCH
 // =============================================
-var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[] };
+var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[], drsUsed:false, impactUsed:false, weather:'clear', rainOver:0, superOver:false };
 
 function updateMomentum(runs, wkt, isYou) {
   var shift = runs * 2 + (wkt ? -15 : 0);
@@ -3653,6 +3682,8 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
       else bwlStr *= 0.50;
     }
   }
+  if (match.weather === 'overcast') { if (isPace) bwlStr *= 1.10; }
+  if (match.weather === 'dew' && innings === 2) { batStr *= 1.08; }
   if (match.boostBalls > 0 && isYourBatting) { batStr *= 1.20; match.boostBalls--; }
   if (match.boostBalls > 0 && !isYourBatting) { bwlStr *= 1.20; match.boostBalls--; }
   if (bwlStr < 1) bwlStr = 1;
@@ -3689,10 +3720,234 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   return {runs:6, wicket:false};
 }
 
+// =============================================
+// WEATHER SYSTEM
+// =============================================
+function rollWeather() {
+  var r = Math.random();
+  if (r < 0.08) return 'rain';
+  if (r < 0.20) return 'overcast';
+  if (r < 0.30) return 'dew';
+  return 'clear';
+}
+
+function applyWeather() {
+  var wb = $('weather-banner');
+  if (match.weather === 'clear') { wb.style.display = 'none'; return; }
+  wb.style.display = '';
+  if (match.weather === 'rain') {
+    wb.className = 'weather-banner rain';
+    wb.textContent = 'Rain Expected — Match may be interrupted';
+  } else if (match.weather === 'overcast') {
+    wb.className = 'weather-banner overcast';
+    wb.textContent = 'Overcast — Pace bowlers +10%';
+  } else if (match.weather === 'dew') {
+    wb.className = 'weather-banner dew';
+    wb.textContent = 'Dew Factor — 2nd innings batting +8%';
+  }
+}
+
+function checkRainInterrupt() {
+  if (match.weather !== 'rain') return false;
+  if (match.rainOver > 0) return false;
+  var over = Math.floor(match.ball / 6);
+  if (over >= 6 && over <= 14 && Math.random() < 0.12) {
+    var reducedOvers = Math.floor(6 + Math.random() * 4);
+    match.rainOver = reducedOvers * 6;
+    var wb = $('weather-banner');
+    wb.textContent = 'RAIN DELAY — Match reduced to ' + reducedOvers + ' overs per side';
+    wb.className = 'weather-banner rain';
+    addMoment('milestone', 'Rain stops play! Match reduced to ' + reducedOvers + ' overs.');
+    return true;
+  }
+  return false;
+}
+
+// =============================================
+// DRS SYSTEM
+// =============================================
+function useDRS() {
+  if (match.drsUsed) return;
+  match.drsUsed = true;
+  $('drs-btn').classList.add('used');
+  $('drs-btn').textContent = 'DRS USED';
+  if (GS.mafiaBonus && GS.mafiaBonus.type === 'umpire' && match.batting === 'you') {
+    if (Math.random() < 0.70) {
+      addMoment('milestone', 'DRS OVERTURNS umpire decision! Not out!');
+      toast('DRS Success — Umpire fix countered!', 'success');
+      SFX.reveal();
+      return;
+    }
+  }
+  var isYou = match.batting === 'you';
+  var cWkts = isYou ? match.wkts : match.oppWkts;
+  if (cWkts > 0 && Math.random() < 0.40) {
+    if (isYou) match.wkts = Math.max(0, match.wkts - 1);
+    else match.oppWkts = Math.max(0, match.oppWkts - 1);
+    addMoment('milestone', 'DRS SUCCESSFUL! Wicket overturned!');
+    toast('DRS — Wicket overturned!', 'success');
+    SFX.reveal();
+  } else {
+    addMoment('runs', 'DRS review — Decision stands. Review lost.');
+    toast('DRS Failed — Decision stands', 'error');
+    SFX.dot();
+  }
+}
+
+// =============================================
+// IMPACT PLAYER — Between innings substitution
+// =============================================
+function showImpactPicker() {
+  if (match.impactUsed || match.innings !== 2) return;
+  var bench = GS.squad.filter(function(p) {
+    return !match.yourXI.some(function(x) { return x.id === p.id; }) && !p.banned;
+  });
+  if (bench.length === 0) { toast('No bench players available', 'error'); return; }
+  var osCount = match.yourXI.filter(function(p) { return p.overseas; }).length;
+  var html = '<div class="font-d fw-700 text-center text-cyan" style="font-size:18px;text-transform:uppercase;letter-spacing:3px;margin-bottom:12px">Impact Player</div>' +
+    '<div class="text-xs text-slip text-center mb-12">Substitute one bench player into your XI</div>' +
+    '<div class="section-title sm">Replace<span class="accent-line"></span></div>';
+  for (var i = 0; i < match.yourXI.length; i++) {
+    var p = match.yourXI[i];
+    html += '<div class="player-card-mini impact-out" data-iout="' + i + '"><div class="mini-ovr" style="background:rgba(220,38,38,0.2)">' + getOVR(p) + '</div><div class="mini-info"><div class="mini-name">' + p.name + '</div><div class="mini-role">' + p.role + '</div></div></div>';
+  }
+  html += '<div class="section-title sm" style="margin-top:12px">With<span class="accent-line"></span></div>';
+  for (var j = 0; j < bench.length; j++) {
+    var b = bench[j];
+    var blocked = b.overseas && osCount >= 4;
+    html += '<div class="player-card-mini impact-in' + (blocked ? ' disabled' : '') + '" data-iin="' + b.id + '"' + (blocked ? ' style="opacity:0.4"' : '') + '><div class="mini-ovr" style="background:rgba(34,211,238,0.2)">' + getOVR(b) + '</div><div class="mini-info"><div class="mini-name">' + b.name + (blocked ? ' (OS limit)' : '') + '</div><div class="mini-role">' + b.role + '</div></div></div>';
+  }
+  html += '<div class="btn btn-outline full mt-12" id="impact-cancel-btn">Cancel</div>';
+  $('scorecard-content').innerHTML = html;
+  $('scorecard-overlay').classList.add('show');
+  var selOut = -1, selIn = -1;
+  setTimeout(function() {
+    $('scorecard-content').addEventListener('click', function handler(e) {
+      var outEl = e.target.closest('.impact-out');
+      if (outEl) {
+        selOut = parseInt(outEl.getAttribute('data-iout'));
+        var outs = $('scorecard-content').querySelectorAll('.impact-out');
+        for (var k = 0; k < outs.length; k++) outs[k].style.border = outs[k] === outEl ? '2px solid var(--blood)' : '';
+      }
+      var inEl = e.target.closest('.impact-in:not(.disabled)');
+      if (inEl) {
+        selIn = parseInt(inEl.getAttribute('data-iin'));
+        var ins = $('scorecard-content').querySelectorAll('.impact-in');
+        for (var k = 0; k < ins.length; k++) ins[k].style.border = ins[k] === inEl ? '2px solid var(--cyan)' : '';
+      }
+      if (selOut >= 0 && selIn >= 0) {
+        var newP = GS.squad.find(function(p) { return p.id === selIn; });
+        if (newP) {
+          match.yourXI[selOut] = JSON.parse(JSON.stringify(newP));
+          match.impactUsed = true;
+          $('impact-btn').classList.add('used');
+          $('impact-btn').textContent = 'IMPACT USED';
+          SFX.reveal();
+          toast('Impact: ' + newP.name + ' substituted in!', 'success');
+          addMoment('milestone', 'IMPACT PLAYER: ' + newP.name + ' enters the game!');
+        }
+        $('scorecard-overlay').classList.remove('show');
+        $('scorecard-content').removeEventListener('click', handler);
+      }
+    });
+    $('impact-cancel-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
+  }, 50);
+}
+
+// =============================================
+// SUPER OVER — Tiebreaker
+// =============================================
+function playSuperOver() {
+  match.superOver = true;
+  SFX.knockout();
+  addMoment('milestone', 'SCORES TIED! SUPER OVER!');
+  toast('Super Over!', 'info');
+  var yourBest = match.yourXI.slice().sort(function(a, b) { return b.bat - a.bat; })[0];
+  var oppBest = match.oppXI.slice().sort(function(a, b) { return b.bat - a.bat; })[0];
+  var yourBowler = match.yourXI.slice().sort(function(a, b) { return b.bwl - a.bwl; })[0];
+  var oppBowler = match.oppXI.slice().sort(function(a, b) { return b.bwl - a.bwl; })[0];
+  var yourSO = 0, oppSO = 0;
+  for (var i = 0; i < 6; i++) {
+    var o = calcBallOutcome(oppBest, yourBowler, match.pitchType, 2, 'aggressive', 70, false, 1, 0, oppSO, i);
+    if (o.wicket) break;
+    oppSO += o.runs;
+  }
+  for (var j = 0; j < 6; j++) {
+    var o = calcBallOutcome(yourBest, oppBowler, match.pitchType, 2, 'aggressive', GS.morale, true, 2, oppSO, yourSO, j);
+    if (o.wicket) break;
+    yourSO += o.runs;
+    if (yourSO > oppSO) break;
+  }
+  addMoment('runs', 'Super Over: ' + GS.teamName + ' ' + yourSO + ' vs ' + match.opponent.name + ' ' + oppSO);
+  if (yourSO > oppSO) {
+    match.runs += yourSO; match.oppRuns += oppSO;
+    addMoment('six', GS.teamName + ' WIN THE SUPER OVER!');
+    return true;
+  } else if (yourSO < oppSO) {
+    match.runs += yourSO; match.oppRuns += oppSO;
+    addMoment('wicket', match.opponent.name + ' win the Super Over');
+    return false;
+  }
+  match.runs += 1;
+  addMoment('milestone', 'Super Over tied — ' + GS.teamName + ' win on boundary count!');
+  return true;
+}
+
+// =============================================
+// INJURY SYSTEM
+// =============================================
+function rollInjury(player) {
+  if (!player || !player.fit) return null;
+  var chance = Math.max(0.01, (100 - player.fit) / 800);
+  if (Math.random() < chance) {
+    var types = [
+      { name: 'Hamstring Strain', matches: 2 },
+      { name: 'Shoulder Niggle', matches: 1 },
+      { name: 'Back Spasm', matches: 2 },
+      { name: 'Ankle Twist', matches: 3 },
+      { name: 'Finger Fracture', matches: 3 },
+      { name: 'Groin Pull', matches: 1 }
+    ];
+    var inj = types[Math.floor(Math.random() * types.length)];
+    return { type: inj.name, matchesOut: inj.matches };
+  }
+  return null;
+}
+
+function processMatchInjuries() {
+  var injuries = [];
+  for (var i = 0; i < match.yourXI.length; i++) {
+    var p = match.yourXI[i];
+    var inj = rollInjury(p);
+    if (inj) {
+      var sp = GS.squad.find(function(s) { return s.id === p.id; });
+      if (sp) {
+        sp.injured = { type: inj.type, matchesLeft: inj.matchesOut };
+        injuries.push({ name: p.name, injury: inj });
+      }
+    }
+  }
+  return injuries;
+}
+
+function processInjuryTick() {
+  var healed = [];
+  for (var i = 0; i < GS.squad.length; i++) {
+    if (GS.squad[i].injured) {
+      GS.squad[i].injured.matchesLeft--;
+      if (GS.squad[i].injured.matchesLeft <= 0) {
+        healed.push(GS.squad[i].name);
+        GS.squad[i].injured = null;
+      }
+    }
+  }
+  return healed;
+}
+
 function showSquadSelect() {
   if (GS.squad.length < 3) { toast('Need at least 3 players', 'error'); return; }
   SFX.tap();
-  var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id && !p.banned;}); });
+  var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id && !p.banned && !p.injured;}); });
   if (sel.length > 11) sel = sel.slice(0, 11);
   var capValid = sel.indexOf(GS.captainId) >= 0;
   if (!capValid) GS.captainId = null;
@@ -3731,11 +3986,14 @@ function renderSquadSelect(sel) {
     var ovr = Math.round((p.bat + p.bwl) / 2);
     var rc = RARITY_COLORS[p.rarity] || RARITY_COLORS.common;
     var isBanned = !!p.banned;
-    html += '<div class="ss-player' + (isSel ? ' selected' : '') + (isCap ? ' captain' : '') + (p.overseas ? ' overseas' : '') + (isBanned ? ' banned' : '') + '" data-sid="' + p.id + '">' +
+    var isInjured = !!p.injured;
+    var unavailable = isBanned || isInjured;
+    var unavailTag = isBanned ? ' · ' + p.banned.matchesLeft + 'M ban' : isInjured ? ' · ' + p.injured.type + ' ' + p.injured.matchesLeft + 'M' : '';
+    html += '<div class="ss-player' + (isSel ? ' selected' : '') + (isCap ? ' captain' : '') + (p.overseas ? ' overseas' : '') + (unavailable ? ' banned' : '') + '" data-sid="' + p.id + '">' +
       '<div class="ss-cap-badge">C</div>' +
       '<div class="ss-check"></div>' +
       '<div class="ss-ovr" style="background:' + rc + '">' + ovr + '</div>' +
-      '<div class="ss-info"><div class="ss-name">' + p.name + '</div><div class="ss-role">' + p.role + (isBanned ? ' · ' + p.banned.matchesLeft + 'M ban' : '') + '</div></div>' +
+      '<div class="ss-info"><div class="ss-name">' + p.name + '</div><div class="ss-role">' + p.role + unavailTag + '</div></div>' +
       '<div class="ss-stats">B <span>' + p.bat + '</span> · W <span>' + p.bwl + '</span></div>' +
       '<div class="ss-cap-btn" data-capid="' + p.id + '">C</div>' +
       '</div>';
@@ -3750,6 +4008,7 @@ function toggleSquadPlayer(id) {
   var p = GS.squad.find(function(q){return q.id===id;});
   if (!p) return;
   if (p.banned) { toast(p.name + ' is banned', 'error'); return; }
+  if (p.injured) { toast(p.name + ' is injured — ' + p.injured.type, 'error'); return; }
   if (idx >= 0) {
     sel.splice(idx, 1);
     if (GS.captainId === id) GS.captainId = null;
@@ -3882,9 +4141,14 @@ function startMatch() {
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
   match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false; match.fieldSetting = 'standard';
+  match.drsUsed = false; match.impactUsed = false; match.superOver = false;
+  match.weather = rollWeather(); match.rainOver = 0;
   $('boost-btn').classList.remove('used', 'active-boost');
+  $('drs-btn').classList.remove('used'); $('drs-btn').textContent = 'DRS';
+  $('impact-btn').classList.remove('used'); $('impact-btn').textContent = 'IMPACT'; $('impact-btn').style.display = 'none';
   $('tac-aggro').classList.remove('active'); $('tac-defense').classList.remove('active');
   $('tac-balanced').classList.add('active');
+  applyWeather();
   match.scorecard = {you:{batters:[],bowlers:[],total:0,wkts:0,overs:''},opp:{batters:[],bowlers:[],total:0,wkts:0,overs:''}};
   updateBBStrip(match.curBatter, match.curBowler);
   $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
@@ -3963,6 +4227,11 @@ function setFieldSetting(setting) {
 
 function simBall() {
   if (!match.active) return;
+  if (checkRainInterrupt()) return;
+  if (match.rainOver > 0 && match.ball >= match.rainOver) {
+    if (match.innings === 1) { switchInnings(); return; }
+    else { endMatch(); return; }
+  }
   match.ball++;
   var ballInOver = (match.ball - 1) % 6;
   var over = Math.floor((match.ball - 1) / 6);
@@ -4347,6 +4616,9 @@ function switchInnings() {
   for (var i = 0; i < 3; i++) { $(phaseIds[i] + '-score').textContent = '-'; $(phaseIds[i] + '-fill').style.width = '0%'; $('phase-' + phaseIds[i]).className = 'match-phase' + (i===0?' active':''); }
   updateFieldRestriction(0);
   addMoment('runs', '<strong>Innings break.</strong> Target: ' + (match.target + 1));
+  if (match.batting === 'you' && !match.impactUsed && GS.squad.length > match.yourXI.length) {
+    $('impact-btn').style.display = '';
+  }
   setTimeout(function() { match.interval = setInterval(simBall, 800); }, 1500);
 }
 
@@ -4424,6 +4696,7 @@ function endMatch() {
   match.active = false; clearInterval(match.interval); hide('skip-btn');
   var won = match.runs > match.oppRuns;
   var tied = match.runs === match.oppRuns;
+  if (tied && !match.superOver) { won = playSuperOver(); tied = false; }
   if (won) { GS.wins++; SFX.win(); flashOutcome('win'); spawnCelebration('win'); } else if (!tied) { GS.losses++; SFX.lose(); }
   var zone = getAlignmentZone(GS.alignment);
   var wasFix = GS.mafiaBonus !== null;
@@ -4504,6 +4777,8 @@ function endMatch() {
   var debtWarnings = processDebts();
   var unbannedPlayers = processBanTick();
   var banEvents = rollBanEvents(won, wasFix);
+  var matchInjuries = processMatchInjuries();
+  var healedPlayers = processInjuryTick();
   var streakMilestone = processWinStreak(won);
   var challengeResult = checkDailyChallenge(won, tied, wasFix);
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
@@ -4543,6 +4818,8 @@ function endMatch() {
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
     (banEvents.length > 0 ? banEvents.map(function(e) { return '<div class="ban-event"><div class="be-title">' + e.ban.label + '</div><div class="be-desc">' + e.player + ' — ' + e.ban.desc + '. Banned for ' + e.ban.matchesLeft + ' matches. (+' + e.ban.heat + ' heat)</div></div>'; }).join('') : '') +
     (unbannedPlayers.length > 0 ? '<div class="text-xs text-green" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(52,211,153,0.2);border-radius:3px;background:rgba(52,211,153,0.04)">Ban served: ' + unbannedPlayers.join(', ') + ' available again</div>' : '') +
+    (matchInjuries.length > 0 ? matchInjuries.map(function(inj) { return '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(220,38,38,0.2);border-radius:3px;background:rgba(220,38,38,0.04)">INJURY: ' + inj.name + ' — ' + inj.injury.type + ' (' + inj.injury.matchesOut + ' matches)</div>'; }).join('') : '') +
+    (healedPlayers.length > 0 ? '<div class="text-xs text-green" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(52,211,153,0.2);border-radius:3px;background:rgba(52,211,153,0.04)">Recovered: ' + healedPlayers.join(', ') + '</div>' : '') +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div id="post-match-events" style="margin-top:12px"></div>' +
     (streakMilestone ? '<div class="streak-milestone"><div class="sm-icon">' + streakMilestone.icon + '</div><div class="sm-title">' + GS.winStreak + ' Win Streak — ' + streakMilestone.label + '</div><div class="sm-reward">+' + streakMilestone.reward + ' coins</div></div>' : (GS.winStreak >= 2 && won ? '<div class="match-hook streak">' + GS.winStreak + ' wins in a row! ' + (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}) ? (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}).at - GS.winStreak) + ' more for bonus' : '') + '</div>' : '')) +
@@ -5594,6 +5871,15 @@ function bindEvents() {
     this.classList.add('active-boost');
     addMoment('milestone', 'BOOST ACTIVATED! +20% power for 6 balls!', '!');
     setTimeout(function() { $('boost-btn').classList.remove('active-boost'); }, 3600);
+  });
+  $('drs-btn').addEventListener('click', function() {
+    if (match.drsUsed || !match.active) return;
+    useDRS();
+  });
+  $('impact-btn').addEventListener('click', function() {
+    if (match.impactUsed || !match.active || match.innings !== 2) return;
+    clearInterval(match.interval);
+    showImpactPicker();
   });
   var filters = document.querySelectorAll('.card-filter');
   for (var f = 0; f < filters.length; f++) {
