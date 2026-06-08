@@ -1861,6 +1861,7 @@ var GS = {
   staff: {},
   scoutedXI: null,
   scoutWeakness: null,
+  tipsSeen: {},
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1892,6 +1893,7 @@ function load() {
       GS.staff=v(d.staff,{});
       GS.scoutedXI=v(d.scoutedXI,null);
       GS.scoutWeakness=v(d.scoutWeakness,null);
+      GS.tipsSeen=v(d.tipsSeen,{});
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -1914,26 +1916,62 @@ var RARITY_COLORS = { common:'#4A5568', uncommon:'#3B82F6', rare:'#0E9B52', epic
 var RARITY_GLOW = { common:'rgba(74,85,104,0.1)', uncommon:'rgba(59,130,246,0.12)', rare:'rgba(14,155,82,0.15)', epic:'rgba(196,155,26,0.2)', legendary:'rgba(220,38,38,0.25)' };
 
 var ALL_PLAYERS = [
+  // Top-Order Batters (10)
   {id:1,name:'Rajesh Sharma',role:'Top-Order Batter',bat:87,bwl:12,fld:65,fit:78,form:72,loyalty:82,greed:28,rarity:'epic',overseas:false,stars:4},
   {id:2,name:'Vikram Rathore',role:'Top-Order Batter',bat:82,bwl:8,fld:70,fit:80,form:65,loyalty:45,greed:68,rarity:'rare',overseas:false,stars:3},
+  {id:18,name:'Prithvi Joshi',role:'Top-Order Batter',bat:70,bwl:10,fld:68,fit:72,form:62,loyalty:55,greed:50,rarity:'common',overseas:false,stars:2},
+  {id:19,name:'Manish Patel',role:'Top-Order Batter',bat:65,bwl:8,fld:58,fit:68,form:55,loyalty:88,greed:12,rarity:'common',overseas:false,stars:2},
+  {id:21,name:'Devendra Padikkal',role:'Top-Order Batter',bat:76,bwl:5,fld:62,fit:82,form:68,loyalty:72,greed:30,rarity:'rare',overseas:false,stars:3},
+  {id:22,name:'Ruturaj Gaikwad',role:'Top-Order Batter',bat:80,bwl:6,fld:64,fit:76,form:74,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3},
+  {id:23,name:'Yashasvi Sawant',role:'Top-Order Batter',bat:74,bwl:4,fld:66,fit:84,form:70,loyalty:65,greed:35,rarity:'uncommon',overseas:false,stars:3},
+  {id:24,name:'Devon Conway',role:'Top-Order Batter',bat:78,bwl:3,fld:72,fit:75,form:66,loyalty:58,greed:42,rarity:'rare',overseas:true,stars:3},
+  {id:25,name:'Abhishek Nair',role:'Top-Order Batter',bat:68,bwl:12,fld:60,fit:70,form:58,loyalty:62,greed:48,rarity:'common',overseas:false,stars:2},
+  {id:26,name:'Sai Sudharsan',role:'Top-Order Batter',bat:72,bwl:7,fld:65,fit:78,form:64,loyalty:75,greed:25,rarity:'uncommon',overseas:false,stars:3},
+  // Middle-Order Batters (8)
   {id:3,name:'Anil Dravid',role:'Middle-Order Batter',bat:75,bwl:15,fld:60,fit:72,form:60,loyalty:70,greed:35,rarity:'uncommon',overseas:false,stars:3},
   {id:4,name:'David Pretorius',role:'Middle-Order Batter',bat:80,bwl:5,fld:55,fit:68,form:78,loyalty:38,greed:72,rarity:'rare',overseas:true,stars:3},
   {id:5,name:'Karthik Narayan',role:'Middle-Order Batter',bat:78,bwl:25,fld:62,fit:75,form:70,loyalty:55,greed:50,rarity:'epic',overseas:false,stars:4},
+  {id:27,name:'Tilak Varma',role:'Middle-Order Batter',bat:73,bwl:18,fld:58,fit:80,form:72,loyalty:68,greed:32,rarity:'uncommon',overseas:false,stars:3},
+  {id:28,name:'Rinku Sharma',role:'Middle-Order Batter',bat:70,bwl:5,fld:55,fit:74,form:76,loyalty:82,greed:18,rarity:'uncommon',overseas:false,stars:3},
+  {id:29,name:'Sarfaraz Khan',role:'Middle-Order Batter',bat:77,bwl:3,fld:48,fit:65,form:80,loyalty:70,greed:40,rarity:'rare',overseas:false,stars:3},
+  {id:30,name:'Nicholas Pooran',role:'Middle-Order Batter',bat:82,bwl:2,fld:60,fit:72,form:68,loyalty:35,greed:65,rarity:'epic',overseas:true,stars:4},
+  {id:31,name:'Dhruv Jurel',role:'Middle-Order Batter',bat:64,bwl:8,fld:70,fit:78,form:56,loyalty:78,greed:20,rarity:'common',overseas:false,stars:2},
+  // Wicket-Keepers (4)
   {id:6,name:'Dinesh Kulkarni',role:'Wicket-Keeper',bat:68,bwl:3,fld:88,fit:70,form:55,loyalty:85,greed:20,rarity:'uncommon',overseas:false,stars:3},
   {id:7,name:'Rahul Bisht',role:'Wicket-Keeper',bat:72,bwl:5,fld:82,fit:65,form:62,loyalty:60,greed:45,rarity:'common',overseas:false,stars:2},
+  {id:32,name:'Ishan Kishan',role:'Wicket-Keeper',bat:75,bwl:2,fld:78,fit:72,form:58,loyalty:52,greed:55,rarity:'rare',overseas:false,stars:3},
+  {id:33,name:'Sanju Samson',role:'Wicket-Keeper',bat:80,bwl:1,fld:85,fit:74,form:72,loyalty:70,greed:38,rarity:'epic',overseas:false,stars:4},
+  // Fast Bowlers (10)
   {id:8,name:'Mitchell Okonkwo',role:'Fast Bowler',bat:18,bwl:88,fld:50,fit:85,form:75,loyalty:72,greed:30,rarity:'epic',overseas:true,stars:4},
   {id:9,name:'Bhuvnesh Kumar',role:'Fast Bowler',bat:22,bwl:82,fld:45,fit:78,form:68,loyalty:65,greed:40,rarity:'rare',overseas:false,stars:3},
   {id:10,name:'Navdeep Singh',role:'Fast Bowler',bat:12,bwl:78,fld:42,fit:90,form:72,loyalty:50,greed:55,rarity:'uncommon',overseas:false,stars:3},
   {id:11,name:'Jasprit Malhotra',role:'Fast Bowler',bat:15,bwl:75,fld:48,fit:80,form:60,loyalty:68,greed:35,rarity:'common',overseas:false,stars:2},
+  {id:20,name:'Carlos Brathwaite',role:'Fast Bowler',bat:10,bwl:70,fld:40,fit:75,form:58,loyalty:42,greed:60,rarity:'common',overseas:true,stars:2},
+  {id:34,name:'Arshdeep Gill',role:'Fast Bowler',bat:8,bwl:76,fld:45,fit:82,form:66,loyalty:74,greed:28,rarity:'uncommon',overseas:false,stars:3},
+  {id:35,name:'Mukesh Choudhary',role:'Fast Bowler',bat:14,bwl:72,fld:42,fit:78,form:62,loyalty:60,greed:42,rarity:'common',overseas:false,stars:2},
+  {id:36,name:'Umran Malik',role:'Fast Bowler',bat:6,bwl:84,fld:38,fit:88,form:70,loyalty:55,greed:48,rarity:'rare',overseas:false,stars:3},
+  {id:37,name:'Anrich Nortje',role:'Fast Bowler',bat:5,bwl:86,fld:44,fit:80,form:74,loyalty:48,greed:52,rarity:'epic',overseas:true,stars:4},
+  {id:38,name:'Tushar Deshpande',role:'Fast Bowler',bat:12,bwl:68,fld:40,fit:76,form:56,loyalty:66,greed:36,rarity:'common',overseas:false,stars:2},
+  // Spin Bowlers (8)
   {id:12,name:'Ravindra Chauhan',role:'Spin Bowler',bat:30,bwl:85,fld:55,fit:65,form:80,loyalty:78,greed:25,rarity:'rare',overseas:false,stars:3},
   {id:13,name:'Amit Yadav',role:'Spin Bowler',bat:35,bwl:72,fld:52,fit:60,form:58,loyalty:70,greed:38,rarity:'common',overseas:false,stars:2},
   {id:14,name:'Rashid Nazir',role:'Spin Bowler',bat:20,bwl:80,fld:50,fit:62,form:74,loyalty:30,greed:75,rarity:'rare',overseas:true,stars:3},
+  {id:39,name:'Kuldeep Yadav',role:'Spin Bowler',bat:15,bwl:82,fld:48,fit:66,form:76,loyalty:72,greed:30,rarity:'rare',overseas:false,stars:3},
+  {id:40,name:'Varun Chakravarthy',role:'Spin Bowler',bat:8,bwl:78,fld:45,fit:62,form:72,loyalty:65,greed:35,rarity:'uncommon',overseas:false,stars:3},
+  {id:41,name:'Ravi Bishnoi',role:'Spin Bowler',bat:10,bwl:74,fld:55,fit:70,form:64,loyalty:68,greed:32,rarity:'uncommon',overseas:false,stars:3},
+  {id:42,name:'Rahul Chahar',role:'Spin Bowler',bat:12,bwl:70,fld:46,fit:68,form:58,loyalty:58,greed:45,rarity:'common',overseas:false,stars:2},
+  {id:43,name:'Noor Ahmad',role:'Spin Bowler',bat:5,bwl:76,fld:42,fit:72,form:68,loyalty:40,greed:58,rarity:'uncommon',overseas:true,stars:3},
+  // All-Rounders (10)
   {id:15,name:'Suresh Venkatesh',role:'All-Rounder',bat:72,bwl:70,fld:75,fit:82,form:76,loyalty:90,greed:15,rarity:'legendary',overseas:false,stars:5},
   {id:16,name:'Hardik Tiwari',role:'All-Rounder',bat:65,bwl:68,fld:60,fit:70,form:55,loyalty:40,greed:65,rarity:'uncommon',overseas:false,stars:3},
   {id:17,name:'Vijay Shankar',role:'All-Rounder',bat:60,bwl:62,fld:72,fit:88,form:65,loyalty:75,greed:28,rarity:'uncommon',overseas:false,stars:3},
-  {id:18,name:'Prithvi Joshi',role:'Top-Order Batter',bat:70,bwl:10,fld:68,fit:72,form:62,loyalty:55,greed:50,rarity:'common',overseas:false,stars:2},
-  {id:19,name:'Manish Patel',role:'Top-Order Batter',bat:65,bwl:8,fld:58,fit:68,form:55,loyalty:88,greed:12,rarity:'common',overseas:false,stars:2},
-  {id:20,name:'Carlos Brathwaite',role:'Fast Bowler',bat:10,bwl:70,fld:40,fit:75,form:58,loyalty:42,greed:60,rarity:'common',overseas:true,stars:2},
+  {id:44,name:'Axar Patel',role:'All-Rounder',bat:58,bwl:74,fld:60,fit:76,form:68,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3},
+  {id:45,name:'Washington Sundar',role:'All-Rounder',bat:55,bwl:70,fld:58,fit:74,form:62,loyalty:72,greed:28,rarity:'uncommon',overseas:false,stars:3},
+  {id:46,name:'Venkatesh Iyer',role:'All-Rounder',bat:68,bwl:58,fld:55,fit:72,form:60,loyalty:60,greed:42,rarity:'uncommon',overseas:false,stars:3},
+  {id:47,name:'Shardul Thakur',role:'All-Rounder',bat:52,bwl:72,fld:50,fit:70,form:64,loyalty:78,greed:24,rarity:'uncommon',overseas:false,stars:3},
+  {id:48,name:'Marcus Stoinis',role:'All-Rounder',bat:74,bwl:65,fld:68,fit:78,form:70,loyalty:45,greed:55,rarity:'epic',overseas:true,stars:4},
+  {id:49,name:'Nitish Rana',role:'All-Rounder',bat:70,bwl:30,fld:52,fit:66,form:56,loyalty:55,greed:48,rarity:'common',overseas:false,stars:2},
+  {id:50,name:'Deepak Hooda',role:'All-Rounder',bat:66,bwl:45,fld:56,fit:70,form:58,loyalty:62,greed:40,rarity:'common',overseas:false,stars:2},
 ];
 
 var RIVALS = [
@@ -4610,34 +4648,38 @@ function addMoment(type, text, iconLabel) {
 }
 
 var COMM = {
-  dot: {gen:['{bo} bowls, {ba} defends.','{ba} plays and misses outside off.','Tight line from {bo}. Dot ball.','{bo} beats the bat. Nothing doing.','{ba} lets it go. Good discipline.','Defended back to {bo}. No run.','{bo} on target. {ba} blocks.'],pp:['{bo} fires it in. {ba} digs it out.','Sharp delivery in the powerplay! Dot.'],death:['Yorker from {bo}! {ba} digs it out.','{bo} nails the blockhole. Excellent.'],chase:['{ba} can\'t find the gap. Pressure building.','Dot ball. Required rate climbing.']},
-  s1: {gen:['{ba} works it for one.','Quick single by {ba}.','{ba} nudges to leg. One run.','{ba} tucks it off the pads. Single.','{ba} rotates the strike. Smart cricket.']},
-  s2: {gen:['{ba} finds the gap. Two runs.','Good placement by {ba}, back for two.','{ba} drives and pushes for a double.','Well run! {ba} gets two.']},
-  s3: {gen:['{ba} pushes hard — three runs!','Misfield! {ba} takes advantage, three.','Great running between the wickets. Three!']},
-  four: {gen:['FOUR! {ba} cracks it through the gap!','FOUR! Short from {bo}, {ba} pulls it away!','FOUR! Beautiful timing from {ba}.','BOUNDARY! {ba} pierces the field.','FOUR! {bo} errs in line, punished by {ba}!','FOUR! {ba} lofts it over the infield!','FOUR! Exquisite cover drive from {ba}.'],pp:['FOUR! {ba} drives through covers! Powerplay hitting.','FOUR! {ba} goes over the top in the powerplay!'],death:['FOUR! {bo} misses the yorker! {ba} cashes in.','FOUR! {ba} slams it to the fence in the death!','FOUR! Full toss from {bo}, dispatched by {ba}!']},
-  six: {gen:['SIX! {ba} launches it into the stands!','MASSIVE! {ba} clears the rope against {bo}!','SIX! Clean hit from {ba}. Maximum!','INTO THE CROWD! {ba} goes downtown!','SIX! {ba} picks the length and sends it sailing!','SIX! That has gone miles! {ba} in beast mode.'],death:['SIX! {ba} clears the boundary in the death!','SIX! {ba} takes on {bo} — game changer!']},
-  wkt: {gen:['OUT! {bo} gets {ba}! {w} down.','WICKET! {ba} departs. {bo} strikes.','Gone! {ba} walks back. {bo} celebrates.','{bo} breaks through! {ba} is out. {w} down.','Timber! {bo} knocks over {ba}\'s stumps!'],collapse:['Another one falls! {ba} out to {bo}. {w} down!','The collapse deepens! {ba} gone. {w} wickets down.']}
+  dot: {gen:['{bo} bowls, {ba} defends.','{ba} plays and misses outside off.','Tight line from {bo}. Dot ball.','{bo} beats the bat. Nothing doing.','{ba} lets it go. Good discipline.','Defended back to {bo}. No run.','{bo} on target. {ba} blocks.','Appeal! But not given. Dot ball.','{ba} jabs down on it. Squeeze. No run.','{bo} cramps {ba} for room. Can\'t score.','Back of a length from {bo}, {ba} watches it through.','{ba} shoulder arms. Good judgement.'],pp:['{bo} fires it in. {ba} digs it out.','Sharp delivery in the powerplay! Dot.','Full and straight in PP. {ba} blocked.','Tight over from {bo} to start the powerplay.'],mid:['{bo} keeps it tight in the middle overs.','{ba} works the angles but can\'t beat the field.','Quiet single denied. Good fielding.','Control bowling from {bo}. Building pressure.'],death:['Yorker from {bo}! {ba} digs it out.','{bo} nails the blockhole. Excellent.','Slower ball! {ba} swings and misses.','{bo} changes pace. {ba} fooled completely.','Wide yorker, {ba} reaches but can\'t connect.'],chase:['{ba} can\'t find the gap. Pressure building.','Dot ball. Required rate climbing.','The chase stalls. {ba} under pressure from {bo}.','Equation getting tougher. {ba} can\'t score.']},
+  s1: {gen:['{ba} works it for one.','Quick single by {ba}.','{ba} nudges to leg. One run.','{ba} tucks it off the pads. Single.','{ba} rotates the strike. Smart cricket.','{ba} dabs it behind point for one.','{ba} works it to midwicket. Easy single.','{ba} clips off the hip. One run.']},
+  s2: {gen:['{ba} finds the gap. Two runs.','Good placement by {ba}, back for two.','{ba} drives and pushes for a double.','Well run! {ba} gets two.','{ba} flicks to deep. Comes back for the second.','{ba} turns it to leg. Quick running — two.','Smart batting from {ba}. Worked into the gap for two.']},
+  s3: {gen:['{ba} pushes hard — three runs!','Misfield! {ba} takes advantage, three.','Great running between the wickets. Three!','{ba} finds the gap at deep mid. Three runs!','Overthrow! {ba} gets three.']},
+  four: {gen:['FOUR! {ba} cracks it through the gap!','FOUR! Short from {bo}, {ba} pulls it away!','FOUR! Beautiful timing from {ba}.','BOUNDARY! {ba} pierces the field.','FOUR! {bo} errs in line, punished by {ba}!','FOUR! {ba} lofts it over the infield!','FOUR! Exquisite cover drive from {ba}.','FOUR! {ba} sweeps it to the fence!','FOUR! Cut shot from {ba}. Racing away!','FOUR! Uppish but safe! {ba} creams it.','FOUR! {ba} drives straight past {bo}! Class.','FOUR! Late cut from {ba}. Delicate touch.'],pp:['FOUR! {ba} drives through covers! Powerplay hitting.','FOUR! {ba} goes over the top in the powerplay!','FOUR! {ba} pulls in front of square! PP aggression.','FOUR! Flicked off the pads! {ba} races ahead in the PP.'],mid:['FOUR! {ba} breaks the shackles in the middle overs!','FOUR! {ba} rocks back and cuts {bo} away!','FOUR! Slog sweep from {ba}! Breaking free.'],death:['FOUR! {bo} misses the yorker! {ba} cashes in.','FOUR! {ba} slams it to the fence in the death!','FOUR! Full toss from {bo}, dispatched by {ba}!','FOUR! {ba} scoops it over short fine! Audacious!','FOUR! Reverse sweep from {ba}! Innovation in the death overs.']},
+  six: {gen:['SIX! {ba} launches it into the stands!','MASSIVE! {ba} clears the rope against {bo}!','SIX! Clean hit from {ba}. Maximum!','INTO THE CROWD! {ba} goes downtown!','SIX! {ba} picks the length and sends it sailing!','SIX! That has gone miles! {ba} in beast mode.','SIX! Flat and long! {ba} muscles it over long-on.','SIX! Step down and loft from {ba}! Sensational.','SIX! {ba} dances down the track and sends it packing!','SIX! One-handed! {ba} is showing off now!'],mid:['SIX! {ba} breaks free in the middle overs! Huge hit.','SIX! Slog sweep from {ba}! That\'s gone into Row Z.'],death:['SIX! {ba} clears the boundary in the death!','SIX! {ba} takes on {bo} — game changer!','SIX! Full toss punished! {ba} deposits it into the stands!','SIX! {ba} goes for the maximum with 3 overs left!'],chase:['SIX! {ba} is taking the chase into his own hands!','SIX! The crowd erupts! {ba} brings down the equation!']},
+  wkt: {gen:['OUT! {bo} gets {ba}! {w} down.','WICKET! {ba} departs. {bo} strikes.','Gone! {ba} walks back. {bo} celebrates.','{bo} breaks through! {ba} is out. {w} down.','Timber! {bo} knocks over {ba}\'s stumps!','Caught! {ba} finds the fielder off {bo}!','Edged and taken! {bo} gets the breakthrough!','LBW! {bo} traps {ba} in front. Plumb!','Stumped! {ba} misses and the keeper does the rest.','Clean bowled! {bo} castles {ba}! Beautiful delivery.'],collapse:['Another one falls! {ba} out to {bo}. {w} down!','The collapse deepens! {ba} gone. {w} wickets down.','Carnage! {bo} is ripping through. {w} down now.','Is this a meltdown? {ba} falls for {bo}. {w} wickets gone.']}
 };
 
 function getCommentary(outcome, batter, bowler, phase, innings, target, cRuns, ball, cWkts, momentum) {
   var ba = batter.name, bo = bowler.name;
-  var pk = phase === 0 ? 'pp' : phase === 2 ? 'death' : null;
+  var pk = phase === 0 ? 'pp' : phase === 1 ? 'mid' : 'death';
   var isChase = innings === 2 && target > 0;
   var pool;
   if (outcome.wicket) {
     pool = (cWkts >= 3 && momentum < 35 && COMM.wkt.collapse) ? COMM.wkt.collapse : COMM.wkt.gen;
   } else if (outcome.runs === 6) {
-    pool = (pk === 'death' && COMM.six.death) ? COMM.six.death : COMM.six.gen;
+    if (isChase && COMM.six.chase) pool = COMM.six.chase;
+    else if (COMM.six[pk]) pool = COMM.six[pk];
+    else pool = COMM.six.gen;
   } else if (outcome.runs === 4) {
-    pool = (pk && COMM.four[pk]) ? COMM.four[pk] : COMM.four.gen;
+    if (COMM.four[pk]) pool = COMM.four[pk];
+    else pool = COMM.four.gen;
   } else if (outcome.runs === 3) { pool = COMM.s3.gen;
   } else if (outcome.runs === 2) { pool = COMM.s2.gen;
   } else if (outcome.runs === 1) { pool = COMM.s1.gen;
   } else {
     if (isChase && (target + 1 - cRuns) > (120 - ball) * 1.5 && COMM.dot.chase) pool = COMM.dot.chase;
-    else if (pk && COMM.dot[pk]) pool = COMM.dot[pk];
+    else if (COMM.dot[pk]) pool = COMM.dot[pk];
     else pool = COMM.dot.gen;
   }
+  if (Math.random() < 0.3) { var alt = COMM[outcome.wicket ? 'wkt' : outcome.runs === 6 ? 'six' : outcome.runs === 4 ? 'four' : 'dot']; if (alt && alt.gen && alt.gen !== pool) pool = pool.concat(alt.gen); }
   var text = pool[Math.floor(Math.random() * pool.length)];
   text = text.replace(/\{ba\}/g, ba).replace(/\{bo\}/g, bo).replace(/\{w\}/g, cWkts);
   return text;
@@ -5412,12 +5454,12 @@ function resolveKnockoutMatch(won){
 // SOCIAL MEDIA SIMULATION
 // =============================================
 var SOCIAL_TEMPLATES=[
-  {type:'fan',gen:function(ctx){return{user:'@CricFan'+Math.floor(Math.random()*999),text:ctx.won?ctx.team+' is on fire! '+ctx.wins+' wins this season!':'Tough day for '+ctx.team+'. Better luck next time.',likes:Math.floor(Math.random()*500)+50};}},
-  {type:'journalist',gen:function(ctx){return{user:'CricBuzz_Live',text:ctx.heat>50?'BREAKING: '+ctx.team+' manager under scrutiny as corruption rumours swirl.':ctx.winRate>0.6?ctx.team+' on promotion track — dominant '+Math.round(ctx.winRate*100)+'% win rate.':'Season update: '+ctx.team+' sitting at '+ctx.wins+'W-'+ctx.losses+'L.',likes:Math.floor(Math.random()*2000)+200};}},
-  {type:'rival',gen:function(ctx){return{user:ctx.rival,text:ctx.won?'"Lucky. Next time I will crush you." — '+ctx.rival:'"Expected result. You are not ready for this level." — '+ctx.rival,likes:Math.floor(Math.random()*300)+30};}},
+  {type:'fan',gen:function(ctx){var msgs=ctx.won?[ctx.team+' is on fire! '+ctx.wins+' wins this season!','Yessss! '+ctx.team+' supremacy! What a win!','Match '+ctx.matchNum+' done. '+ctx.team+' looking unstoppable.','Bhai '+ctx.team+' ka time aa gaya! '+ctx.wins+' wins!']:['Tough day for '+ctx.team+'. Better luck next time.','Pain. '+ctx.team+' deserved better today.','What happened '+ctx.team+'? We believe in you still.',''+ctx.losses+' losses now. Time to bounce back, '+ctx.team+'!'];return{user:'@CricFan'+Math.floor(Math.random()*999),text:msgs[Math.floor(Math.random()*msgs.length)],likes:Math.floor(Math.random()*500)+50};}},
+  {type:'journalist',gen:function(ctx){var msgs=[];if(ctx.heat>50)msgs.push('BREAKING: '+ctx.team+' manager under scrutiny as corruption rumours swirl.','Sources say BCCI looking into '+ctx.team+'\'s conduct. Heat index: '+ctx.heat+'.');if(ctx.winRate>0.6)msgs.push(ctx.team+' on promotion track — dominant '+Math.round(ctx.winRate*100)+'% win rate.','Can anyone stop '+ctx.team+'? '+ctx.wins+' wins and counting.');msgs.push('Season update: '+ctx.team+' sitting at '+ctx.wins+'W-'+ctx.losses+'L.','Matchday '+ctx.matchNum+': '+ctx.team+' vs '+ctx.rival+' — key clash in the '+ctx.league+' race.');return{user:['CricBuzz_Live','ESPNcricinfo','Sports_Tak','Cricket_Next'][Math.floor(Math.random()*4)],text:msgs[Math.floor(Math.random()*msgs.length)],likes:Math.floor(Math.random()*2000)+200};}},
+  {type:'rival',gen:function(ctx){var wMsgs=['"Lucky. Next time I will crush you." — '+ctx.rival,'"Enjoy it while it lasts." — '+ctx.rival,'"One win doesn\'t make you champion." — '+ctx.rival];var lMsgs=['"Expected result. You are not ready for this level." — '+ctx.rival,'"I told everyone. Levels." — '+ctx.rival,'"Come back when you have a real squad." — '+ctx.rival];var msgs=ctx.won?wMsgs:lMsgs;return{user:ctx.rival,text:msgs[Math.floor(Math.random()*msgs.length)],likes:Math.floor(Math.random()*300)+30};}},
   {type:'sponsor',gen:function(ctx){return{user:ctx.sponsor,text:ctx.align>30?'Proud to partner with '+ctx.team+'! A beacon of fair play.':ctx.align<-30?'We are reviewing our association with '+ctx.team+' amid recent controversies.':'Our partnership with '+ctx.team+' continues into matchday '+(ctx.matchNum)+'.',likes:Math.floor(Math.random()*800)+100};}},
-  {type:'fan_poll',gen:function(ctx){var choice=ctx.align>0?'Clean Legend':'Dark Horse';return{user:'@PollsCricket',text:'Fan poll: What defines '+ctx.team+'\'s season? 67% say "'+choice+'". Do you agree?',likes:Math.floor(Math.random()*1200)+300};}},
-  {type:'meme',gen:function(ctx){var memes=['When '+ctx.team+' wins but your fantasy team still loses','Nobody: ... '+ctx.team+' fans after match '+(ctx.matchNum-1)+': *celebration noises*','That face when '+ctx.team+' nearly lost to a team with 30 OVR'];return{user:'@CricMemes',text:memes[Math.floor(Math.random()*memes.length)],likes:Math.floor(Math.random()*3000)+500};}},
+  {type:'fan_poll',gen:function(ctx){var polls=[{q:'What defines '+ctx.team+'\'s season?',a:ctx.align>0?'Clean Legend':'Dark Horse'},{q:'Rate '+ctx.team+'\'s manager this season?',a:ctx.winRate>0.5?'Genius':'Needs improvement'},{q:'Will '+ctx.team+' get promoted?',a:ctx.winRate>0.5?'Definitely':'Not this season'}];var p=polls[Math.floor(Math.random()*polls.length)];return{user:'@PollsCricket',text:'Fan poll: '+p.q+' 67% say "'+p.a+'". Do you agree?',likes:Math.floor(Math.random()*1200)+300};}},
+  {type:'meme',gen:function(ctx){var memes=['When '+ctx.team+' wins but your fantasy team still loses','Nobody: ... '+ctx.team+' fans after match '+(ctx.matchNum-1)+': *celebration noises*','That face when '+ctx.team+' nearly lost to a team with 30 OVR',''+ctx.team+' fans checking the points table every 5 minutes','POV: You told your friend '+ctx.team+' would win and they actually did',''+ctx.rival+' after losing to '+ctx.team+': "I wasn\'t even trying"','Me watching '+ctx.team+' matches at 2 AM: "This is fine"'];return{user:'@CricMemes',text:memes[Math.floor(Math.random()*memes.length)],likes:Math.floor(Math.random()*3000)+500};}},
   {type:'breaking',gen:function(ctx){if(ctx.heat>70) return{user:'ESPN_Cricket',text:'DEVELOPING: Board sources confirm investigation into '+ctx.team+' is gathering evidence. Tribunal possible.',likes:Math.floor(Math.random()*5000)+1000};if(ctx.align>60) return{user:'ESPN_Cricket',text:ctx.team+' receives Fair Play nomination. Manager praised for clean approach.',likes:Math.floor(Math.random()*3000)+500};return{user:'ESPN_Cricket',text:'Season '+ctx.season+' standings update: '+ctx.team+' at '+ctx.wins+'W-'+ctx.losses+'L in '+(LEAGUE_NAMES[ctx.league]||'the league')+'.',likes:Math.floor(Math.random()*2000)+300};}},
 ];
 
