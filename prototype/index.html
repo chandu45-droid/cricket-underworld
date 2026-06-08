@@ -853,7 +853,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .modal.drag-dismissing{transition:transform 0.35s var(--spring),opacity 0.35s;opacity:0;transform:translateY(100%) !important}
 
 /* Pull-to-refresh */
-#pull-indicator{position:absolute;top:0;left:50%;transform:translateX(-50%) translateY(-50px);width:36px;height:36px;border-radius:50%;background:var(--dugout);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;z-index:10;transition:transform 0.3s var(--spring-bounce),opacity 0.3s;opacity:0;pointer-events:none;box-shadow:var(--elevation-2)}
+#pull-indicator{position:absolute;top:0;left:50%;transform:translateX(-50%) translateY(-50px);width:36px;height:36px;border-radius:50%;background:var(--dugout);border:1px solid var(--border);display:none;align-items:center;justify-content:center;z-index:10;transition:transform 0.3s var(--spring-bounce),opacity 0.3s;opacity:0;pointer-events:none;box-shadow:var(--elevation-2)}
 #pull-indicator svg{width:18px;height:18px;stroke:var(--align-accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform 0.3s}
 #pull-indicator.ready svg{transform:rotate(180deg)}
 #pull-indicator.refreshing{animation:pullSpin 0.8s linear infinite}
@@ -1405,6 +1405,21 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         </div>
       </div>
 
+      <div class="glass" id="staff-panel">
+        <div class="section-title sm">Team Staff<span class="accent-line"></span></div>
+        <div id="staff-content"></div>
+      </div>
+
+      <div class="glass" id="scout-panel">
+        <div class="section-title sm">Scout Options<span class="accent-line"></span></div>
+        <div id="scout-content"></div>
+      </div>
+
+      <div class="glass accent-red" id="heat-actions-panel">
+        <div class="section-title sm" style="color:var(--blood)">Provocations<span class="accent-line"></span></div>
+        <div id="heat-actions-content"></div>
+      </div>
+
       <div class="glass accent-green" id="mentorship-panel" style="display:none">
         <div class="section-title sm" style="color:var(--green-bright)">Mentorship<span class="accent-line"></span></div>
         <div id="mentorship-content"></div>
@@ -1539,6 +1554,15 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <div class="strategy-opt" data-strat="aggressive">Aggro</div>
           <div class="strategy-opt selected" data-strat="balanced">Balanced</div>
           <div class="strategy-opt" data-strat="defensive">Defense</div>
+        </div>
+      </div>
+      <div class="glass accent-blue" id="bowler-lineup-panel">
+        <div class="section-title sm">Bowler Lineup<span class="accent-line"></span></div>
+        <div class="text-xs text-slip mb-8">Set preferred bowling order. You can change mid-match.</div>
+        <div id="bowler-lineup-list"></div>
+        <div class="flex gap-8 mt-8">
+          <div class="btn btn-outline flex-1 text-xs" id="bowler-auto-btn" style="padding:6px">Auto (ask each over)</div>
+          <div class="btn btn-outline flex-1 text-xs" id="bowler-lock-btn" style="padding:6px">Lock Lineup</div>
         </div>
       </div>
       <div class="glass accent-red" id="fix-active-banner" style="display:none;margin-top:12px;text-align:center">
@@ -1834,6 +1858,9 @@ var GS = {
   knockout: null,
   socialFeed: [],
   academySlots: [],
+  staff: {},
+  scoutedXI: null,
+  scoutWeakness: null,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1862,6 +1889,9 @@ function load() {
       GS.knockout=v(d.knockout,null);
       GS.socialFeed=v(d.socialFeed,[]);
       GS.academySlots=v(d.academySlots,[]);
+      GS.staff=v(d.staff,{});
+      GS.scoutedXI=v(d.scoutedXI,null);
+      GS.scoutWeakness=v(d.scoutWeakness,null);
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -3124,25 +3154,33 @@ function showPlayerDetail(id) {
       (p.banned ? '<div style="padding:10px;margin-top:8px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.2);border-radius:3px;text-align:center"><div class="font-d fw-700 text-red" style="font-size:13px;text-transform:uppercase;letter-spacing:2px">BANNED</div><div class="text-xs text-slip" style="margin-top:2px">' + (BAN_REASONS[p.banned.reason] ? BAN_REASONS[p.banned.reason].label : 'Banned') + ' · ' + p.banned.matchesLeft + ' match' + (p.banned.matchesLeft > 1 ? 'es' : '') + ' remaining</div></div>' : '') +
     '</div>' +
     (GS.squad.some(function(s){return s.id===p.id;}) ?
-      '<div class="glass accent-gold" style="margin-top:12px"><div class="section-title sm">Training<span class="accent-line"></span></div>' +
-        '<div class="text-xs text-slip mb-8">Spend coins to improve stats. Cost scales with current level.</div>' +
-        '<div class="flex gap-8 mb-8">' +
-          '<div class="btn btn-outline flex-1 text-xs" id="train-bat-btn" style="padding:8px">BAT +2 (' + getTrainCost(p.bat) + 'C)</div>' +
-          '<div class="btn btn-outline flex-1 text-xs" id="train-bwl-btn" style="padding:8px">BWL +2 (' + getTrainCost(p.bwl) + 'C)</div>' +
-        '</div>' +
-        '<div class="flex gap-8">' +
-          '<div class="btn btn-outline flex-1 text-xs" id="train-fld-btn" style="padding:8px">FLD +2 (' + getTrainCost(p.fld) + 'C)</div>' +
-          '<div class="btn btn-outline flex-1 text-xs" id="train-fit-btn" style="padding:8px">FIT +2 (' + getTrainCost(p.fit) + 'C)</div>' +
-        '</div></div>' +
+      (function() {
+        var opts = getTrainingOptions(p);
+        var trainHtml = '<div class="glass accent-gold" style="margin-top:12px"><div class="section-title sm">Training<span class="accent-line"></span></div>' +
+          '<div class="text-xs text-slip mb-8">Role-specific training. Staff bonuses apply.</div>';
+        for (var ti = 0; ti < opts.length; ti++) {
+          var o = opts[ti];
+          var gain = o.gain || (1 + (o.bonus || 0));
+          trainHtml += '<div class="flex items-center gap-6 mb-4" style="padding:6px;border:1px solid var(--border);border-radius:3px">' +
+            '<div class="flex-1"><div class="font-d fw-600 text-xs">' + o.label + '</div><div class="text-xs text-slip">' + o.desc + '</div></div>' +
+            '<div class="btn btn-outline text-xs" style="padding:4px 8px;font-size:10px" data-trainstat="' + o.stat + '" data-traingain="' + (o.gain || 0) + '">' + o.cost + 'C</div></div>';
+        }
+        trainHtml += '</div>';
+        return trainHtml;
+      })() +
       '<div class="flex gap-10 mt-12"><div class="btn btn-outline flex-1" id="close-detail-btn">Close</div><div class="btn flex-1" id="release-detail-btn" style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);color:var(--blood)">Release (+' + Math.round(p.bat * 2 + p.bwl * 1.5) + ' coins)</div></div>' :
       '<div class="btn btn-outline full" id="close-detail-btn">Close</div>');
   $('player-detail-overlay').classList.add('show');
   $('close-detail-btn').onclick = function() { $('player-detail-overlay').classList.remove('show'); };
-  var trainStats = [['bat','train-bat-btn'],['bwl','train-bwl-btn'],['fld','train-fld-btn'],['fit','train-fit-btn']];
-  trainStats.forEach(function(ts) {
-    var btn = $(ts[1]);
-    if (btn) btn.onclick = function() { trainPlayer(p.id, ts[0]); };
-  });
+  var trainBtns = $('player-detail-content').querySelectorAll('[data-trainstat]');
+  for (var ti = 0; ti < trainBtns.length; ti++) {
+    trainBtns[ti].onclick = function() {
+      var stat = this.getAttribute('data-trainstat');
+      var customGain = parseInt(this.getAttribute('data-traingain'));
+      if (customGain > 0) trainPlayerAdvanced(p.id, stat, customGain);
+      else trainPlayer(p.id, stat);
+    };
+  }
   if ($('release-detail-btn')) {
     $('release-detail-btn').onclick = function() {
       var refund = Math.round(p.bat * 2 + p.bwl * 1.5);
@@ -3167,10 +3205,28 @@ function trainPlayer(id, stat) {
   if (p[stat] >= 95) { toast('Stat already maxed', 'error'); return; }
   GS.coins -= cost;
   var gain = 1 + Math.floor(Math.random() * 2);
+  if (stat === 'bat' && GS.staff && GS.staff.batting_coach) gain++;
+  if (stat === 'bwl' && GS.staff && GS.staff.bowling_coach) gain++;
   p[stat] = Math.min(99, p[stat] + gain);
   SFX.reveal();
   save(); updateCurrency();
   toast(p.name + ' ' + stat.toUpperCase() + ' +' + gain + ' (now ' + p[stat] + ')', 'success');
+  showPlayerDetail(id);
+}
+
+function trainPlayerAdvanced(id, stat, gain) {
+  var p = GS.squad.find(function(s){return s.id===id;});
+  if (!p) return;
+  var cost = Math.round(getTrainCost(p[stat]) * 1.5);
+  if (GS.coins < cost) { toast('Need ' + cost + ' coins', 'error'); return; }
+  if (p[stat] >= 95) { toast('Stat already maxed', 'error'); return; }
+  GS.coins -= cost;
+  if (stat === 'bat' && GS.staff && GS.staff.batting_coach) gain++;
+  if (stat === 'bwl' && GS.staff && GS.staff.bowling_coach) gain++;
+  p[stat] = Math.min(99, p[stat] + gain);
+  SFX.reveal();
+  save(); updateCurrency();
+  toast(p.name + ' ' + stat.toUpperCase() + ' +' + gain + ' (intensive, now ' + p[stat] + ')', 'success');
   showPlayerDetail(id);
 }
 
@@ -3340,6 +3396,21 @@ function updateHub() {
     $('hub-streak-best').textContent = GS.bestStreak > 0 ? 'Best: ' + GS.bestStreak : '';
   }
   updateMentorshipPanel();
+  updateStaffPanel();
+  updateScoutPanel();
+  var heatActions = getHeatActions();
+  var haHtml = '<div class="text-xs text-slip mb-8">Deliberately stir things up. Raises heat and media attention.</div>';
+  for (var ha = 0; ha < heatActions.length; ha++) {
+    var a = heatActions[ha];
+    haHtml += '<div class="flex items-center gap-8 mb-4" style="padding:6px;border:1px solid var(--border);border-radius:3px">' +
+      '<div class="flex-1"><div class="font-d fw-600 text-xs">' + a.name + '</div><div class="text-xs text-slip">' + a.desc + '</div></div>' +
+      '<div class="btn btn-outline text-xs" style="padding:4px 8px;border-color:rgba(220,38,38,0.3);color:var(--blood)" data-heatact="' + a.id + '">' + (a.cost > 0 ? a.cost + 'C' : 'Free') + '</div></div>';
+  }
+  $('heat-actions-content').innerHTML = haHtml;
+  var haBtns = $('heat-actions-content').querySelectorAll('[data-heatact]');
+  for (var hb = 0; hb < haBtns.length; hb++) {
+    haBtns[hb].onclick = function() { executeHeatAction(this.getAttribute('data-heatact')); };
+  }
   $('academy-panel').innerHTML = getAcademyHtml();
   setTimeout(function() {
     var recruitBtn = $('academy-recruit-btn');
@@ -3562,7 +3633,7 @@ function endAuction() {
 // =============================================
 // MATCH
 // =============================================
-var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[], drsUsed:false, impactUsed:false, weather:'clear', rainOver:0, superOver:false };
+var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[], lastBowler:null, bowlerLineup:[], drsUsed:false, impactUsed:false, weather:'clear', rainOver:0, superOver:false };
 
 function updateMomentum(runs, wkt, isYou) {
   var shift = runs * 2 + (wkt ? -15 : 0);
@@ -3640,14 +3711,20 @@ function extractBowlers(xi) {
 
 function pickBowler(bowlers, phase, overNum) {
   if (!bowlers || bowlers.length === 0) return {name:'Sub',role:'All-Rounder',bat:30,bwl:30,form:50,fld:40};
+  var eligible = bowlers.filter(function(b) { return !match.lastBowler || b.name !== match.lastBowler.name; });
+  if (eligible.length === 0) eligible = bowlers;
+  if (match.bowlerLineup && match.bowlerLineup.length > 0) {
+    var nextInLine = match.bowlerLineup.find(function(b) { return !match.lastBowler || b.name !== match.lastBowler.name; });
+    if (nextInLine) return nextInLine;
+  }
   if (phase === 1) {
-    var spin = bowlers.filter(function(b){return b.role==='Spin Bowler';});
+    var spin = eligible.filter(function(b){return b.role==='Spin Bowler';});
     if (spin.length > 0) return spin[overNum % spin.length];
   } else {
-    var pace = bowlers.filter(function(b){return b.role==='Fast Bowler';});
+    var pace = eligible.filter(function(b){return b.role==='Fast Bowler';});
     if (pace.length > 0) return pace[overNum % pace.length];
   }
-  return bowlers[overNum % bowlers.length];
+  return eligible[overNum % eligible.length];
 }
 
 function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isYourBatting, innings, target, runs, ball) {
@@ -3682,6 +3759,7 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
       else bwlStr *= 0.50;
     }
   }
+  if (GS.scoutWeakness && match.opponent && GS.scoutWeakness === match.opponent.name && !isYourBatting) bwlStr *= 1.10;
   if (match.weather === 'overcast') { if (isPace) bwlStr *= 1.10; }
   if (match.weather === 'dew' && innings === 2) { batStr *= 1.08; }
   if (match.boostBalls > 0 && isYourBatting) { batStr *= 1.20; match.boostBalls--; }
@@ -3899,6 +3977,7 @@ function playSuperOver() {
 function rollInjury(player) {
   if (!player || !player.fit) return null;
   var chance = Math.max(0.01, (100 - player.fit) / 800);
+  if (GS.staff && GS.staff.fitness_trainer) chance *= 0.5;
   if (Math.random() < chance) {
     var types = [
       { name: 'Hamstring Strain', matches: 2 },
@@ -3932,9 +4011,10 @@ function processMatchInjuries() {
 
 function processInjuryTick() {
   var healed = [];
+  var hasPhysio = GS.staff && GS.staff.physio;
   for (var i = 0; i < GS.squad.length; i++) {
     if (GS.squad[i].injured) {
-      GS.squad[i].injured.matchesLeft--;
+      GS.squad[i].injured.matchesLeft -= hasPhysio ? 2 : 1;
       if (GS.squad[i].injured.matchesLeft <= 0) {
         healed.push(GS.squad[i].name);
         GS.squad[i].injured = null;
@@ -3942,6 +4022,187 @@ function processInjuryTick() {
     }
   }
   return healed;
+}
+
+// =============================================
+// TEAM STAFF SYSTEM
+// =============================================
+var STAFF_TYPES = [
+  {id:'batting_coach',name:'Batting Coach',cost:400,effect:'+5% BAT training gains',stat:'bat',bonus:0.05},
+  {id:'bowling_coach',name:'Bowling Coach',cost:400,effect:'+5% BWL training gains',stat:'bwl',bonus:0.05},
+  {id:'fitness_trainer',name:'Fitness Trainer',cost:350,effect:'Halves injury chance',stat:'fit',bonus:0.5},
+  {id:'analyst',name:'Data Analyst',cost:500,effect:'Better scout intel, rival preview',stat:null,bonus:0},
+  {id:'physio',name:'Team Physio',cost:300,effect:'Injuries heal 1 match faster',stat:null,bonus:0},
+];
+
+function updateStaffPanel() {
+  if (!GS.staff) GS.staff = {};
+  var html = '<div class="text-xs text-slip mb-8">Recruit staff to boost your team. Permanent hires.</div>';
+  for (var i = 0; i < STAFF_TYPES.length; i++) {
+    var s = STAFF_TYPES[i];
+    var owned = !!GS.staff[s.id];
+    html += '<div class="flex items-center gap-8 mb-6" style="padding:8px;border:1px solid var(--border);border-radius:3px' + (owned ? ';background:rgba(52,211,153,0.04)' : '') + '">' +
+      '<div class="flex-1"><div class="font-d fw-600 text-sm">' + s.name + '</div><div class="text-xs text-slip">' + s.effect + '</div></div>' +
+      (owned ? '<span class="badge rarity-rare">HIRED</span>' : '<div class="btn btn-outline text-xs" style="padding:4px 10px" data-staff="' + s.id + '">' + s.cost + 'C</div>') +
+      '</div>';
+  }
+  $('staff-content').innerHTML = html;
+  var btns = $('staff-content').querySelectorAll('[data-staff]');
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].onclick = function() {
+      var sid = this.getAttribute('data-staff');
+      var st = STAFF_TYPES.find(function(s) { return s.id === sid; });
+      if (!st) return;
+      if (GS.coins < st.cost) { toast('Need ' + st.cost + ' coins', 'error'); return; }
+      GS.coins -= st.cost;
+      GS.staff[sid] = true;
+      SFX.reveal(); save(); updateCurrency(); updateStaffPanel();
+      toast(st.name + ' hired!', 'success');
+    };
+  }
+}
+
+// =============================================
+// SCOUT SYSTEM — Multiple options
+// =============================================
+var SCOUT_OPTIONS = [
+  {id:'basic',name:'Basic Scout',cost:100,desc:'Preview rival\'s top 3 players',tier:1},
+  {id:'detailed',name:'Detailed Report',cost:250,desc:'Full rival XI with stats and form',tier:2},
+  {id:'market',name:'Market Intel',cost:150,desc:'Reveal 2 hidden transfer market gems',tier:1},
+  {id:'weakness',name:'Weakness Analysis',cost:300,desc:'Find rival\'s weakest link (+10% vs them)',tier:2},
+];
+
+function updateScoutPanel() {
+  var hasAnalyst = GS.staff && GS.staff.analyst;
+  var html = '<div class="text-xs text-slip mb-8">Spend coins to gather intelligence.' + (hasAnalyst ? ' <span class="text-green">Analyst on staff — costs halved!</span>' : '') + '</div>';
+  for (var i = 0; i < SCOUT_OPTIONS.length; i++) {
+    var sc = SCOUT_OPTIONS[i];
+    var cost = hasAnalyst ? Math.round(sc.cost * 0.5) : sc.cost;
+    html += '<div class="flex items-center gap-8 mb-6" style="padding:8px;border:1px solid var(--border);border-radius:3px">' +
+      '<div class="flex-1"><div class="font-d fw-600 text-sm">' + sc.name + '</div><div class="text-xs text-slip">' + sc.desc + '</div></div>' +
+      '<div class="btn btn-outline text-xs" style="padding:4px 10px" data-scout="' + sc.id + '">' + cost + 'C</div></div>';
+  }
+  $('scout-content').innerHTML = html;
+  var btns = $('scout-content').querySelectorAll('[data-scout]');
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].onclick = function() {
+      var sid = this.getAttribute('data-scout');
+      var sc = SCOUT_OPTIONS.find(function(s) { return s.id === sid; });
+      if (!sc) return;
+      var cost = (GS.staff && GS.staff.analyst) ? Math.round(sc.cost * 0.5) : sc.cost;
+      if (GS.coins < cost) { toast('Need ' + cost + ' coins', 'error'); return; }
+      GS.coins -= cost; SFX.reveal(); save(); updateCurrency();
+      executeScout(sc);
+    };
+  }
+}
+
+function executeScout(sc) {
+  var rival = getNextRival();
+  if (sc.id === 'basic') {
+    var topPlayers = generateRivalXI(rival).slice(0, 3);
+    var html = '<div class="font-d fw-700 text-center mb-12" style="font-size:18px;text-transform:uppercase;letter-spacing:3px">' + rival.name + ' — Top 3</div>';
+    for (var i = 0; i < topPlayers.length; i++) {
+      var p = topPlayers[i];
+      html += '<div class="flex items-center gap-8 mb-6" style="padding:8px;border:1px solid var(--border);border-radius:3px"><div class="flex-1"><div class="font-d fw-600 text-sm">' + p.name + '</div><div class="text-xs text-slip">' + p.role + '</div></div><div class="text-xs">B' + p.bat + ' W' + p.bwl + '</div></div>';
+    }
+    html += '<div class="btn btn-outline full mt-12" id="scout-close-btn">Close</div>';
+    $('scorecard-content').innerHTML = html;
+    $('scorecard-overlay').classList.add('show');
+    setTimeout(function() { $('scout-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); }; }, 50);
+  } else if (sc.id === 'detailed') {
+    var fullXI = generateRivalXI(rival);
+    var html = '<div class="font-d fw-700 text-center mb-12" style="font-size:18px;text-transform:uppercase;letter-spacing:3px">' + rival.name + ' — Full XI</div>';
+    for (var i = 0; i < fullXI.length; i++) {
+      var p = fullXI[i];
+      html += '<div class="flex items-center gap-8 mb-4" style="padding:6px;border:1px solid var(--border);border-radius:3px"><div class="flex-1"><div class="font-d fw-600 text-xs">' + p.name + '</div><div class="text-xs text-slip">' + p.role + '</div></div><div class="text-xs">B' + p.bat + ' W' + p.bwl + ' F' + p.form + '</div></div>';
+    }
+    html += '<div class="btn btn-outline full mt-12" id="scout-close-btn">Close</div>';
+    $('scorecard-content').innerHTML = html;
+    $('scorecard-overlay').classList.add('show');
+    setTimeout(function() { $('scout-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); }; }, 50);
+  } else if (sc.id === 'market') {
+    var avail = ALL_PLAYERS.filter(function(p) { return !GS.squad.some(function(s) { return s.id === p.id; }); });
+    var gems = avail.sort(function(a, b) { return getOVR(b) - getOVR(a); }).slice(0, 2);
+    toast('Market gems: ' + gems.map(function(g) { return g.name + ' (OVR ' + getOVR(g) + ')'; }).join(', '), 'info');
+  } else if (sc.id === 'weakness') {
+    GS.scoutWeakness = rival.name;
+    save();
+    toast('Weakness found! +10% bowling vs ' + rival.name + ' next match', 'success');
+  }
+}
+
+// =============================================
+// HEAT-INCREASING ACTIONS (deliberate)
+// =============================================
+function getHeatActions() {
+  var actions = [];
+  actions.push({id:'trash_talk',name:'Trash Talk Rival',cost:0,heatGain:5,alignShift:-2,desc:'Publicly challenge next opponent. +5 heat, -2 align',condition:true});
+  actions.push({id:'media_stunt',name:'Media Stunt',cost:50,heatGain:8,alignShift:-1,desc:'Controversial press conference. +8 heat, -1 align',condition:true});
+  actions.push({id:'leak_rumor',name:'Leak Rival Rumor',cost:100,heatGain:10,alignShift:-5,desc:'Plant false story about rival. +10 heat to THEM, -5 align for you',condition:GS.alignment<30});
+  actions.push({id:'provoke_board',name:'Provoke the Board',cost:0,heatGain:15,alignShift:-3,desc:'Publicly criticize officials. +15 heat, -3 align, +5 morale',condition:GS.heat<70});
+  return actions.filter(function(a) { return a.condition; });
+}
+
+function executeHeatAction(id) {
+  var actions = getHeatActions();
+  var act = actions.find(function(a) { return a.id === id; });
+  if (!act) return;
+  if (act.cost > 0 && GS.coins < act.cost) { toast('Need ' + act.cost + ' coins', 'error'); return; }
+  if (act.cost > 0) GS.coins -= act.cost;
+  GS.heat = Math.min(100, GS.heat + act.heatGain);
+  applyAlignShift(act.alignShift);
+  if (act.id === 'provoke_board') GS.morale = Math.min(100, GS.morale + 5);
+  SFX.tap(); save(); updateCurrency(); updateHub();
+  toast(act.name + '! Heat +' + act.heatGain, 'info');
+}
+
+// =============================================
+// BOWLER LINEUP PRE-SELECTION
+// =============================================
+function renderBowlerLineup() {
+  var xi = GS.selectedXI.map(function(id) { return GS.squad.find(function(p) { return p.id === id; }); }).filter(Boolean);
+  var bowlers = xi.filter(function(p) { return p.role === 'Fast Bowler' || p.role === 'Spin Bowler' || p.role === 'All-Rounder'; });
+  if (bowlers.length === 0) { $('bowler-lineup-list').innerHTML = '<div class="text-xs text-slip">Select your XI first</div>'; return; }
+  var html = '';
+  for (var i = 0; i < bowlers.length; i++) {
+    var b = bowlers[i];
+    var bg = b.role === 'Spin Bowler' ? 'var(--purple)' : b.role === 'Fast Bowler' ? 'var(--green-bright)' : 'var(--blue-bright)';
+    html += '<div class="flex items-center gap-8 mb-4" style="padding:6px 8px;border:1px solid var(--border);border-radius:3px;cursor:pointer" data-lineup="' + b.id + '">' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:' + bg + ';flex-shrink:0"></div>' +
+      '<div class="flex-1 font-d fw-600 text-xs">' + b.name + '</div>' +
+      '<div class="text-xs text-slip">' + b.role.split(' ')[0] + ' · BWL ' + b.bwl + '</div></div>';
+  }
+  $('bowler-lineup-list').innerHTML = html;
+}
+
+function lockBowlerLineup() {
+  var xi = GS.selectedXI.map(function(id) { return GS.squad.find(function(p) { return p.id === id; }); }).filter(Boolean);
+  var bowlers = xi.filter(function(p) { return p.role === 'Fast Bowler' || p.role === 'Spin Bowler' || p.role === 'All-Rounder'; });
+  match.bowlerLineup = bowlers;
+  match.bowlerSelected = true;
+  toast('Bowler lineup locked — auto-rotation set', 'success');
+  SFX.tap();
+}
+
+// =============================================
+// ENHANCED TRAINING — Role-specific options
+// =============================================
+function getTrainingOptions(player) {
+  var options = [];
+  var hasBatCoach = GS.staff && GS.staff.batting_coach;
+  var hasBwlCoach = GS.staff && GS.staff.bowling_coach;
+  options.push({stat:'bat',label:'Batting Nets',cost:getTrainCost(player.bat),desc:'General batting practice',bonus:hasBatCoach?1:0});
+  options.push({stat:'bwl',label:'Bowling Drills',cost:getTrainCost(player.bwl),desc:'Bowling accuracy and pace',bonus:hasBwlCoach?1:0});
+  options.push({stat:'fld',label:'Fielding Camp',cost:getTrainCost(player.fld),desc:'Catching and ground fielding'});
+  options.push({stat:'fit',label:'Fitness Program',cost:getTrainCost(player.fit),desc:'Reduces injury risk'});
+  if (player.role.indexOf('Bowler') >= 0 || player.role === 'All-Rounder') {
+    options.push({stat:'bwl',label:'Specialist Bowling',cost:Math.round(getTrainCost(player.bwl)*1.5),desc:'+3 BWL (intensive)',gain:3,bonus:hasBwlCoach?1:0});
+  }
+  if (player.role.indexOf('Batter') >= 0 || player.role === 'Wicket-Keeper') {
+    options.push({stat:'bat',label:'Specialist Batting',cost:Math.round(getTrainCost(player.bat)*1.5),desc:'+3 BAT (intensive)',gain:3,bonus:hasBatCoach?1:0});
+  }
+  return options;
 }
 
 function showSquadSelect() {
@@ -4122,6 +4383,7 @@ function startPreMatch() {
     var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',forcelose:'FORCED LOSS — Mafia debt punishment'};
     $('fix-active-text').textContent = fixNames[GS.mafiaBonus.type] || 'Fix Active';
   } else { hide('fix-active-banner'); }
+  renderBowlerLineup();
   goScreen('prematch');
 }
 
@@ -4134,14 +4396,15 @@ function startMatch() {
   match.target = 0; match.phase = 0; match.ball = 0; match.momentum = 50;
   match.phaseScores = [{r:0,w:0},{r:0,w:0},{r:0,w:0}];
   match.yourXI = buildSelectedXI();
-  match.oppXI = generateRivalXI(match.opponent);
+  match.oppXI = (GS.scoutedXI && GS.scoutedXI.length > 0) ? GS.scoutedXI : generateRivalXI(match.opponent);
+  GS.scoutedXI = null;
   match.batXI = match.batting === 'you' ? match.yourXI : match.oppXI;
   match.bwlXI = match.batting === 'you' ? match.oppXI : match.yourXI;
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
   match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false; match.fieldSetting = 'standard';
-  match.drsUsed = false; match.impactUsed = false; match.superOver = false;
+  match.drsUsed = false; match.impactUsed = false; match.superOver = false; match.lastBowler = null; match.bowlerLineup = [];
   match.weather = rollWeather(); match.rainOver = 0;
   $('boost-btn').classList.remove('used', 'active-boost');
   $('drs-btn').classList.remove('used'); $('drs-btn').textContent = 'DRS';
@@ -4181,22 +4444,24 @@ function showBowlerPicker(bowlers, phase, over) {
   for (var i = 0; i < bowlers.length; i++) {
     var b = bowlers[i];
     var isRec = b === recommended;
+    var isLast = match.lastBowler && b.name === match.lastBowler.name;
     var bg = b.role === 'Spin Bowler' ? 'background:linear-gradient(135deg,var(--purple),#7C3AED)' :
              b.role === 'Fast Bowler' ? 'background:linear-gradient(135deg,var(--green-bright),var(--green))' :
              'background:linear-gradient(135deg,var(--blue-bright),var(--blue))';
-    html += '<div class="bowler-opt' + (isRec ? ' recommended' : '') + '" data-bidx="' + i + '">' +
+    html += '<div class="bowler-opt' + (isRec ? ' recommended' : '') + (isLast ? ' disabled' : '') + '" data-bidx="' + i + '"' + (isLast ? ' style="opacity:0.3;pointer-events:none"' : '') + '>' +
       '<div class="bo-bwl" style="' + bg + '">' + b.bwl + '</div>' +
-      '<div class="bo-info"><div class="bo-name">' + b.name + '</div><div class="bo-role">' + b.role + '</div></div>' +
+      '<div class="bo-info"><div class="bo-name">' + b.name + (isLast ? ' (just bowled)' : '') + '</div><div class="bo-role">' + b.role + '</div></div>' +
       '<div class="bo-meta">Form ' + b.form + '</div></div>';
   }
   $('bowler-options').innerHTML = html;
   updateFieldSettingUI();
   show('bowler-picker');
   addMoment('over-sum', 'Over ' + over + ' complete. Choose your bowler & field.', '?');
-  var opts = $('bowler-picker').querySelectorAll('.bowler-opt');
+  var opts = $('bowler-picker').querySelectorAll('.bowler-opt:not(.disabled)');
   for (var j = 0; j < opts.length; j++) {
     opts[j].onclick = function() {
       var idx = parseInt(this.getAttribute('data-bidx'));
+      match.lastBowler = match.curBowler;
       match.curBowler = bowlers[idx];
       match.bowlerSelected = true;
       hide('bowler-picker');
@@ -4244,13 +4509,13 @@ function simBall() {
   if (!match.curBatter) match.curBatter = match.batXI[0];
   if (!match.curBatter) { endMatch(); return; }
   if (ballInOver === 0) {
-    if (match.batting !== 'you' && !match.skipMode && !match.bowlerSelected && over > 0) {
+    if (match.batting !== 'you' && !match.skipMode && !match.bowlerSelected && match.bowlerLineup.length === 0 && over > 0) {
       match.ball--;
       clearInterval(match.interval);
       showBowlerPicker(match.bowlers, phase, over);
       return;
     }
-    if (!match.bowlerSelected) match.curBowler = pickBowler(match.bowlers, phase, over);
+    if (!match.bowlerSelected) { match.lastBowler = match.curBowler; match.curBowler = pickBowler(match.bowlers, phase, over); }
   }
   if (ballInOver === 5) match.bowlerSelected = false;
   if (!match.curBowler) match.curBowler = pickBowler(match.bowlers, phase, over);
@@ -4600,7 +4865,7 @@ function switchInnings() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
-  match.overRuns = 0; match.bowlerSelected = false; match.fieldSetting = 'standard';
+  match.overRuns = 0; match.bowlerSelected = false; match.fieldSetting = 'standard'; match.lastBowler = null;
   hide('bowler-picker');
   updateBBStrip(match.curBatter, match.curBowler);
   $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
@@ -4732,6 +4997,7 @@ function endMatch() {
   rd.rel = Math.max(-100, Math.min(100, rd.rel + relShift));
   GS.mafiaBonus = null;
   GS.pepTalkUsed = false;
+  GS.scoutWeakness = null;
   var wasFirstMatch = GS.matchNum === 1;
   var isKnockout = GS.knockout != null;
   if (!isKnockout) GS.matchNum++;
@@ -5836,6 +6102,15 @@ function bindEvents() {
   $('auction-back-btn').addEventListener('click', function() { if (!auction.active) goScreen('hub'); else { clearInterval(auction.interval); auction.active = false; endAuction(); } });
   $('prematch-back-btn').addEventListener('click', function() { goScreen('hub'); });
   $('start-match-btn').addEventListener('click', startMatch);
+  $('bowler-auto-btn').addEventListener('click', function() {
+    match.bowlerLineup = [];
+    match.bowlerSelected = false;
+    toast('Auto mode — bowler picker each over', 'info');
+    SFX.tap();
+  });
+  $('bowler-lock-btn').addEventListener('click', function() {
+    lockBowlerLineup();
+  });
   var stratOpts = document.querySelectorAll('.strategy-opt');
   for (var s = 0; s < stratOpts.length; s++) {
     stratOpts[s].addEventListener('click', function() {
@@ -5927,6 +6202,7 @@ function bindEvents() {
     GS.coins -= 200; SFX.reveal(); save(); updateCurrency();
     var rival = getNextRival();
     var xi = generateRivalXI(rival);
+    GS.scoutedXI = xi;
     var html = '<div class="font-d fw-700 text-center text-blue" style="font-size:20px;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Scout Report</div>';
     html += '<div class="text-center text-slip text-sm mb-16">' + rival.name + ' · Predicted XI</div>';
     xi.forEach(function(p) {
@@ -6165,7 +6441,8 @@ function bindEvents() {
   hubScreen.addEventListener('touchmove', function(e) {
     if (!pullActive || hubScreen.scrollTop > 5) { pullActive = false; return; }
     var dy = e.touches[0].clientY - pullStartY;
-    if (dy < 0) { pullEl.style.opacity = '0'; return; }
+    if (dy < 0) { pullEl.style.display = 'none'; return; }
+    pullEl.style.display = 'flex';
     var progress = Math.min(dy / 100, 1);
     var yOffset = Math.min(dy * 0.5, 60);
     pullEl.style.opacity = String(progress);
@@ -6190,13 +6467,11 @@ function bindEvents() {
       SFX.tap();
       setTimeout(function() {
         pullEl.classList.remove('refreshing');
-        pullEl.style.opacity = '0';
-        pullEl.style.transform = 'translateX(-50%) translateY(-50px)';
+        pullEl.style.display = 'none';
         toast('Hub refreshed', 'success');
       }, 600);
     } else {
-      pullEl.style.opacity = '0';
-      pullEl.style.transform = 'translateX(-50%) translateY(-50px)';
+      pullEl.style.display = 'none';
       pullEl.classList.remove('ready');
     }
   }, { passive: true });
