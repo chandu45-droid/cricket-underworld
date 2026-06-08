@@ -332,7 +332,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 /* ================================================================
    PLAYER CARD — Holographic
    ================================================================ */
-.player-card{background:linear-gradient(160deg,var(--pavilion) 0%,var(--dugout) 40%,var(--pitch) 100%);border-radius:3px;clip-path:var(--clip-card-tr);overflow:hidden;position:relative;box-shadow:var(--elevation-3);transition:transform 0.35s var(--spring-bounce),box-shadow 0.35s var(--spring);cursor:pointer;border:1px solid rgba(255,255,255,0.08)}
+.player-card{background:linear-gradient(160deg,var(--pavilion) 0%,var(--dugout) 40%,var(--pitch) 100%);border-radius:3px;clip-path:var(--clip-card-tr);overflow:hidden;position:relative;box-shadow:var(--elevation-3);transition:transform 0.35s var(--spring-bounce),box-shadow 0.35s var(--spring);cursor:pointer;border:1px solid rgba(255,255,255,0.08);transform-style:preserve-3d;will-change:transform}
 .player-card:active{transform:scale(0.96) translateY(3px);box-shadow:var(--elevation-1)}
 .player-card .rarity-strip{height:3px;background:linear-gradient(90deg,transparent 5%,var(--rarity-color) 50%,transparent 95%)}
 .player-card .card-body{padding:12px 14px}
@@ -358,10 +358,12 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .player-card .trait-bar .mini-bar{width:36px;height:3px;background:rgba(136,150,176,0.1);border-radius:2px;overflow:hidden}
 .player-card .trait-bar .mini-fill{height:100%;border-radius:2px}
 
-/* Holographic shimmer effect */
-.player-card::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,219,112,0.08) 45%,rgba(132,208,255,0.08) 50%,rgba(255,140,200,0.06) 55%,transparent 60%);background-size:250% 250%;animation:holoSheen 8s ease infinite;pointer-events:none;z-index:1;mix-blend-mode:overlay;border-radius:inherit}
+/* Holographic shimmer + tilt foil */
+.player-card::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,219,112,0.08) 45%,rgba(132,208,255,0.08) 50%,rgba(255,140,200,0.06) 55%,transparent 60%);background-size:250% 250%;animation:holoSheen 8s ease infinite;pointer-events:none;z-index:1;mix-blend-mode:overlay;border-radius:inherit;transition:background-position 0.15s}
 .player-card.epic::after{background:linear-gradient(105deg,transparent 35%,rgba(255,219,112,0.15) 42%,rgba(132,208,255,0.15) 50%,rgba(255,140,200,0.12) 58%,transparent 65%);animation:holoSheen 5s ease infinite}
 .player-card.legendary::after{background:linear-gradient(105deg,transparent 30%,rgba(255,219,112,0.22) 37%,rgba(255,100,100,0.18) 44%,rgba(132,208,255,0.22) 51%,rgba(255,140,200,0.18) 58%,transparent 65%);animation:holoSheen 3s ease infinite}
+.player-card.tilt-active{transition:transform 0.1s linear,box-shadow 0.1s linear}
+.player-card.tilt-active::after{animation:none}
 .player-card.legendary{animation:legendaryPulse 3s ease-in-out infinite}
 .player-card.legendary .rarity-strip{background:linear-gradient(90deg,var(--gold-bright),var(--blood),var(--green-bright),var(--gold-bright));background-size:200%;animation:shimmer 2s linear infinite;height:4px}
 
@@ -765,7 +767,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .card-filters{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
 .card-filter{padding:7px 16px;border-radius:3px;border:1px solid var(--border);font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--slip);cursor:pointer;transition:all 0.2s;white-space:nowrap;text-transform:uppercase;letter-spacing:0.8px;background:rgba(255,255,255,0.02)}
 .card-filter.active{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(240,200,80,0.08);box-shadow:0 0 10px rgba(240,200,80,0.1)}
-.cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;perspective:800px}
 
 .shop-item{display:flex;align-items:center;gap:14px;padding:16px;background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:var(--glass-border);border-radius:4px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
 .shop-item:active{transform:scale(0.98);background:rgba(255,255,255,0.06)}
@@ -1358,6 +1360,11 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         </div>
       </div>
 
+      <div class="glass accent-green" id="mentorship-panel" style="display:none">
+        <div class="section-title sm" style="color:var(--green-bright)">Mentorship<span class="accent-line"></span></div>
+        <div id="mentorship-content"></div>
+      </div>
+
       <div class="glass accent-gold">
         <div class="section-title sm">Season Progress<span class="accent-line"></span></div>
         <div class="flex justify-between items-center mb-8">
@@ -1772,6 +1779,7 @@ var GS = {
   bestStreak: 0,
   dailyChallenge: null,
   lastChallengeDate: null,
+  mentorship: null,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1796,6 +1804,7 @@ function load() {
       GS.rivalWins=v(d.rivalWins,{}); GS.pepTalkUsed=v(d.pepTalkUsed,false);
       GS.winStreak=v(d.winStreak,0); GS.bestStreak=v(d.bestStreak,0);
       GS.dailyChallenge=v(d.dailyChallenge,null); GS.lastChallengeDate=v(d.lastChallengeDate,null);
+      GS.mentorship=v(d.mentorship,null);
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -2391,6 +2400,59 @@ document.addEventListener('click', function(e) {
   btn.appendChild(ripple);
   setTimeout(function() { ripple.remove(); }, 500);
 });
+
+// =============================================
+// HOLOGRAPHIC TILT ON PLAYER CARDS
+// =============================================
+(function() {
+  var tiltCard = null, tiltRect = null;
+
+  function applyTilt(card, clientX, clientY) {
+    if (!tiltRect) return;
+    var x = (clientX - tiltRect.left) / tiltRect.width;
+    var y = (clientY - tiltRect.top) / tiltRect.height;
+    var rotY = (x - 0.5) * 16;
+    var rotX = (0.5 - y) * 12;
+    card.style.transform = 'perspective(400px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) scale(1.03)';
+    card.style.boxShadow = 'var(--elevation-4), ' +
+      (rotY * -0.5) + 'px ' + (rotX * 0.5) + 'px 20px rgba(0,0,0,0.3)';
+    var foil = card.querySelector('::after') || card;
+    var bgPosX = x * 100;
+    var bgPosY = y * 100;
+    card.style.setProperty('--holo-x', bgPosX + '%');
+    card.style.setProperty('--holo-y', bgPosY + '%');
+  }
+
+  function resetTilt(card) {
+    card.classList.remove('tilt-active');
+    card.style.transform = '';
+    card.style.boxShadow = '';
+    tiltCard = null;
+    tiltRect = null;
+  }
+
+  document.addEventListener('pointerdown', function(e) {
+    var card = e.target.closest('.player-card');
+    if (!card) return;
+    tiltCard = card;
+    tiltRect = card.getBoundingClientRect();
+    card.classList.add('tilt-active');
+    applyTilt(card, e.clientX, e.clientY);
+  });
+
+  document.addEventListener('pointermove', function(e) {
+    if (!tiltCard) return;
+    applyTilt(tiltCard, e.clientX, e.clientY);
+  });
+
+  document.addEventListener('pointerup', function() {
+    if (tiltCard) resetTilt(tiltCard);
+  });
+
+  document.addEventListener('pointercancel', function() {
+    if (tiltCard) resetTilt(tiltCard);
+  });
+})();
 
 // =============================================
 // PROCEDURAL TEAM CREST GENERATOR
@@ -3187,6 +3249,7 @@ function updateHub() {
     $('hub-streak-num').textContent = GS.winStreak;
     $('hub-streak-best').textContent = GS.bestStreak > 0 ? 'Best: ' + GS.bestStreak : '';
   }
+  updateMentorshipPanel();
   updateCurrency();
 }
 
@@ -4483,6 +4546,124 @@ function endMatch() {
   }
 }
 
+// =============================================
+// MENTORSHIP PROGRAM
+// =============================================
+function canMentor() { return GS.alignment >= 40; }
+
+function getEligibleMentees() {
+  return GS.squad.filter(function(p) {
+    return (p.rarity === 'common' || p.rarity === 'uncommon') && (!GS.mentorship || GS.mentorship.playerId !== p.id);
+  });
+}
+
+function pickMentorStats(player) {
+  var stats = ['bat','bwl','fld','fit'];
+  stats.sort(function(a,b) { return player[a] - player[b]; });
+  return [stats[0], stats[1]];
+}
+
+function showMentorPicker() {
+  SFX.tap();
+  var eligible = getEligibleMentees();
+  if (eligible.length === 0) { toast('No eligible players (Common/Uncommon)', 'error'); return; }
+  var html = '<div class="font-d fw-700 text-center text-green" style="font-size:20px;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Select Mentee</div>';
+  html += '<div class="text-center text-slip text-sm mb-16">Choose a Common or Uncommon player to mentor this season. They\'ll gain +3 to their two weakest stats each season.</div>';
+  eligible.forEach(function(p) {
+    var ovr = getOVR(p);
+    var rc = RARITY_COLORS[p.rarity] || '#4A5568';
+    var weakStats = pickMentorStats(p);
+    html += '<div class="player-card-mini" data-mentorid="' + p.id + '" style="cursor:pointer">' +
+      '<div class="mini-ovr" style="background:' + rc + '">' + ovr + '</div>' +
+      '<div class="mini-info"><div class="mini-name">' + p.name + '</div><div class="mini-role">' + p.role + ' · ' + p.rarity.toUpperCase() + '</div></div>' +
+      '<div class="mini-stats">+3 <span>' + weakStats[0].toUpperCase() + '/' + weakStats[1].toUpperCase() + '</span></div></div>';
+  });
+  html += '<div class="btn btn-outline full mt-16" id="mentor-close-btn">Cancel</div>';
+  $('scorecard-content').innerHTML = html;
+  $('scorecard-overlay').classList.add('show');
+  setTimeout(function() {
+    $('mentor-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
+    var items = document.querySelectorAll('[data-mentorid]');
+    for (var i = 0; i < items.length; i++) {
+      items[i].onclick = function() {
+        var pid = parseInt(this.getAttribute('data-mentorid'));
+        selectMentee(pid);
+      };
+    }
+  }, 50);
+}
+
+function selectMentee(pid) {
+  var player = GS.squad.find(function(p) { return p.id === pid; });
+  if (!player) return;
+  var stats = pickMentorStats(player);
+  GS.mentorship = { playerId: pid, seasonsLeft: 3, stat1: stats[0], stat2: stats[1], seasonsCompleted: 0 };
+  save();
+  $('scorecard-overlay').classList.remove('show');
+  updateHub();
+  toast(player.name + ' is now your mentee!', 'success');
+}
+
+function processMentorship() {
+  if (!GS.mentorship) return null;
+  var m = GS.mentorship;
+  var player = GS.squad.find(function(p) { return p.id === m.playerId; });
+  if (!player) { GS.mentorship = null; return null; }
+  player[m.stat1] = Math.min(99, player[m.stat1] + 3);
+  player[m.stat2] = Math.min(99, player[m.stat2] + 3);
+  m.seasonsCompleted++;
+  m.seasonsLeft--;
+  var upgraded = false;
+  if (m.seasonsLeft <= 0) {
+    var rarityOrder = ['common','uncommon','rare','epic','legendary'];
+    var rIdx = rarityOrder.indexOf(player.rarity);
+    if (rIdx >= 0 && rIdx < 2) {
+      player.rarity = rarityOrder[rIdx + 1];
+      player.stars = Math.min(5, (player.stars || 2) + 1);
+      upgraded = true;
+    }
+    GS.mentorship = null;
+  }
+  return { name: player.name, stat1: m.stat1, stat2: m.stat2, upgraded: upgraded, newRarity: player.rarity };
+}
+
+function updateMentorshipPanel() {
+  if (!canMentor()) { hide('mentorship-panel'); return; }
+  show('mentorship-panel');
+  var content = $('mentorship-content');
+  if (GS.mentorship) {
+    var player = GS.squad.find(function(p) { return p.id === GS.mentorship.playerId; });
+    if (!player) { GS.mentorship = null; save(); updateMentorshipPanel(); return; }
+    var m = GS.mentorship;
+    var pips = '';
+    for (var i = 0; i < 3; i++) pips += '<div style="width:12px;height:12px;border-radius:50%;' + (i < m.seasonsCompleted ? 'background:var(--green-bright);box-shadow:0 0 6px rgba(34,212,126,0.4)' : 'background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1)') + '"></div>';
+    content.innerHTML =
+      '<div class="flex items-center gap-10">' +
+        '<div style="width:40px;height:40px;border-radius:10px;background:rgba(34,212,126,0.12);border:1px solid rgba(34,212,126,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green-bright)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>' +
+        '<div class="flex-1">' +
+          '<div class="font-d fw-600 text-sm">' + player.name + '</div>' +
+          '<div class="text-xs text-slip">+3 ' + m.stat1.toUpperCase() + ' & ' + m.stat2.toUpperCase() + ' per season</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:4px;align-items:center">' + pips + '</div>' +
+      '</div>' +
+      '<div class="text-xs text-green" style="margin-top:6px">' + m.seasonsLeft + ' season' + (m.seasonsLeft > 1 ? 's' : '') + ' until rarity upgrade</div>';
+  } else {
+    content.innerHTML =
+      '<div class="flex items-center gap-10">' +
+        '<div style="width:40px;height:40px;border-radius:10px;background:rgba(34,212,126,0.08);border:1px solid rgba(34,212,126,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green-bright)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>' +
+        '<div class="flex-1">' +
+          '<div class="font-d fw-600 text-sm">No Active Mentee</div>' +
+          '<div class="text-xs text-slip">Train a Common/Uncommon player over 3 seasons to upgrade their rarity</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="btn btn-green full mt-8" style="font-size:13px;padding:10px 20px;min-height:40px" id="mentor-select-btn">Select Mentee</div>';
+    setTimeout(function() {
+      var btn = $('mentor-select-btn');
+      if (btn) btn.onclick = showMentorPicker;
+    }, 0);
+  }
+}
+
 function endSeason() {
   var leagueOrder = ['gully','sma','challenger','champions'];
   var idx = leagueOrder.indexOf(GS.league);
@@ -4520,6 +4701,14 @@ function endSeason() {
     GS.squad.push(academyCard);
     academyHtml = '<div class="reward-row"><span>Academy Graduate</span><span class="val" style="color:var(--green-bright)">' + academyCard.name + ' (Loyalty ' + academyCard.loyalty + ')</span></div>';
   }
+  var mentorResult = processMentorship();
+  var mentorHtml = '';
+  if (mentorResult) {
+    mentorHtml = '<div class="reward-row"><span>Mentorship</span><span class="val" style="color:var(--green-bright)">' + mentorResult.name + ' +3 ' + mentorResult.stat1.toUpperCase() + '/' + mentorResult.stat2.toUpperCase() + '</span></div>';
+    if (mentorResult.upgraded) {
+      mentorHtml += '<div class="reward-row"><span>Rarity Upgrade!</span><span class="val" style="color:var(--gold-bright)">' + mentorResult.name + ' → ' + mentorResult.newRarity.toUpperCase() + '</span></div>';
+    }
+  }
   save();
   var seasonNum = GS.season - 1;
   var romanNums = ['','I','II','III','IV','V','VI','VII','VIII','IX','X'];
@@ -4533,7 +4722,7 @@ function endSeason() {
     '<div class="glass accent-gold" style="max-width:340px;width:100%"><div class="section-title sm">Season ' + GS.season + '<span class="accent-line"></span></div>' +
     '<div class="reward-row"><span>League</span><span class="val text-gold">' + (LEAGUE_NAMES[GS.league]) + '</span></div>' +
     '<div class="reward-row"><span>Season Bonus</span><span class="val positive">+' + bonus + ' coins</span></div>' +
-    fanVoteHtml + academyHtml +
+    fanVoteHtml + academyHtml + mentorHtml +
     '<div class="reward-row"><span>Sponsor</span><span class="val">' + sp.name + '</span></div>' +
     '<div class="reward-row"><span>Auction Purse</span><span class="val positive">' + GS.auctionPurse + '</span></div></div>' +
     '<div class="btn btn-gold lg" id="season-continue-btn" style="margin-top:24px">Start Season ' + GS.season + '</div>';
