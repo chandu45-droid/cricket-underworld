@@ -11,6 +11,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ================================================================
+   @PROPERTY — Houdini animated gradient positions
+   ================================================================ */
+@property --mesh-x1 { syntax: '<percentage>'; initial-value: 20%; inherits: false; }
+@property --mesh-y1 { syntax: '<percentage>'; initial-value: 0%; inherits: false; }
+@property --mesh-x2 { syntax: '<percentage>'; initial-value: 80%; inherits: false; }
+@property --mesh-y2 { syntax: '<percentage>'; initial-value: 100%; inherits: false; }
+@property --mesh-x3 { syntax: '<percentage>'; initial-value: 50%; inherits: false; }
+@property --mesh-y3 { syntax: '<percentage>'; initial-value: 50%; inherits: false; }
+@property --mesh-o1 { syntax: '<number>'; initial-value: 0.08; inherits: false; }
+@property --mesh-o2 { syntax: '<number>'; initial-value: 0.05; inherits: false; }
+@property --glow-spread { syntax: '<percentage>'; initial-value: 40%; inherits: false; }
+
+/* ================================================================
    ROOT VARIABLES
    ================================================================ */
 :root {
@@ -69,6 +82,16 @@
   --clip-btn-sm: polygon(4px 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0 50%);
   --clip-card-tl: polygon(0 12px, 12px 0, 100% 0, 100% 100%, 0 100%);
   --clip-card-tr: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  /* Spring physics curves */
+  --spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-snap: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --spring-soft: cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* Elevation shadows for depth */
+  --elevation-1: 0 2px 4px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15);
+  --elevation-2: 0 4px 12px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.25);
+  --elevation-3: 0 8px 24px rgba(0,0,0,0.5), 0 16px 48px rgba(0,0,0,0.25), 0 4px 8px rgba(0,0,0,0.3);
+  --elevation-4: 0 12px 36px rgba(0,0,0,0.55), 0 24px 64px rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.35);
 }
 
 /* Alignment-responsive theming — set via JS on #app */
@@ -149,48 +172,100 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .nav-item:active{transform:scale(0.85)}
 
 /* ================================================================
-   SCREEN CONTAINER — Per-screen ambient backgrounds
+   SCREEN CONTAINER — Living mesh gradient backgrounds
    ================================================================ */
 #screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--nav-h) + var(--safe-b) + 16px);opacity:0;transform:translateY(16px) scale(0.97);transition:opacity 0.35s ease-out,transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);pointer-events:none;-webkit-overflow-scrolling:touch;will-change:opacity,transform}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--nav-h) + var(--safe-b) + 16px);opacity:0;transform:translateY(20px) scale(0.96);transition:opacity 0.4s var(--spring),transform 0.5s var(--spring-bounce);pointer-events:none;-webkit-overflow-scrolling:touch;will-change:opacity,transform}
 .screen.active{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
 
-#hub-screen{background:
-  radial-gradient(ellipse at 20% 0%,var(--align-accent-dim) 0%,transparent 40%),
-  radial-gradient(ellipse at 80% 15%,rgba(59,130,246,0.04) 0%,transparent 35%),
-  radial-gradient(ellipse at 50% 100%,var(--align-tint) 0%,transparent 45%),
-  radial-gradient(circle at 90% 80%,var(--align-accent-dim) 0%,transparent 30%)}
-#auction-screen{background:
-  radial-gradient(circle at 50% 20%,rgba(255,207,68,0.10) 0%,transparent 30%),
-  radial-gradient(ellipse at 30% 80%,rgba(239,45,45,0.04) 0%,transparent 40%),
-  radial-gradient(ellipse at 70% 60%,rgba(212,160,23,0.03) 0%,transparent 35%),
-  linear-gradient(180deg,rgba(4,6,13,0) 0%,rgba(4,6,13,0.8) 100%)}
-#prematch-screen{background:
-  radial-gradient(ellipse at 30% 40%,rgba(52,211,153,0.06) 0%,transparent 40%),
-  radial-gradient(ellipse at 70% 30%,rgba(239,45,45,0.04) 0%,transparent 35%),
-  radial-gradient(circle at 50% 90%,rgba(59,130,246,0.04) 0%,transparent 40%)}
-#match-screen{background:
-  radial-gradient(ellipse at 50% 10%,rgba(52,211,153,0.08) 0%,transparent 35%),
-  radial-gradient(ellipse at 20% 70%,rgba(34,211,238,0.03) 0%,transparent 35%),
-  radial-gradient(ellipse at 80% 90%,rgba(255,207,68,0.04) 0%,transparent 30%),
-  linear-gradient(180deg,rgba(5,150,105,0.02) 0%,transparent 40%)}
-#squad-screen{background:
-  radial-gradient(ellipse at 40% 10%,rgba(59,130,246,0.07) 0%,transparent 40%),
-  radial-gradient(ellipse at 70% 80%,rgba(167,139,250,0.05) 0%,transparent 40%),
-  radial-gradient(circle at 10% 60%,rgba(52,211,153,0.03) 0%,transparent 30%)}
-#cards-screen{background:
-  radial-gradient(ellipse at 50% 20%,rgba(167,139,250,0.08) 0%,transparent 35%),
-  radial-gradient(ellipse at 20% 70%,rgba(255,207,68,0.04) 0%,transparent 35%),
-  radial-gradient(circle at 80% 50%,rgba(59,130,246,0.04) 0%,transparent 30%)}
-#league-screen{background:
-  radial-gradient(ellipse at 50% 5%,rgba(255,207,68,0.06) 0%,transparent 35%),
-  radial-gradient(ellipse at 80% 60%,rgba(52,211,153,0.04) 0%,transparent 35%),
-  radial-gradient(circle at 20% 90%,rgba(59,130,246,0.03) 0%,transparent 30%)}
+#hub-screen{
+  --mesh-x1:20%;--mesh-y1:0%;--mesh-x2:80%;--mesh-y2:15%;--mesh-x3:50%;--mesh-y3:100%;
+  background:
+    radial-gradient(ellipse at var(--mesh-x1) var(--mesh-y1),var(--align-accent-dim) 0%,transparent var(--glow-spread)),
+    radial-gradient(ellipse at var(--mesh-x2) var(--mesh-y2),rgba(59,130,246,0.05) 0%,transparent 35%),
+    radial-gradient(ellipse at var(--mesh-x3) var(--mesh-y3),var(--align-tint) 0%,transparent 45%),
+    radial-gradient(circle at 90% 80%,var(--align-accent-dim) 0%,transparent 30%);
+  animation:hubMesh 16s ease-in-out infinite alternate}
+@keyframes hubMesh{
+  0%{--mesh-x1:20%;--mesh-y1:0%;--mesh-x2:80%;--mesh-y2:15%;--glow-spread:40%}
+  33%{--mesh-x1:35%;--mesh-y1:10%;--mesh-x2:65%;--mesh-y2:25%;--glow-spread:45%}
+  66%{--mesh-x1:25%;--mesh-y1:5%;--mesh-x2:75%;--mesh-y2:20%;--glow-spread:42%}
+  100%{--mesh-x1:30%;--mesh-y1:8%;--mesh-x2:70%;--mesh-y2:18%;--glow-spread:38%}}
+
+#auction-screen{
+  --mesh-x1:50%;--mesh-y1:20%;--mesh-x2:30%;--mesh-y2:80%;
+  background:
+    radial-gradient(circle at var(--mesh-x1) var(--mesh-y1),rgba(255,207,68,0.10) 0%,transparent 30%),
+    radial-gradient(ellipse at var(--mesh-x2) var(--mesh-y2),rgba(239,45,45,0.04) 0%,transparent 40%),
+    radial-gradient(ellipse at 70% 60%,rgba(212,160,23,0.03) 0%,transparent 35%),
+    linear-gradient(180deg,rgba(4,6,13,0) 0%,rgba(4,6,13,0.8) 100%);
+  animation:auctionMesh 14s ease-in-out infinite alternate}
+@keyframes auctionMesh{
+  0%{--mesh-x1:50%;--mesh-y1:20%;--mesh-x2:30%;--mesh-y2:80%}
+  50%{--mesh-x1:55%;--mesh-y1:15%;--mesh-x2:25%;--mesh-y2:75%}
+  100%{--mesh-x1:45%;--mesh-y1:25%;--mesh-x2:35%;--mesh-y2:85%}}
+
+#prematch-screen{
+  --mesh-x1:30%;--mesh-y1:40%;--mesh-x2:70%;--mesh-y2:30%;
+  background:
+    radial-gradient(ellipse at var(--mesh-x1) var(--mesh-y1),rgba(52,211,153,0.06) 0%,transparent 40%),
+    radial-gradient(ellipse at var(--mesh-x2) var(--mesh-y2),rgba(239,45,45,0.04) 0%,transparent 35%),
+    radial-gradient(circle at 50% 90%,rgba(59,130,246,0.04) 0%,transparent 40%);
+  animation:prematchMesh 12s ease-in-out infinite alternate}
+@keyframes prematchMesh{
+  0%{--mesh-x1:30%;--mesh-y1:40%;--mesh-x2:70%;--mesh-y2:30%}
+  100%{--mesh-x1:40%;--mesh-y1:35%;--mesh-x2:60%;--mesh-y2:35%}}
+
+#match-screen{
+  --mesh-x1:50%;--mesh-y1:10%;--mesh-x2:20%;--mesh-y2:70%;--mesh-x3:80%;--mesh-y3:90%;
+  background:
+    radial-gradient(ellipse at var(--mesh-x1) var(--mesh-y1),rgba(52,211,153,0.08) 0%,transparent 35%),
+    radial-gradient(ellipse at var(--mesh-x2) var(--mesh-y2),rgba(34,211,238,0.03) 0%,transparent 35%),
+    radial-gradient(ellipse at var(--mesh-x3) var(--mesh-y3),rgba(255,207,68,0.04) 0%,transparent 30%),
+    linear-gradient(180deg,rgba(5,150,105,0.02) 0%,transparent 40%);
+  animation:matchMesh 18s ease-in-out infinite alternate}
+@keyframes matchMesh{
+  0%{--mesh-x1:50%;--mesh-y1:10%;--mesh-x2:20%;--mesh-y2:70%;--mesh-x3:80%;--mesh-y3:90%}
+  50%{--mesh-x1:55%;--mesh-y1:5%;--mesh-x2:25%;--mesh-y2:65%;--mesh-x3:75%;--mesh-y3:85%}
+  100%{--mesh-x1:45%;--mesh-y1:15%;--mesh-x2:15%;--mesh-y2:75%;--mesh-x3:85%;--mesh-y3:95%}}
+
+#squad-screen{
+  --mesh-x1:40%;--mesh-y1:10%;--mesh-x2:70%;--mesh-y2:80%;
+  background:
+    radial-gradient(ellipse at var(--mesh-x1) var(--mesh-y1),rgba(59,130,246,0.07) 0%,transparent 40%),
+    radial-gradient(ellipse at var(--mesh-x2) var(--mesh-y2),rgba(167,139,250,0.05) 0%,transparent 40%),
+    radial-gradient(circle at 10% 60%,rgba(52,211,153,0.03) 0%,transparent 30%);
+  animation:squadMesh 15s ease-in-out infinite alternate}
+@keyframes squadMesh{
+  0%{--mesh-x1:40%;--mesh-y1:10%;--mesh-x2:70%;--mesh-y2:80%}
+  100%{--mesh-x1:50%;--mesh-y1:15%;--mesh-x2:60%;--mesh-y2:75%}}
+
+#cards-screen{
+  --mesh-x1:50%;--mesh-y1:20%;--mesh-x2:20%;--mesh-y2:70%;
+  background:
+    radial-gradient(ellipse at var(--mesh-x1) var(--mesh-y1),rgba(167,139,250,0.08) 0%,transparent 35%),
+    radial-gradient(ellipse at var(--mesh-x2) var(--mesh-y2),rgba(255,207,68,0.04) 0%,transparent 35%),
+    radial-gradient(circle at 80% 50%,rgba(59,130,246,0.04) 0%,transparent 30%);
+  animation:cardsMesh 13s ease-in-out infinite alternate}
+@keyframes cardsMesh{
+  0%{--mesh-x1:50%;--mesh-y1:20%;--mesh-x2:20%;--mesh-y2:70%}
+  100%{--mesh-x1:55%;--mesh-y1:15%;--mesh-x2:25%;--mesh-y2:65%}}
+
+#league-screen{
+  --mesh-x1:50%;--mesh-y1:5%;--mesh-x2:80%;--mesh-y2:60%;
+  background:
+    radial-gradient(ellipse at var(--mesh-x1) var(--mesh-y1),rgba(255,207,68,0.06) 0%,transparent 35%),
+    radial-gradient(ellipse at var(--mesh-x2) var(--mesh-y2),rgba(52,211,153,0.04) 0%,transparent 35%),
+    radial-gradient(circle at 20% 90%,rgba(59,130,246,0.03) 0%,transparent 30%);
+  animation:leagueMesh 14s ease-in-out infinite alternate}
+@keyframes leagueMesh{
+  0%{--mesh-x1:50%;--mesh-y1:5%;--mesh-x2:80%;--mesh-y2:60%}
+  100%{--mesh-x1:45%;--mesh-y1:10%;--mesh-x2:75%;--mesh-y2:55%}}
 
 /* ================================================================
    GLASS PANELS & SHARED COMPONENTS
    ================================================================ */
-.glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);border:var(--glass-border);border-radius:4px;box-shadow:var(--glass-shadow);padding:16px;margin-bottom:14px;position:relative;overflow:hidden;transition:box-shadow 0.3s,border-color 0.3s}
+.glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);border:var(--glass-border);border-radius:4px;box-shadow:var(--elevation-2);padding:16px;margin-bottom:14px;position:relative;overflow:hidden;transition:box-shadow 0.4s var(--spring),border-color 0.4s var(--spring),transform 0.4s var(--spring-bounce)}
 .glass::before{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(ellipse at 30% 0%,rgba(255,255,255,0.04) 0%,transparent 60%);pointer-events:none}
 .glass::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 5%,rgba(255,255,255,0.10) 30%,rgba(255,255,255,0.05) 70%,transparent 95%);pointer-events:none}
 .glass.accent-gold{border-top:2px solid var(--gold);background:linear-gradient(145deg,rgba(255,207,68,0.06) 0%,rgba(255,255,255,0.02) 50%,rgba(212,160,23,0.03) 100%);box-shadow:var(--glass-shadow),0 0 30px rgba(255,207,68,0.04)}
@@ -211,7 +286,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 /* ================================================================
    BUTTONS — Chamfered angular shapes
    ================================================================ */
-.btn{font-family:var(--font-d);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:1.5px;border:none;border-radius:0;clip-path:var(--clip-btn);padding:14px 32px;cursor:pointer;transition:all 0.2s ease-out;position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px}
+.btn{font-family:var(--font-d);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:1.5px;border:none;border-radius:0;clip-path:var(--clip-btn);padding:14px 32px;cursor:pointer;transition:all 0.25s var(--spring-bounce);position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px}
 .btn::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 50%);pointer-events:none}
 .btn:active{transform:scale(0.96) translateY(1px)}
 .btn-gold{background:linear-gradient(135deg,#FFD95A 0%,var(--gold-bright) 40%,var(--gold) 100%);color:var(--void);box-shadow:0 4px 20px rgba(255,207,68,0.35),0 1px 3px rgba(0,0,0,0.3)}
@@ -257,8 +332,8 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 /* ================================================================
    PLAYER CARD — Holographic
    ================================================================ */
-.player-card{background:linear-gradient(160deg,var(--pavilion) 0%,var(--dugout) 40%,var(--pitch) 100%);border-radius:3px;clip-path:var(--clip-card-tr);overflow:hidden;position:relative;box-shadow:0 4px 24px rgba(0,0,0,0.5),0 12px 40px rgba(0,0,0,0.2),0 1px 3px rgba(0,0,0,0.3);transition:transform 0.25s,box-shadow 0.25s;cursor:pointer;border:1px solid rgba(255,255,255,0.08)}
-.player-card:active{transform:scale(0.97) translateY(2px);box-shadow:0 2px 12px rgba(0,0,0,0.5)}
+.player-card{background:linear-gradient(160deg,var(--pavilion) 0%,var(--dugout) 40%,var(--pitch) 100%);border-radius:3px;clip-path:var(--clip-card-tr);overflow:hidden;position:relative;box-shadow:var(--elevation-3);transition:transform 0.35s var(--spring-bounce),box-shadow 0.35s var(--spring);cursor:pointer;border:1px solid rgba(255,255,255,0.08)}
+.player-card:active{transform:scale(0.96) translateY(3px);box-shadow:var(--elevation-1)}
 .player-card .rarity-strip{height:3px;background:linear-gradient(90deg,transparent 5%,var(--rarity-color) 50%,transparent 95%)}
 .player-card .card-body{padding:12px 14px}
 .player-card .portrait-area{height:90px;background:radial-gradient(ellipse at center bottom,var(--rarity-glow) 0%,transparent 70%);display:flex;align-items:center;justify-content:center;position:relative}
@@ -318,10 +393,10 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .hub-meter .meter-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
 
 .action-tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
-.action-tile{background:var(--glass-bg);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border:var(--glass-border);border-radius:4px;clip-path:var(--clip-card-tl);padding:24px 20px 20px;cursor:pointer;transition:all 0.25s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 16px rgba(0,0,0,0.3),0 8px 32px rgba(0,0,0,0.15)}
+.action-tile{background:var(--glass-bg);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border:var(--glass-border);border-radius:4px;clip-path:var(--clip-card-tl);padding:24px 20px 20px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:160px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3)}
 .action-tile::before{content:'';position:absolute;inset:0;opacity:0.7;transition:opacity 0.3s;pointer-events:none}
 .action-tile::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;pointer-events:none}
-.action-tile:active{transform:scale(0.96)}
+.action-tile:active{transform:scale(0.94) translateY(2px);box-shadow:var(--elevation-1)}
 .action-tile .tile-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
 .action-tile .tile-icon svg{width:28px;height:28px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .action-tile .tile-title{font-family:var(--font-d);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
@@ -340,9 +415,9 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .action-tile.match .tile-icon svg{stroke:var(--green-bright);filter:drop-shadow(0 0 6px rgba(52,211,153,0.5))}
 
 .quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.quick-tile{background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.06);border-radius:4px;padding:14px 8px 12px;text-align:center;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 12px rgba(0,0,0,0.2);position:relative;overflow:hidden}
+.quick-tile{background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.06);border-radius:4px;padding:14px 8px 12px;text-align:center;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
 .quick-tile::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;transition:background 0.2s}
-.quick-tile:active{transform:scale(0.93);background:rgba(255,255,255,0.08)}
+.quick-tile:active{transform:scale(0.90);background:rgba(255,255,255,0.08);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 .quick-tile:active::after{background:var(--align-accent)}
 .quick-tile svg{width:20px;height:20px;stroke:var(--slip);fill:none;stroke-width:1.6;margin-bottom:5px;display:block;margin-inline:auto;transition:stroke 0.2s}
 .quick-tile:active svg{stroke:var(--align-accent)}
@@ -406,7 +481,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
    ================================================================ */
 .prematch-vs{display:flex;align-items:center;justify-content:center;gap:16px;padding:24px 0}
 .prematch-team{text-align:center;flex:1}
-.prematch-team .team-badge{width:68px;height:68px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:26px;font-weight:700;box-shadow:0 4px 24px rgba(0,0,0,0.5),0 0 30px rgba(0,0,0,0.2);border:2.5px solid rgba(255,255,255,0.12)}
+.prematch-team .team-badge{width:68px;height:68px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center}
 .prematch-team .team-label{font-family:var(--font-d);font-size:18px;font-weight:600}
 .prematch-team .team-strength{font-size:12px;color:var(--slip);margin-top:3px;font-weight:600}
 .prematch-vs-divider{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--slip);padding:8px 14px;background:rgba(255,255,255,0.03);border-radius:20px;border:1px solid rgba(255,255,255,0.05);letter-spacing:2px}
@@ -735,7 +810,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
    ================================================================ */
 .overlay{position:fixed;inset:0;z-index:300;background:rgba(6,8,16,0.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s}
 .overlay.show{opacity:1;pointer-events:auto}
-.overlay .modal{width:100%;max-width:420px;max-height:85vh;background:linear-gradient(180deg,var(--dugout) 0%,var(--pitch) 100%);border-radius:6px 6px 0 0;padding:20px 18px calc(20px + var(--safe-b));overflow-y:auto;transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);border:1px solid rgba(255,255,255,0.05);border-bottom:none}
+.overlay .modal{width:100%;max-width:420px;max-height:85vh;background:linear-gradient(180deg,var(--dugout) 0%,var(--pitch) 100%);border-radius:6px 6px 0 0;padding:20px 18px calc(20px + var(--safe-b));overflow-y:auto;transform:translateY(100%);transition:transform 0.5s var(--spring-bounce);border:1px solid rgba(255,255,255,0.05);border-bottom:none;box-shadow:var(--elevation-4)}
 .overlay.show .modal{transform:translateY(0)}
 .modal-handle{width:40px;height:4px;background:rgba(136,150,176,0.2);border-radius:2px;margin:0 auto 18px}
 
@@ -980,8 +1055,121 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 @keyframes fireGlow{0%,100%{text-shadow:0 0 10px rgba(255,160,0,0.4),0 0 30px rgba(255,80,0,0.2)}50%{text-shadow:0 0 20px rgba(255,160,0,0.6),0 0 50px rgba(255,80,0,0.3)}}
 .streak-milestone{animation:fireGlow 1.5s ease-in-out infinite}
 
-/* --- Enhanced screen transitions --- */
-.screen{transition:opacity 0.35s ease-out,transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94),filter 0.35s}
+/* --- Enhanced screen transitions (spring) --- */
+.screen{transition:opacity 0.4s var(--spring),transform 0.5s var(--spring-bounce),filter 0.35s}
+
+/* ================================================================
+   P1.5 — DEPTH / ELEVATION SYSTEM
+   ================================================================ */
+.depth-1{box-shadow:var(--elevation-1)}.depth-2{box-shadow:var(--elevation-2)}.depth-3{box-shadow:var(--elevation-3)}.depth-4{box-shadow:var(--elevation-4)}
+.glass:active{transform:scale(0.985) translateY(1px);box-shadow:var(--elevation-1)}
+
+/* Parallax-ready background layers */
+.parallax-layer{position:absolute;inset:-20px;pointer-events:none;will-change:transform;transition:transform 0.1s linear}
+
+/* ================================================================
+   P1.5 — SKELETON LOADING
+   ================================================================ */
+@keyframes skeletonShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%);background-size:200% 100%;animation:skeletonShimmer 1.5s ease-in-out infinite;border-radius:3px;pointer-events:none}
+.skeleton-text{height:12px;margin-bottom:8px;border-radius:2px}
+.skeleton-text.w60{width:60%}.skeleton-text.w40{width:40%}.skeleton-text.w80{width:80%}
+.skeleton-circle{border-radius:50%}
+.skeleton-card{height:180px;border-radius:4px}
+
+.screen-enter{animation:screenEnter 0.5s var(--spring-bounce) both}
+@keyframes screenEnter{0%{opacity:0;transform:translateY(24px) scale(0.95)}100%{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Stagger children on screen enter */
+.screen.active .stagger-child{animation:staggerIn 0.4s var(--spring-bounce) both}
+.screen.active .stagger-child:nth-child(1){animation-delay:0.05s}
+.screen.active .stagger-child:nth-child(2){animation-delay:0.1s}
+.screen.active .stagger-child:nth-child(3){animation-delay:0.15s}
+.screen.active .stagger-child:nth-child(4){animation-delay:0.2s}
+.screen.active .stagger-child:nth-child(5){animation-delay:0.25s}
+.screen.active .stagger-child:nth-child(6){animation-delay:0.3s}
+.screen.active .stagger-child:nth-child(7){animation-delay:0.35s}
+.screen.active .stagger-child:nth-child(8){animation-delay:0.4s}
+@keyframes staggerIn{0%{opacity:0;transform:translateY(16px) scale(0.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ================================================================
+   P1.5 — PROCEDURAL TEAM CREST
+   ================================================================ */
+.team-crest{position:relative;flex-shrink:0}
+.team-crest svg{display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4))}
+.team-crest-glow{position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle,var(--align-accent-dim),transparent 70%);opacity:0.6;animation:crestGlow 4s ease-in-out infinite alternate;pointer-events:none;z-index:-1}
+@keyframes crestGlow{0%{opacity:0.4;transform:scale(0.95)}100%{opacity:0.7;transform:scale(1.05)}}
+
+/* Hub crest replaces old manager-avatar */
+.hub-header .team-crest{width:72px;height:72px}
+.hub-header .team-crest svg{width:72px;height:72px}
+
+/* Mini crests for prematch, league table */
+.crest-mini svg{width:36px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))}
+.crest-xs svg{width:24px;height:24px;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.3))}
+
+/* ================================================================
+   P1.5 — HUB GAME-LIKE UPGRADES
+   ================================================================ */
+.hub-header{display:flex;align-items:center;gap:16px;margin-bottom:22px;padding:14px 0;position:relative}
+.hub-header .manager-info{flex:1}
+.hub-header .manager-name{font-family:var(--font-d);font-size:30px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 12px rgba(0,0,0,0.3)}
+
+/* Power level bar — replaces plain meters */
+.hub-power-ring{position:relative;width:72px;height:72px;flex-shrink:0}
+.hub-power-ring svg{width:72px;height:72px;transform:rotate(-90deg)}
+.hub-power-ring .ring-track{fill:none;stroke:rgba(255,255,255,0.04);stroke-width:4}
+.hub-power-ring .ring-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s var(--spring),stroke 0.8s}
+.hub-power-ring .power-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);text-shadow:0 0 16px rgba(255,255,255,0.1)}
+
+/* Action tiles breathing glow */
+.action-tile.auction::before{background:radial-gradient(ellipse at 20% 20%,rgba(255,207,68,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(212,160,23,0.12) 0%,transparent 45%);animation:tileBreath 4s ease-in-out infinite alternate}
+.action-tile.match::before{background:radial-gradient(ellipse at 20% 20%,rgba(52,211,153,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(5,150,105,0.12) 0%,transparent 45%);animation:tileBreath 4s ease-in-out infinite alternate 1s}
+@keyframes tileBreath{0%{opacity:0.6}100%{opacity:1}}
+
+/* Quick tiles enhanced */
+.quick-tile svg{width:22px;height:22px;transition:all 0.3s var(--spring-bounce)}
+.quick-tile:active svg{transform:scale(1.15);stroke:var(--align-accent)}
+
+/* Next rival — battle card feel */
+#hub-next-rival{border:1px solid rgba(239,45,45,0.12);background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(220,38,38,0.02),rgba(255,255,255,0.02));box-shadow:var(--elevation-2);transition:all 0.3s var(--spring)}
+#hub-next-rival::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 90% 20%,rgba(220,38,38,0.06) 0%,transparent 50%);pointer-events:none;border-radius:inherit}
+
+/* Facility cards elevation */
+.facility-card{box-shadow:var(--elevation-1);transition:all 0.3s var(--spring-bounce)}
+.facility-card:active{transform:scale(0.93);box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+
+/* Nav item spring press */
+.nav-item{transition:all 0.3s var(--spring-bounce)}
+.nav-item:active{transform:scale(0.82)}
+
+/* League row spring */
+.league-row{transition:all 0.3s var(--spring);box-shadow:var(--elevation-1)}
+.league-row.you{box-shadow:var(--elevation-2),0 0 20px rgba(240,200,80,0.05)}
+
+/* Currency pill press */
+.currency{transition:transform 0.25s var(--spring-bounce)}
+
+/* Stat bar fill spring animation */
+.stat-bar .fill{transition:width 0.8s var(--spring)}
+.hub-meter .meter-fill{transition:width 0.8s var(--spring)}
+
+/* Toast spring entrance */
+.toast{transition:transform 0.4s var(--spring-bounce)}
+
+/* ================================================================
+   P1.5 — ENHANCED LOADING TRANSITIONS
+   ================================================================ */
+.screen-skeleton{position:absolute;inset:0;padding:16px;pointer-events:none;opacity:0;transition:opacity 0.3s}
+.screen-skeleton.visible{opacity:1}
+.skel-hub-header{display:flex;gap:16px;align-items:center;margin-bottom:22px;padding:14px 0}
+.skel-hub-avatar{width:72px;height:72px;border-radius:50%}
+.skel-hub-info{flex:1;display:flex;flex-direction:column;gap:8px}
+.skel-tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.skel-tile{height:160px;border-radius:4px}
+.skel-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.skel-quick-tile{height:60px;border-radius:4px}
+.skel-panel{height:80px;border-radius:4px;margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -1020,8 +1208,8 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
     <!-- HUB -->
     <div class="screen" id="hub-screen">
       <div class="settings-btn" id="settings-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
-      <div class="hub-header">
-        <div class="manager-avatar" id="manager-avatar" style="border-color:rgba(240,200,80,0.4)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg></div>
+      <div class="hub-header stagger-child">
+        <div class="team-crest" id="hub-crest"><div class="team-crest-glow"></div></div>
         <div class="manager-info">
           <div class="manager-name" id="manager-name">Manager</div>
           <div class="league-name" id="league-label">Gully Cricket League</div>
@@ -1043,7 +1231,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         </div>
       </div>
 
-      <div class="action-tiles">
+      <div class="action-tiles stagger-child">
         <div class="action-tile auction" id="hub-auction-btn">
           <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M16.5 3.5l4 4"/><path d="M14 2l7 7-3 3-7-7 3-3z"/><path d="M7 9l5 5"/><path d="M4 20h16"/><path d="M10 16h4v4h-4z"/></svg></div>
           <div><div class="tile-title">Auction</div><div class="tile-sub" id="auction-sub">Build your squad</div></div>
@@ -1054,7 +1242,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         </div>
       </div>
 
-      <div class="quick-tiles">
+      <div class="quick-tiles stagger-child">
         <div class="quick-tile" id="hub-squad-btn">
           <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           <div class="qt-label">Squad</div>
@@ -1246,14 +1434,14 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
       <div class="section-title text-center" style="justify-content:center">Match Day</div>
       <div class="prematch-vs">
         <div class="prematch-team">
-          <div class="team-badge" id="your-badge" style="background:linear-gradient(135deg,var(--gold-bright),var(--gold))"><span style="color:var(--void)" id="your-initial">Y</span></div>
+          <div id="your-badge" style="margin:0 auto 10px;width:68px;height:68px"></div>
           <div class="team-label" id="your-team-label">Your Team</div>
           <div class="team-strength" id="your-strength">STR: 70</div>
           <div class="text-xs text-gold" id="pm-captain" style="margin-top:3px"></div>
         </div>
         <div class="prematch-vs-divider">VS</div>
         <div class="prematch-team">
-          <div class="team-badge" id="opp-badge" style="background:linear-gradient(135deg,var(--blood),var(--crimson))"><span style="color:var(--white)" id="opp-initial">S</span></div>
+          <div id="opp-badge" style="margin:0 auto 10px;width:68px;height:68px"></div>
           <div class="team-label" id="opp-name-pm">The Shark</div>
           <div class="team-strength" id="opp-strength">STR: 72</div>
         </div>
@@ -1899,6 +2087,85 @@ document.addEventListener('click', function(e) {
 });
 
 // =============================================
+// PROCEDURAL TEAM CREST GENERATOR
+// =============================================
+var CREST_COLORS = {
+  gold: { primary: '#FFD95A', secondary: '#D4A017', accent: '#FFE082', dark: '#8B6914' },
+  crimson: { primary: '#EF2D2D', secondary: '#8B1225', accent: '#FF6B6B', dark: '#5C0A15' },
+  green: { primary: '#34D399', secondary: '#059669', accent: '#6EE7B7', dark: '#064E3B' },
+  blue: { primary: '#60A5FA', secondary: '#3B82F6', accent: '#93C5FD', dark: '#1E3A5F' },
+  purple: { primary: '#A78BFA', secondary: '#7C3AED', accent: '#C4B5FD', dark: '#4C1D95' },
+  cyan: { primary: '#22D3EE', secondary: '#0891B2', accent: '#67E8F9', dark: '#164E63' },
+  amber: { primary: '#F59E0B', secondary: '#D97706', accent: '#FCD34D', dark: '#78350F' },
+  white: { primary: '#F0EBE0', secondary: '#94A3B8', accent: '#FFFFFF', dark: '#475569' },
+  dark: { primary: '#4B5563', secondary: '#1F2937', accent: '#6B7280', dark: '#111827' }
+};
+
+function hashStr(s) {
+  var h = 0;
+  for (var i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function generateCrest(name, colorKey, size) {
+  size = size || 72;
+  var c = CREST_COLORS[colorKey] || CREST_COLORS.gold;
+  var h = hashStr(name || 'Team');
+  var patternType = h % 5;
+  var initial = (name || 'T').charAt(0).toUpperCase();
+  var half = size / 2;
+  var gradId = 'cg' + h;
+  var shieldPath = 'M' + half + ' ' + (size * 0.04) +
+    ' L' + (size * 0.92) + ' ' + (size * 0.15) +
+    ' L' + (size * 0.88) + ' ' + (size * 0.55) +
+    ' Q' + (size * 0.82) + ' ' + (size * 0.75) + ' ' + half + ' ' + (size * 0.96) +
+    ' Q' + (size * 0.18) + ' ' + (size * 0.75) + ' ' + (size * 0.12) + ' ' + (size * 0.55) +
+    ' L' + (size * 0.08) + ' ' + (size * 0.15) + ' Z';
+
+  var pattern = '';
+  if (patternType === 0) {
+    pattern = '<line x1="' + half + '" y1="' + (size * 0.15) + '" x2="' + half + '" y2="' + (size * 0.85) + '" stroke="' + c.accent + '" stroke-width="1" opacity="0.15"/>';
+  } else if (patternType === 1) {
+    pattern = '<line x1="' + (size * 0.15) + '" y1="' + half + '" x2="' + (size * 0.85) + '" y2="' + half + '" stroke="' + c.accent + '" stroke-width="1" opacity="0.15"/>' +
+      '<line x1="' + half + '" y1="' + (size * 0.15) + '" x2="' + half + '" y2="' + (size * 0.85) + '" stroke="' + c.accent + '" stroke-width="1" opacity="0.15"/>';
+  } else if (patternType === 2) {
+    for (var si = 0; si < 3; si++) {
+      var sy = size * 0.25 + si * size * 0.2;
+      pattern += '<line x1="' + (size * 0.18) + '" y1="' + sy + '" x2="' + (size * 0.82) + '" y2="' + sy + '" stroke="' + c.accent + '" stroke-width="0.8" opacity="0.1"/>';
+    }
+  } else if (patternType === 3) {
+    pattern = '<circle cx="' + half + '" cy="' + (half * 0.95) + '" r="' + (size * 0.18) + '" fill="none" stroke="' + c.accent + '" stroke-width="0.8" opacity="0.15"/>';
+  } else {
+    pattern = '<path d="M' + (size * 0.2) + ' ' + (size * 0.7) + ' L' + half + ' ' + (size * 0.35) + ' L' + (size * 0.8) + ' ' + (size * 0.7) + '" fill="none" stroke="' + c.accent + '" stroke-width="0.8" opacity="0.15"/>';
+  }
+
+  var svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs>' +
+      '<linearGradient id="' + gradId + '" x1="0" y1="0" x2="0.3" y2="1">' +
+        '<stop offset="0%" stop-color="' + c.primary + '"/>' +
+        '<stop offset="60%" stop-color="' + c.secondary + '"/>' +
+        '<stop offset="100%" stop-color="' + c.dark + '"/>' +
+      '</linearGradient>' +
+      '<clipPath id="sc' + h + '"><path d="' + shieldPath + '"/></clipPath>' +
+    '</defs>' +
+    '<path d="' + shieldPath + '" fill="url(#' + gradId + ')" stroke="' + c.accent + '" stroke-width="1.5" stroke-opacity="0.4"/>' +
+    '<g clip-path="url(#sc' + h + ')">' +
+      '<path d="' + shieldPath + '" fill="none" stroke="' + c.accent + '" stroke-width="6" stroke-opacity="0.06"/>' +
+      pattern +
+    '</g>' +
+    '<text x="' + half + '" y="' + (half * 1.12) + '" text-anchor="middle" dominant-baseline="central" ' +
+      'font-family="Teko,sans-serif" font-size="' + (size * 0.38) + '" font-weight="700" ' +
+      'fill="' + (colorKey === 'white' ? '#1a1a2e' : '#fff') + '" opacity="0.9" ' +
+      'style="text-shadow:0 2px 4px rgba(0,0,0,0.3)">' + initial + '</text>' +
+    '</svg>';
+  return svg;
+}
+
+function generateRivalCrest(rival, size) {
+  return generateCrest(rival.name, rival.color, size);
+}
+
+// =============================================
 // HELPERS
 // =============================================
 function $(id) { return document.getElementById(id); }
@@ -2436,12 +2703,18 @@ function updateHub() {
   updateAlignTheme();
   $('manager-name').textContent = GS.managerName;
   var tc = getTeamColor();
-  var ma = $('manager-avatar');
-  ma.classList.remove('heat-medium','heat-high','heat-critical');
-  if (GS.heat >= 76) { ma.classList.add('heat-critical'); }
-  else if (GS.heat >= 51) { ma.classList.add('heat-high'); }
-  else if (GS.heat >= 26) { ma.classList.add('heat-medium'); }
-  else { ma.style.borderColor = tc.border; }
+  var crestEl = $('hub-crest');
+  if (crestEl) {
+    var crestSvg = generateCrest(GS.teamName, GS.teamColor, 72);
+    var glowEl = crestEl.querySelector('.team-crest-glow');
+    crestEl.innerHTML = crestSvg;
+    if (glowEl) crestEl.appendChild(glowEl);
+    else { var g = document.createElement('div'); g.className = 'team-crest-glow'; crestEl.appendChild(g); }
+    if (GS.heat >= 76) crestEl.style.filter = 'drop-shadow(0 0 12px rgba(239,45,45,0.4))';
+    else if (GS.heat >= 51) crestEl.style.filter = 'drop-shadow(0 0 8px rgba(239,45,45,0.25))';
+    else if (GS.heat >= 26) crestEl.style.filter = 'drop-shadow(0 0 6px rgba(245,158,11,0.2))';
+    else crestEl.style.filter = '';
+  }
   $('league-label').textContent = LEAGUE_NAMES[GS.league] || 'Gully Cricket League';
   $('season-badge').textContent = 'S' + GS.season + ' · ' + (LEAGUE_NAMES[GS.league] || 'Gully');
   $('match-num').textContent = GS.matchNum;
@@ -2473,8 +2746,9 @@ function updateHub() {
     show('hub-next-rival');
     var r = getNextRival();
     $('rival-name').textContent = r.name;
-    $('rival-avatar').textContent = r.short;
-    $('rival-avatar').className = 'avatar ' + r.color;
+    var rivalAvatarEl = $('rival-avatar');
+    rivalAvatarEl.innerHTML = generateRivalCrest(r, 48);
+    rivalAvatarEl.className = 'crest-mini';
     $('rival-align').textContent = r.trait;
     $('rival-align').className = 'text-xs ' + (r.alignment >= 30 ? 'text-green' : r.alignment <= -30 ? 'text-red' : 'text-slip');
     $('rival-str').textContent = r.strength;
@@ -2604,8 +2878,16 @@ function updateLeagueTable() {
     for (var f = 0; f < Math.min(5, totalPlayed); f++) {
       formDots += '<div class="form-dot ' + (f < teams[t].wins ? 'w' : 'l') + '"></div>';
     }
+    var crestHtml = '';
+    if (teams[t].you) {
+      crestHtml = '<div class="crest-xs" style="flex-shrink:0">' + generateCrest(GS.teamName, GS.teamColor, 24) + '</div>';
+    } else {
+      var rivalObj = RIVALS.find(function(rv){return rv.name === teams[t].name;});
+      crestHtml = rivalObj ? '<div class="crest-xs" style="flex-shrink:0">' + generateRivalCrest(rivalObj, 24) + '</div>' : '<div class="pos">' + (t+1) + '</div>';
+    }
     html += '<div class="league-row' + (teams[t].you ? ' you' : '') + zoneClass + '">' +
       '<div class="pos">' + (t + 1) + '</div>' +
+      crestHtml +
       '<div class="team-info"><div class="name">' + teams[t].name + '</div></div>' +
       '<div class="form-dots">' + formDots + '</div>' +
       '<div class="record">' + teams[t].wins + 'W ' + teams[t].losses + 'L</div>' +
@@ -3048,12 +3330,10 @@ function startPreMatch() {
   var rival = getNextRival();
   match.opponent = rival;
   $('opp-name-pm').textContent = rival.name;
-  $('opp-initial').textContent = rival.short;
-  var bgMap = { crimson:'linear-gradient(135deg,var(--blood),var(--crimson))', green:'linear-gradient(135deg,var(--green-bright),var(--green))', blue:'linear-gradient(135deg,#60A5FA,var(--blue))' };
-  $('opp-badge').style.background = bgMap[rival.color] || bgMap.blue;
-  var tc = getTeamColor();
-  $('your-badge').style.background = tc.bg;
-  $('your-initial').textContent = getTeamInitial();
+  $('opp-badge').innerHTML = generateRivalCrest(rival, 68);
+  $('opp-badge').style.background = 'none';
+  $('your-badge').innerHTML = generateCrest(GS.teamName, GS.teamColor, 68);
+  $('your-badge').style.background = 'none';
   $('your-team-label').textContent = GS.teamName;
   $('your-strength').textContent = 'STR: ' + getTeamStrength();
   var capP = GS.captainId ? GS.squad.find(function(p){return p.id===GS.captainId;}) : null;
