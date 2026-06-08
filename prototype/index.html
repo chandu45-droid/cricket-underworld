@@ -1140,6 +1140,15 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .facility-card{box-shadow:var(--elevation-1);transition:all 0.3s var(--spring-bounce)}
 .facility-card:active{transform:scale(0.93);box-shadow:0 1px 3px rgba(0,0,0,0.2)}
 
+/* Hub battle card — dramatic VS display */
+.hub-battle-card{position:relative;padding:16px;margin-bottom:14px;border-radius:4px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(220,38,38,0.03),rgba(255,255,255,0.02));border:1px solid rgba(220,38,38,0.12);box-shadow:var(--elevation-2);transition:all 0.3s var(--spring)}
+.battle-card-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 50%),radial-gradient(circle at 20% 20%,var(--align-accent-dim) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(220,38,38,0.04) 0%,transparent 40%);pointer-events:none;animation:battleBg 6s ease-in-out infinite alternate}
+@keyframes battleBg{0%{opacity:0.6}100%{opacity:1}}
+.battle-label{font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--slip);text-align:center;margin-bottom:10px;position:relative}
+.battle-vs-row{display:flex;align-items:center;justify-content:center;gap:16px;position:relative}
+.battle-team{text-align:center;flex:1;display:flex;flex-direction:column;align-items:center}
+.battle-vs{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--slip);padding:6px 14px;background:rgba(255,255,255,0.04);border-radius:20px;border:1px solid rgba(255,255,255,0.08);letter-spacing:3px;flex-shrink:0}
+
 /* Nav item spring press */
 .nav-item{transition:all 0.3s var(--spring-bounce)}
 .nav-item:active{transform:scale(0.82)}
@@ -1215,20 +1224,27 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <div class="manager-name" id="manager-name">Manager</div>
           <div class="league-name" id="league-label">Gully Cricket League</div>
           <div class="align-zone-tag" id="align-zone-tag">Grey Zone</div>
-          <div class="hub-meters">
-            <div class="hub-meter">
-              <div class="meter-label"><span>Align</span><span id="align-val" class="text-gold">+0</span></div>
-              <div class="meter-bar"><div class="meter-fill" id="align-fill" style="width:50%;background:linear-gradient(90deg,var(--gold),var(--gold-bright))"></div></div>
-            </div>
-            <div class="hub-meter">
-              <div class="meter-label"><span>Heat</span><span id="heat-val" class="text-slip">0</span></div>
-              <div class="meter-bar"><div class="meter-fill" id="heat-fill" style="width:0%"></div></div>
-            </div>
-            <div class="hub-meter">
-              <div class="meter-label"><span>Fans</span><span id="fan-val" class="text-blue">50</span></div>
-              <div class="meter-bar"><div class="meter-fill" id="fan-fill" style="width:50%;background:linear-gradient(90deg,var(--blue),#60A5FA)"></div></div>
-            </div>
-          </div>
+        </div>
+        <div class="hub-power-ring" id="hub-power-ring">
+          <svg viewBox="0 0 72 72">
+            <circle class="ring-track" cx="36" cy="36" r="30"/>
+            <circle class="ring-fill" id="power-ring-fill" cx="36" cy="36" r="30" stroke="var(--align-accent)" style="stroke-dasharray:188.5;stroke-dashoffset:94"/>
+          </svg>
+          <div class="power-val" id="power-val">50</div>
+        </div>
+      </div>
+      <div class="hub-meters stagger-child" style="display:flex;gap:12px;margin-bottom:16px">
+        <div class="hub-meter" style="flex:1">
+          <div class="meter-label"><span>Align</span><span id="align-val" class="text-gold">+0</span></div>
+          <div class="meter-bar"><div class="meter-fill" id="align-fill" style="width:50%;background:linear-gradient(90deg,var(--gold),var(--gold-bright))"></div></div>
+        </div>
+        <div class="hub-meter" style="flex:1">
+          <div class="meter-label"><span>Heat</span><span id="heat-val" class="text-slip">0</span></div>
+          <div class="meter-bar"><div class="meter-fill" id="heat-fill" style="width:0%"></div></div>
+        </div>
+        <div class="hub-meter" style="flex:1">
+          <div class="meter-label"><span>Fans</span><span id="fan-val" class="text-blue">50</span></div>
+          <div class="meter-bar"><div class="meter-fill" id="fan-fill" style="width:50%;background:linear-gradient(90deg,var(--blue),#60A5FA)"></div></div>
         </div>
       </div>
 
@@ -1351,19 +1367,23 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="stat-bar"><div class="fill gold" id="season-progress" style="width:0%"></div></div>
       </div>
 
-      <div class="glass" id="hub-next-rival" style="display:none">
-        <div class="flex items-center gap-12">
-          <div class="avatar crimson" id="rival-avatar">S</div>
-          <div class="flex-1">
-            <div class="text-xs text-slip" style="text-transform:uppercase;letter-spacing:1px">Next Opponent</div>
-            <div class="font-d fw-700 text-lg" id="rival-name">The Shark</div>
-            <div class="text-xs" id="rival-align">Alignment: -58</div>
+      <div class="hub-battle-card stagger-child" id="hub-next-rival" style="display:none">
+        <div class="battle-card-bg"></div>
+        <div class="battle-label">NEXT MATCH</div>
+        <div class="battle-vs-row">
+          <div class="battle-team">
+            <div id="battle-your-crest" class="crest-mini"></div>
+            <div class="font-d fw-600 text-sm" id="battle-your-name" style="margin-top:4px">Your Team</div>
+            <div class="font-d fw-700 text-gold" id="battle-your-str">50</div>
           </div>
-          <div class="text-right">
-            <div class="font-d fw-700" style="font-size:28px" id="rival-str">72</div>
-            <div class="text-xs text-slip">Strength</div>
+          <div class="battle-vs">VS</div>
+          <div class="battle-team">
+            <div id="rival-avatar" class="crest-mini"></div>
+            <div class="font-d fw-600 text-sm" id="rival-name" style="margin-top:4px">The Shark</div>
+            <div class="font-d fw-700 text-red" id="rival-str">72</div>
           </div>
         </div>
+        <div class="text-xs text-slip" id="rival-align" style="text-align:center;font-style:italic;margin-top:6px"></div>
         <div style="display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
           <div class="flex-1" style="text-align:center">
             <div class="text-xs text-slip">Relationship</div>
@@ -2789,6 +2809,13 @@ function updateHub() {
   $('heat-val').className = GS.heat >= 76 ? 'text-red fw-700' : GS.heat >= 51 ? 'text-red' : GS.heat >= 26 ? 'text-amber' : 'text-slip';
   $('fan-fill').style.width = GS.fanLoyalty + '%';
   $('fan-val').textContent = GS.fanLoyalty;
+  var teamOvr = getTeamStrength();
+  var circumference = 2 * Math.PI * 30;
+  var ovrPct = Math.min(100, teamOvr);
+  var offset = circumference - (ovrPct / 100 * circumference);
+  $('power-ring-fill').style.strokeDasharray = circumference;
+  $('power-ring-fill').style.strokeDashoffset = offset;
+  $('power-val').textContent = teamOvr;
   var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
   GS.sponsor = sp;
   $('sponsor-name').textContent = sp.name;
@@ -2804,8 +2831,12 @@ function updateHub() {
     var r = getNextRival();
     $('rival-name').textContent = r.name;
     var rivalAvatarEl = $('rival-avatar');
-    rivalAvatarEl.innerHTML = generateRivalCrest(r, 48);
+    rivalAvatarEl.innerHTML = generateRivalCrest(r, 36);
     rivalAvatarEl.className = 'crest-mini';
+    $('rival-str').textContent = r.strength;
+    $('battle-your-crest').innerHTML = generateCrest(GS.teamName, GS.teamColor, 36);
+    $('battle-your-name').textContent = GS.teamName;
+    $('battle-your-str').textContent = getTeamStrength();
     $('rival-align').textContent = r.trait;
     $('rival-align').className = 'text-xs ' + (r.alignment >= 30 ? 'text-green' : r.alignment <= -30 ? 'text-red' : 'text-slip');
     $('rival-str').textContent = r.strength;
