@@ -175,8 +175,13 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
    SCREEN CONTAINER — Living mesh gradient backgrounds
    ================================================================ */
 #screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--nav-h) + var(--safe-b) + 16px);opacity:0;transform:translateY(20px) scale(0.96);transition:opacity 0.4s var(--spring),transform 0.5s var(--spring-bounce);pointer-events:none;-webkit-overflow-scrolling:touch;will-change:opacity,transform}
-.screen.active{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--nav-h) + var(--safe-b) + 16px);opacity:0;transform:translateX(0) scale(0.96);transition:opacity 0.4s var(--spring),transform 0.5s var(--spring-bounce);pointer-events:none;-webkit-overflow-scrolling:touch;will-change:opacity,transform}
+.screen.active{opacity:1;transform:translateX(0) scale(1);pointer-events:auto}
+.screen.swipe-exit-left{opacity:0;transform:translateX(-30%) scale(0.94);pointer-events:none}
+.screen.swipe-exit-right{opacity:0;transform:translateX(30%) scale(0.94);pointer-events:none}
+.screen.swipe-enter-left{opacity:0;transform:translateX(-30%) scale(0.94);pointer-events:none}
+.screen.swipe-enter-right{opacity:0;transform:translateX(30%) scale(0.94);pointer-events:none}
+.screen.swiping{transition:none !important}
 
 #hub-screen{
   --mesh-x1:20%;--mesh-y1:0%;--mesh-x2:80%;--mesh-y2:15%;--mesh-x3:50%;--mesh-y3:100%;
@@ -815,7 +820,16 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .overlay.show{opacity:1;pointer-events:auto}
 .overlay .modal{width:100%;max-width:420px;max-height:85vh;background:linear-gradient(180deg,var(--dugout) 0%,var(--pitch) 100%);border-radius:6px 6px 0 0;padding:20px 18px calc(20px + var(--safe-b));overflow-y:auto;transform:translateY(100%);transition:transform 0.5s var(--spring-bounce);border:1px solid rgba(255,255,255,0.05);border-bottom:none;box-shadow:var(--elevation-4)}
 .overlay.show .modal{transform:translateY(0)}
-.modal-handle{width:40px;height:4px;background:rgba(136,150,176,0.2);border-radius:2px;margin:0 auto 18px}
+.modal-handle{width:40px;height:4px;background:rgba(136,150,176,0.2);border-radius:2px;margin:0 auto 18px;cursor:grab;touch-action:none}
+.modal.dragging{transition:none !important}
+.modal.drag-dismissing{transition:transform 0.35s var(--spring),opacity 0.35s;opacity:0;transform:translateY(100%) !important}
+
+/* Pull-to-refresh */
+#pull-indicator{position:absolute;top:0;left:50%;transform:translateX(-50%) translateY(-50px);width:36px;height:36px;border-radius:50%;background:var(--dugout);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;z-index:10;transition:transform 0.3s var(--spring-bounce),opacity 0.3s;opacity:0;pointer-events:none;box-shadow:var(--elevation-2)}
+#pull-indicator svg{width:18px;height:18px;stroke:var(--align-accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform 0.3s}
+#pull-indicator.ready svg{transform:rotate(180deg)}
+#pull-indicator.refreshing{animation:pullSpin 0.8s linear infinite}
+@keyframes pullSpin{0%{transform:translateX(-50%) translateY(8px) rotate(0deg)}100%{transform:translateX(-50%) translateY(8px) rotate(360deg)}}
 
 /* ================================================================
    TOAST
@@ -1219,6 +1233,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
   <div id="screens">
     <!-- HUB -->
     <div class="screen" id="hub-screen">
+      <div id="pull-indicator"><svg viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg></div>
       <div class="settings-btn" id="settings-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
       <div class="hub-header stagger-child">
         <div class="team-crest" id="hub-crest"><div class="team-crest-glow"></div></div>
@@ -3104,7 +3119,7 @@ function goScreen(name) {
   SFX.tap();
   var old = $(currentScreen + '-screen');
   var next = $(name + '-screen');
-  if (old) old.classList.remove('active');
+  if (old) { old.classList.remove('active','swipe-exit-left','swipe-exit-right','swiping'); old.style.transform = ''; old.style.opacity = ''; }
   if (next) next.classList.add('active');
   currentScreen = name;
   var navItems = document.querySelectorAll('.nav-item');
@@ -5356,6 +5371,222 @@ function bindEvents() {
     if (card) showPlayerDetail(parseInt(card.getAttribute('data-pid')));
   });
 }
+
+// =============================================
+// GESTURE ENGINE — Swipe, Drag, Pull
+// =============================================
+(function() {
+  var NAV_ORDER = ['hub','squad','auction','cards','league'];
+  var SWIPE_THRESHOLD = 50;
+  var SWIPE_VELOCITY = 0.3;
+  var MODAL_DISMISS_THRESHOLD = 120;
+
+  var touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+  var isSwiping = false, swipeAxis = null;
+  var activeScreen = null;
+
+  // --- Screen swipe navigation ---
+  var screensEl = $('screens');
+  screensEl.addEventListener('touchstart', function(e) {
+    if (document.querySelector('.overlay.show')) return;
+    var t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    touchStartTime = Date.now();
+    isSwiping = false;
+    swipeAxis = null;
+    activeScreen = $(currentScreen + '-screen');
+  }, { passive: true });
+
+  screensEl.addEventListener('touchmove', function(e) {
+    if (!activeScreen || document.querySelector('.overlay.show')) return;
+    if (swipeAxis === 'vertical') return;
+    var t = e.touches[0];
+    var dx = t.clientX - touchStartX;
+    var dy = t.clientY - touchStartY;
+    if (!swipeAxis) {
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        swipeAxis = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
+      }
+      if (swipeAxis !== 'horizontal') return;
+    }
+    var idx = NAV_ORDER.indexOf(currentScreen);
+    if ((dx > 0 && idx === 0) || (dx < 0 && idx === NAV_ORDER.length - 1)) {
+      var dampened = dx * 0.2;
+      activeScreen.classList.add('swiping');
+      activeScreen.style.transform = 'translateX(' + dampened + 'px) scale(1)';
+      return;
+    }
+    isSwiping = true;
+    var pct = Math.min(Math.abs(dx) / window.innerWidth, 0.3);
+    activeScreen.classList.add('swiping');
+    activeScreen.style.transform = 'translateX(' + dx + 'px) scale(' + (1 - pct * 0.1) + ')';
+    activeScreen.style.opacity = 1 - pct;
+  }, { passive: true });
+
+  screensEl.addEventListener('touchend', function(e) {
+    if (!activeScreen) return;
+    activeScreen.classList.remove('swiping');
+    activeScreen.style.transform = '';
+    activeScreen.style.opacity = '';
+    if (swipeAxis !== 'horizontal' || !isSwiping) { isSwiping = false; swipeAxis = null; return; }
+    var t = e.changedTouches[0];
+    var dx = t.clientX - touchStartX;
+    var dt = Date.now() - touchStartTime;
+    var velocity = Math.abs(dx) / dt;
+    var idx = NAV_ORDER.indexOf(currentScreen);
+    if (Math.abs(dx) > SWIPE_THRESHOLD || velocity > SWIPE_VELOCITY) {
+      var dir = dx > 0 ? -1 : 1;
+      var nextIdx = idx + dir;
+      if (nextIdx >= 0 && nextIdx < NAV_ORDER.length) {
+        var exitClass = dir > 0 ? 'swipe-exit-left' : 'swipe-exit-right';
+        var enterClass = dir > 0 ? 'swipe-enter-right' : 'swipe-enter-left';
+        var nextName = NAV_ORDER[nextIdx];
+        var nextScreen = $(nextName + '-screen');
+        activeScreen.classList.remove('active');
+        activeScreen.classList.add(exitClass);
+        nextScreen.classList.add(enterClass);
+        void nextScreen.offsetWidth;
+        nextScreen.classList.remove(enterClass);
+        nextScreen.classList.add('active');
+        currentScreen = nextName;
+        var navItems = document.querySelectorAll('.nav-item');
+        for (var i = 0; i < navItems.length; i++) {
+          var isAct = navItems[i].getAttribute('data-screen') === nextName;
+          if (isAct) navItems[i].classList.add('active');
+          else navItems[i].classList.remove('active');
+        }
+        updateNavIndicator(nextName);
+        if (nextName === 'hub') updateHub();
+        if (nextName === 'squad') updateSquadScreen();
+        if (nextName === 'cards') updateCardsScreen();
+        if (nextName === 'league') updateLeagueTable();
+        SFX.tap();
+        (function(oldEl, cls) { setTimeout(function() { oldEl.classList.remove(cls); }, 500); })(activeScreen, exitClass);
+      }
+    }
+    isSwiping = false;
+    swipeAxis = null;
+  }, { passive: true });
+
+  // --- Modal drag-to-dismiss ---
+  var dragModal = null, dragOverlay = null, dragStartY = 0, dragCurrentY = 0, modalHeight = 0;
+
+  document.addEventListener('touchstart', function(e) {
+    var handle = e.target.closest('.modal-handle');
+    if (!handle) return;
+    var modal = handle.closest('.modal');
+    var overlay = handle.closest('.overlay');
+    if (!modal || !overlay || !overlay.classList.contains('show')) return;
+    dragModal = modal;
+    dragOverlay = overlay;
+    dragStartY = e.touches[0].clientY;
+    dragCurrentY = dragStartY;
+    modalHeight = modal.offsetHeight;
+    modal.classList.add('dragging');
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!dragModal) return;
+    dragCurrentY = e.touches[0].clientY;
+    var dy = dragCurrentY - dragStartY;
+    if (dy < 0) dy = dy * 0.15;
+    dragModal.style.transform = 'translateY(' + dy + 'px)';
+    var pct = Math.max(0, dy) / modalHeight;
+    dragOverlay.style.background = 'rgba(6,8,16,' + (0.88 * (1 - pct * 0.6)) + ')';
+  }, { passive: true });
+
+  document.addEventListener('touchend', function() {
+    if (!dragModal) return;
+    var dy = dragCurrentY - dragStartY;
+    dragModal.classList.remove('dragging');
+    if (dy > MODAL_DISMISS_THRESHOLD) {
+      dragModal.classList.add('drag-dismissing');
+      setTimeout(function() {
+        dragOverlay.classList.remove('show');
+        dragModal.classList.remove('drag-dismissing');
+        dragModal.style.transform = '';
+        dragOverlay.style.background = '';
+      }, 350);
+    } else {
+      dragModal.style.transform = '';
+      dragOverlay.style.background = '';
+    }
+    dragModal = null;
+    dragOverlay = null;
+  }, { passive: true });
+
+  // --- Tutorial swipe ---
+  var tutEl = $('tut-overlay');
+  if (tutEl) {
+    var tutTouchX = 0;
+    tutEl.addEventListener('touchstart', function(e) {
+      tutTouchX = e.touches[0].clientX;
+    }, { passive: true });
+    tutEl.addEventListener('touchend', function(e) {
+      var dx = e.changedTouches[0].clientX - tutTouchX;
+      if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+      if (dx < 0) {
+        nextTutStep();
+      } else if (tutStep > 0) {
+        tutStep--;
+        renderTutStep();
+        SFX.tap();
+      }
+    }, { passive: true });
+  }
+
+  // --- Pull-to-refresh on hub ---
+  var pullEl = $('pull-indicator');
+  var hubScreen = $('hub-screen');
+  var pullStartY = 0, pullActive = false, pullTriggered = false;
+
+  hubScreen.addEventListener('touchstart', function(e) {
+    if (currentScreen !== 'hub' || hubScreen.scrollTop > 5) return;
+    pullStartY = e.touches[0].clientY;
+    pullActive = true;
+    pullTriggered = false;
+  }, { passive: true });
+
+  hubScreen.addEventListener('touchmove', function(e) {
+    if (!pullActive || hubScreen.scrollTop > 5) { pullActive = false; return; }
+    var dy = e.touches[0].clientY - pullStartY;
+    if (dy < 0) { pullEl.style.opacity = '0'; return; }
+    var progress = Math.min(dy / 100, 1);
+    var yOffset = Math.min(dy * 0.5, 60);
+    pullEl.style.opacity = String(progress);
+    pullEl.style.transform = 'translateX(-50%) translateY(' + (yOffset - 18) + 'px)';
+    if (progress >= 1 && !pullTriggered) {
+      pullEl.classList.add('ready');
+      pullTriggered = true;
+    } else if (progress < 1) {
+      pullEl.classList.remove('ready');
+      pullTriggered = false;
+    }
+  }, { passive: true });
+
+  hubScreen.addEventListener('touchend', function() {
+    if (!pullActive) return;
+    pullActive = false;
+    if (pullTriggered) {
+      pullEl.classList.remove('ready');
+      pullEl.classList.add('refreshing');
+      updateHub();
+      updateCurrency();
+      SFX.tap();
+      setTimeout(function() {
+        pullEl.classList.remove('refreshing');
+        pullEl.style.opacity = '0';
+        pullEl.style.transform = 'translateX(-50%) translateY(-50px)';
+        toast('Hub refreshed', 'success');
+      }, 600);
+    } else {
+      pullEl.style.opacity = '0';
+      pullEl.style.transform = 'translateX(-50%) translateY(-50px)';
+      pullEl.classList.remove('ready');
+    }
+  }, { passive: true });
+})();
 
 // =============================================
 // INIT
