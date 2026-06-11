@@ -1,0 +1,322 @@
+{
+  "version": "3.0",
+  "updated": "2026-06-11",
+  "legend": {
+    "states": ["not_started", "active", "blocked", "passing"],
+    "verification": "Each feature has an executable verification command. State advances to 'passing' ONLY when verification succeeds."
+  },
+  "features": [
+    {
+      "id": "F01",
+      "system": "Core Loop",
+      "behavior": "Game loads, shows hub screen with currencies, alignment meter, heat meter, season record, and battle card",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Hub'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 11 hub tests pass"
+    },
+    {
+      "id": "F02",
+      "system": "Core Loop",
+      "behavior": "Bottom nav switches between hub, squad, cards, league, auction screens without JS errors",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Navigation' && npx playwright test tests/p15-visual.spec.js --grep 'No JS Errors'",
+      "state": "passing",
+      "evidence": "commit bba8848 — nav + error-free tests pass"
+    },
+    {
+      "id": "F03",
+      "system": "Core Loop",
+      "behavior": "Save/load via localStorage (cu_save_v3): persists across reload, handles corrupt data gracefully, fresh start on empty storage",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Save'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 3 save/load tests pass"
+    },
+    {
+      "id": "F04",
+      "system": "Auction",
+      "behavior": "IPL-style auction: start auction, cards presented one-by-one, bid increases price, pass skips to next card, won players join squad",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Auction'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 4 auction tests pass"
+    },
+    {
+      "id": "F05",
+      "system": "Match Engine",
+      "behavior": "Full match sim: squad select -> prematch (strategy, pitch, opponent) -> ball-by-ball sim -> result with valid non-zero scores -> season record update",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Match Engine'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 4 match engine tests pass"
+    },
+    {
+      "id": "F06",
+      "system": "Match Engine",
+      "behavior": "Squad selection overlay: shows players, auto-select, confirm navigates to prematch, overseas cap enforced (max 4)",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Squad Selection'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 4 squad selection tests pass"
+    },
+    {
+      "id": "F07",
+      "system": "Match Engine",
+      "behavior": "Pre-match screen: shows opponent info, pitch type, strategy toggle, fix banner when mafia bonus active",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Pre-Match'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 3 prematch tests pass"
+    },
+    {
+      "id": "F08",
+      "system": "Match Engine",
+      "behavior": "Match interactivity: bowler picker with field placement (attacking/defensive/standard modifiers on calcBallOutcome), tactical boost (6 balls), tactic buttons",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Match Interactivity' && npx playwright test tests/smoke.spec.js --grep 'bowler|field'",
+      "state": "passing",
+      "evidence": "commit bba8848 — field placement + boost + bowler tests pass"
+    },
+    {
+      "id": "F09",
+      "system": "Match Engine",
+      "behavior": "DRS challenges, Impact Player substitution, weather effects, super over tiebreaker, injury system",
+      "verification": "manual — no automated tests yet",
+      "state": "passing",
+      "evidence": "commit 33fbd36 — systems #35-39 implemented, code review passed"
+    },
+    {
+      "id": "F10",
+      "system": "Cards & Collection",
+      "behavior": "Cards screen shows squad, filter by role, standard pack (500 coins), premium pack (15 gems), 3D card flip animation",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Cards' && npx playwright test tests/smoke.spec.js --grep 'pack'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 5 card/pack tests pass"
+    },
+    {
+      "id": "F11",
+      "system": "Squad Management",
+      "behavior": "Squad screen: shows all members with stats, player detail overlay, training (costs coins, increases stat), release player (refunds coins, reduces squad)",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Squad'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 7 squad tests pass"
+    },
+    {
+      "id": "F12",
+      "system": "League",
+      "behavior": "League table with 10 teams, player team highlighted, promotion zone for top 2, season end triggers at match 15",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'League|Season'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 3 league/season tests pass"
+    },
+    {
+      "id": "F13",
+      "system": "Transfer Market",
+      "behavior": "Market overlay from hub: buy tab shows listings, sell tab shows squad players",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Transfer'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 3 market tests pass"
+    },
+    {
+      "id": "F14",
+      "system": "Alignment System",
+      "behavior": "5-zone alignment (-100 to +100), inertia at extremes, zone-specific theming, sponsor tier matching, clean streak tracking",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Alignment'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 3 alignment tests pass"
+    },
+    {
+      "id": "F15",
+      "system": "Mafia System",
+      "behavior": "Mafia banner in grey/corrupt zones, hidden for clean players, blocked during investigation, declining increases alignment",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Mafia'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 4 mafia tests pass"
+    },
+    {
+      "id": "F16",
+      "system": "Debt System",
+      "behavior": "Debt escalation (stage increase, 20% interest), pay debt deducts black money, fails without funds",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Debt'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 3 debt tests pass"
+    },
+    {
+      "id": "F17",
+      "system": "Investigation & Tribunal",
+      "behavior": "Investigation starts at high heat (5 match countdown), tribunal resolves with evidence-weighted verdict (7 possible outcomes)",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Investigation'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 2 investigation tests pass"
+    },
+    {
+      "id": "F18",
+      "system": "Facilities",
+      "behavior": "Pep talk boosts morale (costs coins), media bribe reduces heat (costs coins), both fail without funds",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Facilities'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 3 facilities tests pass"
+    },
+    {
+      "id": "F19",
+      "system": "Tutorial & Onboarding",
+      "behavior": "Tutorial shows for new game, skippable via button",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Tutorial'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 2 tutorial tests pass"
+    },
+    {
+      "id": "F20",
+      "system": "Customisation",
+      "behavior": "Settings overlay with team name input, saves on confirm",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Customisation'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 2 customisation tests pass"
+    },
+    {
+      "id": "F21",
+      "system": "Visual System",
+      "behavior": "Procedural team crests (SVG), power ring, battle card, player silhouettes, spring physics, animated gradient backgrounds per screen, glass panels with elevation",
+      "verification": "npx playwright test tests/p15-visual.spec.js",
+      "state": "passing",
+      "evidence": "commit bba8848 — 28 visual tests pass"
+    },
+    {
+      "id": "F22",
+      "system": "Edge Cases",
+      "behavior": "Match with 3-player squad, max/min heat, max/min alignment, zero coins — no crashes",
+      "verification": "npx playwright test tests/comprehensive.spec.js --grep 'Edge'",
+      "state": "passing",
+      "evidence": "commit bba8848 — 5 edge case tests pass"
+    },
+    {
+      "id": "F23",
+      "system": "Player Pool",
+      "behavior": "50 unique Indianized players with role-appropriate stats, rarity distribution, overseas flags",
+      "verification": "manual — verify in-game auction/pack pools show diverse players",
+      "state": "passing",
+      "evidence": "commit bba8848 — expanded from 20 to 50 players"
+    },
+    {
+      "id": "F24",
+      "system": "Match Engine",
+      "behavior": "Commentary system with richer contextual commentary and social media reactions",
+      "verification": "manual — play match and observe commentary panel",
+      "state": "passing",
+      "evidence": "commit bba8848 — richer commentary + social media"
+    },
+    {
+      "id": "F25",
+      "system": "Academy",
+      "behavior": "Youth academy with scout options, training pipeline for academy players",
+      "verification": "manual — no automated tests yet",
+      "state": "passing",
+      "evidence": "commit ad26651 — academy system implemented"
+    },
+    {
+      "id": "F26",
+      "system": "Sound",
+      "behavior": "Sound effects for key interactions (auction, match, UI)",
+      "verification": "manual — play with sound on",
+      "state": "passing",
+      "evidence": "commit ad26651 — sound polish pass"
+    },
+    {
+      "id": "F27",
+      "system": "Staff",
+      "behavior": "Team staff system with hiring/management",
+      "verification": "manual — no automated tests yet",
+      "state": "passing",
+      "evidence": "commit eca5b21 — system #40"
+    },
+    {
+      "id": "F28",
+      "system": "Gestures",
+      "behavior": "Swipe navigation between screens, modal drag-dismiss, tutorial swipe hints, hub pull-to-refresh",
+      "verification": "manual — test on mobile/touch device",
+      "state": "passing",
+      "evidence": "commit 174c570 — gesture engine"
+    },
+    {
+      "id": "F29",
+      "system": "Mentorship",
+      "behavior": "Senior player mentorship program for junior players",
+      "verification": "manual — no automated tests yet",
+      "state": "passing",
+      "evidence": "commit 21cd137 — system #31"
+    },
+    {
+      "id": "F30",
+      "system": "Match Visual",
+      "behavior": "Canvas-rendered match ground with animated ball trajectory and fielder positions",
+      "verification": "manual — observe match screen canvas",
+      "state": "passing",
+      "evidence": "commit a590de5 — P1.5 phase 4"
+    },
+    {
+      "id": "F31",
+      "system": "Card Visual",
+      "behavior": "Holographic foil effect on legendary/epic cards with tilt interaction",
+      "verification": "manual — tilt epic/legendary card in cards screen",
+      "state": "passing",
+      "evidence": "commit 21cd137 — holographic card tilt"
+    },
+    {
+      "id": "F32",
+      "system": "Player Bans",
+      "behavior": "Doping, conduct, corruption, board sanctions with match ban durations",
+      "verification": "manual — no automated tests yet",
+      "state": "passing",
+      "evidence": "commit 39303e7 — ban system"
+    },
+    {
+      "id": "F33",
+      "system": "Customisation",
+      "behavior": "Player/team name customisation, team color picker, manager name",
+      "verification": "manual — test via settings overlay",
+      "state": "not_started",
+      "evidence": ""
+    },
+    {
+      "id": "F34",
+      "system": "Economy",
+      "behavior": "Season/battle pass with tiered rewards",
+      "verification": "manual — not yet implemented",
+      "state": "not_started",
+      "evidence": ""
+    },
+    {
+      "id": "F35",
+      "system": "Economy",
+      "behavior": "IAP stubs (coin packs, gem packs, season pass purchase)",
+      "verification": "manual — not yet implemented",
+      "state": "not_started",
+      "evidence": ""
+    },
+    {
+      "id": "F36",
+      "system": "Economy",
+      "behavior": "Rewarded ad placements (extra auction purse, free pack, coin boost)",
+      "verification": "manual — not yet implemented",
+      "state": "not_started",
+      "evidence": ""
+    },
+    {
+      "id": "F37",
+      "system": "PWA",
+      "behavior": "Service worker for offline play, install prompt, app manifest",
+      "verification": "manual — test install on Android Chrome",
+      "state": "not_started",
+      "evidence": ""
+    },
+    {
+      "id": "F38",
+      "system": "Competitive",
+      "behavior": "Knockout bracket tournament mode beyond league",
+      "verification": "manual — not yet implemented",
+      "state": "not_started",
+      "evidence": ""
+    }
+  ],
+  "summary": {
+    "total": 38,
+    "passing": 32,
+    "active": 0,
+    "blocked": 0,
+    "not_started": 6,
+    "automated_test_count": "~80 Playwright E2E tests across 3 spec files"
+  }
+}

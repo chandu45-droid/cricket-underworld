@@ -1,57 +1,76 @@
-# Cricket Card Strategy Game — Project Constitution
+# Cricket Underworld — Agent Entry File
 
-This file is the control tower for the game-design project. Auto-loaded every session.
+Cricket auction + card strategy game for the Indian market. Players bid on cricket cards in IPL-style auctions, build squads, set strategy, and compete in auto-simulated matches.
 
-## What we're building
+**Platform:** HTML5/PWA, single-file (`prototype/index.html`), vanilla JS
+**Audience:** Cricket-obsessed Indians, 16-35, mobile-first
+**Builder:** Solo, bootstrapped, AI-assisted
 
-A **cricket auction + card strategy** mobile game for the Indian market. Players bid on cricket player cards in IPL-style auctions, build squads, set strategy, and compete in auto-simulated matches. Core hook: auction tension + collection dopamine + strategic depth.
+## Quick Start
 
-**Platform:** HTML5/PWA first (browser-playable, installable). Native wrapper later if traction warrants it.
-**Audience:** Cricket-obsessed Indians, 16-35, mobile-first.
-**Monetization model:** F2P with card packs (gacha), season/battle pass, cosmetics, rewarded ads. No pay-to-win. No real-money gambling.
-**Builder:** Solo, bootstrapped, AI-assisted.
+```bash
+# Serve the game
+npx serve prototype -l 8080
 
-## Design principles (NON-NEGOTIABLE)
+# Run all tests (server must be running)
+npx playwright test
+
+# Run specific tests
+npx playwright test --grep "Match Engine"
+```
+
+## Hard Constraints (NON-NEGOTIABLE)
 
 1. **Strategy over reflexes.** Every interaction is a decision, never a reaction-time test.
-2. **Cricket-authentic, not cricket-simulated.** Capture the *feel*, not the physics.
-3. **F2P competitive.** Free players can reach every tier. Spending buys speed and style.
-4. **Session-friendly.** Complete loop in 3-5 minutes. Depth is opt-in.
-5. **India-first.** Pricing, UX, device targets, and cultural references optimized for India.
+2. **No real player names/likenesses.** Use archetypes or fictional Indian names only.
+3. **No real-money gambling.** Virtual currency only, no cash-out.
+4. **Gacha rates must be published** (Google Play policy).
+5. **F2P competitive.** Free players can reach every tier. Spending buys speed and style.
+6. **Session-friendly.** Complete loop in 3-5 minutes.
+7. **India-first.** Pricing, UX, device targets, cultural references optimized for India.
+8. **Angular design.** Sharp corners (3-4px max), clip-path polygons, no rounded cards.
+9. **No default/generic styling.** Every screen must look distinct and premium.
+10. **Test before claiming done.** Run `npx playwright test` and verify in browser.
 
-## Legal constraints
+## Session Protocol
 
-- **No real player names/likenesses** unless licensed. Use archetypes or fictional players.
-- **Gacha rates must be published** (Google Play policy).
-- **No real-money gambling.** Virtual currency only. No cash-out.
-- **Age-appropriate.** No content requiring 18+ rating.
+**Starting a session:**
+1. Read `PROGRESS.md` for current state and decisions
+2. Read `feature_list.json` for system-level status
+3. Run `npx playwright test` to verify repo is green
 
-## The team (subagents)
+**During work:**
+- WIP=1 — finish and verify one feature before starting next
+- Update `feature_list.json` state when verification passes
+- Commit after each completed feature
+
+**Ending a session:**
+1. Run `npx playwright test` — must pass
+2. Update `PROGRESS.md` (completed work, decisions, next steps)
+3. Update `feature_list.json` states
+4. Commit and push
+
+## Topic Docs (read when relevant)
+
+| Doc | When to read |
+|-----|-------------|
+| [`docs/architecture.md`](docs/architecture.md) | File structure, tech stack, conventions, key globals |
+| [`docs/testing-guide.md`](docs/testing-guide.md) | Verification commands, test patterns, how to add tests |
+| [`docs/core-systems-gdd.md`](docs/core-systems-gdd.md) | Game design: alignment, auction, match sim, economy (10 systems) |
+| [`docs/visual-design-system.md`](docs/visual-design-system.md) | Color palette, typography, design tokens |
+| [`feature_list.json`](feature_list.json) | Machine-readable feature tracker with verification commands |
+| [`PROGRESS.md`](PROGRESS.md) | Cross-session state: what's done, what's next, decisions log |
+
+## Subagent Panel
 
 | Agent | When to consult |
 |---|---|
-| **game-designer** | Any new mechanic, system, or progression design |
-| **economy-architect** | Any pricing, currency, IAP, gacha, or retention economics decision |
-| **cricket-consultant** | Any cricket-related mechanic, card design, or match simulation logic |
-| **player-experience** | Any UI flow, onboarding change, session design, or tutorial |
-| **market-scout** | Before major feature decisions — ground them in competitive reality |
-| **balance-tester** | Last gate before committing any design — stress-test for exploits and fairness |
-| **player-advocate** | Reads actual code + tests to find missing features, broken flows, untested paths. Cross-references all agents. The "first real player" |
+| **game-designer** | New mechanic, system, or progression design |
+| **economy-architect** | Pricing, currency, IAP, gacha, or retention economics |
+| **cricket-consultant** | Cricket-related mechanic, card design, or match simulation |
+| **player-experience** | UI flow, onboarding, session design, or tutorial |
+| **market-scout** | Before major feature decisions — competitive reality check |
+| **balance-tester** | Last gate before committing any design — exploit/fairness check |
+| **player-advocate** | Reads code + tests to find missing features, broken flows, untested paths |
 
-**Skill:** `design-review` — runs a design through all 5 review agents in parallel.
-
-## Tech approach
-
-- Single `index.html` with Canvas rendering (proven pattern from CLAIM prototype)
-- PWA with service worker for offline/install
-- No framework dependencies in MVP — vanilla JS, keep it lean
-- Game state in localStorage, structured for future cloud-sync
-
-## Build phases
-
-1. **Design lock** — GDD, economy model, card system, match sim spec (current phase)
-2. **Playable prototype** — auction + match core loop, placeholder art, 20 cards
-3. **Content & polish** — full card set, animations, sound, tutorial
-4. **Economy integration** — IAP stubs, ad placement, season pass
-5. **Soft launch** — limited release, metrics, balance tuning
-6. **Scale** — marketing, content updates, competitive features
+**Skill:** `/design-review` — runs a design through all review agents in parallel.
