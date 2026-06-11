@@ -1368,6 +1368,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           </div>
         </div>
         <div id="clean-streak-tag" style="display:none;margin-top:8px;padding:4px 10px;background:rgba(34,212,126,0.08);border:1px solid rgba(34,212,126,0.15);border-radius:3px;font-size:11px;color:var(--green-bright);text-align:center;font-weight:600;letter-spacing:0.5px"></div>
+        <div id="integrity-shield-tag" style="display:none;margin-top:6px;padding:4px 10px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);border-radius:3px;font-size:11px;color:var(--blue-bright);text-align:center;font-weight:600;letter-spacing:0.5px">INTEGRITY SHIELD ACTIVE — 30% fix auto-block</div>
       </div>
 
       <div class="glass accent-blue" id="hub-hooks-panel" style="display:none">
@@ -1862,6 +1863,10 @@ var GS = {
   scoutedXI: null,
   scoutWeakness: null,
   tipsSeen: {},
+  collusionPacts: [],
+  mafiaFixLoseCooldown: 0,
+  consecutiveFavors: 0,
+  rivalIntel: {},
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -1892,6 +1897,10 @@ function load() {
       GS.academySlots=v(d.academySlots,[]);
       GS.staff=v(d.staff,{});
       GS.scoutedXI=v(d.scoutedXI,null);
+      GS.collusionPacts=v(d.collusionPacts,[]);
+      GS.mafiaFixLoseCooldown=v(d.mafiaFixLoseCooldown,0);
+      GS.consecutiveFavors=v(d.consecutiveFavors,0);
+      GS.rivalIntel=v(d.rivalIntel,{});
       GS.scoutWeakness=v(d.scoutWeakness,null);
       GS.tipsSeen=v(d.tipsSeen,{});
       GS.squad = [];
@@ -1903,6 +1912,11 @@ function initRivalData() {
   for (var i = 0; i < RIVALS.length; i++) {
     var n = RIVALS[i].name;
     if (!GS.rivalData[n]) GS.rivalData[n] = { rel: 0, winsVs: 0, lossesVs: 0, fixedAgainst: 0, lastResult: null };
+  }
+  if (GS.collusionPacts) {
+    GS.collusionPacts = GS.collusionPacts.filter(function(p) {
+      return RIVALS.some(function(r) { return r.name === p.rival; });
+    });
   }
 }
 
@@ -1921,65 +1935,69 @@ var ALL_PLAYERS = [
   {id:2,name:'Vikram Rathore',role:'Top-Order Batter',bat:82,bwl:8,fld:70,fit:80,form:65,loyalty:45,greed:68,rarity:'rare',overseas:false,stars:3},
   {id:18,name:'Prithvi Joshi',role:'Top-Order Batter',bat:70,bwl:10,fld:68,fit:72,form:62,loyalty:55,greed:50,rarity:'common',overseas:false,stars:2},
   {id:19,name:'Manish Patel',role:'Top-Order Batter',bat:65,bwl:8,fld:58,fit:68,form:55,loyalty:88,greed:12,rarity:'common',overseas:false,stars:2},
-  {id:21,name:'Devendra Padikkal',role:'Top-Order Batter',bat:76,bwl:5,fld:62,fit:82,form:68,loyalty:72,greed:30,rarity:'rare',overseas:false,stars:3},
-  {id:22,name:'Ruturaj Gaikwad',role:'Top-Order Batter',bat:80,bwl:6,fld:64,fit:76,form:74,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3},
-  {id:23,name:'Yashasvi Sawant',role:'Top-Order Batter',bat:74,bwl:4,fld:66,fit:84,form:70,loyalty:65,greed:35,rarity:'uncommon',overseas:false,stars:3},
-  {id:24,name:'Devon Conway',role:'Top-Order Batter',bat:78,bwl:3,fld:72,fit:75,form:66,loyalty:58,greed:42,rarity:'rare',overseas:true,stars:3},
+  {id:21,name:'Devraj Padmanabhan',role:'Top-Order Batter',bat:76,bwl:5,fld:62,fit:82,form:68,loyalty:72,greed:30,rarity:'rare',overseas:false,stars:3},
+  {id:22,name:'Rohan Gavaskar',role:'Top-Order Batter',bat:80,bwl:6,fld:64,fit:76,form:74,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3},
+  {id:23,name:'Yashpal Sawant',role:'Top-Order Batter',bat:74,bwl:4,fld:66,fit:84,form:70,loyalty:65,greed:35,rarity:'uncommon',overseas:false,stars:3},
+  {id:24,name:'Dane Mitchell',role:'Top-Order Batter',bat:78,bwl:3,fld:72,fit:75,form:66,loyalty:58,greed:42,rarity:'rare',overseas:true,stars:3},
   {id:25,name:'Abhishek Nair',role:'Top-Order Batter',bat:68,bwl:12,fld:60,fit:70,form:58,loyalty:62,greed:48,rarity:'common',overseas:false,stars:2},
-  {id:26,name:'Sai Sudharsan',role:'Top-Order Batter',bat:72,bwl:7,fld:65,fit:78,form:64,loyalty:75,greed:25,rarity:'uncommon',overseas:false,stars:3},
+  {id:26,name:'Sai Krishnan',role:'Top-Order Batter',bat:72,bwl:7,fld:65,fit:78,form:64,loyalty:75,greed:25,rarity:'uncommon',overseas:false,stars:3},
   // Middle-Order Batters (8)
   {id:3,name:'Anil Dravid',role:'Middle-Order Batter',bat:75,bwl:15,fld:60,fit:72,form:60,loyalty:70,greed:35,rarity:'uncommon',overseas:false,stars:3},
   {id:4,name:'David Pretorius',role:'Middle-Order Batter',bat:80,bwl:5,fld:55,fit:68,form:78,loyalty:38,greed:72,rarity:'rare',overseas:true,stars:3},
   {id:5,name:'Karthik Narayan',role:'Middle-Order Batter',bat:78,bwl:25,fld:62,fit:75,form:70,loyalty:55,greed:50,rarity:'epic',overseas:false,stars:4},
-  {id:27,name:'Tilak Varma',role:'Middle-Order Batter',bat:73,bwl:18,fld:58,fit:80,form:72,loyalty:68,greed:32,rarity:'uncommon',overseas:false,stars:3},
-  {id:28,name:'Rinku Sharma',role:'Middle-Order Batter',bat:70,bwl:5,fld:55,fit:74,form:76,loyalty:82,greed:18,rarity:'uncommon',overseas:false,stars:3},
-  {id:29,name:'Sarfaraz Khan',role:'Middle-Order Batter',bat:77,bwl:3,fld:48,fit:65,form:80,loyalty:70,greed:40,rarity:'rare',overseas:false,stars:3},
-  {id:30,name:'Nicholas Pooran',role:'Middle-Order Batter',bat:82,bwl:2,fld:60,fit:72,form:68,loyalty:35,greed:65,rarity:'epic',overseas:true,stars:4},
-  {id:31,name:'Dhruv Jurel',role:'Middle-Order Batter',bat:64,bwl:8,fld:70,fit:78,form:56,loyalty:78,greed:20,rarity:'common',overseas:false,stars:2},
+  {id:27,name:'Tarun Varma',role:'Middle-Order Batter',bat:73,bwl:18,fld:58,fit:80,form:72,loyalty:68,greed:32,rarity:'uncommon',overseas:false,stars:3},
+  {id:28,name:'Rinku Mehra',role:'Middle-Order Batter',bat:70,bwl:5,fld:55,fit:74,form:76,loyalty:82,greed:18,rarity:'uncommon',overseas:false,stars:3},
+  {id:29,name:'Farhan Khan',role:'Middle-Order Batter',bat:77,bwl:3,fld:48,fit:65,form:80,loyalty:70,greed:40,rarity:'rare',overseas:false,stars:3},
+  {id:30,name:'Noel Perreira',role:'Middle-Order Batter',bat:82,bwl:2,fld:60,fit:72,form:68,loyalty:35,greed:65,rarity:'epic',overseas:true,stars:4},
+  {id:31,name:'Dhruv Juneja',role:'Middle-Order Batter',bat:64,bwl:8,fld:70,fit:78,form:56,loyalty:78,greed:20,rarity:'common',overseas:false,stars:2},
   // Wicket-Keepers (4)
   {id:6,name:'Dinesh Kulkarni',role:'Wicket-Keeper',bat:68,bwl:3,fld:88,fit:70,form:55,loyalty:85,greed:20,rarity:'uncommon',overseas:false,stars:3},
   {id:7,name:'Rahul Bisht',role:'Wicket-Keeper',bat:72,bwl:5,fld:82,fit:65,form:62,loyalty:60,greed:45,rarity:'common',overseas:false,stars:2},
-  {id:32,name:'Ishan Kishan',role:'Wicket-Keeper',bat:75,bwl:2,fld:78,fit:72,form:58,loyalty:52,greed:55,rarity:'rare',overseas:false,stars:3},
-  {id:33,name:'Sanju Samson',role:'Wicket-Keeper',bat:80,bwl:1,fld:85,fit:74,form:72,loyalty:70,greed:38,rarity:'epic',overseas:false,stars:4},
+  {id:32,name:'Ishaan Kapoor',role:'Wicket-Keeper',bat:75,bwl:2,fld:78,fit:72,form:58,loyalty:52,greed:55,rarity:'rare',overseas:false,stars:3},
+  {id:33,name:'Sanjay Menon',role:'Wicket-Keeper',bat:80,bwl:1,fld:85,fit:74,form:72,loyalty:70,greed:38,rarity:'epic',overseas:false,stars:4},
   // Fast Bowlers (10)
   {id:8,name:'Mitchell Okonkwo',role:'Fast Bowler',bat:18,bwl:88,fld:50,fit:85,form:75,loyalty:72,greed:30,rarity:'epic',overseas:true,stars:4},
   {id:9,name:'Bhuvnesh Kumar',role:'Fast Bowler',bat:22,bwl:82,fld:45,fit:78,form:68,loyalty:65,greed:40,rarity:'rare',overseas:false,stars:3},
   {id:10,name:'Navdeep Singh',role:'Fast Bowler',bat:12,bwl:78,fld:42,fit:90,form:72,loyalty:50,greed:55,rarity:'uncommon',overseas:false,stars:3},
-  {id:11,name:'Jasprit Malhotra',role:'Fast Bowler',bat:15,bwl:75,fld:48,fit:80,form:60,loyalty:68,greed:35,rarity:'common',overseas:false,stars:2},
-  {id:20,name:'Carlos Brathwaite',role:'Fast Bowler',bat:10,bwl:70,fld:40,fit:75,form:58,loyalty:42,greed:60,rarity:'common',overseas:true,stars:2},
+  {id:11,name:'Jaspal Malhotra',role:'Fast Bowler',bat:15,bwl:75,fld:48,fit:80,form:60,loyalty:68,greed:35,rarity:'common',overseas:false,stars:2},
+  {id:20,name:'Carlos Barbados',role:'Fast Bowler',bat:10,bwl:70,fld:40,fit:75,form:58,loyalty:42,greed:60,rarity:'common',overseas:true,stars:2},
   {id:34,name:'Arshdeep Gill',role:'Fast Bowler',bat:8,bwl:76,fld:45,fit:82,form:66,loyalty:74,greed:28,rarity:'uncommon',overseas:false,stars:3},
-  {id:35,name:'Mukesh Choudhary',role:'Fast Bowler',bat:14,bwl:72,fld:42,fit:78,form:62,loyalty:60,greed:42,rarity:'common',overseas:false,stars:2},
-  {id:36,name:'Umran Malik',role:'Fast Bowler',bat:6,bwl:84,fld:38,fit:88,form:70,loyalty:55,greed:48,rarity:'rare',overseas:false,stars:3},
-  {id:37,name:'Anrich Nortje',role:'Fast Bowler',bat:5,bwl:86,fld:44,fit:80,form:74,loyalty:48,greed:52,rarity:'epic',overseas:true,stars:4},
-  {id:38,name:'Tushar Deshpande',role:'Fast Bowler',bat:12,bwl:68,fld:40,fit:76,form:56,loyalty:66,greed:36,rarity:'common',overseas:false,stars:2},
+  {id:35,name:'Mukund Choudhary',role:'Fast Bowler',bat:14,bwl:72,fld:42,fit:78,form:62,loyalty:60,greed:42,rarity:'common',overseas:false,stars:2},
+  {id:36,name:'Umar Zafar',role:'Fast Bowler',bat:6,bwl:84,fld:38,fit:88,form:70,loyalty:55,greed:48,rarity:'rare',overseas:false,stars:3},
+  {id:37,name:'Andre Nortman',role:'Fast Bowler',bat:5,bwl:86,fld:44,fit:80,form:74,loyalty:48,greed:52,rarity:'epic',overseas:true,stars:4},
+  {id:38,name:'Tushar Desai',role:'Fast Bowler',bat:12,bwl:68,fld:40,fit:76,form:56,loyalty:66,greed:36,rarity:'common',overseas:false,stars:2},
   // Spin Bowlers (8)
   {id:12,name:'Ravindra Chauhan',role:'Spin Bowler',bat:30,bwl:85,fld:55,fit:65,form:80,loyalty:78,greed:25,rarity:'rare',overseas:false,stars:3},
   {id:13,name:'Amit Yadav',role:'Spin Bowler',bat:35,bwl:72,fld:52,fit:60,form:58,loyalty:70,greed:38,rarity:'common',overseas:false,stars:2},
   {id:14,name:'Rashid Nazir',role:'Spin Bowler',bat:20,bwl:80,fld:50,fit:62,form:74,loyalty:30,greed:75,rarity:'rare',overseas:true,stars:3},
-  {id:39,name:'Kuldeep Yadav',role:'Spin Bowler',bat:15,bwl:82,fld:48,fit:66,form:76,loyalty:72,greed:30,rarity:'rare',overseas:false,stars:3},
-  {id:40,name:'Varun Chakravarthy',role:'Spin Bowler',bat:8,bwl:78,fld:45,fit:62,form:72,loyalty:65,greed:35,rarity:'uncommon',overseas:false,stars:3},
-  {id:41,name:'Ravi Bishnoi',role:'Spin Bowler',bat:10,bwl:74,fld:55,fit:70,form:64,loyalty:68,greed:32,rarity:'uncommon',overseas:false,stars:3},
-  {id:42,name:'Rahul Chahar',role:'Spin Bowler',bat:12,bwl:70,fld:46,fit:68,form:58,loyalty:58,greed:45,rarity:'common',overseas:false,stars:2},
-  {id:43,name:'Noor Ahmad',role:'Spin Bowler',bat:5,bwl:76,fld:42,fit:72,form:68,loyalty:40,greed:58,rarity:'uncommon',overseas:true,stars:3},
+  {id:39,name:'Kulvinder Rana',role:'Spin Bowler',bat:15,bwl:82,fld:48,fit:66,form:76,loyalty:72,greed:30,rarity:'rare',overseas:false,stars:3},
+  {id:40,name:'Varun Chandran',role:'Spin Bowler',bat:8,bwl:78,fld:45,fit:62,form:72,loyalty:65,greed:35,rarity:'uncommon',overseas:false,stars:3},
+  {id:41,name:'Ravi Bhandari',role:'Spin Bowler',bat:10,bwl:74,fld:55,fit:70,form:64,loyalty:68,greed:32,rarity:'uncommon',overseas:false,stars:3},
+  {id:42,name:'Rahul Chawla',role:'Spin Bowler',bat:12,bwl:70,fld:46,fit:68,form:58,loyalty:58,greed:45,rarity:'common',overseas:false,stars:2},
+  {id:43,name:'Noor Ahmadi',role:'Spin Bowler',bat:5,bwl:76,fld:42,fit:72,form:68,loyalty:40,greed:58,rarity:'uncommon',overseas:true,stars:3},
   // All-Rounders (10)
   {id:15,name:'Suresh Venkatesh',role:'All-Rounder',bat:72,bwl:70,fld:75,fit:82,form:76,loyalty:90,greed:15,rarity:'legendary',overseas:false,stars:5},
   {id:16,name:'Hardik Tiwari',role:'All-Rounder',bat:65,bwl:68,fld:60,fit:70,form:55,loyalty:40,greed:65,rarity:'uncommon',overseas:false,stars:3},
-  {id:17,name:'Vijay Shankar',role:'All-Rounder',bat:60,bwl:62,fld:72,fit:88,form:65,loyalty:75,greed:28,rarity:'uncommon',overseas:false,stars:3},
-  {id:44,name:'Axar Patel',role:'All-Rounder',bat:58,bwl:74,fld:60,fit:76,form:68,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3},
-  {id:45,name:'Washington Sundar',role:'All-Rounder',bat:55,bwl:70,fld:58,fit:74,form:62,loyalty:72,greed:28,rarity:'uncommon',overseas:false,stars:3},
-  {id:46,name:'Venkatesh Iyer',role:'All-Rounder',bat:68,bwl:58,fld:55,fit:72,form:60,loyalty:60,greed:42,rarity:'uncommon',overseas:false,stars:3},
-  {id:47,name:'Shardul Thakur',role:'All-Rounder',bat:52,bwl:72,fld:50,fit:70,form:64,loyalty:78,greed:24,rarity:'uncommon',overseas:false,stars:3},
-  {id:48,name:'Marcus Stoinis',role:'All-Rounder',bat:74,bwl:65,fld:68,fit:78,form:70,loyalty:45,greed:55,rarity:'epic',overseas:true,stars:4},
-  {id:49,name:'Nitish Rana',role:'All-Rounder',bat:70,bwl:30,fld:52,fit:66,form:56,loyalty:55,greed:48,rarity:'common',overseas:false,stars:2},
-  {id:50,name:'Deepak Hooda',role:'All-Rounder',bat:66,bwl:45,fld:56,fit:70,form:58,loyalty:62,greed:40,rarity:'common',overseas:false,stars:2},
+  {id:17,name:'Vijay Krishnamurthy',role:'All-Rounder',bat:60,bwl:62,fld:72,fit:88,form:65,loyalty:75,greed:28,rarity:'uncommon',overseas:false,stars:3},
+  {id:44,name:'Akash Parmar',role:'All-Rounder',bat:58,bwl:74,fld:60,fit:76,form:68,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3},
+  {id:45,name:'Wasim Siddiqui',role:'All-Rounder',bat:55,bwl:70,fld:58,fit:74,form:62,loyalty:72,greed:28,rarity:'uncommon',overseas:false,stars:3},
+  {id:46,name:'Venkat Iyer',role:'All-Rounder',bat:68,bwl:58,fld:55,fit:72,form:60,loyalty:60,greed:42,rarity:'uncommon',overseas:false,stars:3},
+  {id:47,name:'Shardul Deshmukh',role:'All-Rounder',bat:52,bwl:72,fld:50,fit:70,form:64,loyalty:78,greed:24,rarity:'uncommon',overseas:false,stars:3},
+  {id:48,name:'Mark Stevens',role:'All-Rounder',bat:74,bwl:65,fld:68,fit:78,form:70,loyalty:45,greed:55,rarity:'epic',overseas:true,stars:4},
+  {id:49,name:'Nitin Raina',role:'All-Rounder',bat:70,bwl:30,fld:52,fit:66,form:56,loyalty:55,greed:48,rarity:'common',overseas:false,stars:2},
+  {id:50,name:'Deepak Mehra',role:'All-Rounder',bat:66,bwl:45,fld:56,fit:70,form:58,loyalty:62,greed:40,rarity:'common',overseas:false,stars:2},
 ];
 
 var RIVALS = [
-  {name:'Rajan Mehra',short:'RM',alignment:-58,strength:72,color:'crimson',personality:'shark',tendency:-0.7,bidMult:2.5,trait:'Aggressive — doubles down when cornered'},
-  {name:'Arvind Patil',short:'AP',alignment:65,strength:68,color:'green',personality:'purist',tendency:0.8,bidMult:1.5,trait:'Clean — will expose corruption'},
-  {name:'Siddharth Rao',short:'SR',alignment:10,strength:70,color:'blue',personality:'pragmatist',tendency:0.1,bidMult:2.0,trait:'Calculated — adapts to the situation'},
-  {name:'Balraj Khanna',short:'BK',alignment:-20,strength:65,color:'crimson',personality:'politician',tendency:0.0,bidMult:1.8,trait:'Two-faced — plays both sides'},
-  {name:'Manoj Desai',short:'MD',alignment:5,strength:60,color:'blue',personality:'coward',tendency:-0.3,bidMult:1.3,trait:'Nervous — panics under pressure'},
+  {name:'Rajan Mehra',short:'RM',alignment:-58,strength:72,color:'crimson',personality:'shark',tendency:-0.7,bidMult:2.5,trait:'Aggressive — doubles down when cornered',heat:35,debts:2,banned:false},
+  {name:'Arvind Patil',short:'AP',alignment:65,strength:68,color:'green',personality:'purist',tendency:0.8,bidMult:1.5,trait:'Clean — will expose corruption',heat:0,debts:0,banned:false},
+  {name:'Siddharth Rao',short:'SR',alignment:10,strength:70,color:'blue',personality:'pragmatist',tendency:0.1,bidMult:2.0,trait:'Calculated — adapts to the situation',heat:12,debts:1,banned:false},
+  {name:'Balraj Khanna',short:'BK',alignment:-20,strength:65,color:'crimson',personality:'politician',tendency:0.0,bidMult:1.8,trait:'Two-faced — plays both sides',heat:18,debts:1,banned:false},
+  {name:'Manoj Desai',short:'MD',alignment:5,strength:60,color:'blue',personality:'coward',tendency:-0.3,bidMult:1.3,trait:'Nervous — panics under pressure',heat:8,debts:0,banned:false},
+  {name:'Priya Sundaram',short:'PS',alignment:-40,strength:74,color:'crimson',personality:'shark',tendency:-0.7,bidMult:2.3,trait:'Ruthless — will sabotage rivals to win',heat:28,debts:2,banned:false},
+  {name:'Gopal Reddy',short:'GR',alignment:48,strength:66,color:'green',personality:'purist',tendency:0.8,bidMult:1.4,trait:'Principled — refuses dirty money',heat:0,debts:0,banned:false},
+  {name:'Faizal Mirza',short:'FM',alignment:-10,strength:71,color:'blue',personality:'politician',tendency:0.0,bidMult:1.9,trait:'Smooth talker — colludes then betrays',heat:15,debts:1,banned:false},
+  {name:'Dilip Chadha',short:'DC',alignment:20,strength:63,color:'blue',personality:'coward',tendency:-0.3,bidMult:1.2,trait:'Easily intimidated — caves under threats',heat:5,debts:0,banned:false},
 ];
 
 // =============================================
@@ -2963,6 +2981,169 @@ function driftRivalAlignments() {
   }
 }
 
+function processRivalAI() {
+  var scandals = [];
+  for (var i = 0; i < RIVALS.length; i++) {
+    var r = RIVALS[i];
+    if (r.banned) continue;
+    var rd = GS.rivalData[r.name];
+    if (!rd) continue;
+    var wins = GS.rivalWins[r.name] || 0;
+    var totalPlayed = Math.max(1, GS.matchNum - 1);
+    var losing = wins / totalPlayed < 0.4;
+    var p = r.personality;
+    if (losing && r.tendency < 0 && Math.random() < 0.6) {
+      r.alignment = Math.max(-100, r.alignment - 4);
+      r.heat = Math.min(100, r.heat + 8);
+      r.debts = Math.min(5, r.debts + 1);
+    } else if (!losing && r.tendency > 0 && Math.random() < 0.8) {
+      r.alignment = Math.min(100, r.alignment + 2);
+      if (r.heat > 0) r.heat = Math.max(0, r.heat - 3);
+    }
+    if (p === 'shark' && Math.random() < 0.4) {
+      r.heat = Math.min(100, r.heat + 5);
+      r.alignment = Math.max(-100, r.alignment - 3);
+    }
+    if (p === 'coward' && r.heat >= 40 && Math.random() < 0.7) {
+      var target = RIVALS[Math.floor(Math.random() * RIVALS.length)];
+      if (target.name !== r.name && target.alignment < -20) {
+        target.heat = Math.min(100, target.heat + 12);
+        scandals.push(r.name + ' exposed ' + target.name + '\'s corruption!');
+      }
+    }
+    if (r.heat >= 80 && Math.random() < 0.5) {
+      r.banned = true;
+      r.strength = Math.max(40, r.strength - 10);
+      scandals.push(r.name + ' suspended by the board! Squad weakened.');
+    }
+    if (r.heat > 0 && r.alignment > 0) r.heat = Math.max(0, r.heat - 2);
+    r.color = r.alignment >= 30 ? 'green' : r.alignment <= -30 ? 'crimson' : 'blue';
+  }
+  processCollusionLeaks();
+  return scandals;
+}
+
+function exposeRival(rivalName) {
+  var rival = null;
+  for (var i = 0; i < RIVALS.length; i++) { if (RIVALS[i].name === rivalName) { rival = RIVALS[i]; break; } }
+  if (!rival) return { success: false, msg: 'Rival not found.' };
+  var rd = GS.rivalData[rivalName];
+  if (!rd) return { success: false, msg: 'No data on this rival.' };
+  if (rival.alignment > 20) return { success: false, msg: rival.name + ' is too clean to expose.' };
+  if (!GS.rivalIntel[rivalName]) return { success: false, msg: 'No intel on ' + rival.name + '. Get a Rival Dossier first.' };
+  rival.heat = Math.min(100, rival.heat + 20);
+  rd.rel = Math.max(-100, rd.rel - 50);
+  GS.heat = Math.max(0, GS.heat - 10);
+  applyAlignShift(8);
+  GS.fanLoyalty = Math.min(100, GS.fanLoyalty + 5);
+  delete GS.rivalIntel[rivalName];
+  var counterExposed = false;
+  if (GS.alignment < -20 && rd.rel < 0 && Math.random() < 0.5) {
+    GS.heat = Math.min(100, GS.heat + 20);
+    counterExposed = true;
+  }
+  save();
+  var msg = 'Exposed ' + rival.name + '! Their heat +20, relationship destroyed.';
+  if (counterExposed) msg += ' But they counter-exposed you! Your heat +20!';
+  return { success: true, msg: msg, counterExposed: counterExposed };
+}
+
+function proposeCollusion(rivalName) {
+  var rival = null;
+  for (var i = 0; i < RIVALS.length; i++) { if (RIVALS[i].name === rivalName) { rival = RIVALS[i]; break; } }
+  if (!rival) return { success: false, msg: 'Rival not found.' };
+  var rd = GS.rivalData[rivalName];
+  if (!rd) return { success: false, msg: 'No data on this rival.' };
+  if (GS.collusionPacts.length >= 2) return { success: false, msg: 'Max 2 collusion pacts allowed.' };
+  if (GS.collusionPacts.some(function(p) { return p.rival === rivalName; })) return { success: false, msg: 'Already colluding with ' + rival.name + '.' };
+  if (GS.alignment > 30 && rival.alignment > 30) return { success: false, msg: 'Both too clean for collusion.' };
+  if (rd.rel < -20) return { success: false, msg: rival.name + ' refuses — relationship too hostile.' };
+  var acceptChance = 0.5;
+  if (rival.personality === 'politician') acceptChance = 0.8;
+  if (rival.personality === 'shark') acceptChance = 0.6;
+  if (rival.personality === 'purist') acceptChance = 0.05;
+  if (rival.personality === 'coward') acceptChance = 0.4;
+  if (rival.personality === 'pragmatist') acceptChance = rival.alignment < 0 ? 0.6 : 0.3;
+  if (Math.random() > acceptChance) return { success: false, msg: rival.name + ' declined the offer.' };
+  GS.collusionPacts.push({ rival: rivalName, season: GS.season, matchesActive: 0 });
+  applyAlignShift(-6);
+  rd.rel = Math.min(100, rd.rel + 20);
+  save();
+  return { success: true, msg: 'Collusion pact with ' + rival.name + '! Shared favor access, but mutual risk.' };
+}
+
+function processCollusionLeaks() {
+  for (var i = GS.collusionPacts.length - 1; i >= 0; i--) {
+    var pact = GS.collusionPacts[i];
+    pact.matchesActive++;
+    if (Math.random() < 0.10) {
+      GS.evidence.push({ type: 'Witness Statement', weight: 3, source: 'collusion_leak', match: GS.matchNum });
+    }
+    var rival = null;
+    for (var j = 0; j < RIVALS.length; j++) { if (RIVALS[j].name === pact.rival) { rival = RIVALS[j]; break; } }
+    if (rival && rival.heat >= 60 && Math.random() < 0.5) {
+      GS.heat = Math.min(100, GS.heat + 15);
+      GS.collusionPacts.splice(i, 1);
+      var rd = GS.rivalData[pact.rival];
+      if (rd) rd.rel = Math.max(-100, rd.rel - 40);
+      toast(pact.rival + ' betrayed your pact under investigation! +15 heat!', 'error');
+    }
+  }
+}
+
+function showRivalProfile(rivalName) {
+  var rival = null;
+  for (var i = 0; i < RIVALS.length; i++) { if (RIVALS[i].name === rivalName) { rival = RIVALS[i]; break; } }
+  if (!rival) return;
+  var rd = GS.rivalData[rivalName] || { rel: 0, winsVs: 0, lossesVs: 0, fixedAgainst: 0 };
+  var rl = getRelLabel(rd.rel);
+  var hasIntel = !!GS.rivalIntel[rivalName];
+  var isColluding = GS.collusionPacts.some(function(p) { return p.rival === rivalName; });
+  var crestHtml = generateRivalCrest(rival, 64);
+  var html = '<div style="text-align:center;margin-bottom:16px">' + crestHtml +
+    '<div class="font-d fw-700" style="font-size:22px;margin-top:8px">' + rival.name + '</div>' +
+    '<div class="text-xs text-slip" style="font-style:italic;margin-top:4px">' + rival.trait + '</div>' +
+    '<div class="text-xs ' + rl.cls + '" style="margin-top:6px">' + rl.text + ' (rel: ' + rd.rel + ')</div>' +
+    (isColluding ? '<div class="text-xs text-purple" style="margin-top:4px">Collusion pact active</div>' : '') +
+    (rival.banned ? '<div class="text-xs text-red" style="margin-top:4px">SUSPENDED</div>' : '') +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">' +
+    '<div class="glass" style="padding:10px;text-align:center"><div class="text-xs text-slip">Personality</div><div class="font-d fw-600 text-sm">' + rival.personality.charAt(0).toUpperCase() + rival.personality.slice(1) + '</div></div>' +
+    '<div class="glass" style="padding:10px;text-align:center"><div class="text-xs text-slip">Strength</div><div class="font-d fw-600 text-sm">' + rival.strength + '</div></div>' +
+    '<div class="glass" style="padding:10px;text-align:center"><div class="text-xs text-slip">H2H</div><div class="font-d fw-600 text-sm">' + rd.winsVs + 'W - ' + rd.lossesVs + 'L</div></div>' +
+    '<div class="glass" style="padding:10px;text-align:center"><div class="text-xs text-slip">Fixed Against</div><div class="font-d fw-600 text-sm text-red">' + rd.fixedAgainst + '</div></div></div>';
+  if (hasIntel) {
+    html += '<div class="glass accent-purple" style="padding:10px;margin-bottom:12px;text-align:center"><div class="text-xs text-slip">Intel (Dossier)</div>' +
+      '<div class="text-sm">Alignment: <span class="fw-600">' + rival.alignment + '</span> · Heat: <span class="fw-600">' + rival.heat + '</span> · Debts: <span class="fw-600">' + rival.debts + '</span></div></div>';
+  }
+  html += '<div class="flex gap-10">';
+  if (hasIntel && rival.alignment < 20 && !rival.banned) {
+    html += '<div class="btn btn-red flex-1" id="rp-expose-btn">Expose</div>';
+  }
+  if (!isColluding && GS.collusionPacts.length < 2 && rd.rel >= -20 && rival.alignment < 30 && GS.alignment < 30 && !rival.banned) {
+    html += '<div class="btn btn-outline flex-1" id="rp-collude-btn" style="border-color:var(--purple);color:var(--purple)">Propose Collusion</div>';
+  }
+  html += '<div class="btn btn-outline flex-1" id="rp-close-btn">Close</div></div>';
+  $('mafia-offer-content').innerHTML = html;
+  $('mafia-overlay').classList.add('show');
+  var exposeBtn = $('rp-expose-btn');
+  if (exposeBtn) exposeBtn.onclick = function() {
+    var result = exposeRival(rivalName);
+    $('mafia-overlay').classList.remove('show');
+    toast(result.msg, result.success ? 'success' : 'error');
+    updateHub();
+  };
+  var colludeBtn = $('rp-collude-btn');
+  if (colludeBtn) colludeBtn.onclick = function() {
+    var result = proposeCollusion(rivalName);
+    $('mafia-overlay').classList.remove('show');
+    toast(result.msg, result.success ? 'success' : 'error');
+    updateHub();
+  };
+  var closeBtn = $('rp-close-btn');
+  if (closeBtn) closeBtn.onclick = function() { $('mafia-overlay').classList.remove('show'); };
+}
+
 function getSponsorEvent() {
   if (GS.alignment < 50) return null;
   var roll = Math.random();
@@ -2972,8 +3153,13 @@ function getSponsorEvent() {
   return null;
 }
 
+function hasIntegrityShield() { return GS.alignment >= 70; }
+
 function loyaltyCheck() {
   if (GS.squad.length === 0) return { success: true, report: false };
+  if (hasIntegrityShield() && Math.random() < 0.30) {
+    return { success: false, report: false, chance: 0, shieldBlocked: true };
+  }
   var avgLoyalty = 0, avgGreed = 0;
   for (var i = 0; i < GS.squad.length; i++) { avgLoyalty += GS.squad[i].loyalty; avgGreed += GS.squad[i].greed; }
   avgLoyalty /= GS.squad.length; avgGreed /= GS.squad.length;
@@ -2984,12 +3170,20 @@ function loyaltyCheck() {
 }
 
 function addEvidence(action) {
-  var chances = { matchfix: 0.50, umpire: 0.25, playertap: 0.20, injection: 0.15 };
+  if (action === 'evidencedestroy') {
+    GS.evidence.push({ type: 'Destruction Trail', weight: 3, source: 'evidencedestroy', match: GS.matchNum });
+    return 'Destruction Trail';
+  }
+  var chances = { matchfix: 0.50, umpire: 0.25, playertap: 0.20, injection: 0.15, auctionleak: 0.10, scoutintel: 0.05, matchfixlose: 0.65, rivaldossier: 0.05 };
   var types = {
     matchfix: { type: 'Communication Intercept', weight: 4 },
     umpire: { type: 'Communication Intercept', weight: 4 },
     playertap: { type: 'Financial Record', weight: 2 },
     injection: { type: 'Financial Record', weight: 2 },
+    auctionleak: { type: 'Financial Record', weight: 2 },
+    scoutintel: { type: 'Financial Record', weight: 1 },
+    matchfixlose: { type: 'Communication Intercept', weight: 4 },
+    rivaldossier: { type: 'Financial Record', weight: 1 },
   };
   var ch = chances[action] || 0.10;
   if (Math.random() < ch) {
@@ -3011,9 +3205,12 @@ function checkInvestigation() {
     if (GS.investigation.matchesLeft <= 0) return 'tribunal';
     return 'ongoing';
   }
-  if (GS.heat >= 86) { startInvestigation(); return 'started'; }
-  if (GS.heat >= 71 && Math.random() < 0.4) { startInvestigation(); return 'started'; }
-  if (GS.heat >= 56 && Math.random() < 0.15) { startInvestigation(); return 'started'; }
+  var willInvestigate = GS.heat >= 86 || (GS.heat >= 71 && Math.random() < 0.4) || (GS.heat >= 56 && Math.random() < 0.15);
+  if (willInvestigate && GS.staff && GS.staff.inside_man && activateFixer('inside_man')) {
+    toast('Inside Man warning: Investigation imminent! Clean up now.', 'error');
+    return 'warned';
+  }
+  if (willInvestigate) { startInvestigation(); return 'started'; }
   return null;
 }
 
@@ -3026,6 +3223,7 @@ function resolveTribunal() {
   var prosecution = GS.tribunalBonus;
   for (var i = 0; i < GS.evidence.length; i++) prosecution += GS.evidence[i].weight;
   var defense = 5;
+  if (GS.staff && GS.staff.lawyer) { defense = Math.round(defense * 1.25); activateFixer('lawyer'); }
   if (GS.alignment > 50) defense += 5;
   else if (GS.alignment > 30) defense += 3;
   else if (GS.alignment > 0) defense += 1;
@@ -3346,6 +3544,7 @@ function updateHub() {
     show('clean-streak-tag');
     $('clean-streak-tag').textContent = 'Clean Streak: ' + GS.cleanStreak + ' matches — +' + (GS.cleanStreak * 10) + ' bonus coins/win';
   } else { hide('clean-streak-tag'); }
+  if (hasIntegrityShield()) { show('integrity-shield-tag'); } else { hide('integrity-shield-tag'); }
   if (GS.squad.length > 0) {
     show('hub-next-rival');
     var r = getNextRival();
@@ -3370,6 +3569,8 @@ function updateHub() {
       $('rival-fixes').textContent = rd.fixedAgainst;
       $('rival-fixes').style.color = rd.fixedAgainst > 0 ? 'var(--blood)' : 'var(--slip)';
     }
+    $('hub-next-rival').onclick = function() { showRivalProfile(r.name); };
+    $('hub-next-rival').style.cursor = 'pointer';
   } else { hide('hub-next-rival'); }
   if (GS.investigation) {
     show('investigation-panel');
@@ -3513,7 +3714,7 @@ function updateLeagueTable() {
   teams.sort(function(a, b) { return b.pts - a.pts || b.wins - a.wins; });
   var html = '';
   for (var t = 0; t < teams.length; t++) {
-    var zoneClass = t < 2 ? ' promotion' : t >= teams.length - 1 ? ' relegation' : '';
+    var zoneClass = t < 4 ? ' promotion' : t >= teams.length - 2 ? ' relegation' : '';
     var formDots = '';
     var totalPlayed = teams[t].wins + teams[t].losses;
     for (var f = 0; f < Math.min(5, totalPlayed); f++) {
@@ -3526,15 +3727,21 @@ function updateLeagueTable() {
       var rivalObj = RIVALS.find(function(rv){return rv.name === teams[t].name;});
       crestHtml = rivalObj ? '<div class="crest-xs" style="flex-shrink:0">' + generateRivalCrest(rivalObj, 24) + '</div>' : '<div class="pos">' + (t+1) + '</div>';
     }
-    html += '<div class="league-row' + (teams[t].you ? ' you' : '') + zoneClass + '">' +
+    var bannedTag = '';
+    if (!teams[t].you && rivalObj && rivalObj.banned) bannedTag = ' <span class="text-red text-xs">[BAN]</span>';
+    html += '<div class="league-row' + (teams[t].you ? ' you' : '') + zoneClass + '"' + (!teams[t].you ? ' data-rival="' + teams[t].name + '" style="cursor:pointer"' : '') + '>' +
       '<div class="pos">' + (t + 1) + '</div>' +
       crestHtml +
-      '<div class="team-info"><div class="name">' + teams[t].name + '</div></div>' +
+      '<div class="team-info"><div class="name">' + teams[t].name + bannedTag + '</div></div>' +
       '<div class="form-dots">' + formDots + '</div>' +
       '<div class="record">' + teams[t].wins + 'W ' + teams[t].losses + 'L</div>' +
       '<div class="pts' + (teams[t].you ? ' text-gold' : '') + '">' + teams[t].pts + '</div></div>';
   }
   $('league-table').innerHTML = html;
+  var rows = document.querySelectorAll('.league-row[data-rival]');
+  for (var lr = 0; lr < rows.length; lr++) {
+    rows[lr].addEventListener('click', function() { showRivalProfile(this.getAttribute('data-rival')); });
+  }
 }
 
 // =============================================
@@ -3798,6 +4005,10 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
     if (GS.mafiaBonus.type==='matchfix' && isYourBatting) batStr *= 1.30;
     if (GS.mafiaBonus.type==='umpire' && !isYourBatting) bwlStr *= 1.25;
     if (GS.mafiaBonus.type==='playertap' && !isYourBatting) batStr *= 0.60;
+    if (GS.mafiaBonus.type==='matchfixlose') {
+      if (isYourBatting) batStr *= 0.55;
+      else bwlStr *= 0.55;
+    }
     if (GS.mafiaBonus.type==='forcelose') {
       if (isYourBatting) batStr *= 0.50;
       else bwlStr *= 0.50;
@@ -4072,37 +4283,100 @@ function processInjuryTick() {
 // TEAM STAFF SYSTEM
 // =============================================
 var STAFF_TYPES = [
-  {id:'batting_coach',name:'Batting Coach',cost:400,effect:'+5% BAT training gains',stat:'bat',bonus:0.05},
-  {id:'bowling_coach',name:'Bowling Coach',cost:400,effect:'+5% BWL training gains',stat:'bwl',bonus:0.05},
-  {id:'fitness_trainer',name:'Fitness Trainer',cost:350,effect:'Halves injury chance',stat:'fit',bonus:0.5},
-  {id:'analyst',name:'Data Analyst',cost:500,effect:'Better scout intel, rival preview',stat:null,bonus:0},
-  {id:'physio',name:'Team Physio',cost:300,effect:'Injuries heal 1 match faster',stat:null,bonus:0},
+  {id:'batting_coach',name:'Batting Coach',cost:400,effect:'+5% BAT training gains',stat:'bat',bonus:0.05,category:'legit'},
+  {id:'bowling_coach',name:'Bowling Coach',cost:400,effect:'+5% BWL training gains',stat:'bwl',bonus:0.05,category:'legit'},
+  {id:'fitness_trainer',name:'Fitness Trainer',cost:350,effect:'Halves injury chance',stat:'fit',bonus:0.5,category:'legit'},
+  {id:'analyst',name:'Data Analyst',cost:500,effect:'Better scout intel, rival preview',stat:null,bonus:0,category:'legit'},
+  {id:'physio',name:'Team Physio',cost:300,effect:'Injuries heal 1 match faster',stat:null,bonus:0,category:'legit'},
+  {id:'pr_manager',name:'PR Manager',cost:80,effect:'-3 heat per match when active. Cooldown: 5 matches.',stat:null,bonus:0,category:'fixer',currency:'black',cooldown:5,cooldownLeft:0},
+  {id:'lawyer',name:'Lawyer',cost:120,effect:'+25% tribunal defense. Cooldown: 8 matches.',stat:null,bonus:0,category:'fixer',currency:'black',cooldown:8,cooldownLeft:0},
+  {id:'media_contact',name:'Media Contact',cost:60,effect:'Block 1 negative social post. Cooldown: 3 matches.',stat:null,bonus:0,category:'fixer',currency:'black',cooldown:3,cooldownLeft:0},
+  {id:'cleaner',name:'Cleaner',cost:100,effect:'Remove 1 evidence next match. Cooldown: 6 matches.',stat:null,bonus:0,category:'fixer',currency:'black',cooldown:6,cooldownLeft:0},
+  {id:'inside_man',name:'Inside Man',cost:150,effect:'Advance warning of investigations. Cooldown: 10 matches.',stat:null,bonus:0,category:'fixer',currency:'black',cooldown:10,cooldownLeft:0},
+  {id:'bagman',name:'Bagman',cost:90,effect:'+15% black money per match. Permanent while hired.',stat:null,bonus:0,category:'fixer',currency:'black',cooldown:0,cooldownLeft:0},
 ];
 
+var staffTab = 'legit';
 function updateStaffPanel() {
   if (!GS.staff) GS.staff = {};
-  var html = '<div class="text-xs text-slip mb-8">Recruit staff to boost your team. Permanent hires.</div>';
-  for (var i = 0; i < STAFF_TYPES.length; i++) {
-    var s = STAFF_TYPES[i];
+  var html = '<div class="flex gap-6 mb-12">' +
+    '<div class="btn text-xs ' + (staffTab === 'legit' ? 'btn-gold' : 'btn-outline') + '" style="flex:1;padding:6px" data-stafftab="legit">Coaching Staff</div>' +
+    '<div class="btn text-xs ' + (staffTab === 'fixer' ? 'btn-red' : 'btn-outline') + '" style="flex:1;padding:6px" data-stafftab="fixer">Fixers</div></div>';
+  var filtered = STAFF_TYPES.filter(function(s) { return s.category === staffTab; });
+  if (staffTab === 'legit') {
+    html += '<div class="text-xs text-slip mb-8">Recruit staff to boost your team. Permanent hires.</div>';
+  } else {
+    html += '<div class="text-xs text-slip mb-8">Underground contacts. Paid in black money. Use with caution.</div>';
+  }
+  for (var i = 0; i < filtered.length; i++) {
+    var s = filtered[i];
     var owned = !!GS.staff[s.id];
-    html += '<div class="flex items-center gap-8 mb-6" style="padding:8px;border:1px solid var(--border);border-radius:3px' + (owned ? ';background:rgba(52,211,153,0.04)' : '') + '">' +
-      '<div class="flex-1"><div class="font-d fw-600 text-sm">' + s.name + '</div><div class="text-xs text-slip">' + s.effect + '</div></div>' +
-      (owned ? '<span class="badge rarity-rare">HIRED</span>' : '<div class="btn btn-outline text-xs" style="padding:4px 10px" data-staff="' + s.id + '">' + s.cost + 'C</div>') +
-      '</div>';
+    var onCooldown = owned && s.cooldown > 0 && GS.staff[s.id].cooldownLeft > 0;
+    var borderColor = staffTab === 'fixer' ? 'rgba(220,38,38,0.15)' : 'var(--border)';
+    var bg = owned ? (staffTab === 'fixer' ? 'rgba(220,38,38,0.04)' : 'rgba(52,211,153,0.04)') : '';
+    html += '<div class="flex items-center gap-8 mb-6" style="padding:8px;border:1px solid ' + borderColor + ';border-radius:3px' + (owned ? ';background:' + bg : '') + '">' +
+      '<div class="flex-1"><div class="font-d fw-600 text-sm">' + s.name + '</div><div class="text-xs text-slip">' + s.effect + '</div>' +
+      (onCooldown ? '<div class="text-xs text-amber">Cooldown: ' + GS.staff[s.id].cooldownLeft + ' matches</div>' : '') + '</div>';
+    if (owned) {
+      html += '<span class="badge rarity-' + (staffTab === 'fixer' ? 'epic' : 'rare') + '">' + (onCooldown ? 'COOLING' : 'HIRED') + '</span>';
+    } else {
+      var currency = s.currency === 'black' ? 'B$' : 'C';
+      html += '<div class="btn btn-outline text-xs" style="padding:4px 10px' + (staffTab === 'fixer' ? ';border-color:rgba(220,38,38,0.3);color:var(--blood)' : '') + '" data-staff="' + s.id + '">' + s.cost + currency + '</div>';
+    }
+    html += '</div>';
   }
   $('staff-content').innerHTML = html;
+  var tabBtns = $('staff-content').querySelectorAll('[data-stafftab]');
+  for (var t = 0; t < tabBtns.length; t++) {
+    tabBtns[t].onclick = function() { staffTab = this.getAttribute('data-stafftab'); updateStaffPanel(); };
+  }
   var btns = $('staff-content').querySelectorAll('[data-staff]');
   for (var j = 0; j < btns.length; j++) {
     btns[j].onclick = function() {
       var sid = this.getAttribute('data-staff');
       var st = STAFF_TYPES.find(function(s) { return s.id === sid; });
       if (!st) return;
-      if (GS.coins < st.cost) { toast('Need ' + st.cost + ' coins', 'error'); return; }
-      GS.coins -= st.cost;
-      GS.staff[sid] = true;
+      if (st.currency === 'black') {
+        if (GS.blackMoney < st.cost) { toast('Need ' + st.cost + ' B$', 'error'); return; }
+        GS.blackMoney -= st.cost;
+      } else {
+        if (GS.coins < st.cost) { toast('Need ' + st.cost + ' coins', 'error'); return; }
+        GS.coins -= st.cost;
+      }
+      GS.staff[sid] = st.cooldown > 0 ? { active: true, cooldownLeft: 0 } : true;
       SFX.reveal(); save(); updateCurrency(); updateStaffPanel();
       toast(st.name + ' hired!', 'success');
     };
+  }
+}
+
+function processFixerCooldowns() {
+  STAFF_TYPES.forEach(function(s) {
+    if (s.category !== 'fixer' || !GS.staff[s.id]) return;
+    var fixer = GS.staff[s.id];
+    if (typeof fixer === 'object' && fixer.cooldownLeft > 0) fixer.cooldownLeft--;
+  });
+}
+
+function activateFixer(fixerId) {
+  var st = STAFF_TYPES.find(function(s) { return s.id === fixerId; });
+  if (!st || !GS.staff[fixerId]) return false;
+  var fixer = GS.staff[fixerId];
+  if (typeof fixer === 'object' && fixer.cooldownLeft > 0) return false;
+  if (st.cooldown > 0) GS.staff[fixerId] = { active: true, cooldownLeft: st.cooldown };
+  return true;
+}
+
+function applyFixerEffects() {
+  if (GS.staff.pr_manager && activateFixer('pr_manager')) {
+    GS.heat = Math.max(0, GS.heat - 3);
+  }
+  if (GS.staff.cleaner) {
+    var cleaner = GS.staff.cleaner;
+    if (typeof cleaner === 'object' && cleaner.cooldownLeft <= 0 && GS.evidence.length > 0) {
+      GS.evidence.splice(Math.floor(Math.random() * GS.evidence.length), 1);
+      activateFixer('cleaner');
+    }
   }
 }
 
@@ -4424,7 +4698,7 @@ function startPreMatch() {
   GS.strategy = 'balanced';
   if (GS.mafiaBonus) {
     show('fix-active-banner');
-    var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',forcelose:'FORCED LOSS — Mafia debt punishment'};
+    var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',matchfixlose:'THROWING MATCH — Earning 300 B$',forcelose:'FORCED LOSS — Mafia debt punishment',auctionleak:'Auction Leak — Intel active',scoutintel:'Scout Intel — Hidden stats revealed'};
     $('fix-active-text').textContent = fixNames[GS.mafiaBonus.type] || 'Fix Active';
   } else { hide('fix-active-banner'); }
   renderBowlerLineup();
@@ -5088,6 +5362,12 @@ function endMatch() {
   var tribunalResult = null;
   if (invStatus === 'tribunal') tribunalResult = resolveTribunal();
   var rivalEvent = getRivalEvent(match.opponent, wasFix, won);
+  var rivalScandals = processRivalAI();
+  if (GS.mafiaFixLoseCooldown > 0) GS.mafiaFixLoseCooldown--;
+  if (!wasFix) GS.consecutiveFavors = 0;
+  processFixerCooldowns();
+  applyFixerEffects();
+  if (GS.staff.bagman && GS.alignment < -10) bmR = Math.round(bmR * 1.15);
   var debtWarnings = processDebts();
   var unbannedPlayers = processBanTick();
   var banEvents = rollBanEvents(won, wasFix);
@@ -5129,6 +5409,7 @@ function endMatch() {
     (invStatus === 'ongoing' ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:2px dashed var(--amber);border-radius:3px">Investigation ongoing — ' + (GS.investigation ? GS.investigation.matchesLeft : 0) + ' matches until tribunal</div>' : '') +
     (tribunalResult ? '<div style="margin:8px 0;padding:14px;border:2px solid ' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.4)' : 'rgba(220,38,38,0.4)') + ';border-radius:3px;background:' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.05)' : 'rgba(220,38,38,0.05)') + ';text-align:center"><div class="font-d fw-700 ' + tribunalResult.cls + '" style="font-size:24px;text-transform:uppercase;letter-spacing:4px" id="tribunal-verdict-text"></div><div class="text-xs text-slip" style="margin:6px 0">Prosecution: ' + tribunalResult.prosecution + ' · Defense: ' + tribunalResult.defense + '</div><div class="text-xs" style="margin-top:4px">' + tribunalResult.desc + '</div></div>' : '') +
     (rivalEvent ? '<div class="text-xs ' + rivalEvent.cls + '" style="text-align:center;margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:3px">' + rivalEvent.text + '</div>' : '') +
+    (rivalScandals.length > 0 ? rivalScandals.map(function(s) { return '<div class="text-xs text-amber" style="text-align:center;margin:4px 0;padding:8px;border:1px solid rgba(245,158,11,0.2);border-left:3px solid var(--amber);border-radius:3px;background:rgba(245,158,11,0.04)">' + s + '</div>'; }).join('') : '') +
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
     (banEvents.length > 0 ? banEvents.map(function(e) { return '<div class="ban-event"><div class="be-title">' + e.ban.label + '</div><div class="be-desc">' + e.player + ' — ' + e.ban.desc + '. Banned for ' + e.ban.matchesLeft + ' matches. (+' + e.ban.heat + ' heat)</div></div>'; }).join('') : '') +
     (unbannedPlayers.length > 0 ? '<div class="text-xs text-green" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(52,211,153,0.2);border-radius:3px;background:rgba(52,211,153,0.04)">Ban served: ' + unbannedPlayers.join(', ') + ' available again</div>' : '') +
@@ -5504,7 +5785,7 @@ function renderSocialFeed(){
 // =============================================
 // ACADEMY SYSTEM — Youth development
 // =============================================
-var ACADEMY_NAMES=['Raj Thakur','Vikash Chauhan','Aarav Patel','Rohan Mehra','Pranav Nair','Karan Reddy','Arjun Das','Sanjay Yadav','Deepak Verma','Ankit Mishra','Nikhil Raut','Sahil Iyer','Tanmay Joshi','Yash Gaikwad','Abhinav Tiwari','Himanshu Pandey','Shubham Gill','Yashasvi Sawant','Dhruv Jurel','Harshit Rana'];
+var ACADEMY_NAMES=['Raj Thakur','Vikash Chauhan','Aarav Patel','Rohan Mehta','Pranav Nair','Karan Reddy','Arjun Das','Sanjay Yadav','Deepak Verma','Ankit Mishra','Nikhil Raut','Sahil Iyer','Tanmay Joshi','Yash Gokhale','Abhinav Tiwari','Himanshu Pandey','Shubham Ghosh','Yashpal Kumar','Dhruv Juneja','Harshit Rajput'];
 var ACADEMY_ROLES=['Top-Order Batter','Middle-Order Batter','Fast Bowler','Spin Bowler','All-Rounder','Wicket-Keeper'];
 
 function generateAcademyProspect(){
@@ -5727,12 +6008,22 @@ function showMafiaOffer() {
   var zone = getAlignmentZone(GS.alignment);
   var priceMod = zone.tier <= 2 ? 1.5 : zone.tier === 3 ? 1.0 : zone.tier === 4 ? 0.85 : 0.7;
   var deadlineMod = zone.tier <= 2 ? 1 : zone.tier >= 5 ? -1 : 0;
-  var offers = [
+  var allOffers = [
     {name:'Match Fix',desc:'Your batters get +30% power next match. The bookies handle the rest.',cost:30,heat:15,align:-8,bonus:{type:'matchfix'},debt:150,deadline:2},
     {name:'Umpire Influence',desc:'The umpire favors your bowlers next match. +25% bowling effectiveness.',cost:20,heat:10,align:-5,bonus:{type:'umpire'},debt:100,deadline:3},
     {name:'Player Tap',desc:'Opponent star batter plays at 60% next match. An offer they can\'t refuse.',cost:25,heat:8,align:-6,bonus:{type:'playertap'},debt:120,deadline:2},
     {name:'Budget Injection',desc:'500 coins added to your purse. Free upfront — but the debt will come calling.',cost:0,heat:3,align:-4,bonus:{type:'injection'},debt:200,deadline:4},
+    {name:'Auction Leak',desc:'See one rival\'s remaining budget before the next auction round.',cost:50,heat:5,align:-3,bonus:{type:'auctionleak'},debt:100,deadline:3},
+    {name:'Scout Intel',desc:'Reveal hidden stats (loyalty, greed) of 3 players before auction.',cost:30,heat:2,align:-3,bonus:{type:'scoutintel'},debt:60,deadline:5},
+    {name:'Match Fix (Lose)',desc:'Deliberately lose the next match. The bookies pay you 300 B$.',cost:0,heat:18,align:-8,bonus:{type:'matchfixlose'},debt:0,deadline:0,earn:300},
+    {name:'Evidence Destruction',desc:'Remove 1 piece of evidence from your file. But paper trails are hard to erase.',cost:150,heat:5,align:-4,bonus:{type:'evidencedestroy'},debt:250,deadline:3},
+    {name:'Rival Dossier',desc:'Learn a rival\'s alignment, heat, and active debts. Knowledge is power.',cost:40,heat:2,align:-3,bonus:{type:'rivaldossier'},debt:80,deadline:4},
   ];
+  var offers = allOffers;
+  if (GS.league === 'gully') { offers = allOffers.filter(function(o) { return o.bonus.type === 'scoutintel' || o.bonus.type === 'auctionleak' || o.bonus.type === 'injection'; }); }
+  if (GS.mafiaFixLoseCooldown > 0) { offers = offers.filter(function(o) { return o.bonus.type !== 'matchfixlose'; }); }
+  if (GS.evidence.length === 0) { offers = offers.filter(function(o) { return o.bonus.type !== 'evidencedestroy'; }); }
+  if (offers.length === 0) offers = allOffers.slice(0, 4);
   var offer = offers[Math.floor(Math.random() * offers.length)];
   offer.cost = Math.round(offer.cost * priceMod);
   offer.deadline = Math.max(1, offer.deadline + deadlineMod);
@@ -5757,20 +6048,47 @@ function showMafiaOffer() {
     applyAlignShift(offer.align);
     var ev = addEvidence(offer.bonus.type);
     var lc = loyaltyCheck();
+    var noLoyaltyNeeded = ['injection','auctionleak','scoutintel','rivaldossier','evidencedestroy','matchfixlose'];
+    var skipLoyalty = noLoyaltyNeeded.indexOf(offer.bonus.type) >= 0;
     if (offer.bonus.type === 'injection') {
       GS.coins += 500;
-    } else if (lc.success) {
+    } else if (offer.bonus.type === 'matchfixlose') {
+      GS.blackMoney += (offer.earn || 300);
+      GS.mafiaBonus = offer.bonus;
+      GS.mafiaFixLoseCooldown = 5;
+    } else if (offer.bonus.type === 'evidencedestroy') {
+      if (GS.evidence.length > 0) GS.evidence.splice(Math.floor(Math.random() * GS.evidence.length), 1);
+    } else if (offer.bonus.type === 'auctionleak') {
+      GS.mafiaBonus = offer.bonus;
+    } else if (offer.bonus.type === 'scoutintel') {
+      GS.mafiaBonus = offer.bonus;
+    } else if (offer.bonus.type === 'rivaldossier') {
+      var nextR = getNextRival();
+      GS.rivalIntel[nextR.name] = true;
+      toast(nextR.name + ': Align ' + nextR.alignment + ', Heat ' + nextR.heat + ', Debts ' + nextR.debts, 'info');
+    } else if (skipLoyalty || lc.success) {
       GS.mafiaBonus = offer.bonus;
     }
-    GS.debts.push({ source: offer.name, principal: offer.debt, matchesLeft: offer.deadline, stage: 0, heldPlayer: null });
+    if (offer.debt > 0) {
+      GS.debts.push({ source: offer.name, principal: offer.debt, matchesLeft: offer.deadline, stage: 0, heldPlayer: null });
+    }
+    GS.consecutiveFavors = (GS.consecutiveFavors || 0) + 1;
     updateCurrency(); $('mafia-overlay').classList.remove('show');
     var msg = '';
-    if (!lc.success && offer.bonus.type !== 'injection') {
-      msg = 'Players refused the fix! (' + lc.chance + '% success rate)';
-      if (lc.report) { GS.heat = Math.min(100, GS.heat + 25); msg += ' A player REPORTED you! +25 heat!'; }
+    if (!skipLoyalty && !lc.success) {
+      if (lc.shieldBlocked) {
+        msg = 'INTEGRITY SHIELD blocked the fix! Your squad\'s clean reputation is too strong.';
+      } else {
+        msg = 'Players refused the fix! (' + lc.chance + '% success rate)';
+        if (lc.report) { GS.heat = Math.min(100, GS.heat + 25); msg += ' A player REPORTED you! +25 heat!'; }
+      }
       toast(msg, 'error');
+    } else if (offer.bonus.type === 'matchfixlose') {
+      toast('You will throw the next match. +' + (offer.earn || 300) + ' B$', 'error');
+    } else if (offer.bonus.type === 'evidencedestroy') {
+      toast('1 evidence removed. But the mafia remembers.', 'error');
     } else {
-      msg = offer.bonus.type === 'injection' ? '+500 coins! Debt: ' + offer.debt + ' B$' : 'Fix active: ' + offer.name + ' (' + lc.chance + '% success)';
+      msg = offer.bonus.type === 'injection' ? '+500 coins! Debt: ' + offer.debt + ' B$' : 'Fix active: ' + offer.name;
       toast(msg, 'error');
     }
     if (ev) toast('Evidence generated: ' + ev, 'error');
@@ -5778,6 +6096,7 @@ function showMafiaOffer() {
   };
   $('decline-mafia-btn').onclick = function() {
     var declineShift = applyAlignShift(3);
+    GS.consecutiveFavors = 0;
     $('mafia-overlay').classList.remove('show');
     toast('Offer declined. Alignment +' + declineShift, 'success');
     save();
