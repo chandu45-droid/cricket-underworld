@@ -1,12 +1,28 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git status)",
-      "Bash(git diff:*)",
-      "Bash(git add:*)",
-      "Bash(git log:*)",
-      "Bash(npx serve:*)",
-      "Bash(npx http-server:*)"
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(npx playwright *)",
+      "Bash(npx serve *)",
+      "Bash(npx http-server *)",
+      "Bash(ls *)",
+      "Bash(ls)",
+      "Bash(cat *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(echo *)",
+      "Bash(pwd)",
+      "Bash(wc *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(diff *)",
+      "Bash(curl *)"
     ],
     "deny": []
   }

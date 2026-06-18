@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Test artifacts
+test-results/
+test-screenshots/
+playwright-report/
+blob-report/
+
+# Audit screenshots (generated, not source)
+audit-screenshots/capture.js
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+
+# Local Claude overrides
+.claude/settings.local.json
