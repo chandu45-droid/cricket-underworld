@@ -498,46 +498,93 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .mafia-banner .mb-action{font-family:var(--font-d);font-size:12px;color:var(--gold-bright);text-transform:uppercase;margin-top:10px;letter-spacing:1px}
 
 /* ================================================================
-   AUCTION SCREEN — Circular timer, spotlight
+   AUCTION SCREEN — Premium Bid Arena
    ================================================================ */
-.auction-header{text-align:center;margin-bottom:18px;padding:8px 0}
-.auction-header .purse-label{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:3px;font-weight:700}
-.auction-header .purse{font-family:var(--font-d);font-size:42px;font-weight:700;background:linear-gradient(135deg,#FFE082,var(--gold-bright),var(--gold));background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:purseShimmer 4s ease-in-out infinite}
+
+/* Purse zone — angular container with gold accent */
+.auction-purse-zone{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;margin-bottom:10px;background:linear-gradient(135deg,rgba(255,210,63,0.06) 0%,rgba(255,210,63,0.02) 50%,rgba(255,255,255,0.02) 100%);border:1px solid rgba(255,210,63,0.12);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));position:relative}
+.auction-purse-zone::after{content:'';position:absolute;top:0;right:0;width:60px;height:100%;background:linear-gradient(270deg,rgba(255,210,63,0.08),transparent);pointer-events:none}
+.auction-purse-zone .purse-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:2.5px;font-weight:700;font-family:var(--font-b)}
+.auction-purse-zone .purse{font-family:var(--font-d);font-size:36px;font-weight:700;line-height:1;background:linear-gradient(135deg,#FFE082,var(--gold-bright),var(--gold));background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:purseShimmer 4s ease-in-out infinite}
 @keyframes purseShimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-.auction-header .round-info{font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--white-40);margin-top:4px;text-transform:uppercase;letter-spacing:1.5px}
+.auction-purse-zone .purse-col{display:flex;flex-direction:column;align-items:flex-end;gap:0}
 
-.auction-card-spotlight{display:flex;justify-content:center;margin-bottom:16px;position:relative}
-.auction-card-spotlight::before{content:'';position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:250px;height:250px;background:radial-gradient(circle,rgba(240,200,80,0.08) 0%,transparent 60%);pointer-events:none;animation:spotlightPulse 3s ease-in-out infinite}
-.auction-card-spotlight .player-card{width:200px;z-index:1}
+/* Round chip — centered with decorative lines */
+.auction-round-chip{text-align:center;margin-bottom:8px}
+.auction-round-chip .round-info{font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--white-40);text-transform:uppercase;letter-spacing:2px;display:inline-flex;align-items:center;gap:8px}
+.auction-round-chip .round-info::before,.auction-round-chip .round-info::after{content:'';width:24px;height:1px;background:linear-gradient(90deg,transparent,var(--white-10),transparent)}
 
-.bid-area{display:flex;align-items:center;gap:16px;margin-bottom:16px}
-.bid-timer-circle{flex-shrink:0;width:90px;height:90px;position:relative}
-.bid-timer-circle svg{width:90px;height:90px;transform:rotate(-90deg)}
-.bid-timer-circle .timer-track{fill:none;stroke:rgba(136,150,176,0.08);stroke-width:4}
-.bid-timer-circle .timer-progress{fill:none;stroke:var(--green-bright);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.1s linear,stroke 0.3s}
-.bid-timer-circle .timer-progress.warn{stroke:var(--amber)}
-.bid-timer-circle .timer-progress.danger{stroke:var(--blood);filter:drop-shadow(0 0 4px rgba(220,38,38,0.5))}
+/* Card stage — spotlight with rotating light rays */
+.auction-stage{position:relative;display:flex;justify-content:center;align-items:center;min-height:250px;margin-bottom:12px;overflow:hidden}
+.auction-stage::before{content:'';position:absolute;width:280px;height:280px;top:45%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,210,63,0.10) 0%,rgba(255,210,63,0.04) 30%,transparent 60%);pointer-events:none;animation:spotlightBreathe 3s ease-in-out infinite}
+.auction-stage::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:180px;height:16px;background:radial-gradient(ellipse,rgba(0,0,0,0.35) 0%,transparent 70%);filter:blur(4px);pointer-events:none}
+.spotlight-rays{position:absolute;width:400px;height:400px;top:35%;left:50%;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,transparent 0deg,rgba(255,210,63,0.03) 10deg,transparent 20deg,transparent 60deg,rgba(255,210,63,0.02) 70deg,transparent 80deg,transparent 120deg,rgba(255,210,63,0.03) 130deg,transparent 140deg,transparent 180deg,rgba(255,210,63,0.02) 190deg,transparent 200deg,transparent 240deg,rgba(255,210,63,0.03) 250deg,transparent 260deg,transparent 300deg,rgba(255,210,63,0.02) 310deg,transparent 320deg,transparent 360deg);pointer-events:none;animation:spotlightRotate 20s linear infinite}
+@keyframes spotlightBreathe{0%{transform:translate(-50%,-50%) scale(1);opacity:0.8}50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0.8}}
+@keyframes spotlightRotate{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+.auction-card-spotlight{position:relative;z-index:2;display:flex;justify-content:center}
+.auction-card-spotlight .player-card{width:210px;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.5));animation:cardEnter 0.5s var(--spring) both}
+@keyframes cardEnter{from{transform:scale(0.8) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+
+/* Bid arena — glass container for timer + bid info */
+.bid-arena{background:var(--glass-bg);border:var(--glass-border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--glass-shadow);clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%);padding:14px 16px 10px;margin-bottom:2px}
+.bid-area{display:flex;align-items:center;gap:16px}
+.bid-timer-circle{flex-shrink:0;width:84px;height:84px;position:relative}
+.bid-timer-circle svg{width:84px;height:84px;transform:rotate(-90deg)}
+.bid-timer-circle .timer-track{fill:none;stroke:rgba(136,150,176,0.06);stroke-width:4}
+.bid-timer-circle .timer-progress{fill:none;stroke:var(--green-bright);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.1s linear,stroke 0.3s;filter:drop-shadow(0 0 6px rgba(52,211,153,0.3))}
+.bid-timer-circle .timer-progress.warn{stroke:var(--amber);filter:drop-shadow(0 0 6px rgba(245,158,11,0.3))}
+.bid-timer-circle .timer-progress.danger{stroke:var(--blood);filter:drop-shadow(0 0 8px rgba(220,38,38,0.5));animation:timerDanger 0.5s ease-in-out infinite}
+@keyframes timerDanger{0%{filter:drop-shadow(0 0 6px rgba(220,38,38,0.4))}50%{filter:drop-shadow(0 0 12px rgba(220,38,38,0.7))}100%{filter:drop-shadow(0 0 6px rgba(220,38,38,0.4))}}
 .bid-timer-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.bid-timer-center .timer-sec{font-family:var(--font-d);font-size:26px;font-weight:700;color:var(--white);line-height:1}
-.bid-timer-center .timer-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px}
+.bid-timer-center .timer-sec{font-family:var(--font-d);font-size:28px;font-weight:700;color:var(--white);line-height:1}
+.bid-timer-center .timer-label{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
 .bid-info{flex:1;text-align:center}
-.bid-info .bid-label{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
-.bid-info .current-bid{font-family:var(--font-d);font-size:48px;font-weight:700;color:var(--white);line-height:1;text-shadow:0 0 30px rgba(255,255,255,0.08)}
-.bid-info .bidder-name{font-size:13px;margin-top:4px;font-weight:600}
+.bid-info .bid-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:2px;margin-bottom:2px;font-weight:700}
+.bid-info .current-bid{font-family:var(--font-d);font-size:46px;font-weight:700;color:var(--white);line-height:1;text-shadow:0 0 30px rgba(255,255,255,0.06)}
+.bid-info .bidder-name{font-size:13px;margin-top:4px;font-weight:600;transition:color 0.3s}
 .bid-info .bidder-name.corrupt{color:var(--blood)}
 .bid-info .bidder-name.clean{color:var(--gold-bright)}
 
+/* Timer bar — horizontal drain below bid arena */
+.bid-timer-bar{height:3px;background:rgba(136,150,176,0.06);overflow:hidden;margin-bottom:14px;border-radius:0}
+.timer-bar-fill{height:100%;width:100%;background:linear-gradient(90deg,var(--green-bright),var(--green-bright));transition:width 0.1s linear;transform-origin:left}
+.timer-bar-fill.warn{background:linear-gradient(90deg,var(--amber),#D97706)}
+.timer-bar-fill.danger{background:linear-gradient(90deg,var(--blood),#DC2626);box-shadow:0 0 8px rgba(220,38,38,0.4)}
+
+/* Bid action buttons */
 .bid-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+#bid-btn{position:relative;overflow:hidden}
+#bid-btn.urgency{animation:bidUrgency 0.8s ease-in-out infinite}
+#bid-btn.urgency::after{content:'';position:absolute;inset:-2px;border:2px solid var(--gold-bright);clip-path:var(--clip-btn);animation:urgencyGlow 0.8s ease-in-out infinite;pointer-events:none}
+@keyframes bidUrgency{0%{box-shadow:0 0 0 rgba(255,210,63,0)}50%{box-shadow:0 0 20px rgba(255,210,63,0.3)}100%{box-shadow:0 0 0 rgba(255,210,63,0)}}
+@keyframes urgencyGlow{0%{opacity:0.3}50%{opacity:1}100%{opacity:0.3}}
 
-.bid-log{max-height:120px;overflow-y:auto}
-.bid-log .log-entry{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;color:var(--slip);animation:fadeSlideUp 0.3s ease-out}
-.bid-log .log-entry .bidder{font-weight:600}
-.bid-log .log-entry .amount{font-family:var(--font-d);font-weight:600;color:var(--white)}
+/* Mafia intel panel — hidden by default, red-tinted */
+.auction-intel-panel{padding:10px 14px;margin-bottom:12px;background:linear-gradient(135deg,rgba(220,38,38,0.06),rgba(220,38,38,0.02));border:1px solid rgba(220,38,38,0.15);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%);position:relative}
+.auction-intel-panel::before{content:'';position:absolute;top:10px;left:10px;width:6px;height:6px;background:var(--blood);clip-path:var(--clip-diamond);opacity:0.6}
+.auction-intel-panel .intel-title{font-family:var(--font-d);font-size:11px;font-weight:600;color:var(--blood);text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;padding-left:14px}
+.auction-intel-panel .intel-text{font-size:13px;color:var(--slip);font-style:italic;padding-left:14px;line-height:1.4}
 
-.auction-empty{text-align:center;padding:80px 20px}
-.auction-empty .ae-icon{font-size:48px;opacity:0.1;margin-bottom:20px;filter:grayscale(1)}
-.auction-empty .ae-title{font-family:var(--font-d);font-size:22px;font-weight:600;margin-bottom:6px;letter-spacing:1px}
-.auction-empty .ae-sub{color:var(--slip);font-size:13px;margin-bottom:20px}
+/* Bid log — premium glass panel */
+.auction-log-panel{background:var(--glass-bg);border:var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--elevation-1);clip-path:polygon(6px 0,100% 0,100% 100%,0 100%,0 6px);padding:12px 14px}
+.auction-log-panel .section-title{margin-bottom:8px}
+.bid-log{max-height:130px;overflow-y:auto}
+.bid-log .log-entry{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;color:var(--slip);animation:fadeSlideUp 0.3s var(--spring)}
+.bid-log .log-entry .bidder{font-weight:600;display:flex;align-items:center;gap:6px}
+.bid-log .log-entry .bidder::before{content:'';width:4px;height:4px;background:var(--gold);clip-path:var(--clip-diamond);flex-shrink:0}
+.bid-log .log-entry .amount{font-family:var(--font-d);font-weight:600;color:var(--white);font-size:14px}
+
+/* Empty state — premium auction hall */
+.auction-empty{text-align:center;padding:40px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh}
+.auction-empty .ae-icon{width:72px;height:72px;margin-bottom:24px;opacity:0.08}
+.auction-empty .ae-icon svg{width:100%;height:100%;fill:none;stroke:var(--white);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.auction-empty .ae-title{font-family:var(--font-d);font-size:28px;font-weight:700;margin-bottom:8px;letter-spacing:2px;text-transform:uppercase}
+.auction-empty .ae-sub{color:var(--slip);font-size:13px;margin-bottom:28px;max-width:240px;line-height:1.5}
+.auction-empty #start-auction-btn{min-width:200px}
+
+/* RTM banner — slides down from top */
+.rtm-banner{position:absolute;top:0;left:0;right:0;z-index:10;padding:10px 16px;background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:var(--void);font-family:var(--font-d);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;text-align:center;transform:translateY(-100%);transition:transform 0.4s var(--spring);clip-path:polygon(0 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px))}
+.rtm-banner.show{transform:translateY(0)}
 
 /* Old timer bar — hidden, kept for JS compatibility */
 #timer-fill{display:none}
@@ -1610,45 +1657,59 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
     <!-- AUCTION -->
     <div class="screen" id="auction-screen">
       <div class="back-btn" id="auction-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Hub</div>
+      <div class="rtm-banner" id="rtm-banner"></div>
       <div id="auction-active-area" style="display:none">
-        <div class="auction-header">
+        <div class="auction-purse-zone">
           <div class="purse-label">Purse Remaining</div>
-          <div class="purse" id="auction-purse">2,000</div>
+          <div class="purse-col">
+            <div class="purse" id="auction-purse">2,000</div>
+          </div>
+        </div>
+        <div class="auction-round-chip">
           <div class="round-info" id="round-info">Round 1</div>
         </div>
-        <div class="auction-card-spotlight" id="auction-spotlight"></div>
-        <div class="bid-area">
-          <div class="bid-timer-circle">
-            <svg viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" class="timer-track"/>
-              <circle cx="50" cy="50" r="42" class="timer-progress" id="timer-circle"/>
-            </svg>
-            <div class="bid-timer-center">
-              <div class="timer-sec" id="timer-sec">8.0</div>
-              <div class="timer-label">sec</div>
+        <div class="auction-stage">
+          <div class="spotlight-rays"></div>
+          <div class="auction-card-spotlight" id="auction-spotlight"></div>
+        </div>
+        <div class="bid-arena">
+          <div class="bid-area">
+            <div class="bid-timer-circle">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" class="timer-track"/>
+                <circle cx="50" cy="50" r="42" class="timer-progress" id="timer-circle"/>
+              </svg>
+              <div class="bid-timer-center">
+                <div class="timer-sec" id="timer-sec">8.0</div>
+                <div class="timer-label">sec</div>
+              </div>
+            </div>
+            <div class="bid-info">
+              <div class="bid-label">Current Bid</div>
+              <div class="current-bid" id="current-bid">100</div>
+              <div class="bidder-name" id="bidder-name">Base Price</div>
             </div>
           </div>
-          <div class="bid-info">
-            <div class="bid-label">Current Bid</div>
-            <div class="current-bid" id="current-bid">100</div>
-            <div class="bidder-name" id="bidder-name">Base Price</div>
-          </div>
         </div>
-        <!-- Hidden old timer elements for JS compatibility -->
+        <div class="bid-timer-bar"><div class="timer-bar-fill" id="timer-bar-fill"></div></div>
         <div style="display:none"><div id="timer-fill"></div><div id="timer-text"></div></div>
         <div class="bid-actions">
           <div class="btn btn-gold full" id="bid-btn">Bid <span id="bid-amount">120</span></div>
           <div class="btn btn-outline full" id="pass-btn">Pass</div>
         </div>
-        <div class="glass" id="bid-log-panel">
+        <div class="auction-intel-panel" id="auction-intel-panel" style="display:none">
+          <div class="intel-title">Mafia Intel</div>
+          <div class="intel-text" id="auction-intel-text"></div>
+        </div>
+        <div class="auction-log-panel glass" id="bid-log-panel">
           <div class="section-title sm">Bid History<span class="accent-line"></span></div>
           <div class="bid-log" id="bid-log"></div>
         </div>
       </div>
       <div class="auction-empty" id="auction-empty-area">
-        <div class="ae-icon">&#9830;</div>
+        <div class="ae-icon"><svg viewBox="0 0 80 80"><rect x="25" y="12" width="30" height="14" rx="2" transform="rotate(-40 40 19)"/><line x1="40" y1="32" x2="40" y2="54"/><rect x="22" y="58" width="36" height="8" rx="2"/><line x1="16" y1="70" x2="64" y2="70"/></svg></div>
         <div class="ae-title">Player Auction</div>
-        <div class="ae-sub">Bid on players to build your squad</div>
+        <div class="ae-sub">Bid on players to build your squad through the auction block</div>
         <div class="btn btn-gold lg" id="start-auction-btn">Start Auction</div>
       </div>
     </div>
@@ -3929,8 +3990,12 @@ function resetTimerVisual(pct) {
   var offset = TIMER_CIRCUMFERENCE * (1 - pct);
   circle.setAttribute('stroke-dasharray', TIMER_CIRCUMFERENCE);
   circle.setAttribute('stroke-dashoffset', offset);
-  var cls = 'timer-progress' + (pct < 0.25 ? ' danger' : pct < 0.5 ? ' warn' : '');
-  circle.setAttribute('class', cls);
+  var state = pct < 0.25 ? 'danger' : pct < 0.5 ? 'warn' : '';
+  circle.setAttribute('class', 'timer-progress' + (state ? ' ' + state : ''));
+  var bar = $('timer-bar-fill');
+  if (bar) { bar.style.width = (pct * 100) + '%'; bar.className = 'timer-bar-fill' + (state ? ' ' + state : ''); }
+  var bidBtn = $('bid-btn');
+  if (bidBtn) { if (pct > 0 && pct < 0.25) bidBtn.classList.add('urgency'); else bidBtn.classList.remove('urgency'); }
 }
 
 function auctionTick() {
