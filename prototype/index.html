@@ -886,16 +886,41 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .match-result-overlay .btn{max-width:400px}
 
 /* ================================================================
-   SQUAD
+   SQUAD — Premium Roster Management
    ================================================================ */
-.squad-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.squad-count{font-family:var(--font-d);font-size:16px;color:var(--slip);padding:4px 12px;background:rgba(255,255,255,0.03);border-radius:20px;border:1px solid rgba(255,255,255,0.05)}
-.team-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-.team-stat{text-align:center;padding:12px 8px;background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:4px;border:var(--glass-border);box-shadow:0 2px 8px rgba(0,0,0,0.2)}
-.team-stat .ts-val{font-family:var(--font-d);font-size:24px;font-weight:700}
-.team-stat .ts-label{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
-#squad-empty{padding:60px 0}
-#squad-empty .empty-icon{font-size:48px;opacity:0.08;margin-bottom:16px}
+.squad-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:6px 0}
+.squad-header .section-title{margin-bottom:0;display:flex;align-items:center;gap:10px}
+.squad-header .section-title svg{width:22px;height:22px;stroke:var(--blue-bright);fill:none;stroke-width:1.6;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(59,130,246,0.4))}
+.squad-count{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--white);padding:4px 16px;background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(59,130,246,0.05));clip-path:var(--clip-btn-sm);border:1px solid rgba(59,130,246,0.20);letter-spacing:1px;text-align:center}
+.team-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.team-stat{text-align:center;padding:14px 6px 12px;background:var(--glass-bg);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border-radius:3px;border:var(--glass-border);box-shadow:var(--elevation-2);position:relative;overflow:hidden}
+.team-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;pointer-events:none}
+.team-stat::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:0.5}
+.team-stat.stat-bat::before{background:linear-gradient(90deg,transparent,var(--green-bright),transparent)}
+.team-stat.stat-bat::after{background:radial-gradient(circle at 50% 0%,rgba(52,211,153,0.08),transparent 60%)}
+.team-stat.stat-bwl::before{background:linear-gradient(90deg,transparent,var(--gold-bright),transparent)}
+.team-stat.stat-bwl::after{background:radial-gradient(circle at 50% 0%,rgba(255,210,63,0.08),transparent 60%)}
+.team-stat.stat-ovr::before{background:linear-gradient(90deg,transparent,var(--blue-bright),transparent)}
+.team-stat.stat-ovr::after{background:radial-gradient(circle at 50% 0%,rgba(59,130,246,0.08),transparent 60%)}
+.team-stat.stat-morale::before{background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+.team-stat.stat-morale::after{background:radial-gradient(circle at 50% 0%,rgba(245,158,11,0.08),transparent 60%)}
+.team-stat .ts-val{font-family:var(--font-d);font-size:28px;font-weight:700;line-height:1}
+.team-stat .ts-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1.2px;margin-top:4px;font-weight:600}
+.squad-morale-bar{margin-bottom:14px;padding:10px 14px;background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:3px;border:var(--glass-border);box-shadow:var(--elevation-1)}
+.squad-morale-bar .morale-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.squad-morale-bar .morale-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:2px;font-weight:700}
+.squad-morale-bar .morale-val{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--amber)}
+.squad-morale-bar .morale-track{height:5px;background:rgba(136,150,176,0.08);border-radius:3px;overflow:hidden}
+.squad-morale-bar .morale-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blood),var(--amber),var(--green-bright));transition:width 0.8s var(--spring)}
+.squad-role-group{margin-bottom:4px}
+.squad-role-label{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--white-40);text-transform:uppercase;letter-spacing:2.5px;padding:10px 0 4px;display:flex;align-items:center;gap:8px}
+.squad-role-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--white-06),transparent)}
+#squad-screen .player-card-mini{border-left:3px solid var(--green-bright);margin-bottom:6px}
+#squad-screen .player-card-mini[style*="opacity"]{border-left-color:var(--blood)}
+#squad-empty{padding:60px 0;display:flex;flex-direction:column;align-items:center}
+#squad-empty .empty-icon{margin-bottom:16px;opacity:0.12}
+#squad-empty .empty-icon svg{width:64px;height:64px;stroke:var(--slip);fill:none;stroke-width:1.2}
+#squad-empty .font-d{letter-spacing:1px}
 
 /* ================================================================
    CARDS / COLLECTION
@@ -1848,18 +1873,22 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
     <!-- SQUAD -->
     <div class="screen" id="squad-screen">
       <div class="squad-header">
-        <div class="section-title" style="margin-bottom:0">Your Squad</div>
+        <div class="section-title" style="margin-bottom:0"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Your Squad</div>
         <div class="squad-count" id="squad-count">0/15</div>
       </div>
       <div class="team-stats-row">
-        <div class="team-stat"><div class="ts-val text-green" id="ts-bat">-</div><div class="ts-label">Batting</div></div>
-        <div class="team-stat"><div class="ts-val text-gold" id="ts-bwl">-</div><div class="ts-label">Bowling</div></div>
-        <div class="team-stat"><div class="ts-val" id="ts-ovr">-</div><div class="ts-label">Overall</div></div>
-        <div class="team-stat"><div class="ts-val text-amber" id="ts-morale">75</div><div class="ts-label">Morale</div></div>
+        <div class="team-stat stat-bat"><div class="ts-val text-green" id="ts-bat">-</div><div class="ts-label">Batting</div></div>
+        <div class="team-stat stat-bwl"><div class="ts-val text-gold" id="ts-bwl">-</div><div class="ts-label">Bowling</div></div>
+        <div class="team-stat stat-ovr"><div class="ts-val text-blue" id="ts-ovr">-</div><div class="ts-label">Overall</div></div>
+        <div class="team-stat stat-morale"><div class="ts-val text-amber" id="ts-morale">75</div><div class="ts-label">Morale</div></div>
+      </div>
+      <div class="squad-morale-bar" id="squad-morale-bar">
+        <div class="morale-row"><span class="morale-label">Team Morale</span><span class="morale-val" id="morale-bar-val">75</span></div>
+        <div class="morale-track"><div class="morale-fill" id="morale-bar-fill" style="width:75%"></div></div>
       </div>
       <div id="squad-list"></div>
-      <div id="squad-empty" class="text-center text-slip" style="padding:60px 0">
-        <div class="empty-icon">&#9917;</div>
+      <div id="squad-empty" class="text-center text-slip">
+        <div class="empty-icon"><svg viewBox="0 0 64 64"><path d="M32 6L32 42" stroke-linecap="round"/><path d="M24 6C24 6 28 2 32 6C36 2 40 6 40 6" stroke-linecap="round"/><ellipse cx="32" cy="50" rx="10" ry="10"/><path d="M26 47L38 53M38 47L26 53" stroke-linecap="round"/></svg></div>
         <div class="font-d fw-600 text-lg">No players yet</div>
         <div class="text-sm mt-8">Head to the Auction to build your squad</div>
         <div class="btn btn-gold mt-16" id="squad-go-auction">Go to Auction</div>
@@ -3859,20 +3888,37 @@ function updateHub() {
 function updateSquadScreen() {
   $('squad-count').textContent = GS.squad.length + '/' + GS.maxSquad;
   if (GS.squad.length === 0) {
-    hide('squad-list'); show('squad-empty');
+    hide('squad-list'); show('squad-empty'); hide('squad-morale-bar');
     $('ts-bat').textContent = '-'; $('ts-bwl').textContent = '-'; $('ts-ovr').textContent = '-';
     return;
   }
-  show('squad-list'); hide('squad-empty');
+  show('squad-list'); hide('squad-empty'); show('squad-morale-bar');
   var batSum = 0, bwlSum = 0;
   for (var i = 0; i < GS.squad.length; i++) { batSum += GS.squad[i].bat; bwlSum += GS.squad[i].bwl; }
   $('ts-bat').textContent = Math.round(batSum / GS.squad.length);
   $('ts-bwl').textContent = Math.round(bwlSum / GS.squad.length);
   $('ts-ovr').textContent = getTeamStrength();
   if ($('ts-morale')) $('ts-morale').textContent = GS.morale;
+  var m = GS.morale || 75;
+  if ($('morale-bar-val')) $('morale-bar-val').textContent = m;
+  if ($('morale-bar-fill')) $('morale-bar-fill').style.width = m + '%';
+  var roleGroups = [
+    {label:'Batters',roles:['Top-Order Batter','Middle-Order Batter']},
+    {label:'All-Rounders',roles:['All-Rounder','Wicket-Keeper']},
+    {label:'Bowlers',roles:['Fast Bowler','Spin Bowler']}
+  ];
   var roleOrder = ['Top-Order Batter','Middle-Order Batter','All-Rounder','Wicket-Keeper','Fast Bowler','Spin Bowler'];
   var sorted = GS.squad.slice().sort(function(a,b) { return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role); });
-  $('squad-list').innerHTML = sorted.map(renderPlayerMini).join('');
+  var html = '';
+  for (var g = 0; g < roleGroups.length; g++) {
+    var group = roleGroups[g];
+    var players = sorted.filter(function(p) { return group.roles.indexOf(p.role) >= 0; });
+    if (players.length === 0) continue;
+    html += '<div class="squad-role-group"><div class="squad-role-label">' + group.label + '</div>';
+    html += players.map(renderPlayerMini).join('');
+    html += '</div>';
+  }
+  $('squad-list').innerHTML = html;
 }
 
 // =============================================
