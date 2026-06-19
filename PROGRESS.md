@@ -1,14 +1,14 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-06-19
-**Last commit:** Pre-Match Strategy screen premium redesign
+**Last commit:** Match Simulation screen premium redesign
 
 ## Current State
 
 - **Build:** HTML5 single-file PWA (`prototype/index.html`, ~6900+ lines)
 - **Tests:** 110 Playwright E2E tests across 3 spec files — last full run: all 110 passing
 - **Features:** 32/38 passing, 0 active, 0 blocked, 6 not started
-- **Phase:** Premium UI Redesign — 43 systems live, 5/16 screens redesigned
+- **Phase:** Premium UI Redesign — 43 systems live, 6/16 screens redesigned
 
 ## Completed (Phase 1-3)
 
@@ -29,6 +29,7 @@
 - [x] **Premium UI Redesign — Screen 04 (Squad):** Glass stat panels with colored accent bars (bat/bwl/ovr/morale), gradient morale bar, role-grouped roster (Batters/All-Rounders/Bowlers), squad-specific card borders, SVG empty state
 - [x] **Premium UI Redesign — Screen 05 (Player Detail):** Glass stat bars with colored fills, hexagonal OVR badge, angular training buttons, premium section headers with accent lines
 - [x] **Premium UI Redesign — Screen 06 (Pre-Match Strategy):** Match Day header with season badge, hexagonal VS divider, SVG section icons (star/clock), glass pitch info with green accent, strategy opts with gold accent bar, pulsing fix banner, angular gradient Start Match CTA
+- [x] **Premium UI Redesign — Screen 07 (Match Simulation):** Angular VS/status badges (clip-path), 56px score with text-shadow, glass match phases with glow, glass momentum bar with spring transitions, angular moment icons, glass tactics with enhanced pulse, hook panels with type-specific inset glow, glass streak milestones + daily challenges, weather banners with glass blur, DRS/Impact glow, dramatic match result overlay (20px blur, glass rewards panel, glowing value text), POTM with gold glow + shadow, corruption report with red inset, glass bowler picker with angular avatars, field setting with color-keyed glow
 
 ## Not Started (Phase 4+)
 
