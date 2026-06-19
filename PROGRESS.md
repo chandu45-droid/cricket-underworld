@@ -1,14 +1,14 @@
 # Progress — Cricket Underworld
 
-**Last updated:** 2026-06-11
-**Last commit:** `bba8848` — Phase 3: expand player pool to 50, richer commentary & social media
+**Last updated:** 2026-06-19
+**Last commit:** `be58f3c` — Auction screen premium redesign
 
 ## Current State
 
-- **Build:** HTML5 single-file PWA (`prototype/index.html`, ~6865 lines)
-- **Tests:** ~80 Playwright E2E tests across 3 spec files — last full run: all passing
+- **Build:** HTML5 single-file PWA (`prototype/index.html`, ~6900+ lines)
+- **Tests:** 110 Playwright E2E tests across 3 spec files — last full run: all 110 passing
 - **Features:** 32/38 passing, 0 active, 0 blocked, 6 not started
-- **Phase:** Phase 3 (content & polish) — 43 systems live
+- **Phase:** Premium UI Redesign — 43 systems live, 2/16 screens redesigned
 
 ## Completed (Phase 1-3)
 
@@ -24,6 +24,8 @@
 - [x] 50 Indianized players, commentary, social media
 - [x] Visual rebuild (P1.5): crests, silhouettes, power ring, battle card, spring physics, animated gradients, glass panels
 - [x] Canvas match ground, sound, gestures, mentorship, academy, staff, bans
+- [x] **Premium UI Redesign — Screen 01 (Hub):** FIFA/WCC3-tier hub with glass panels, animated gradient mesh, power ring, battle card, spring physics
+- [x] **Premium UI Redesign — Screen 03 (Auction):** Spotlight stage with rotating conic-gradient rays, glass bid arena, angular purse zone, dual timer (SVG circle + drain bar), bid urgency pulse, mafia intel panel, premium empty state with SVG gavel
 
 ## Not Started (Phase 4+)
 
