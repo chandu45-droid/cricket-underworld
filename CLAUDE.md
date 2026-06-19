@@ -35,9 +35,9 @@ npx playwright test --grep "Match Engine"
 ## Session Protocol
 
 **Starting a session:**
-1. Read `PROGRESS.md` for current state and decisions
-2. Read `feature_list.json` for system-level status
-3. Run `npx playwright test` to verify repo is green
+1. Type `/resume` to auto-load all progress, memory, and test status
+   - Or manually: read `PROGRESS.md`, `feature_list.json`, and the memory file
+2. Run `npx playwright test` to verify repo is green
 
 **During work:**
 - WIP=1 — finish and verify one feature before starting next
@@ -73,4 +73,6 @@ npx playwright test --grep "Match Engine"
 | **balance-tester** | Last gate before committing any design — exploit/fairness check |
 | **player-advocate** | Reads code + tests to find missing features, broken flows, untested paths |
 
-**Skill:** `/design-review` — runs a design through all review agents in parallel.
+**Skills:**
+- `/resume` — loads all progress, memory, and test status at session start
+- `/design-review` — runs a design through all review agents in parallel
