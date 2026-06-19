@@ -1201,53 +1201,108 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .team-crest-glow{position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle,var(--align-accent-dim),transparent 70%);opacity:0.6;animation:crestGlow 4s ease-in-out infinite alternate;pointer-events:none;z-index:-1}
 @keyframes crestGlow{0%{opacity:0.4;transform:scale(0.95)}100%{opacity:0.7;transform:scale(1.05)}}
 
-/* Hub crest replaces old manager-avatar */
-.hub-header .team-crest{width:72px;height:72px}
-.hub-header .team-crest svg{width:72px;height:72px}
-
 /* Mini crests for prematch, league table */
 .crest-mini svg{width:36px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))}
 .crest-xs svg{width:24px;height:24px;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.3))}
 
 /* ================================================================
-   P1.5 — HUB GAME-LIKE UPGRADES
+   P2 — HUB REDESIGN: Stadium Immersion
    ================================================================ */
-.hub-header{display:flex;align-items:center;gap:16px;margin-bottom:22px;padding:14px 0;position:relative}
+
+/* Stadium silhouette backdrop */
+.hub-stadium-backdrop{position:relative;margin:-16px -16px 0;padding:24px 16px 20px;overflow:hidden;min-height:180px;display:flex;flex-direction:column;justify-content:flex-end}
+.hub-stadium-backdrop::before{content:'';position:absolute;inset:0;background:
+  radial-gradient(ellipse 140% 50% at 50% 10%,rgba(255,210,63,0.06) 0%,transparent 60%),
+  radial-gradient(ellipse 80% 40% at 20% 30%,var(--align-accent-dim) 0%,transparent 50%),
+  radial-gradient(ellipse 80% 40% at 80% 25%,rgba(59,130,246,0.03) 0%,transparent 50%);
+  pointer-events:none;animation:stadiumGlow 12s ease-in-out infinite alternate}
+.hub-stadium-backdrop::after{content:'';position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(180deg,transparent 0%,var(--pitch) 70%,var(--void) 100%);pointer-events:none}
+@keyframes stadiumGlow{0%{opacity:0.7}50%{opacity:1}100%{opacity:0.8}}
+
+.hub-stadium-skyline{position:absolute;top:0;left:0;right:0;height:120px;opacity:0.06;pointer-events:none}
+.hub-stadium-skyline svg{width:100%;height:100%}
+
+/* Floodlight pillars */
+.hub-stadium-backdrop .floodlight{position:absolute;top:8px;width:2px;height:40px;background:linear-gradient(180deg,rgba(255,210,63,0.3),transparent);opacity:0.4}
+.hub-stadium-backdrop .floodlight::before{content:'';position:absolute;top:-4px;left:-3px;width:8px;height:8px;background:radial-gradient(circle,rgba(255,210,63,0.6),transparent);border-radius:50%}
+.hub-stadium-backdrop .floodlight:nth-child(1){left:12%}
+.hub-stadium-backdrop .floodlight:nth-child(2){right:12%}
+.hub-stadium-backdrop .floodlight:nth-child(3){left:35%;height:30px;opacity:0.25}
+.hub-stadium-backdrop .floodlight:nth-child(4){right:35%;height:30px;opacity:0.25}
+
+/* Manager header — larger, cinematic */
+.hub-header{display:flex;align-items:center;gap:16px;margin-bottom:0;padding:0;position:relative;z-index:2}
+.hub-header .team-crest{width:80px;height:80px}
+.hub-header .team-crest svg{width:80px;height:80px}
 .hub-header .manager-info{flex:1}
-.hub-header .manager-name{font-family:var(--font-d);font-size:30px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 12px rgba(0,0,0,0.3)}
+.hub-header .manager-name{font-family:var(--font-d);font-size:32px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 16px rgba(0,0,0,0.4)}
 
-/* Power level bar — replaces plain meters */
-.hub-power-ring{position:relative;width:72px;height:72px;flex-shrink:0}
-.hub-power-ring svg{width:72px;height:72px;transform:rotate(-90deg)}
-.hub-power-ring .ring-track{fill:none;stroke:rgba(255,255,255,0.04);stroke-width:4}
-.hub-power-ring .ring-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s var(--spring),stroke 0.8s}
-.hub-power-ring .power-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);text-shadow:0 0 16px rgba(255,255,255,0.1)}
+/* Power ring — larger, with label */
+.hub-power-ring{position:relative;width:76px;height:76px;flex-shrink:0}
+.hub-power-ring svg{width:76px;height:76px;transform:rotate(-90deg)}
+.hub-power-ring .ring-track{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:5}
+.hub-power-ring .ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s var(--spring),stroke 0.8s;filter:drop-shadow(0 0 6px var(--align-accent-dim))}
+.hub-power-ring .power-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);text-shadow:0 0 16px rgba(255,255,255,0.1);line-height:1}
+.hub-power-ring .power-label{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;font-family:var(--font-b);font-weight:600}
 
-/* Action tiles breathing glow */
+/* Meters — larger with icon labels */
+.hub-meters{display:flex;gap:10px;margin:16px 0;position:relative;z-index:2}
+.hub-meter{flex:1;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:4px;display:flex;flex-direction:column;gap:6px;transition:border-color 0.3s}
+.hub-meter .meter-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hub-meter .meter-icon svg{width:12px;height:12px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hub-meter .meter-header{display:flex;align-items:center;gap:6px}
+.hub-meter .meter-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;font-weight:700;flex:1}
+.hub-meter .meter-value{font-family:var(--font-d);font-size:16px;font-weight:700;line-height:1}
+.hub-meter .meter-bar{height:4px;background:rgba(136,150,176,0.08);border-radius:3px;overflow:hidden}
+.hub-meter .meter-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
+.hub-meter.meter-align{border-color:rgba(255,210,63,0.08)}
+.hub-meter.meter-align .meter-icon{background:rgba(255,210,63,0.12)}
+.hub-meter.meter-align .meter-icon svg{stroke:var(--gold-bright)}
+.hub-meter.meter-heat{border-color:rgba(245,158,11,0.06)}
+.hub-meter.meter-heat .meter-icon{background:rgba(245,158,11,0.12)}
+.hub-meter.meter-heat .meter-icon svg{stroke:var(--amber)}
+.hub-meter.meter-fans{border-color:rgba(59,130,246,0.06)}
+.hub-meter.meter-fans .meter-icon{background:rgba(59,130,246,0.12)}
+.hub-meter.meter-fans .meter-icon svg{stroke:var(--blue-bright)}
+
+/* Action tiles — breathing glow + enhanced feel */
 .action-tile.auction::before{background:radial-gradient(ellipse at 20% 20%,rgba(255,207,68,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(212,160,23,0.12) 0%,transparent 45%);animation:tileBreath 4s ease-in-out infinite alternate}
 .action-tile.match::before{background:radial-gradient(ellipse at 20% 20%,rgba(52,211,153,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(5,150,105,0.12) 0%,transparent 45%);animation:tileBreath 4s ease-in-out infinite alternate 1s}
 @keyframes tileBreath{0%{opacity:0.6}100%{opacity:1}}
+.action-tile .tile-title{font-size:24px;letter-spacing:3px}
 
-/* Quick tiles enhanced */
+/* Quick tiles — color-coded per function */
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.quick-tile{position:relative;overflow:hidden}
 .quick-tile svg{width:22px;height:22px;transition:all 0.3s var(--spring-bounce)}
-.quick-tile:active svg{transform:scale(1.15);stroke:var(--align-accent)}
+.quick-tile:active svg{transform:scale(1.15)}
+.quick-tile.qt-squad{border-bottom:2px solid rgba(59,130,246,0.25)}
+.quick-tile.qt-squad svg{stroke:var(--blue-bright)}
+.quick-tile.qt-squad:active{background:rgba(59,130,246,0.08)}
+.quick-tile.qt-league{border-bottom:2px solid rgba(255,210,63,0.25)}
+.quick-tile.qt-league svg{stroke:var(--gold-bright)}
+.quick-tile.qt-league:active{background:rgba(255,210,63,0.08)}
+.quick-tile.qt-cards{border-bottom:2px solid rgba(167,139,250,0.25)}
+.quick-tile.qt-cards svg{stroke:var(--purple)}
+.quick-tile.qt-cards:active{background:rgba(167,139,250,0.08)}
+.quick-tile.qt-market{border-bottom:2px solid rgba(52,211,153,0.25)}
+.quick-tile.qt-market svg{stroke:var(--green-bright)}
+.quick-tile.qt-market:active{background:rgba(52,211,153,0.08)}
 
-/* Next rival — battle card feel */
-#hub-next-rival{border:1px solid rgba(239,45,45,0.12);background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(220,38,38,0.02),rgba(255,255,255,0.02));box-shadow:var(--elevation-2);transition:all 0.3s var(--spring)}
-#hub-next-rival::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 90% 20%,rgba(220,38,38,0.06) 0%,transparent 50%);pointer-events:none;border-radius:inherit}
-
-/* Facility cards elevation */
-.facility-card{box-shadow:var(--elevation-1);transition:all 0.3s var(--spring-bounce)}
-.facility-card:active{transform:scale(0.93);box-shadow:0 1px 3px rgba(0,0,0,0.2)}
-
-/* Hub battle card — dramatic VS display */
-.hub-battle-card{position:relative;padding:16px;margin-bottom:14px;border-radius:4px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(220,38,38,0.03),rgba(255,255,255,0.02));border:1px solid rgba(220,38,38,0.12);box-shadow:var(--elevation-2);transition:all 0.3s var(--spring)}
-.battle-card-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 50%),radial-gradient(circle at 20% 20%,var(--align-accent-dim) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(220,38,38,0.04) 0%,transparent 40%);pointer-events:none;animation:battleBg 6s ease-in-out infinite alternate}
+/* Next rival — battle card — dramatic VS display */
+.hub-battle-card{position:relative;padding:18px;margin-bottom:14px;border-radius:4px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(220,38,38,0.04),rgba(255,210,63,0.02));border:1px solid rgba(220,38,38,0.15);box-shadow:var(--elevation-3);transition:all 0.3s var(--spring)}
+.hub-battle-card:active{transform:scale(0.98);box-shadow:var(--elevation-1)}
+.battle-card-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 50%),radial-gradient(circle at 20% 20%,var(--align-accent-dim) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(220,38,38,0.05) 0%,transparent 40%);pointer-events:none;animation:battleBg 6s ease-in-out infinite alternate}
 @keyframes battleBg{0%{opacity:0.6}100%{opacity:1}}
-.battle-label{font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--slip);text-align:center;margin-bottom:10px;position:relative}
+.battle-label{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--gold-bright);text-align:center;margin-bottom:12px;position:relative;display:flex;align-items:center;gap:10px;justify-content:center}
+.battle-label::before,.battle-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,210,63,0.2),transparent)}
 .battle-vs-row{display:flex;align-items:center;justify-content:center;gap:16px;position:relative}
 .battle-team{text-align:center;flex:1;display:flex;flex-direction:column;align-items:center}
-.battle-vs{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--slip);padding:6px 14px;background:rgba(255,255,255,0.04);border-radius:20px;border:1px solid rgba(255,255,255,0.08);letter-spacing:3px;flex-shrink:0}
+.battle-vs{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);padding:8px 16px;background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(255,210,63,0.1));border-radius:4px;border:1px solid rgba(255,255,255,0.1);letter-spacing:4px;flex-shrink:0;clip-path:var(--clip-diamond);width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:14px}
+
+/* Facility cards — enhanced with elevation + glow on active */
+.facility-card{box-shadow:var(--elevation-1);transition:all 0.3s var(--spring-bounce)}
+.facility-card:active{transform:scale(0.93);box-shadow:0 1px 3px rgba(0,0,0,0.2)}
 
 /* Nav item spring press */
 .nav-item{transition:all 0.3s var(--spring-bounce)}
@@ -1319,32 +1374,54 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
     <div class="screen" id="hub-screen">
       <div id="pull-indicator"><svg viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg></div>
       <div class="settings-btn" id="settings-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
-      <div class="hub-header stagger-child">
-        <div class="team-crest" id="hub-crest"><div class="team-crest-glow"></div></div>
-        <div class="manager-info">
-          <div class="manager-name" id="manager-name">Manager</div>
-          <div class="league-name" id="league-label">Gully Cricket League</div>
-          <div class="align-zone-tag" id="align-zone-tag">Grey Zone</div>
-        </div>
-        <div class="hub-power-ring" id="hub-power-ring">
-          <svg viewBox="0 0 72 72">
-            <circle class="ring-track" cx="36" cy="36" r="30"/>
-            <circle class="ring-fill" id="power-ring-fill" cx="36" cy="36" r="30" stroke="var(--align-accent)" style="stroke-dasharray:188.5;stroke-dashoffset:94"/>
-          </svg>
-          <div class="power-val" id="power-val">50</div>
+
+      <div class="hub-stadium-backdrop">
+        <div class="floodlight"></div>
+        <div class="floodlight"></div>
+        <div class="floodlight"></div>
+        <div class="floodlight"></div>
+        <div class="hub-stadium-skyline"><svg viewBox="0 0 390 120" preserveAspectRatio="none"><path d="M0,120 L0,80 L15,80 L15,40 L18,40 L18,80 L40,80 L40,70 L60,70 L60,60 L80,55 L100,52 L120,50 L140,48 L160,47 L180,46 L195,46 L210,46 L230,47 L250,48 L270,50 L290,52 L310,55 L330,60 L350,70 L370,80 L372,80 L372,40 L375,40 L375,80 L390,80 L390,120Z" fill="currentColor"/></svg></div>
+
+        <div class="hub-header stagger-child">
+          <div class="team-crest" id="hub-crest"><div class="team-crest-glow"></div></div>
+          <div class="manager-info">
+            <div class="manager-name" id="manager-name">Manager</div>
+            <div class="league-name" id="league-label">Gully Cricket League</div>
+            <div class="align-zone-tag" id="align-zone-tag">Grey Zone</div>
+          </div>
+          <div class="hub-power-ring" id="hub-power-ring">
+            <svg viewBox="0 0 76 76">
+              <circle class="ring-track" cx="38" cy="38" r="32"/>
+              <circle class="ring-fill" id="power-ring-fill" cx="38" cy="38" r="32" stroke="var(--align-accent)" style="stroke-dasharray:201;stroke-dashoffset:100"/>
+            </svg>
+            <div class="power-val" id="power-val">50<span class="power-label">OVR</span></div>
+          </div>
         </div>
       </div>
-      <div class="hub-meters stagger-child" style="display:flex;gap:12px;margin-bottom:16px">
-        <div class="hub-meter" style="flex:1">
-          <div class="meter-label"><span>Align</span><span id="align-val" class="text-gold">+0</span></div>
+
+      <div class="hub-meters stagger-child">
+        <div class="hub-meter meter-align">
+          <div class="meter-header">
+            <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+            <div class="meter-label">Align</div>
+            <div class="meter-value" id="align-val" style="color:var(--gold-bright)">+0</div>
+          </div>
           <div class="meter-bar"><div class="meter-fill" id="align-fill" style="width:50%;background:linear-gradient(90deg,var(--gold),var(--gold-bright))"></div></div>
         </div>
-        <div class="hub-meter" style="flex:1">
-          <div class="meter-label"><span>Heat</span><span id="heat-val" class="text-slip">0</span></div>
+        <div class="hub-meter meter-heat">
+          <div class="meter-header">
+            <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg></div>
+            <div class="meter-label">Heat</div>
+            <div class="meter-value" id="heat-val" style="color:var(--slip)">0</div>
+          </div>
           <div class="meter-bar"><div class="meter-fill" id="heat-fill" style="width:0%"></div></div>
         </div>
-        <div class="hub-meter" style="flex:1">
-          <div class="meter-label"><span>Fans</span><span id="fan-val" class="text-blue">50</span></div>
+        <div class="hub-meter meter-fans">
+          <div class="meter-header">
+            <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+            <div class="meter-label">Fans</div>
+            <div class="meter-value" id="fan-val" style="color:var(--blue-bright)">50</div>
+          </div>
           <div class="meter-bar"><div class="meter-fill" id="fan-fill" style="width:50%;background:linear-gradient(90deg,var(--blue),#60A5FA)"></div></div>
         </div>
       </div>
@@ -1361,19 +1438,19 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
       </div>
 
       <div class="quick-tiles stagger-child">
-        <div class="quick-tile" id="hub-squad-btn">
+        <div class="quick-tile qt-squad" id="hub-squad-btn">
           <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           <div class="qt-label">Squad</div>
         </div>
-        <div class="quick-tile" id="hub-league-btn">
+        <div class="quick-tile qt-league" id="hub-league-btn">
           <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M3 7v4a9 9 0 0018 0V7"/><path d="M3 7h18"/></svg>
           <div class="qt-label">League</div>
         </div>
-        <div class="quick-tile" id="hub-cards-btn">
+        <div class="quick-tile qt-cards" id="hub-cards-btn">
           <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="18" rx="1.5"/><path d="M2 6l3-2v16l-3-2z"/><path d="M22 6l-3-2v16l3-2z"/><path d="M9 8h6"/><path d="M12 8v6"/></svg>
           <div class="qt-label">Cards</div>
         </div>
-        <div class="quick-tile" id="hub-market-btn">
+        <div class="quick-tile qt-market" id="hub-market-btn">
           <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
           <div class="qt-label">Market</div>
         </div>
@@ -3584,7 +3661,7 @@ function updateHub() {
   $('fan-fill').style.width = GS.fanLoyalty + '%';
   $('fan-val').textContent = GS.fanLoyalty;
   var teamOvr = getTeamStrength();
-  var circumference = 2 * Math.PI * 30;
+  var circumference = 2 * Math.PI * 32;
   var ovrPct = Math.min(100, teamOvr);
   var offset = circumference - (ovrPct / 100 * circumference);
   $('power-ring-fill').style.strokeDasharray = circumference;
