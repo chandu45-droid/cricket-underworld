@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Cricket Underworld — Visual Target v8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   CRICKET UNDERWORLD — Design System Implementation v8
+   Stadium Broadcast + Underworld Noir
+   Fonts: Teko (display) + Rajdhani (body) ONLY
+   ═══════════════════════════════════════════════════════ */
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  /* Backgrounds — depth layers */
+  --void:#07090C;
+  --pitch:#0D1117;
+  --dugout:#161B26;
+  --pavilion:#1E2536;
+  --sight:#2A3247;
+  /* Accent — alignment-driven */
+  --gold:#B8860B;
+  --gold-h:#DAA520;
+  --crimson:#8B0000;
+  --blood:#CC1100;
+  --amber:#CF6A00;
+  /* Functional */
+  --green:#0E6B3A;
+  --white:#E8E0D4;
+  --slip:#7A8299;
+  --boundary:#3D4A63;
+  --stumps:#4A5568;
+  /* Special */
+  --black-money:#1A1A2E;
+  --fixer:#1A3A5C;
+}
+
+html,body{background:#000;color:var(--white);font-family:'Rajdhani',sans-serif;-webkit-font-smoothing:antialiased}
+
+/* ═══ TEXTURES ═══ */
+.tex-concrete{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Ccircle cx='1' cy='1' r='.6' fill='%23E8E0D4' opacity='.025'/%3E%3Ccircle cx='4' cy='4' r='.4' fill='%23E8E0D4' opacity='.02'/%3E%3Ccircle cx='5' cy='1' r='.3' fill='%23E8E0D4' opacity='.015'/%3E%3Ccircle cx='2' cy='5' r='.5' fill='%23E8E0D4' opacity='.018'/%3E%3C/svg%3E")}
+.tex-leather{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0 0l8 8M8 0l-8 8' stroke='%23E8E0D4' stroke-width='.3' opacity='.025'/%3E%3C/svg%3E")}
+.tex-linen{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cline x1='0' y1='1' x2='4' y2='1' stroke='%23E8E0D4' stroke-width='.5' opacity='.02'/%3E%3Cline x1='0' y1='3' x2='4' y2='3' stroke='%23E8E0D4' stroke-width='.3' opacity='.012'/%3E%3C/svg%3E")}
+
+/* ═══ PHONE FRAME ═══ */
+.wrap{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;padding:20px}
+.phone{position:relative;width:390px;height:844px;overflow:hidden;background:var(--void);
+  border:1px solid var(--boundary);box-shadow:0 20px 80px rgba(0,0,0,0.8)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:24px;background:#000;border-radius:0 0 12px 12px;z-index:100}
+.ui{position:relative;z-index:1;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.ph-label{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);z-index:100;
+  font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:500;letter-spacing:3px;color:var(--stumps);text-transform:uppercase;pointer-events:none}
+
+/* ═══ ATMOSPHERIC LAYERS ═══ */
+.atmos{position:absolute;inset:0;z-index:0;pointer-events:none}
+.atmos-hub::before{content:'';position:absolute;inset:0;background:var(--pitch)}
+.atmos-hub::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(184,134,11,0.06),transparent 55%),radial-gradient(ellipse at 75% 75%,rgba(139,0,0,0.04),transparent 50%)}
+.atmos-match::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--void) 0%,#0A1420 35%,#0C1828 50%,#0A1420 70%,var(--void))}
+.atmos-match::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(14,107,58,0.08),transparent 55%)}
+.atmos-auction::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--void) 0%,#120E06 40%,var(--void))}
+.atmos-auction::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 35%,rgba(218,165,32,0.08),transparent 45%)}
+.atmos-pack::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--void) 0%,#0E0820 40%,var(--void))}
+.atmos-pack::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(26,58,92,0.12),transparent 50%)}
+
+/* ═══ CURRENCY BAR ═══ */
+.cbar{display:flex;align-items:center;gap:8px;padding:32px 14px 6px;background:rgba(7,9,12,0.9);backdrop-filter:blur(12px);position:relative;z-index:2;border-bottom:1px solid rgba(61,74,99,0.3)}
+.cbar-brand{font-family:'Teko',sans-serif;font-size:18px;font-weight:700;letter-spacing:3px;color:var(--gold-h);line-height:1}
+.cbar-spacer{flex:1}
+.cbar-item{display:flex;align-items:center;gap:4px;padding:3px 8px 3px 4px;background:var(--dugout);border:1px solid var(--boundary)}
+.cbar-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-family:'Teko',sans-serif;font-size:10px;font-weight:700}
+.cbar-icon.coin{background:linear-gradient(135deg,var(--gold-h),var(--gold));color:#1a0f00;clip-path:circle(50%)}
+.cbar-icon.gem{background:linear-gradient(135deg,#60A5FA,var(--fixer));color:#fff;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)}
+.cbar-icon.bmoney{background:var(--black-money);color:var(--blood);clip-path:circle(50%);border:1px solid rgba(204,17,0,0.3)}
+.cbar-val{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.3px}
+.cbar-val.g{color:var(--gold-h)}.cbar-val.b{color:#60A5FA}.cbar-val.r{color:var(--blood)}
+.cbar-notif{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--dugout);border:1px solid var(--boundary);position:relative;clip-path:polygon(3px 0,calc(100% - 3px) 0,100% 3px,100% calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,0 calc(100% - 3px),0 3px)}
+.cbar-notif svg{width:14px;height:14px;fill:var(--slip)}
+.cbar-notif-dot{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--blood);border:1.5px solid var(--void)}
+
+/* ═══ PANELS ═══ */
+.panel{background:var(--dugout);border:1px solid var(--boundary);position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold)}
+.panel-crimson::before{background:var(--crimson)}
+.panel-amber::before{background:var(--amber)}
+.panel-green::before{background:var(--green)}
+.panel-fixer::before{background:var(--fixer)}
+
+/* ═══ BUTTONS ═══ */
+.btn{border:none;cursor:pointer;font-family:'Teko',sans-serif;font-weight:600;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:var(--white);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:4px;
+  clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 50%,calc(100% - 6px) 100%,6px 100%,0 50%)}
+.btn::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(180deg,rgba(232,224,212,0.06),transparent);pointer-events:none}
+.btn-gold{background:linear-gradient(180deg,var(--gold-h),var(--gold));box-shadow:0 0 12px rgba(184,134,11,0.3)}
+.btn-blue{background:linear-gradient(180deg,#2563EB,#1D4ED8);box-shadow:0 0 12px rgba(37,99,235,0.2)}
+.btn-crimson{background:linear-gradient(180deg,var(--blood),var(--crimson));box-shadow:0 0 12px rgba(139,0,0,0.3)}
+.btn-ghost{background:transparent;border:1px solid var(--boundary);color:var(--slip);box-shadow:none;clip-path:none}
+.btn-ghost::after{display:none}
+.btn-simple{clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 100%,0 100%)}
+
+/* ═══ PLAYER CARD ═══ */
+.pcard{position:relative;overflow:hidden;background:var(--dugout);border:1px solid var(--boundary)}
+.pcard-rarity{position:absolute;top:0;left:0;right:0;height:3px}
+.pcard-rarity.common{background:var(--stumps)}
+.pcard-rarity.rare{background:var(--green)}
+.pcard-rarity.epic{background:var(--gold)}
+.pcard-rarity.legendary{background:linear-gradient(90deg,var(--gold),var(--blood),var(--green),var(--gold));background-size:300% 100%;animation:legendStrip 3s linear infinite}
+@keyframes legendStrip{0%{background-position:300% 0}100%{background-position:-300% 0}}
+
+.pcard-header{padding:10px 12px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.pcard-ovr{font-family:'Teko',sans-serif;font-size:48px;font-weight:700;line-height:0.85;letter-spacing:-0.5px}
+.pcard-ovr.gold{color:var(--gold-h)}.pcard-ovr.green{color:#4ADE80}.pcard-ovr.blue{color:#60A5FA}.pcard-ovr.purple{color:#A78BFA}
+.pcard-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.pcard-pos{font-family:'Teko',sans-serif;font-size:13px;font-weight:700;color:var(--slip);letter-spacing:2px}
+.pcard-flag{width:24px;height:16px;display:flex;overflow:hidden;border:1px solid rgba(61,74,99,0.4)}
+.pcard-flag .fo{flex:1;background:#FF9933}.pcard-flag .fw{flex:1;background:#fff;position:relative}.pcard-flag .fg{flex:1;background:#138808}
+.pcard-flag .fw::after{content:'';position:absolute;top:50%;left:50%;width:6px;height:6px;border-radius:50%;border:0.8px solid #000080;transform:translate(-50%,-50%)}
+
+.pcard-visual{height:100px;display:flex;align-items:center;justify-content:center;position:relative}
+.pcard-sil{position:relative;z-index:1}
+.pcard-sil svg{width:70px;height:70px;fill:var(--pavilion);filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3))}
+.pcard-glow{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.pcard-glow::after{content:'';width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(184,134,11,0.08),transparent 70%)}
+
+.pcard-name-area{padding:0 12px 6px;border-top:1px solid var(--boundary)}
+.pcard-name{font-family:'Teko',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;line-height:1.1;color:var(--white);margin-top:6px}
+.pcard-role{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:500;color:var(--slip);letter-spacing:0.5px}
+
+.pcard-stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--boundary)}
+.pcard-stat{display:flex;flex-direction:column;align-items:center;padding:6px 0;border-right:1px solid rgba(61,74,99,0.3)}
+.pcard-stat:last-child{border-right:none}
+.pcard-stat-v{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;line-height:1;color:var(--white)}
+.pcard-stat-l{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:500;color:var(--stumps);letter-spacing:0.5px}
+
+.pcard-bars{padding:6px 12px 8px;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--boundary)}
+.pcard-bar{display:flex;align-items:center;gap:6px}
+.pcard-bar-label{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:600;color:var(--stumps);letter-spacing:0.5px;width:24px}
+.pcard-bar-track{flex:1;height:4px;background:rgba(61,74,99,0.3)}
+.pcard-bar-fill{height:100%}
+.pcard-bar-val{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;width:20px;text-align:right}
+
+/* Holographic shimmer for epic+ cards */
+@keyframes holoShimmer{0%{background-position:300% 0}100%{background-position:-300% 0}}
+.pcard-holo::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(115deg,transparent 20%,rgba(184,134,11,0.06) 35%,rgba(14,107,58,0.05) 42%,rgba(204,17,0,0.04) 48%,transparent 65%);
+  background-size:300% 100%;animation:holoShimmer 3s linear infinite;mix-blend-mode:screen;pointer-events:none;z-index:5}
+
+/* Legendary animated border */
+@property --angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+@keyframes rotateBorder{to{--angle:360deg}}
+.pcard-legend{border:2px solid transparent;
+  background-image:linear-gradient(var(--dugout),var(--dugout)),conic-gradient(from var(--angle),var(--gold),var(--blood),var(--green),var(--gold));
+  background-origin:border-box;background-clip:padding-box,border-box;animation:rotateBorder 4s linear infinite}
+
+/* ═══ FORM / STAR RATING ═══ */
+.stars{display:flex;gap:1px}
+.star{font-size:10px;color:var(--gold-h)}
+.star.empty{color:var(--boundary)}
+
+/* ═══ BOTTOM NAV ═══ */
+.bnav{display:flex;height:56px;background:var(--void);border-top:1px solid var(--boundary);z-index:10;margin-top:auto;flex-shrink:0}
+.bnav-i{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
+.bnav-i svg{width:20px;height:20px;transition:fill 0.15s}
+.bnav-i span{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.5px}
+.bnav-i.on svg{fill:var(--gold-h)}.bnav-i.on span{color:var(--gold-h)}
+.bnav-i.on::before{content:'';position:absolute;top:-1px;left:20%;right:20%;height:2px;background:var(--gold-h)}
+.bnav-i:not(.on) svg{fill:var(--stumps)}.bnav-i:not(.on) span{color:var(--stumps)}
+
+/* ═══ SCOREBOARD ═══ */
+.scoreboard{margin:4px 14px;background:rgba(13,17,23,0.9);backdrop-filter:blur(12px);border:1px solid var(--boundary);position:relative;z-index:2;overflow:hidden}
+.scoreboard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green)}
+.sb-top{display:flex;padding:10px 14px 6px;align-items:center}
+.sb-team{flex:1;display:flex;align-items:center;gap:8px}
+.sb-team.right{justify-content:flex-end;text-align:right}
+.sb-crest{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-family:'Teko',sans-serif;font-size:10px;font-weight:700;border:1px solid var(--boundary)}
+.sb-tname{font-family:'Teko',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;line-height:1}
+.sb-batting{color:var(--gold-h)}
+.sb-score-center{padding:0 12px;text-align:center}
+.sb-score-num{font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:700;line-height:1;letter-spacing:-1px;color:var(--white)}
+.sb-score-num .wk{font-size:20px;color:var(--stumps)}
+.sb-overs{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;color:var(--slip);margin-top:1px}
+.sb-status{text-align:center;padding:4px 14px 8px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;color:#4ADE80;letter-spacing:0.3px}
+
+/* ═══ BALL TRACKER ═══ */
+.btrack{margin:4px 14px;padding:6px 10px;background:var(--dugout);border:1px solid var(--boundary);display:flex;align-items:center;gap:6px;z-index:2}
+.btrack-label{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;color:var(--stumps);letter-spacing:1px;white-space:nowrap}
+.btrack-balls{display:flex;gap:4px;flex:1;justify-content:center}
+.ball-dot{width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;border:1px solid var(--boundary)}
+.ball-0{background:rgba(61,74,99,0.15);color:var(--stumps)}
+.ball-r{background:rgba(232,224,212,0.04);color:var(--slip)}
+.ball-4{background:rgba(14,107,58,0.12);color:#4ADE80;border-color:rgba(14,107,58,0.25)}
+.ball-6{background:rgba(26,58,92,0.15);color:#60A5FA;border-color:rgba(26,58,92,0.3)}
+.ball-w{background:rgba(204,17,0,0.1);color:var(--blood);border-color:rgba(204,17,0,0.2)}
+
+/* ═══ CARD BATTLE ═══ */
+.battle{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;padding:8px}
+.battle-row{display:flex;align-items:center;gap:14px}
+.battle-card{width:140px}
+@keyframes battleGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(184,134,11,0.15))}50%{filter:drop-shadow(0 0 16px rgba(184,134,11,0.25))}}
+.battle-card.active{animation:battleGlow 3s ease-in-out infinite}
+.battle-vs{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--blood),var(--crimson));font-family:'Teko',sans-serif;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
+.battle-commentary{text-align:center;margin-top:8px;padding:0 20px}
+.battle-comm-text{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:500;color:var(--slip);font-style:italic}
+.battle-comm-result{font-family:'Teko',sans-serif;font-size:28px;font-weight:700;letter-spacing:2px;margin-top:2px}
+.battle-comm-result.four{color:#4ADE80}
+.battle-comm-result.six{color:#60A5FA}
+
+/* ═══ MATCH ACTIONS ═══ */
+.match-actions{padding:8px 14px 10px;display:flex;gap:8px;z-index:2}
+.ma-btn{flex:1;height:42px}
+
+/* ═══ TILE GRID ═══ */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px;z-index:2}
+.tile{padding:14px 12px;position:relative;overflow:hidden;cursor:pointer;background:var(--dugout);border:1px solid var(--boundary);border-left:3px solid var(--gold)}
+.tile-icon{margin-bottom:4px}
+.tile-icon svg{width:22px;height:22px;fill:var(--slip)}
+.tile-title{font-family:'Teko',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;line-height:1;color:var(--white)}
+.tile-sub{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:500;color:var(--slip);margin-top:1px}
+.tile-badge{position:absolute;top:6px;right:6px;padding:2px 6px;font-family:'Rajdhani',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+
+/* Tile accent colors */
+.tile-auction{border-left-color:var(--gold-h)}
+.tile-auction .tile-icon svg{fill:var(--gold-h)}.tile-auction .tile-title{color:var(--gold-h)}
+.tile-match{border-left-color:var(--green)}
+.tile-match .tile-icon svg{fill:#4ADE80}.tile-match .tile-title{color:#4ADE80}
+.tile-squad{border-left-color:var(--fixer)}
+.tile-squad .tile-icon svg{fill:#60A5FA}.tile-squad .tile-title{color:#60A5FA}
+.tile-deals{border-left-color:var(--crimson)}
+.tile-deals .tile-icon svg{fill:var(--blood)}.tile-deals .tile-title{color:var(--blood)}
+.tile-league{border-left-color:var(--amber)}
+.tile-league .tile-icon svg{fill:var(--amber)}.tile-league .tile-title{color:var(--amber)}
+.tile-packs{border-left-color:#7C3AED}
+.tile-packs .tile-icon svg{fill:#A78BFA}.tile-packs .tile-title{color:#A78BFA}
+
+/* ═══ TEAM BANNER ═══ */
+.tbanner{margin:8px 14px;padding:12px 14px;background:var(--dugout);border:1px solid var(--boundary);position:relative;z-index:2;overflow:hidden}
+.tbanner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold-h)}
+.tb-row{display:flex;align-items:center;gap:12px}
+.tb-crest{width:42px;height:42px;background:linear-gradient(135deg,var(--gold-h),var(--gold));display:flex;align-items:center;justify-content:center;font-family:'Teko',sans-serif;font-size:18px;font-weight:700;color:#1a0f00;
+  clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
+.tb-info{flex:1}
+.tb-name{font-family:'Teko',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;line-height:1;color:var(--white)}
+.tb-meta{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:500;color:var(--slip);margin-top:2px}
+.tb-meta b{color:var(--gold-h);font-weight:700}
+.tb-bars{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.tb-bar{display:flex;align-items:center;gap:6px}
+.tb-bar-label{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:600;color:var(--stumps);letter-spacing:1px;width:60px;text-transform:uppercase}
+.tb-bar-track{flex:1;height:4px;background:rgba(61,74,99,0.3)}
+.tb-bar-fill{height:100%}
+.tb-bar-val{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;width:28px;text-align:right}
+
+/* ═══ NEXT MATCH PANEL ═══ */
+.nmatch{margin:8px 14px;padding:10px 14px;background:var(--dugout);border:1px solid var(--boundary);position:relative;z-index:2;overflow:hidden}
+.nmatch::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--blood)}
+.nm-label{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--stumps);text-transform:uppercase;margin-bottom:6px}
+.nm-row{display:flex;align-items:center;gap:8px}
+.nm-team{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nm-crest{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:'Teko',sans-serif;font-size:16px;font-weight:700;
+  clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
+.nm-crest.home{background:linear-gradient(135deg,var(--gold-h),var(--gold));color:#1a0f00}
+.nm-crest.away{background:linear-gradient(135deg,var(--blood),var(--crimson));color:#fff}
+.nm-tname{font-family:'Teko',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;color:var(--white)}
+.nm-tovr{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;color:var(--stumps)}
+.nm-vs{display:flex;flex-direction:column;align-items:center;gap:3px}
+.nm-vs-txt{font-family:'Teko',sans-serif;font-size:24px;font-weight:700;color:var(--stumps);letter-spacing:2px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.nm-timer{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;color:var(--blood);display:flex;align-items:center;gap:3px}
+.nm-live{width:6px;height:6px;border-radius:50%;background:var(--blood);animation:pulse 1.5s ease-in-out infinite}
+
+/* ═══ MAFIA PANEL ═══ */
+.mafia-panel{margin:8px 14px;padding:10px 14px;background:var(--black-money);border:1px solid rgba(139,0,0,0.3);position:relative;z-index:2;overflow:hidden}
+.mafia-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--crimson)}
+.mafia-panel::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 30px rgba(139,0,0,0.06);pointer-events:none}
+
+/* ═══ AUCTION SPECIFIC ═══ */
+.auction-header{padding:36px 14px 6px;display:flex;align-items:center;justify-content:space-between;z-index:2}
+.auction-title{font-family:'Teko',sans-serif;font-size:36px;font-weight:700;letter-spacing:-0.3px;color:var(--gold-h)}
+.auction-meta{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;color:var(--stumps)}
+
+.auction-purse{margin:0 14px 8px;padding:8px 12px;background:var(--dugout);border:1px solid var(--boundary);display:flex;align-items:center;justify-content:space-between;z-index:2}
+.auction-purse-label{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;color:var(--stumps);letter-spacing:1px;text-transform:uppercase}
+.auction-purse-val{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:var(--gold-h);letter-spacing:-0.5px}
+
+.auction-card-area{display:flex;justify-content:center;z-index:2;padding:4px 14px}
+.auction-card{width:200px}
+
+.bid-section{margin:8px 14px 0;z-index:2}
+.bid-current{padding:8px 12px;background:var(--dugout);border:1px solid var(--boundary);display:flex;justify-content:space-between;align-items:center;overflow:hidden;position:relative}
+.bid-current::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold)}
+.bid-label{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;color:var(--stumps);letter-spacing:1px}
+.bid-amount{font-family:'Teko',sans-serif;font-size:28px;font-weight:700;color:var(--gold-h);line-height:1}
+.bid-by{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:500;color:var(--slip)}
+
+.bid-timer{margin:6px 0;height:3px;background:rgba(61,74,99,0.3);overflow:hidden}
+.bid-timer-fill{height:100%;width:65%;background:linear-gradient(90deg,var(--green),var(--amber))}
+
+.bidders-row{display:flex;gap:6px;margin-top:6px}
+.bidder{flex:1;padding:6px 4px;background:var(--dugout);border:1px solid var(--boundary);display:flex;flex-direction:column;align-items:center;gap:3px}
+.bidder.leading{border-color:rgba(184,134,11,0.3)}
+.bidder.leading::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:var(--gold)}
+.bidder-av{width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-family:'Teko',sans-serif;font-size:11px;font-weight:700;
+  clip-path:polygon(3px 0,calc(100% - 3px) 0,100% 3px,100% calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,0 calc(100% - 3px),0 3px)}
+.bidder-name{font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;color:var(--slip)}
+.bidder-status{font-family:'Rajdhani',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.5px}
+.bidder-status.in{color:#4ADE80}.bidder-status.out{color:var(--stumps)}
+
+.bid-actions{display:flex;gap:8px;margin-top:8px}
+.bid-btn{flex:1;height:44px}
+
+/* ═══ PACK OPENING ═══ */
+.pack-header{padding:36px 14px 8px;text-align:center;z-index:2}
+.pack-title{font-family:'Teko',sans-serif;font-size:36px;font-weight:700;letter-spacing:-0.3px;color:var(--white)}
+.pack-sub{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:500;color:var(--slip);margin-top:2px}
+.pack-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2}
+@keyframes packFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-6px) rotate(0.5deg)}}
+.pack-card-wrap{animation:packFloat 3s ease-in-out infinite}
+.pack-card{width:220px}
+.pack-rarity{display:flex;align-items:center;gap:6px;margin-top:16px}
+.pack-rarity-dot{width:8px;height:8px}
+.pack-rarity-dot.active{box-shadow:0 0 6px currentColor}
+.pack-rarity-text{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px}
+.pack-actions{padding:8px 14px 12px;display:flex;gap:8px;z-index:2}
+.pack-btn{flex:1;height:46px}
+
+/* ═══ UTILITY ═══ */
+.scrollable{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.spacer{flex:1}
+</style>
+
+<!-- ═══════════════ SVG DEFINITIONS ═══════════════ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+<defs>
+  <!-- Cricket Bat icon (monoline, 2px stroke) -->
+  <symbol id="ic-bat" viewBox="0 0 24 24">
+    <path d="M5 19l2-2 1.5-1.5 7-9 4-4 1 1-4 4-9 7L6 16l-1 3z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M10.5 8.5l5 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </symbol>
+  <!-- Cricket Ball icon -->
+  <symbol id="ic-ball" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8" fill="none"/>
+    <path d="M8 6.5c2 3 2 8 0 11M16 6.5c-2 3-2 8 0 11" stroke="currentColor" stroke-width="1.2" fill="none"/>
+  </symbol>
+  <!-- Stumps icon -->
+  <symbol id="ic-stumps" viewBox="0 0 24 24">
+    <line x1="9" y1="5" x2="9" y2="20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <line x1="12" y1="5" x2="12" y2="20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <line x1="15" y1="5" x2="15" y2="20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <line x1="8" y1="6" x2="12.5" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="11.5" y1="5" x2="16" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </symbol>
+  <!-- Auction Gavel icon -->
+  <symbol id="ic-gavel" viewBox="0 0 24 24">
+    <path d="M5 19h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M12 19v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M8 14h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M14 4l4 4-6 6-4-4z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+    <path d="M8 10l-2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <!-- Shield icon (squad) -->
+  <symbol id="ic-shield" viewBox="0 0 24 24">
+    <path d="M12 3L4 7v5c0 4.5 3.4 8.7 8 10 4.6-1.3 8-5.5 8-10V7l-8-4z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+  </symbol>
+  <!-- Table/League icon -->
+  <symbol id="ic-league" viewBox="0 0 24 24">
+    <path d="M4 5h16M4 9h16M4 13h12M4 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <!-- Handshake/Deals icon -->
+  <symbol id="ic-deals" viewBox="0 0 24 24">
+    <path d="M4 11l4-4h3l5 5-4 4H9l-5-5zM20 11l-4-4h-2" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M10 14l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </symbol>
+  <!-- Pack/Box icon -->
+  <symbol id="ic-pack" viewBox="0 0 24 24">
+    <path d="M4 8l8-4 8 4v8l-8 4-8-4z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+    <path d="M12 12v8M4 8l8 4 8-4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+  </symbol>
+  <!-- Home icon -->
+  <symbol id="ic-home" viewBox="0 0 24 24">
+    <path d="M4 12l8-8 8 8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M6 10v8h4v-4h4v4h4v-8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+  </symbol>
+  <!-- Cards icon -->
+  <symbol id="ic-cards" viewBox="0 0 24 24">
+    <rect x="3" y="6" width="12" height="15" rx="1" stroke="currentColor" stroke-width="1.8" fill="none"/>
+    <path d="M9 6V4h10a1 1 0 011 1v12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+  </symbol>
+  <!-- Shop icon -->
+  <symbol id="ic-shop" viewBox="0 0 24 24">
+    <path d="M4 7l2-4h12l2 4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+    <path d="M4 7v12h16V7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
+    <path d="M4 7c0 1.5 1.3 3 3 3s3-1.5 3-3c0 1.5 1.3 3 3 3s3-1.5 3-3c0 1.5 1.3 3 3 3s3-1.5 3-3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+  </symbol>
+  <!-- Profile icon -->
+  <symbol id="ic-profile" viewBox="0 0 24 24">
+    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" fill="none"/>
+    <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  </symbol>
+  <!-- Bell icon -->
+  <symbol id="ic-bell" viewBox="0 0 24 24">
+    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z" fill="currentColor"/>
+    <path d="M18 16v-5c0-3.1-1.6-5.6-4.5-6.3V4a1.5 1.5 0 00-3 0v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+  </symbol>
+  <!-- Arrow back -->
+  <symbol id="ic-back" viewBox="0 0 24 24">
+    <path d="M20 12H6M6 12l5-5M6 12l5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <!-- Settings/Strategy gear -->
+  <symbol id="ic-gear" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8" fill="none"/>
+    <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- ═══ PLAYER SILHOUETTES ═══ -->
+  <!-- Batsman: bust with helmet — FUT "no photo" style -->
+  <symbol id="sil-bat" viewBox="0 0 80 90">
+    <!-- Helmet dome -->
+    <path d="M28 30 Q28 10 40 8 Q52 10 52 30 L52 34 L28 34 Z" fill="currentColor"/>
+    <!-- Helmet peak -->
+    <path d="M24 14 L56 14 L54 18 L26 18 Z" fill="currentColor" opacity="0.85"/>
+    <!-- Grille suggestion -->
+    <path d="M32 28 L48 28 L48 34 L32 34 Z" fill="currentColor" opacity="0.6"/>
+    <!-- Neck -->
+    <rect x="36" y="34" width="8" height="5" fill="currentColor"/>
+    <!-- Shoulders + torso -->
+    <path d="M10 88 Q10 58 24 50 L36 42 L44 42 L56 50 Q70 58 70 88 Z" fill="currentColor"/>
+    <!-- Bat suggestion (angled line behind right shoulder) -->
+    <path d="M54 38 L62 18 L66 18 L66 22 L58 40 Z" fill="currentColor" opacity="0.5"/>
+  </symbol>
+
+  <!-- Bowler: bust without helmet -->
+  <symbol id="sil-bowl" viewBox="0 0 80 90">
+    <!-- Head -->
+    <circle cx="40" cy="22" r="14" fill="currentColor"/>
+    <!-- Hair line -->
+    <path d="M27 18 Q27 8 40 6 Q53 8 53 18" fill="currentColor"/>
+    <!-- Neck -->
+    <rect x="36" y="35" width="8" height="5" fill="currentColor"/>
+    <!-- Shoulders + torso -->
+    <path d="M10 88 Q10 58 24 50 L36 42 L44 42 L56 50 Q70 58 70 88 Z" fill="currentColor"/>
+    <!-- Bowling arm suggestion (raised straight up from right shoulder) -->
+    <path d="M56 48 L60 30 L64 12 L68 12 L64 14 L60 32 L58 50 Z" fill="currentColor" opacity="0.5"/>
+    <!-- Ball at top of arm -->
+    <circle cx="66" cy="10" r="5" fill="currentColor" opacity="0.5"/>
+  </symbol>
+</defs>
+</svg>
+
+<div class="wrap">
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 1: HUB
+     ═══════════════════════════════════════════════════════ -->
+<div class="phone">
+  <div class="ph-label">Hub</div>
+  <div class="atmos atmos-hub tex-concrete"></div>
+  <div class="ui">
+    <!-- Currency Bar -->
+    <div class="cbar">
+      <div class="cbar-brand">UNDERWORLD</div>
+      <div class="cbar-spacer"></div>
+      <div class="cbar-item"><div class="cbar-icon coin">C</div><span class="cbar-val g">12,450</span></div>
+      <div class="cbar-item"><div class="cbar-icon gem">G</div><span class="cbar-val b">47</span></div>
+      <div class="cbar-item"><div class="cbar-icon bmoney">B</div><span class="cbar-val r">380</span></div>
+      <div class="cbar-notif"><svg><use href="#ic-bell"/></svg><div class="cbar-notif-dot"></div></div>
+    </div>
+
+    <div class="scrollable">
+      <!-- Season Info -->
+      <div style="padding:8px 14px 0;display:flex;justify-content:space-between;align-items:baseline">
+        <div style="font-family:Teko;font-size:20px;font-weight:700;letter-spacing:1px;color:var(--white)">SEASON III</div>
+        <div style="font-family:Rajdhani;font-size:11px;font-weight:600;color:var(--slip)">Silver League · Day 7/14</div>
+      </div>
+
+      <!-- Team Banner -->
+      <div class="tbanner tex-leather">
+        <div class="tb-row">
+          <div class="tb-crest">CK</div>
+          <div class="tb-info">
+            <div class="tb-name">CHENNAI KINGS</div>
+            <div class="tb-meta">Rank #3 · <b>6W</b> 2L · Streak: 2W</div>
+          </div>
+        </div>
+        <div class="tb-bars">
+          <div class="tb-bar">
+            <div class="tb-bar-label">Alignment</div>
+            <div class="tb-bar-track"><div class="tb-bar-fill" style="width:71%;background:linear-gradient(90deg,var(--gold),var(--gold-h))"></div></div>
+            <div class="tb-bar-val" style="color:var(--gold-h)">+42</div>
+          </div>
+          <div class="tb-bar">
+            <div class="tb-bar-label">Heat</div>
+            <div class="tb-bar-track"><div class="tb-bar-fill" style="width:18%;background:var(--green)"></div></div>
+            <div class="tb-bar-val" style="color:#4ADE80">18</div>
+          </div>
+          <div class="tb-bar">
+            <div class="tb-bar-label">Fan Love</div>
+            <div class="tb-bar-track"><div class="tb-bar-fill" style="width:72%;background:linear-gradient(90deg,var(--fixer),#60A5FA)"></div></div>
+            <div class="tb-bar-val" style="color:#60A5FA">72</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Tiles -->
+      <div class="tiles">
+        <div class="tile tile-match tex-leather">
+          <div class="tile-icon"><svg><use href="#ic-stumps"/></svg></div>
+          <div class="tile-title">MATCH</div>
+          <div class="tile-sub">vs The Shark</div>
+          <div class="tile-badge" style="background:rgba(204,17,0,0.15);color:var(--blood)">LIVE</div>
+        </div>
+        <div class="tile tile-auction tex-leather">
+          <div class="tile-icon"><svg><use href="#ic-gavel"/></svg></div>
+          <div class="tile-title">AUCTION</div>
+          <div class="tile-sub">Next in 2h</div>
+        </div>
+        <div class="tile tile-squad tex-leather">
+          <div class="tile-icon"><svg><use href="#ic-shield"/></svg></div>
+          <div class="tile-title">SQUAD</div>
+          <div class="tile-sub">14/15 slots</div>
+        </div>
+        <div class="tile tile-packs tex-leather">
+          <div class="tile-icon"><svg><use href="#ic-pack"/></svg></div>
+          <div class="tile-title">PACKS</div>
+          <div class="tile-sub">Open rewards</div>
+          <div class="tile-badge" style="background:rgba(14,107,58,0.15);color:#4ADE80">FREE</div>
+        </div>
+        <div class="tile tile-league tex-leather">
+          <div class="tile-icon"><svg><use href="#ic-league"/></svg></div>
+          <div class="tile-title">LEAGUE</div>
+          <div class="tile-sub">Table & rivals</div>
+        </div>
+        <div class="tile tile-deals tex-leather">
+          <div class="tile-icon"><svg><use href="#ic-deals"/></svg></div>
+          <div class="tile-title">DEALS</div>
+          <div class="tile-sub">2 active debts</div>
+          <div class="tile-badge" style="background:rgba(139,0,0,0.15);color:var(--blood)">2</div>
+        </div>
+      </div>
+
+      <!-- Next Match -->
+      <div class="nmatch">
+        <div class="nm-label">NEXT MATCH</div>
+        <div class="nm-row">
+          <div class="nm-team">
+            <div class="nm-crest home">CK</div>
+            <div class="nm-tname">CHENNAI</div>
+            <div class="nm-tovr">OVR 74</div>
+          </div>
+          <div class="nm-vs">
+            <div class="nm-vs-txt">VS</div>
+            <div class="nm-timer"><span class="nm-live"></span>2:34</div>
+          </div>
+          <div class="nm-team">
+            <div class="nm-crest away">SH</div>
+            <div class="nm-tname">THE SHARK</div>
+            <div class="nm-tovr">STR 82</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mafia Panel -->
+      <div class="mafia-panel tex-concrete">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <svg width="18" height="18" style="fill:var(--blood);flex-shrink:0;margin-top:2px"><use href="#ic-deals"/></svg>
+          <div style="flex:1">
+            <div style="font-family:Teko;font-size:14px;font-weight:700;color:var(--blood);letter-spacing:1px">INCOMING MESSAGE</div>
+            <div style="font-family:Rajdhani;font-size:12px;font-weight:400;color:var(--slip);font-style:italic;margin-top:2px">"I have information about The Shark's next auction moves..."</div>
+            <button class="btn btn-crimson btn-simple" style="margin-top:6px;padding:4px 16px;font-size:13px;height:28px">VIEW OFFER</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bnav">
+      <div class="bnav-i on"><svg><use href="#ic-home"/></svg><span>Hub</span></div>
+      <div class="bnav-i"><svg><use href="#ic-cards"/></svg><span>Cards</span></div>
+      <div class="bnav-i"><svg><use href="#ic-stumps"/></svg><span>Play</span></div>
+      <div class="bnav-i"><svg><use href="#ic-shop"/></svg><span>Shop</span></div>
+      <div class="bnav-i"><svg><use href="#ic-profile"/></svg><span>Me</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 2: MATCH (Card Battle View)
+     ═══════════════════════════════════════════════════════ -->
+<div class="phone">
+  <div class="ph-label">Match</div>
+  <div class="atmos atmos-match tex-concrete"></div>
+  <div class="ui">
+    <!-- Match Header -->
+    <div style="padding:32px 14px 6px;display:flex;align-items:center;justify-content:space-between;z-index:2">
+      <div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--dugout);border:1px solid var(--boundary)"><svg width="14" height="14" style="fill:var(--slip)"><use href="#ic-back"/></svg></div>
+      <div style="font-family:Teko;font-size:14px;font-weight:600;letter-spacing:3px;color:var(--stumps)">LEAGUE MATCH</div>
+      <div style="width:30px"></div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+      <div class="sb-top">
+        <div class="sb-team">
+          <div class="sb-crest" style="background:linear-gradient(135deg,var(--gold-h),var(--gold));color:#1a0f00">CK</div>
+          <div>
+            <div class="sb-tname sb-batting">CHENNAI</div>
+            <div style="font-family:Rajdhani;font-size:9px;font-weight:500;color:var(--stumps)">Batting</div>
+          </div>
+        </div>
+        <div class="sb-score-center">
+          <div class="sb-score-num">127<span class="wk">/4</span></div>
+          <div class="sb-overs">14.2 overs</div>
+        </div>
+        <div class="sb-team right">
+          <div>
+            <div class="sb-tname" style="color:var(--slip)">RAJAN XI</div>
+            <div style="font-family:Rajdhani;font-size:9px;font-weight:500;color:var(--stumps);text-align:right">Bowling</div>
+          </div>
+          <div class="sb-crest" style="background:linear-gradient(135deg,var(--blood),var(--crimson));color:#fff">RX</div>
+        </div>
+      </div>
+      <div class="sb-status">CRR 8.86 &middot; Need 48 from 34 balls</div>
+    </div>
+
+    <!-- Ball Tracker -->
+    <div class="btrack">
+      <div class="btrack-label">OV 15</div>
+      <div class="btrack-balls">
+        <div class="ball-dot ball-r">1</div>
+        <div class="ball-dot ball-0">0</div>
+        <div class="ball-dot ball-4">4</div>
+        <div class="ball-dot ball-w">W</div>
+        <div class="ball-dot ball-6">6</div>
+        <div class="ball-dot ball-r">2</div>
+      </div>
+    </div>
+
+    <!-- Card Battle Zone -->
+    <div class="battle">
+      <div class="battle-row">
+        <!-- Batsman Card -->
+        <div class="battle-card active">
+          <div class="pcard tex-linen" style="border-color:rgba(184,134,11,0.3)">
+            <div class="pcard-rarity epic"></div>
+            <div class="pcard-header">
+              <div class="pcard-ovr gold">88</div>
+              <div class="pcard-meta"><div class="pcard-pos">RHB</div></div>
+            </div>
+            <div class="pcard-visual">
+              <div class="pcard-glow"></div>
+              <div class="pcard-sil"><svg><use href="#sil-bat"/></svg></div>
+            </div>
+            <div class="pcard-name-area">
+              <div class="pcard-name">V. RATHORE</div>
+              <div class="pcard-role">Top Order &middot; Right Hand</div>
+            </div>
+            <div style="padding:4px 12px 6px;font-family:Rajdhani;font-size:11px;font-weight:600;color:var(--gold-h)">42*(28) &middot; SR 150.0</div>
+          </div>
+        </div>
+
+        <div class="battle-vs">VS</div>
+
+        <!-- Bowler Card -->
+        <div class="battle-card">
+          <div class="pcard tex-linen" style="border-color:rgba(139,0,0,0.2)">
+            <div class="pcard-rarity rare"></div>
+            <div class="pcard-header">
+              <div class="pcard-ovr" style="color:var(--blood)">82</div>
+              <div class="pcard-meta"><div class="pcard-pos">RF</div></div>
+            </div>
+            <div class="pcard-visual">
+              <div class="pcard-sil"><svg><use href="#sil-bowl"/></svg></div>
+            </div>
+            <div class="pcard-name-area">
+              <div class="pcard-name">A. KHAN</div>
+              <div class="pcard-role">Fast Bowler &middot; Right Arm</div>
+            </div>
+            <div style="padding:4px 12px 6px;font-family:Rajdhani;font-size:11px;font-weight:600;color:var(--blood)">2/34 &middot; Econ 7.2</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="battle-commentary">
+        <div class="battle-comm-text">Pitched up outside off, drives through covers...</div>
+        <div class="battle-comm-result four">FOUR!</div>
+      </div>
+    </div>
+
+    <!-- Match Actions -->
+    <div class="match-actions">
+      <button class="btn btn-ghost ma-btn"><svg width="14" height="14" style="fill:var(--slip)"><use href="#ic-gear"/></svg> Strategy</button>
+      <button class="btn btn-blue ma-btn">Next Ball</button>
+      <button class="btn btn-ghost ma-btn">Skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 3: AUCTION
+     ═══════════════════════════════════════════════════════ -->
+<div class="phone">
+  <div class="ph-label">Auction</div>
+  <div class="atmos atmos-auction tex-concrete"></div>
+  <div class="ui">
+    <!-- Auction Header -->
+    <div class="auction-header">
+      <div style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--dugout);border:1px solid var(--boundary)"><svg width="14" height="14" style="fill:var(--slip)"><use href="#ic-back"/></svg></div>
+      <div class="auction-title">AUCTION</div>
+      <div class="auction-meta">Lot 7 of 24</div>
+    </div>
+
+    <!-- Purse -->
+    <div class="auction-purse">
+      <div class="auction-purse-label">Purse Remaining</div>
+      <div class="auction-purse-val">1,240</div>
+      <div style="font-family:Rajdhani;font-size:10px;font-weight:600;color:var(--stumps)">Slots: 4/11</div>
+    </div>
+
+    <!-- Player Card (Auction Spotlight) -->
+    <div class="auction-card-area">
+      <div class="auction-card">
+        <div class="pcard pcard-holo tex-linen" style="border-color:rgba(184,134,11,0.3)">
+          <div class="pcard-rarity epic"></div>
+          <div class="pcard-header">
+            <div class="pcard-ovr gold" style="font-size:56px">92</div>
+            <div class="pcard-meta">
+              <div class="pcard-pos">BATSMAN</div>
+              <div class="pcard-flag"><div class="fo"></div><div class="fw"></div><div class="fg"></div></div>
+            </div>
+          </div>
+          <div class="pcard-visual" style="height:120px">
+            <div class="pcard-glow"></div>
+            <div class="pcard-sil"><svg style="width:90px;height:90px"><use href="#sil-bat"/></svg></div>
+          </div>
+          <div class="pcard-name-area">
+            <div class="pcard-name" style="font-size:22px">R. KRISHNAN</div>
+            <div class="pcard-role">Top Order &middot; Right Hand</div>
+            <div class="stars" style="margin-top:2px"><span class="star">&#9733;</span><span class="star">&#9733;</span><span class="star">&#9733;</span><span class="star empty">&#9733;</span><span class="star empty">&#9733;</span></div>
+          </div>
+          <div class="pcard-stats" style="grid-template-columns:repeat(3,1fr)">
+            <div class="pcard-stat"><div class="pcard-stat-v">94</div><div class="pcard-stat-l">BAT</div></div>
+            <div class="pcard-stat"><div class="pcard-stat-v">72</div><div class="pcard-stat-l">FLD</div></div>
+            <div class="pcard-stat"><div class="pcard-stat-v">45</div><div class="pcard-stat-l">BWL</div></div>
+          </div>
+          <div class="pcard-bars">
+            <div class="pcard-bar">
+              <div class="pcard-bar-label">LOY</div>
+              <div class="pcard-bar-track"><div class="pcard-bar-fill" style="width:76%;background:var(--gold-h)"></div></div>
+              <div class="pcard-bar-val" style="color:var(--gold-h)">76</div>
+            </div>
+            <div class="pcard-bar">
+              <div class="pcard-bar-label">GRD</div>
+              <div class="pcard-bar-track"><div class="pcard-bar-fill" style="width:35%;background:var(--blood)"></div></div>
+              <div class="pcard-bar-val" style="color:var(--blood)">35</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bid Section -->
+    <div class="bid-section">
+      <div class="bid-current">
+        <div>
+          <div class="bid-label">CURRENT BID</div>
+          <div class="bid-by">by Hyderabad Sultans</div>
+        </div>
+        <div class="bid-amount">2,400</div>
+      </div>
+
+      <div class="bid-timer"><div class="bid-timer-fill"></div></div>
+
+      <div class="bidders-row">
+        <div class="bidder leading" style="position:relative">
+          <div class="bidder-av" style="background:linear-gradient(135deg,var(--gold-h),var(--gold));color:#1a0f00">CK</div>
+          <div class="bidder-name">YOU</div>
+          <div class="bidder-status in">IN</div>
+        </div>
+        <div class="bidder" style="position:relative">
+          <div class="bidder-av" style="background:linear-gradient(135deg,#22C55E,#166534);color:#fff">HS</div>
+          <div class="bidder-name">HYD</div>
+          <div class="bidder-status in">LEAD</div>
+        </div>
+        <div class="bidder">
+          <div class="bidder-av" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);color:#fff">MI</div>
+          <div class="bidder-name">MUM</div>
+          <div class="bidder-status out">OUT</div>
+        </div>
+        <div class="bidder">
+          <div class="bidder-av" style="background:linear-gradient(135deg,var(--amber),#92400E);color:#fff">BG</div>
+          <div class="bidder-name">BLR</div>
+          <div class="bidder-status in">IN</div>
+        </div>
+      </div>
+
+      <div class="bid-actions">
+        <button class="btn btn-ghost bid-btn">PASS</button>
+        <button class="btn btn-gold bid-btn">BID 2,600</button>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- Mafia Intel (optional) -->
+    <div class="mafia-panel tex-concrete" style="margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <svg width="14" height="14" style="fill:var(--blood);flex-shrink:0;margin-top:1px"><use href="#ic-deals"/></svg>
+        <div>
+          <div style="font-family:Rajdhani;font-size:10px;font-weight:700;color:var(--blood);letter-spacing:1px">SCOUT INTEL</div>
+          <div style="font-family:Rajdhani;font-size:11px;font-weight:400;color:var(--slip)">The Shark's purse: 890 remaining</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 4: PACK OPENING
+     ═══════════════════════════════════════════════════════ -->
+<div class="phone">
+  <div class="ph-label">Pack</div>
+  <div class="atmos atmos-pack tex-concrete"></div>
+  <div class="ui">
+    <!-- Pack Header -->
+    <div class="pack-header">
+      <div style="font-family:Teko;font-size:48px;font-weight:700;letter-spacing:-0.5px;line-height:1;color:var(--white)">PREMIUM PACK</div>
+      <div class="pack-sub">5 Cards &middot; Guaranteed Rare or Better</div>
+    </div>
+
+    <div class="pack-zone">
+      <div class="pack-card-wrap">
+        <div class="pack-card">
+          <!-- Legendary card with rotating border -->
+          <div class="pcard pcard-legend pcard-holo tex-linen" style="width:220px">
+            <div class="pcard-rarity legendary"></div>
+            <div class="pcard-header" style="padding:14px 16px 0">
+              <div class="pcard-ovr" style="font-size:56px;background:linear-gradient(180deg,var(--gold-h),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent">95</div>
+              <div class="pcard-meta">
+                <div style="font-family:Rajdhani;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--gold-h)">LEGENDARY</div>
+                <div class="pcard-flag" style="margin-top:2px"><div class="fo"></div><div class="fw"></div><div class="fg"></div></div>
+              </div>
+            </div>
+            <div class="pcard-visual" style="height:140px">
+              <div class="pcard-glow" style="opacity:1"></div>
+              <div class="pcard-sil"><svg style="width:100px;height:100px;fill:var(--sight)"><use href="#sil-bat"/></svg></div>
+            </div>
+            <div class="pcard-name-area" style="padding:0 16px 8px">
+              <div class="pcard-name" style="font-size:24px;letter-spacing:2px">S. MALHOTRA</div>
+              <div class="pcard-role">All-Rounder &middot; India</div>
+              <div class="stars" style="margin-top:3px"><span class="star">&#9733;</span><span class="star">&#9733;</span><span class="star">&#9733;</span><span class="star">&#9733;</span><span class="star">&#9733;</span></div>
+            </div>
+            <div class="pcard-stats">
+              <div class="pcard-stat"><div class="pcard-stat-v">92</div><div class="pcard-stat-l">BAT</div></div>
+              <div class="pcard-stat"><div class="pcard-stat-v">88</div><div class="pcard-stat-l">BWL</div></div>
+              <div class="pcard-stat"><div class="pcard-stat-v">78</div><div class="pcard-stat-l">FLD</div></div>
+              <div class="pcard-stat"><div class="pcard-stat-v">90</div><div class="pcard-stat-l">FIT</div></div>
+            </div>
+            <div class="pcard-bars" style="padding:8px 16px 10px">
+              <div class="pcard-bar">
+                <div class="pcard-bar-label">LOY</div>
+                <div class="pcard-bar-track"><div class="pcard-bar-fill" style="width:90%;background:var(--gold-h)"></div></div>
+                <div class="pcard-bar-val" style="color:var(--gold-h)">90</div>
+              </div>
+              <div class="pcard-bar">
+                <div class="pcard-bar-label">GRD</div>
+                <div class="pcard-bar-track"><div class="pcard-bar-fill" style="width:15%;background:var(--blood)"></div></div>
+                <div class="pcard-bar-val" style="color:var(--blood)">15</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rarity Indicator -->
+      <div class="pack-rarity" style="margin-top:14px">
+        <div class="pack-rarity-dot" style="width:8px;height:8px;background:var(--stumps)"></div>
+        <div class="pack-rarity-dot" style="width:8px;height:8px;background:rgba(26,58,92,0.5)"></div>
+        <div class="pack-rarity-dot" style="width:8px;height:8px;background:rgba(14,107,58,0.5)"></div>
+        <div class="pack-rarity-dot" style="width:8px;height:8px;background:rgba(184,134,11,0.5)"></div>
+        <div class="pack-rarity-dot active" style="width:10px;height:10px;background:var(--gold-h);box-shadow:0 0 8px var(--gold-h)"></div>
+        <div class="pack-rarity-text" style="color:var(--gold-h)">LEGENDARY</div>
+      </div>
+    </div>
+
+    <!-- Pack Actions -->
+    <div class="pack-actions">
+      <button class="btn btn-ghost pack-btn">Skip</button>
+      <button class="btn btn-gold pack-btn" style="font-size:18px">REVEAL NEXT</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
