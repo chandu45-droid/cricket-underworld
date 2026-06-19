@@ -593,23 +593,36 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 /* ================================================================
    PRE-MATCH
    ================================================================ */
-.prematch-vs{display:flex;align-items:center;justify-content:center;gap:16px;padding:24px 0}
-.prematch-team{text-align:center;flex:1}
-.prematch-team .team-badge{width:68px;height:68px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center}
-.prematch-team .team-label{font-family:var(--font-d);font-size:18px;font-weight:600}
-.prematch-team .team-strength{font-size:12px;color:var(--slip);margin-top:3px;font-weight:600}
-.prematch-vs-divider{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--slip);padding:8px 14px;background:rgba(255,255,255,0.03);border-radius:20px;border:1px solid rgba(255,255,255,0.05);letter-spacing:2px}
-
-.pitch-info{text-align:center;margin-bottom:18px;padding:14px;background:var(--green-dim);border-radius:4px;border:1px solid rgba(34,212,126,0.1);border-left:3px solid var(--green-bright);position:relative;overflow:hidden}
-.pitch-info::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(34,212,126,0.04) 0%,transparent 60%);pointer-events:none}
-.pitch-info .pitch-type{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--green-bright);text-transform:uppercase;letter-spacing:3px}
-.pitch-info .pitch-desc{font-size:12px;color:var(--slip);margin-top:4px;font-style:italic}
-
-.strategy-section{margin-bottom:16px}
+.pm-header{text-align:center;padding:4px 0 16px}
+.pm-header .pm-title{font-family:var(--font-d);font-size:36px;font-weight:700;letter-spacing:3px;text-transform:uppercase;line-height:1;color:var(--white)}
+.pm-header .pm-season{display:inline-block;font-family:var(--font-d);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--slip);margin-top:6px;padding:3px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(136,150,176,0.1);clip-path:var(--clip-btn-sm)}
+.prematch-vs{display:flex;align-items:center;justify-content:center;gap:0;padding:16px 0 10px;position:relative}
+.prematch-team{text-align:center;flex:1;padding:0 4px}
+.prematch-team .team-label{font-family:var(--font-d);font-size:18px;font-weight:700;letter-spacing:1px;line-height:1.1}
+.prematch-team .team-strength{font-family:var(--font-d);font-size:13px;font-weight:600;margin-top:5px;color:var(--slip)}
+.prematch-team .pm-meta{font-size:10px;color:var(--slip);margin-top:3px;font-weight:600;letter-spacing:0.5px}
+.prematch-vs-divider{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--slip);letter-spacing:2px;background:var(--dugout);border:1.5px solid rgba(136,150,176,0.12);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0}
+.pm-rivalry{display:flex;justify-content:center;gap:20px;padding:0 0 14px}
+.pm-rivalry .pm-riv-item{font-size:10px;color:var(--slip);font-weight:600;letter-spacing:0.5px}
+.pm-section{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pm-section .pm-section-label{font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
+.pm-section .pm-section-line{flex:1;height:1px;background:linear-gradient(90deg,var(--white-06),transparent)}
+.pitch-info{text-align:center;padding:16px;margin-bottom:12px;background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:var(--glass-border);border-top:2px solid var(--green-bright);position:relative;overflow:hidden;border-radius:3px}
+.pitch-info::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(14,155,82,0.06) 0%,transparent 60%);pointer-events:none}
+.pitch-info .pitch-type{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--green-bright);text-transform:uppercase;letter-spacing:4px}
+.pitch-info .pitch-desc{font-size:11px;color:var(--slip);margin-top:4px;font-style:italic;letter-spacing:0.3px}
 .strategy-options{display:flex;gap:8px}
-.strategy-opt{flex:1;padding:12px;text-align:center;border:1.5px solid var(--border);border-radius:3px;font-family:var(--font-d);font-size:15px;font-weight:700;text-transform:uppercase;color:var(--slip);cursor:pointer;transition:all 0.2s;letter-spacing:1px;background:rgba(255,255,255,0.02)}
-.strategy-opt.selected{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(240,200,80,0.08);box-shadow:0 0 14px rgba(240,200,80,0.1)}
+.strategy-opt{flex:1;padding:14px 8px;text-align:center;background:rgba(255,255,255,0.02);border:1.5px solid var(--border);border-radius:3px;font-family:var(--font-d);font-size:14px;font-weight:700;text-transform:uppercase;color:var(--slip);cursor:pointer;transition:all 0.25s var(--spring);letter-spacing:1.5px;position:relative;overflow:hidden}
+.strategy-opt::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:transparent;transition:all 0.25s}
+.strategy-opt.selected{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(255,210,63,0.06);box-shadow:0 0 14px rgba(255,210,63,0.1)}
+.strategy-opt.selected::after{background:var(--gold-bright);box-shadow:0 0 12px rgba(255,210,63,0.3)}
 .strategy-opt:active{transform:scale(0.95)}
+.pm-fix{position:relative;overflow:hidden}
+.pm-fix::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 60%);pointer-events:none;animation:pmFixPulse 2s ease-in-out infinite}
+@keyframes pmFixPulse{0%,100%{opacity:0.3}50%{opacity:1}}
+.pm-start{width:100%;padding:16px;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;background:linear-gradient(135deg,var(--green-bright),#0a7a42);color:#fff;border:none;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);cursor:pointer;margin-top:18px;box-shadow:0 4px 24px rgba(14,155,82,0.25);transition:all 0.2s}
+.pm-start:hover{box-shadow:0 4px 30px rgba(14,155,82,0.4)}
+.pm-start:active{transform:scale(0.97)}
 
 /* ================================================================
    MATCH SCREEN — Pitch + momentum
@@ -1787,34 +1800,35 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
     <!-- PRE-MATCH -->
     <div class="screen" id="prematch-screen">
       <div class="back-btn" id="prematch-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Hub</div>
-      <div class="section-title text-center" style="justify-content:center">Match Day</div>
+      <div class="pm-header">
+        <div class="pm-title">Match Day</div>
+        <div class="pm-season" id="pm-season">Season 1 — Match 1</div>
+      </div>
       <div class="prematch-vs">
         <div class="prematch-team">
-          <div id="your-badge" style="margin:0 auto 10px;width:68px;height:68px"></div>
+          <div id="your-badge" style="margin:0 auto 10px;width:76px;height:76px"></div>
           <div class="team-label" id="your-team-label">Your Team</div>
           <div class="team-strength" id="your-strength">STR: 70</div>
-          <div class="text-xs text-gold" id="pm-captain" style="margin-top:3px"></div>
+          <div class="pm-meta text-gold" id="pm-captain"></div>
         </div>
         <div class="prematch-vs-divider">VS</div>
         <div class="prematch-team">
-          <div id="opp-badge" style="margin:0 auto 10px;width:68px;height:68px"></div>
+          <div id="opp-badge" style="margin:0 auto 10px;width:76px;height:76px"></div>
           <div class="team-label" id="opp-name-pm">The Shark</div>
           <div class="team-strength" id="opp-strength">STR: 72</div>
+          <div class="pm-meta text-slip" id="pm-rival-trait" style="font-style:italic"></div>
         </div>
       </div>
-      <div style="text-align:center;margin-bottom:8px">
-        <div class="text-xs text-slip" id="pm-rival-trait" style="font-style:italic"></div>
-      </div>
-      <div id="pm-rival-info" style="display:flex;justify-content:center;gap:16px;margin-bottom:12px">
-        <div class="text-xs text-slip">Relationship: <span id="pm-rel-label" class="fw-600">Neutral</span></div>
-        <div class="text-xs text-slip">H2H: <span id="pm-h2h" class="fw-600">0-0</span></div>
+      <div class="pm-rivalry" id="pm-rival-info">
+        <div class="pm-riv-item">Relationship: <span id="pm-rel-label" class="fw-600">Neutral</span></div>
+        <div class="pm-riv-item">H2H: <span id="pm-h2h" class="fw-600">0-0</span></div>
       </div>
       <div class="pitch-info">
         <div class="pitch-type" id="pitch-type">SEAMING</div>
         <div class="pitch-desc" id="pitch-desc">Pace bowlers get extra help</div>
       </div>
       <div class="glass accent-gold">
-        <div class="section-title sm">Strategy<span class="accent-line"></span></div>
+        <div class="pm-section"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-bright)" stroke-width="2"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg><span class="pm-section-label text-gold">Strategy</span><span class="pm-section-line"></span></div>
         <div class="strategy-options" id="strategy-opts">
           <div class="strategy-opt" data-strat="aggressive">Aggro</div>
           <div class="strategy-opt selected" data-strat="balanced">Balanced</div>
@@ -1822,7 +1836,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         </div>
       </div>
       <div class="glass accent-blue" id="bowler-lineup-panel">
-        <div class="section-title sm">Bowler Lineup<span class="accent-line"></span></div>
+        <div class="pm-section"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue-bright)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span class="pm-section-label text-blue">Bowler Lineup</span><span class="pm-section-line"></span></div>
         <div class="text-xs text-slip mb-8">Set preferred bowling order. You can change mid-match.</div>
         <div id="bowler-lineup-list"></div>
         <div class="flex gap-8 mt-8">
@@ -1830,10 +1844,13 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <div class="btn btn-outline flex-1 text-xs" id="bowler-lock-btn" style="padding:6px">Lock Lineup</div>
         </div>
       </div>
-      <div class="glass accent-red" id="fix-active-banner" style="display:none;margin-top:12px;text-align:center">
-        <div class="font-d fw-600 text-red text-sm" style="text-transform:uppercase;letter-spacing:1.5px" id="fix-active-text">FIX ACTIVE</div>
+      <div class="glass accent-red pm-fix" id="fix-active-banner" style="display:none;text-align:center">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blood)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="font-d fw-600 text-red text-sm" style="text-transform:uppercase;letter-spacing:1.5px" id="fix-active-text">FIX ACTIVE</div>
+        </div>
       </div>
-      <div class="btn btn-green full lg mt-16" id="start-match-btn">Start Match</div>
+      <div class="pm-start" id="start-match-btn">Start Match</div>
     </div>
 
     <!-- MATCH SIM -->
@@ -4968,12 +4985,13 @@ function startPreMatch() {
   var rival = getNextRival();
   match.opponent = rival;
   $('opp-name-pm').textContent = rival.name;
-  $('opp-badge').innerHTML = generateRivalCrest(rival, 68);
+  $('opp-badge').innerHTML = generateRivalCrest(rival, 76);
   $('opp-badge').style.background = 'none';
-  $('your-badge').innerHTML = generateCrest(GS.teamName, GS.teamColor, 68);
+  $('your-badge').innerHTML = generateCrest(GS.teamName, GS.teamColor, 76);
   $('your-badge').style.background = 'none';
   $('your-team-label').textContent = GS.teamName;
   $('your-strength').textContent = 'STR: ' + getTeamStrength();
+  if ($('pm-season')) $('pm-season').textContent = 'Season ' + GS.season + ' — Match ' + (GS.matchesPlayed + 1);
   var capP = GS.captainId ? GS.squad.find(function(p){return p.id===GS.captainId;}) : null;
   if ($('pm-captain')) $('pm-captain').textContent = capP ? 'Captain: ' + capP.name : '';
   $('opp-strength').textContent = 'STR: ' + rival.strength;
