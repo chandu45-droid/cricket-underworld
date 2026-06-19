@@ -980,6 +980,51 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .modal.dragging{transition:none !important}
 .modal.drag-dismissing{transition:transform 0.35s var(--spring),opacity 0.35s;opacity:0;transform:translateY(100%) !important}
 
+/* ================================================================
+   PLAYER DETAIL — Premium Profile Card
+   ================================================================ */
+.pd-hero{text-align:center;padding:8px 0 20px;position:relative}
+.pd-hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;filter:blur(60px);opacity:0.15;pointer-events:none}
+.pd-ovr{width:72px;height:72px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:32px;font-weight:700;color:#fff;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);margin-bottom:14px;position:relative;box-shadow:0 4px 30px rgba(0,0,0,0.4)}
+.pd-ovr::after{content:'';position:absolute;inset:2px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);background:rgba(0,0,0,0.25);pointer-events:none}
+.pd-name{font-family:var(--font-d);font-size:30px;font-weight:700;letter-spacing:1.5px;line-height:1.1;color:var(--white)}
+.pd-role{font-size:12px;color:var(--slip);margin-top:4px;letter-spacing:0.5px}
+.pd-stars{font-size:15px;letter-spacing:4px;margin-top:8px}
+.pd-stars .filled{color:var(--gold-bright);text-shadow:0 0 8px rgba(255,210,63,0.4)}
+.pd-stars .empty{color:var(--white-06)}
+.pd-rarity{display:inline-block;margin-top:8px;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:3px 14px;clip-path:var(--clip-btn-sm)}
+.pd-section{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pd-section svg{width:16px;height:16px;stroke-width:1.8;fill:none;flex-shrink:0;filter:drop-shadow(0 0 4px currentColor)}
+.pd-section .label{font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
+.pd-section::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--white-06),transparent)}
+.pd-stat-row{display:flex;align-items:center;gap:10px;padding:7px 0}
+.pd-stat-row .stat-label{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;width:56px;font-weight:600;flex-shrink:0}
+.pd-stat-row .stat-bar{flex:1}
+.pd-stat-row .stat-val{font-family:var(--font-d);font-size:18px;font-weight:700;width:32px;text-align:right;flex-shrink:0}
+.pd-char-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.pd-char-item{text-align:center;padding:12px 8px 10px;background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:3px;border:var(--glass-border);position:relative;overflow:hidden}
+.pd-char-item::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;pointer-events:none}
+.pd-char-item.loyalty::before{background:linear-gradient(90deg,transparent,var(--green-bright),transparent)}
+.pd-char-item.greed::before{background:linear-gradient(90deg,transparent,var(--blood),transparent)}
+.pd-char-item .char-val{font-family:var(--font-d);font-size:26px;font-weight:700;line-height:1}
+.pd-char-item .char-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1.2px;margin-top:3px;font-weight:600}
+.pd-fix-rate{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(15,13,26,0.5);border:1px solid rgba(136,150,176,0.06);border-radius:3px}
+.pd-fix-rate .fix-label{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
+.pd-fix-rate .fix-val{font-family:var(--font-d);font-size:22px;font-weight:700}
+.pd-banned{padding:12px;background:rgba(220,38,38,0.04);border:1.5px solid rgba(220,38,38,0.15);border-radius:3px;text-align:center;margin-top:8px}
+.pd-banned .banned-title{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--blood);text-transform:uppercase;letter-spacing:2.5px}
+.pd-banned .banned-sub{font-size:11px;color:var(--slip);margin-top:3px}
+.pd-train-opt{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:3px;margin-bottom:6px;transition:border-color 0.2s,background 0.2s}
+.pd-train-opt:hover{border-color:rgba(255,210,63,0.15);background:rgba(255,210,63,0.02)}
+.pd-train-opt .train-info{flex:1}
+.pd-train-opt .train-name{font-family:var(--font-d);font-size:12px;font-weight:600;letter-spacing:0.5px}
+.pd-train-opt .train-desc{font-size:10px;color:var(--slip);margin-top:1px}
+.pd-train-opt .btn{padding:5px 12px;font-size:10px;letter-spacing:0.5px}
+.pd-actions{display:flex;gap:10px;margin-top:16px}
+.pd-actions .btn{flex:1;font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:1px;padding:12px 10px}
+.pd-release{background:rgba(220,38,38,0.06) !important;border:1px solid rgba(220,38,38,0.2) !important;color:var(--blood) !important}
+.pd-release:hover{background:rgba(220,38,38,0.1) !important}
+
 /* Pull-to-refresh */
 #pull-indicator{position:absolute;top:0;left:50%;transform:translateX(-50%) translateY(-50px);width:36px;height:36px;border-radius:50%;background:var(--dugout);border:1px solid var(--border);display:none;align-items:center;justify-content:center;z-index:10;transition:transform 0.3s var(--spring-bounce),opacity 0.3s;opacity:0;pointer-events:none;box-shadow:var(--elevation-2)}
 #pull-indicator svg{width:18px;height:18px;stroke:var(--align-accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform 0.3s}
@@ -3586,49 +3631,57 @@ function showPlayerDetail(id) {
   SFX.tap();
   var ovr = getOVR(p);
   var rc = RARITY_COLORS[p.rarity] || '#4A5568';
+  var isSquad = GS.squad.some(function(s){return s.id===p.id;});
   var starsHtml = '';
-  for (var i = 0; i < 5; i++) starsHtml += i < p.stars ? '&#9733;' : '&#9734;';
+  for (var i = 0; i < 5; i++) starsHtml += '<span class="' + (i < p.stars ? 'filled' : 'empty') + '">&#9733;</span>';
   var statsHtml = '';
   var statDefs = [['Batting','bat'],['Bowling','bwl'],['Fielding','fld'],['Fitness','fit'],['Form','form']];
   for (var s = 0; s < statDefs.length; s++) {
     var label = statDefs[s][0], key = statDefs[s][1], v = p[key];
     var color = v >= 70 ? 'green' : v >= 45 ? 'gold' : 'red';
-    statsHtml += '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">' + label + '</span><div class="stat-bar flex-1"><div class="fill ' + color + '" style="width:' + v + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + v + '</span></div>';
+    statsHtml += '<div class="pd-stat-row"><span class="stat-label">' + label + '</span><div class="stat-bar flex-1"><div class="fill ' + color + '" style="width:' + v + '%"></div></div><span class="stat-val text-' + color + '">' + v + '</span></div>';
   }
   var fixChance = Math.round(100 - (p.loyalty * 0.8) + (p.greed * 0.3));
   fixChance = Math.max(5, Math.min(95, fixChance));
-  $('player-detail-content').innerHTML =
-    '<div class="text-center mb-12">' +
-      '<div style="width:64px;height:64px;border-radius:4px;background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.5));display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:28px;font-weight:700;color:#fff;margin-bottom:12px;box-shadow:0 4px 24px rgba(0,0,0,0.5),0 0 20px ' + rc + '33;border:1px solid rgba(255,255,255,0.1)">' + ovr + '</div>' +
-      '<div class="font-d fw-700" style="font-size:32px;letter-spacing:1px">' + p.name + '</div>' +
-      '<div class="text-slip text-sm" style="margin-top:2px">' + p.role + (p.overseas ? ' · <span class="text-amber">Overseas</span>' : '') + '</div>' +
-      '<div class="star" style="font-size:16px;margin-top:6px;letter-spacing:3px">' + starsHtml + '</div>' +
-      '<div style="margin-top:8px"><span class="badge rarity-' + p.rarity + '">' + p.rarity.toUpperCase() + '</span></div>' +
+  var html =
+    '<div class="pd-hero" style="--pd-glow:' + rc + '">' +
+      '<div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:180px;height:180px;border-radius:50%;background:' + rc + ';filter:blur(60px);opacity:0.12;pointer-events:none"></div>' +
+      '<div class="pd-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.5))">' + ovr + '</div>' +
+      '<div class="pd-name">' + p.name + '</div>' +
+      '<div class="pd-role">' + p.role + (p.overseas ? ' · <span class="text-amber">Overseas</span>' : '') + '</div>' +
+      '<div class="pd-stars">' + starsHtml + '</div>' +
+      '<div><span class="pd-rarity" style="background:linear-gradient(135deg,' + rc + '33,' + rc + '11);border:1px solid ' + rc + '44;color:' + rc + '">' + p.rarity.toUpperCase() + '</span></div>' +
     '</div>' +
-    '<div class="glass"><div class="section-title sm">Stats<span class="accent-line"></span></div>' + statsHtml + '</div>' +
-    '<div class="glass"><div class="section-title sm">Character<span class="accent-line"></span></div>' +
-      '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">Loyalty</span><div class="stat-bar flex-1"><div class="fill green" style="width:' + p.loyalty + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.loyalty + '</span></div>' +
-      '<div class="flex items-center gap-8 mb-8"><span class="text-xs text-slip" style="width:56px">Greed</span><div class="stat-bar flex-1"><div class="fill red" style="width:' + p.greed + '%"></div></div><span class="font-d fw-600" style="width:28px;text-align:right">' + p.greed + '</span></div>' +
-      '<div style="padding:8px 10px;background:rgba(15,13,26,0.6);border:1px solid rgba(220,38,38,0.1);border-radius:3px;display:flex;justify-content:space-between;align-items:center"><span class="text-xs text-slip">Fix Success Rate</span><span class="font-d fw-700 ' + (fixChance >= 70 ? 'text-green' : fixChance >= 40 ? 'text-amber' : 'text-red') + '">' + fixChance + '%</span></div>' +
-      (p.banned ? '<div style="padding:10px;margin-top:8px;background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.2);border-radius:3px;text-align:center"><div class="font-d fw-700 text-red" style="font-size:13px;text-transform:uppercase;letter-spacing:2px">BANNED</div><div class="text-xs text-slip" style="margin-top:2px">' + (BAN_REASONS[p.banned.reason] ? BAN_REASONS[p.banned.reason].label : 'Banned') + ' · ' + p.banned.matchesLeft + ' match' + (p.banned.matchesLeft > 1 ? 'es' : '') + ' remaining</div></div>' : '') +
+    '<div class="glass">' +
+      '<div class="pd-section"><svg viewBox="0 0 24 24" style="stroke:var(--blue-bright);color:var(--blue-bright)"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg><span class="label">Stats</span></div>' +
+      statsHtml +
     '</div>' +
-    (GS.squad.some(function(s){return s.id===p.id;}) ?
-      (function() {
-        var opts = getTrainingOptions(p);
-        var trainHtml = '<div class="glass accent-gold" style="margin-top:12px"><div class="section-title sm">Training<span class="accent-line"></span></div>' +
-          '<div class="text-xs text-slip mb-8">Role-specific training. Staff bonuses apply.</div>';
-        for (var ti = 0; ti < opts.length; ti++) {
-          var o = opts[ti];
-          var gain = o.gain || (1 + (o.bonus || 0));
-          trainHtml += '<div class="flex items-center gap-6 mb-4" style="padding:6px;border:1px solid var(--border);border-radius:3px">' +
-            '<div class="flex-1"><div class="font-d fw-600 text-xs">' + o.label + '</div><div class="text-xs text-slip">' + o.desc + '</div></div>' +
-            '<div class="btn btn-outline text-xs" style="padding:4px 8px;font-size:10px" data-trainstat="' + o.stat + '" data-traingain="' + (o.gain || 0) + '">' + o.cost + 'C</div></div>';
-        }
-        trainHtml += '</div>';
-        return trainHtml;
-      })() +
-      '<div class="flex gap-10 mt-12"><div class="btn btn-outline flex-1" id="close-detail-btn">Close</div><div class="btn flex-1" id="release-detail-btn" style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);color:var(--blood)">Release (+' + Math.round(p.bat * 2 + p.bwl * 1.5) + ' coins)</div></div>' :
-      '<div class="btn btn-outline full" id="close-detail-btn">Close</div>');
+    '<div class="glass">' +
+      '<div class="pd-section"><svg viewBox="0 0 24 24" style="stroke:var(--amber);color:var(--amber)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="label">Character</span></div>' +
+      '<div class="pd-char-grid">' +
+        '<div class="pd-char-item loyalty"><div class="char-val text-green">' + p.loyalty + '</div><div class="char-label">Loyalty</div></div>' +
+        '<div class="pd-char-item greed"><div class="char-val text-red">' + p.greed + '</div><div class="char-label">Greed</div></div>' +
+      '</div>' +
+      '<div class="pd-fix-rate"><span class="fix-label">Fix Success Rate</span><span class="fix-val ' + (fixChance >= 70 ? 'text-green' : fixChance >= 40 ? 'text-amber' : 'text-red') + '">' + fixChance + '%</span></div>' +
+      (p.banned ? '<div class="pd-banned"><div class="banned-title">BANNED</div><div class="banned-sub">' + (BAN_REASONS[p.banned.reason] ? BAN_REASONS[p.banned.reason].label : 'Banned') + ' · ' + p.banned.matchesLeft + ' match' + (p.banned.matchesLeft > 1 ? 'es' : '') + ' remaining</div></div>' : '') +
+    '</div>';
+  if (isSquad) {
+    var opts = getTrainingOptions(p);
+    html += '<div class="glass accent-gold">' +
+      '<div class="pd-section"><svg viewBox="0 0 24 24" style="stroke:var(--gold-bright);color:var(--gold-bright)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span class="label">Training</span></div>' +
+      '<div style="font-size:10px;color:var(--slip);margin-bottom:8px">Role-specific training. Staff bonuses apply.</div>';
+    for (var ti = 0; ti < opts.length; ti++) {
+      var o = opts[ti];
+      html += '<div class="pd-train-opt">' +
+        '<div class="train-info"><div class="train-name">' + o.label + '</div><div class="train-desc">' + o.desc + '</div></div>' +
+        '<div class="btn btn-outline" style="padding:5px 12px;font-size:10px" data-trainstat="' + o.stat + '" data-traingain="' + (o.gain || 0) + '">' + o.cost + 'C</div></div>';
+    }
+    html += '</div>';
+    html += '<div class="pd-actions"><div class="btn btn-outline" id="close-detail-btn">Close</div><div class="btn pd-release" id="release-detail-btn">Release (+' + Math.round(p.bat * 2 + p.bwl * 1.5) + ' coins)</div></div>';
+  } else {
+    html += '<div class="pd-actions"><div class="btn btn-outline" id="close-detail-btn" style="flex:1">Close</div></div>';
+  }
+  $('player-detail-content').innerHTML = html;
   $('player-detail-overlay').classList.add('show');
   $('close-detail-btn').onclick = function() { $('player-detail-overlay').classList.remove('show'); };
   var trainBtns = $('player-detail-content').querySelectorAll('[data-trainstat]');
