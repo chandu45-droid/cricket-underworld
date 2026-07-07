@@ -154,6 +154,55 @@ test('match engine produces valid scores', async ({ page }) => {
   expect(scores).not.toMatch(/0\/0.*0\/0/);
 });
 
+test('Season Pass: hub panel, tier progression, claim + premium flow', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page);
+  await dismissOverlays(page);
+
+  // Hub panel present
+  await expect(page.locator('#hub-pass-panel')).toBeVisible();
+
+  // Inject XP worth 2 tiers, refresh hub
+  await page.evaluate(() => {
+    GS.seasonPass = { xp: 150, premium: false, claimedFree: [], claimedPremium: [] };
+    save(); updateHub();
+  });
+  await expect(page.locator('#hub-pass-tier')).toHaveText('2');
+
+  // Open overlay → 10 tier rows render
+  await page.click('#hub-pass-panel');
+  await expect(page.locator('#pass-overlay')).toHaveClass(/show/);
+  expect(await page.locator('.pass-tier-row').count()).toBe(10);
+
+  // Claim free tier 1 → +100 coins, marked TAKEN
+  const coinsBefore = await page.evaluate(() => GS.coins);
+  await page.click('.pc-claim[data-track="free"][data-tier="0"]');
+  const coinsAfterFree = await page.evaluate(() => GS.coins);
+  expect(coinsAfterFree).toBe(coinsBefore + 100);
+  await expect(page.locator('.pass-tier-row').first().locator('.pc-done')).toHaveText('TAKEN');
+
+  // Premium cells locked until unlocked; unlock costs 150 gems
+  await page.evaluate(() => { GS.gems = 200; updateCurrency(); });
+  await page.click('#pass-premium-btn');
+  await expect(page.locator('#pass-premium-btn')).toHaveClass(/owned/);
+  expect(await page.evaluate(() => GS.gems)).toBe(50);
+
+  // Claim premium tier 1 → +250 coins
+  await page.click('.pc-claim[data-track="prem"][data-tier="0"]');
+  expect(await page.evaluate(() => GS.coins)).toBe(coinsAfterFree + 250);
+
+  // Unreached tier stays locked (no claim button on tier 3+)
+  expect(await page.locator('.pc-claim[data-tier="4"]').count()).toBe(0);
+
+  // Back closes overlay; claims persist in save
+  await page.click('#pass-back-btn');
+  await expect(page.locator('#pass-overlay')).not.toHaveClass(/show/);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('cu_save_v3')).seasonPass);
+  expect(saved.claimedFree).toContain(0);
+  expect(saved.claimedPremium).toContain(0);
+  expect(saved.premium).toBe(true);
+});
+
 test('PWA: manifest + service worker + app shell cache', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('#loading.hide', { timeout: 10000 });

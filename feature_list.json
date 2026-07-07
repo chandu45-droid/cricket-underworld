@@ -274,9 +274,9 @@
       "id": "F34",
       "system": "Economy",
       "behavior": "Season/battle pass with tiered rewards",
-      "verification": "manual — not yet implemented",
-      "state": "not_started",
-      "evidence": ""
+      "verification": "npx playwright test --grep \"Season Pass\"",
+      "state": "passing",
+      "evidence": "Syndicate Contract pass: 10 tiers x 70 XP (700 XP/season, free-completable in 14 matches — win 50/loss 25, +10 clean, +30 daily challenge), deterministic PASS_TIERS rewards (no gacha), premium track unlock 150 gems (virtual only, F2P-safe). GS.seasonPass in defaults/load/save, XP awarded in endMatch with Contract XP + tier-up reward rows, reset in endSeason, hub glass panel (tier chip + XP bar) opens distinct angular ledger overlay (#pass-overlay) with free/premium claim columns. E2E: 'Season Pass: hub panel, tier progression, claim + premium flow' in smoke.spec.js — passing 2026-07-07, full suite 112/112."
     },
     {
       "id": "F35",
@@ -313,10 +313,10 @@
   ],
   "summary": {
     "total": 38,
-    "passing": 35,
+    "passing": 36,
     "active": 0,
     "blocked": 0,
-    "not_started": 3,
-    "automated_test_count": "111 Playwright E2E tests across 3 spec files"
+    "not_started": 2,
+    "automated_test_count": "112 Playwright E2E tests across 3 spec files"
   }
 }

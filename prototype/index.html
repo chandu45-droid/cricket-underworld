@@ -1471,6 +1471,40 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .skel-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
 .skel-quick-tile{height:60px;border-radius:4px}
 .skel-panel{height:80px;border-radius:4px;margin-bottom:14px}
+/* ================================================================
+   SEASON PASS (F34) — Syndicate Contract ledger aesthetic
+   ================================================================ */
+.hub-pass-panel{position:relative;cursor:pointer;overflow:hidden;padding:12px 14px;background:linear-gradient(120deg,rgba(240,200,80,0.07),rgba(6,8,16,0.4) 55%,rgba(220,38,38,0.05));border:1px solid rgba(240,200,80,0.22);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:border-color 0.2s}
+.hub-pass-panel:active{border-color:rgba(240,200,80,0.5)}
+.hub-pass-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--crimson))}
+.pass-panel-head{display:flex;align-items:center;gap:10px}
+.pass-tier-chip{flex-shrink:0;width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(240,200,80,0.1);border:1px solid rgba(240,200,80,0.35);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.pass-tier-chip .ptc-num{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--gold-bright);line-height:1}
+.pass-tier-chip .ptc-lbl{font-size:7px;letter-spacing:1px;color:var(--slip);text-transform:uppercase}
+.pass-panel-title{font-family:var(--font-d);font-size:15px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold-bright)}
+.pass-panel-sub{font-size:10px;color:var(--slip);letter-spacing:0.5px}
+.pass-xp-bar{margin-top:9px;height:5px;background:rgba(255,255,255,0.06);clip-path:polygon(0 0,calc(100% - 4px) 0,100% 100%,0 100%);overflow:hidden}
+.pass-xp-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-bright));transition:width 0.6s cubic-bezier(0.22,1,0.36,1)}
+.pass-overlay{position:fixed;inset:0;z-index:212;background:rgba(6,8,16,0.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.35s;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pass-overlay.show{opacity:1;pointer-events:auto}
+.pass-content{padding:20px 16px 40px;max-width:420px;margin:0 auto;width:100%}
+.pass-hero{position:relative;padding:16px;margin-bottom:14px;background:linear-gradient(135deg,rgba(240,200,80,0.1),rgba(6,8,16,0.6) 60%,rgba(220,38,38,0.08));border:1px solid rgba(240,200,80,0.3);clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px))}
+.pass-hero-title{font-family:var(--font-d);font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold-bright);line-height:1}
+.pass-hero-season{font-size:11px;color:var(--slip);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.pass-hero-xp{margin-top:10px;font-family:var(--font-d);font-size:13px;color:var(--white)}
+.pass-premium-cta{margin-top:10px;padding:10px;text-align:center;font-family:var(--font-d);font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;background:linear-gradient(90deg,rgba(240,200,80,0.18),rgba(220,38,38,0.12));border:1px solid var(--gold);color:var(--gold-bright);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.pass-premium-cta.owned{background:rgba(34,212,126,0.08);border-color:rgba(34,212,126,0.4);color:var(--green-bright);cursor:default}
+.pass-track-labels{display:grid;grid-template-columns:44px 1fr 1fr;gap:8px;margin-bottom:6px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slip);text-align:center}
+.pass-tier-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:8px;margin-bottom:8px;align-items:stretch}
+.pass-tier-num{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-d);font-size:17px;font-weight:700;color:var(--slip);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.pass-tier-row.reached .pass-tier-num{color:var(--gold-bright);border-color:rgba(240,200,80,0.4);background:rgba(240,200,80,0.08)}
+.pass-cell{position:relative;padding:9px 10px;display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));font-size:12px}
+.pass-cell.prem{background:linear-gradient(120deg,rgba(240,200,80,0.05),rgba(220,38,38,0.04));border-color:rgba(240,200,80,0.15)}
+.pass-cell.locked{opacity:0.38;filter:grayscale(0.6)}
+.pass-cell .pc-reward{font-family:var(--font-d);font-weight:600;font-size:14px;color:var(--white);letter-spacing:0.5px}
+.pass-cell .pc-claim{flex-shrink:0;padding:4px 9px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;background:var(--gold);color:#060810;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+.pass-cell .pc-done{flex-shrink:0;font-size:11px;color:var(--green-bright);font-weight:700;letter-spacing:1px}
+.pass-cell .pc-lock{flex-shrink:0;font-size:11px;color:var(--slip)}
 </style>
 </head>
 <body>
@@ -1590,6 +1624,18 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
           <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
           <div class="qt-label">Market</div>
         </div>
+      </div>
+
+      <div class="hub-pass-panel" id="hub-pass-panel">
+        <div class="pass-panel-head">
+          <div class="pass-tier-chip"><div class="ptc-num" id="hub-pass-tier">0</div><div class="ptc-lbl">Tier</div></div>
+          <div class="flex-1">
+            <div class="pass-panel-title">Syndicate Contract</div>
+            <div class="pass-panel-sub" id="hub-pass-xp">0 / 70 XP to next tier</div>
+          </div>
+          <div style="font-family:var(--font-d);font-size:12px;color:var(--gold);letter-spacing:1px">VIEW &#8594;</div>
+        </div>
+        <div class="pass-xp-bar"><div class="pass-xp-fill" id="hub-pass-fill" style="width:0%"></div></div>
       </div>
 
       <div class="mafia-banner" id="mafia-banner" style="display:none">
@@ -2109,6 +2155,26 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
   </div>
 </div>
 
+<!-- ===== SEASON PASS OVERLAY (F34) ===== -->
+<div class="pass-overlay" id="pass-overlay">
+  <div class="pass-content">
+    <div class="overlay-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="back-btn" id="pass-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back</div>
+      <div style="font-family:var(--font-d);font-size:12px;letter-spacing:2px;color:var(--slip);text-transform:uppercase">The Ledger</div>
+    </div>
+    <div class="pass-hero">
+      <div class="pass-hero-title">Syndicate Contract</div>
+      <div class="pass-hero-season" id="pass-season-lbl">Season 1</div>
+      <div class="pass-hero-xp" id="pass-xp-lbl">Tier 0 &middot; 0 / 70 XP</div>
+      <div class="pass-xp-bar" style="margin-top:6px"><div class="pass-xp-fill" id="pass-xp-fill" style="width:0%"></div></div>
+      <div class="pass-premium-cta" id="pass-premium-btn">Unlock Premium Contract &mdash; 150 Gems</div>
+    </div>
+    <div class="pass-track-labels"><div>Tier</div><div>Street Cut (Free)</div><div>Boss Cut (Premium)</div></div>
+    <div id="pass-tier-list"></div>
+    <div style="margin-top:12px;font-size:10px;color:var(--slip);text-align:center;letter-spacing:0.5px">Earn XP by playing matches. Win: 50 &middot; Loss: 25 &middot; Clean match: +10 &middot; Daily challenge: +30. Resets each season.</div>
+  </div>
+</div>
+
 <div class="vignette"></div>
 <div id="align-vignette"></div>
 <canvas id="particle-canvas"></canvas>
@@ -2163,6 +2229,7 @@ var GS = {
   mafiaFixLoseCooldown: 0,
   consecutiveFavors: 0,
   rivalIntel: {},
+  seasonPass: { xp: 0, premium: false, claimedFree: [], claimedPremium: [] },
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -2184,6 +2251,7 @@ function load() {
       GS.captainId=v(d.captainId,null); GS.selectedXI=v(d.selectedXI,[]);
       GS.teamName=v(d.teamName,'Your Team'); GS.managerName=v(d.managerName,'Manager'); GS.teamColor=v(d.teamColor,'gold'); GS.tutorialDone=v(d.tutorialDone,false);
       GS.seasonStats=v(d.seasonStats,{});
+      GS.seasonPass=v(d.seasonPass,{xp:0,premium:false,claimedFree:[],claimedPremium:[]});
       GS.rivalWins=v(d.rivalWins,{}); GS.pepTalkUsed=v(d.pepTalkUsed,false);
       GS.winStreak=v(d.winStreak,0); GS.bestStreak=v(d.bestStreak,0);
       GS.dailyChallenge=v(d.dailyChallenge,null); GS.lastChallengeDate=v(d.lastChallengeDate,null);
@@ -3832,6 +3900,7 @@ function updateHub() {
   $('heat-val').className = GS.heat >= 76 ? 'text-red fw-700' : GS.heat >= 51 ? 'text-red' : GS.heat >= 26 ? 'text-amber' : 'text-slip';
   $('fan-fill').style.width = GS.fanLoyalty + '%';
   $('fan-val').textContent = GS.fanLoyalty;
+  if (typeof updatePassPanel === 'function') updatePassPanel();
   var teamOvr = getTeamStrength();
   var circumference = 2 * Math.PI * 32;
   var ovrPct = Math.min(100, teamOvr);
@@ -5710,6 +5779,7 @@ function endMatch() {
   var healedPlayers = processInjuryTick();
   var streakMilestone = processWinStreak(won);
   var challengeResult = checkDailyChallenge(won, tied, wasFix);
+  var passResult = awardPassXP(won, tied, wasFix, challengeResult);
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
   if (cleanBonus > 0) rewardsHtml += '<div class="reward-row"><span>Clean Streak Bonus</span><span class="val" style="color:var(--green-bright)">+' + cleanBonus + ' (×' + GS.cleanStreak + ')</span></div>';
   if (bmR > 0) rewardsHtml += '<div class="reward-row"><span>Black Money</span><span class="val" style="color:var(--purple)">+' + bmR + '</span></div>';
@@ -5721,6 +5791,8 @@ function endMatch() {
   if (wasFix) rewardsHtml += '<div class="reward-row"><span>Fix Heat</span><span class="val negative">+5</span></div>';
   if (streakMilestone) rewardsHtml += '<div class="reward-row"><span>Streak Bonus (' + streakMilestone.label + ')</span><span class="val" style="color:var(--gold-bright)">+' + streakMilestone.reward + '</span></div>';
   if (challengeResult && challengeResult.passed) rewardsHtml += '<div class="reward-row"><span>Daily Challenge</span><span class="val" style="color:var(--blue-bright)">+' + challengeResult.reward + (challengeResult.currency === 'coins' ? '' : ' B$') + '</span></div>';
+  rewardsHtml += '<div class="reward-row"><span>Contract XP</span><span class="val" style="color:var(--gold-bright)">+' + passResult.xp + '</span></div>';
+  if (passResult.tiersGained > 0) rewardsHtml += '<div class="reward-row"><span>Syndicate Contract</span><span class="val" style="color:var(--gold-bright)">Tier ' + passResult.newTier + ' unlocked</span></div>';
   var rlAfter = getRelLabel(rd.rel);
   rewardsHtml += '<div class="reward-row"><span>' + rivalName + '</span><span class="val ' + rlAfter.cls + '">' + rlAfter.text + ' (' + (relShift >= 0 ? '+' : '') + relShift + ')</span></div>';
   var sponsorTag = zone.tier <= 2 ? '<div class="text-xs text-gold" style="margin-top:6px;text-align:center">' + GS.sponsor.name + ' bonus: +' + Math.round((zone.coinMult - 1) * 100) + '% coins</div>' : '';
@@ -6220,6 +6292,7 @@ function endSeason() {
     GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
   } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
   GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0;
+  GS.seasonPass = { xp: 0, premium: false, claimedFree: [], claimedPremium: [] };
   GS.morale = Math.min(100, GS.morale + 10);
   var basePurse = 2000 + idx * 500;
   var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
@@ -7179,6 +7252,139 @@ function bindEvents() {
     }
   }, { passive: true });
 })();
+
+// =============================================
+// SEASON PASS — SYNDICATE CONTRACT (F34)
+// =============================================
+// Deterministic tiered rewards, no gacha. Free track reachable in one
+// 14-match season (win 50 / loss 25, +10 clean, +30 daily challenge).
+// Premium unlock costs virtual gems only (F2P-safe, no cash-out).
+var PASS_TIER_XP = 70;
+var PASS_MAX_TIER = 10;
+var PASS_PREMIUM_COST = 150;
+var PASS_TIERS = [
+  { free: { type: 'coins', amt: 100 }, prem: { type: 'coins', amt: 250 } },
+  { free: { type: 'gems',  amt: 5   }, prem: { type: 'gems',  amt: 10  } },
+  { free: { type: 'coins', amt: 150 }, prem: { type: 'coins', amt: 350 } },
+  { free: { type: 'gems',  amt: 5   }, prem: { type: 'gems',  amt: 15  } },
+  { free: { type: 'coins', amt: 250 }, prem: { type: 'coins', amt: 500 } },
+  { free: { type: 'gems',  amt: 10  }, prem: { type: 'gems',  amt: 20  } },
+  { free: { type: 'coins', amt: 300 }, prem: { type: 'coins', amt: 600 } },
+  { free: { type: 'gems',  amt: 10  }, prem: { type: 'gems',  amt: 25  } },
+  { free: { type: 'coins', amt: 400 }, prem: { type: 'coins', amt: 800 } },
+  { free: { type: 'gems',  amt: 25  }, prem: { type: 'gems',  amt: 50  } }
+];
+
+function passTier() {
+  return Math.min(PASS_MAX_TIER, Math.floor(GS.seasonPass.xp / PASS_TIER_XP));
+}
+
+function awardPassXP(won, tied, wasFix, challengeResult) {
+  var before = passTier();
+  var xp = won ? 50 : 25;
+  if (!wasFix) xp += 10;
+  if (challengeResult && challengeResult.passed) xp += 30;
+  GS.seasonPass.xp = Math.min(PASS_MAX_TIER * PASS_TIER_XP, GS.seasonPass.xp + xp);
+  var after = passTier();
+  return { xp: xp, tiersGained: after - before, newTier: after };
+}
+
+function passRewardLabel(r) {
+  return r.amt + (r.type === 'coins' ? ' Coins' : ' Gems');
+}
+
+function updatePassPanel() {
+  var tierEl = $('hub-pass-tier');
+  if (!tierEl) return;
+  var tier = passTier();
+  tierEl.textContent = tier;
+  var intoTier = GS.seasonPass.xp - tier * PASS_TIER_XP;
+  var pct = tier >= PASS_MAX_TIER ? 100 : Math.round((intoTier / PASS_TIER_XP) * 100);
+  $('hub-pass-fill').style.width = pct + '%';
+  $('hub-pass-xp').textContent = tier >= PASS_MAX_TIER
+    ? 'Contract complete — all tiers unlocked'
+    : intoTier + ' / ' + PASS_TIER_XP + ' XP to Tier ' + (tier + 1);
+}
+
+function renderPass() {
+  var tier = passTier();
+  $('pass-season-lbl').textContent = 'Season ' + GS.season;
+  $('pass-xp-lbl').textContent = 'Tier ' + tier + ' · ' + GS.seasonPass.xp + ' / ' + (PASS_MAX_TIER * PASS_TIER_XP) + ' XP';
+  $('pass-xp-fill').style.width = Math.round((GS.seasonPass.xp / (PASS_MAX_TIER * PASS_TIER_XP)) * 100) + '%';
+  var premBtn = $('pass-premium-btn');
+  if (GS.seasonPass.premium) {
+    premBtn.textContent = 'Premium Contract Active';
+    premBtn.classList.add('owned');
+  } else {
+    premBtn.textContent = 'Unlock Premium Contract — ' + PASS_PREMIUM_COST + ' Gems';
+    premBtn.classList.remove('owned');
+  }
+  var html = '';
+  for (var i = 0; i < PASS_TIERS.length; i++) {
+    var t = PASS_TIERS[i];
+    var tierNum = i + 1;
+    var reached = tier >= tierNum;
+    html += '<div class="pass-tier-row' + (reached ? ' reached' : '') + '">';
+    html += '<div class="pass-tier-num">' + tierNum + '</div>';
+    // Free cell
+    var freeClaimed = GS.seasonPass.claimedFree.indexOf(i) !== -1;
+    html += '<div class="pass-cell' + (!reached ? ' locked' : '') + '"><span class="pc-reward">' + passRewardLabel(t.free) + '</span>';
+    if (freeClaimed) html += '<span class="pc-done">TAKEN</span>';
+    else if (reached) html += '<span class="pc-claim" data-track="free" data-tier="' + i + '">Claim</span>';
+    else html += '<span class="pc-lock">Tier ' + tierNum + '</span>';
+    html += '</div>';
+    // Premium cell
+    var premClaimed = GS.seasonPass.claimedPremium.indexOf(i) !== -1;
+    var premAvail = reached && GS.seasonPass.premium;
+    html += '<div class="pass-cell prem' + (!premAvail ? ' locked' : '') + '"><span class="pc-reward">' + passRewardLabel(t.prem) + '</span>';
+    if (premClaimed) html += '<span class="pc-done">TAKEN</span>';
+    else if (premAvail) html += '<span class="pc-claim" data-track="prem" data-tier="' + i + '">Claim</span>';
+    else html += '<span class="pc-lock">' + (GS.seasonPass.premium ? 'Tier ' + tierNum : 'Premium') + '</span>';
+    html += '</div></div>';
+  }
+  $('pass-tier-list').innerHTML = html;
+}
+
+function claimPassReward(track, tierIdx) {
+  var tierNum = tierIdx + 1;
+  if (passTier() < tierNum) return;
+  var claimed = track === 'free' ? GS.seasonPass.claimedFree : GS.seasonPass.claimedPremium;
+  if (claimed.indexOf(tierIdx) !== -1) return;
+  if (track === 'prem' && !GS.seasonPass.premium) return;
+  var r = track === 'free' ? PASS_TIERS[tierIdx].free : PASS_TIERS[tierIdx].prem;
+  if (r.type === 'coins') GS.coins += r.amt; else GS.gems += r.amt;
+  claimed.push(tierIdx);
+  save();
+  updateCurrency();
+  renderPass();
+  updatePassPanel();
+  toast('+' + passRewardLabel(r) + ' claimed', 'success');
+}
+
+function unlockPremiumPass() {
+  if (GS.seasonPass.premium) return;
+  if (GS.gems < PASS_PREMIUM_COST) { toast('Need ' + PASS_PREMIUM_COST + ' gems for the Premium Contract', 'error'); return; }
+  GS.gems -= PASS_PREMIUM_COST;
+  GS.seasonPass.premium = true;
+  save();
+  updateCurrency();
+  renderPass();
+  toast('Premium Contract unlocked — Boss Cut rewards open', 'success');
+}
+
+function showPass() {
+  renderPass();
+  $('pass-overlay').classList.add('show');
+}
+
+$('hub-pass-panel').addEventListener('click', showPass);
+$('pass-back-btn').addEventListener('click', function () { $('pass-overlay').classList.remove('show'); });
+$('pass-premium-btn').addEventListener('click', unlockPremiumPass);
+$('pass-tier-list').addEventListener('click', function (e) {
+  var btn = e.target.closest ? e.target.closest('.pc-claim') : null;
+  if (!btn) return;
+  claimPassReward(btn.getAttribute('data-track'), parseInt(btn.getAttribute('data-tier'), 10));
+});
 
 // =============================================
 // INIT
