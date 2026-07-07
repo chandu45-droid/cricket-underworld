@@ -266,9 +266,9 @@
       "id": "F33",
       "system": "Customisation",
       "behavior": "Player/team name customisation, team color picker, manager name",
-      "verification": "manual — test via settings overlay",
-      "state": "not_started",
-      "evidence": ""
+      "verification": "npx playwright test --grep \"Customisation\"",
+      "state": "passing",
+      "evidence": "Fully implemented in prototype/index.html (TEAM_COLORS + showCustomise/saveCustomisation, ~lines 6527-6600): team name, manager name, 8-color picker, per-player nicknames with originalName preservation. E2E: 'Customisation' group in comprehensive.spec.js (settings overlay opens, team name saves to state) — passing 2026-07-07."
     },
     {
       "id": "F34",
@@ -306,17 +306,17 @@
       "id": "F38",
       "system": "Competitive",
       "behavior": "Knockout bracket tournament mode beyond league",
-      "verification": "manual — not yet implemented",
-      "state": "not_started",
-      "evidence": ""
+      "verification": "manual — startKnockout() at season end (winRate >= 0.35 at matchNum > 14)",
+      "state": "passing",
+      "evidence": "Fully implemented in prototype/index.html (~lines 5900-6050): startKnockout (4-team bracket: player + top-3 eligible rivals + wild cards), semi -> final rounds, play-or-sim per match, reward 300x(leagueIdx+1), wired into endMatch and save/load (GS.knockout). Verified in code audit 2026-07-07; no dedicated E2E yet."
     }
   ],
   "summary": {
     "total": 38,
-    "passing": 32,
+    "passing": 34,
     "active": 0,
     "blocked": 0,
-    "not_started": 6,
-    "automated_test_count": "~80 Playwright E2E tests across 3 spec files"
+    "not_started": 4,
+    "automated_test_count": "110 Playwright E2E tests across 3 spec files"
   }
 }
