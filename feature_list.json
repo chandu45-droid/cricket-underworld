@@ -282,9 +282,9 @@
       "id": "F35",
       "system": "Economy",
       "behavior": "IAP stubs (coin packs, gem packs, season pass purchase)",
-      "verification": "manual — not yet implemented",
-      "state": "not_started",
-      "evidence": ""
+      "verification": "npx playwright test --grep \"Vault\"",
+      "state": "passing",
+      "evidence": "'The Vault' store overlay (#store-overlay, distinct steel-texture hero + angular pack cards) opened by tapping coin/gem chips in top bar. IAP_PACKS: 3 coin packs (1000/₹49, 3000/₹129 POPULAR, 8000/₹299 BEST VALUE), 3 gem packs (100/₹79, 300/₹199, 800/₹449), Premium Contract ₹199 (sets GS.seasonPass.premium, owned state). Simulated payment via custom bottom confirm sheet clearly labeled 'test mode — no real money charged' (no native confirm). Purchases logged to GS.purchases (defaults + load). Real billing = launch task. E2E: 'Vault store: open via currency chip, stub purchase grants goods' in smoke.spec.js — passing 2026-07-07, full suite 113/113."
     },
     {
       "id": "F36",
@@ -313,10 +313,10 @@
   ],
   "summary": {
     "total": 38,
-    "passing": 36,
+    "passing": 37,
     "active": 0,
     "blocked": 0,
-    "not_started": 2,
-    "automated_test_count": "112 Playwright E2E tests across 3 spec files"
+    "not_started": 1,
+    "automated_test_count": "113 Playwright E2E tests across 3 spec files"
   }
 }

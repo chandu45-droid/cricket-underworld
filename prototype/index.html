@@ -1505,6 +1505,36 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .pass-cell .pc-claim{flex-shrink:0;padding:4px 9px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;background:var(--gold);color:#060810;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)}
 .pass-cell .pc-done{flex-shrink:0;font-size:11px;color:var(--green-bright);font-weight:700;letter-spacing:1px}
 .pass-cell .pc-lock{flex-shrink:0;font-size:11px;color:var(--slip)}
+/* ================================================================
+   THE VAULT — IAP STORE STUB (F35) — bank-vault steel + gold
+   ================================================================ */
+#top-bar .currency.coins,#top-bar .currency.gems{cursor:pointer}
+.store-overlay{position:fixed;inset:0;z-index:214;background:rgba(4,6,12,0.98);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.35s;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.store-overlay.show{opacity:1;pointer-events:auto}
+.store-content{padding:20px 16px 120px;max-width:420px;margin:0 auto;width:100%}
+.store-hero{position:relative;padding:18px 16px;margin-bottom:16px;text-align:center;background:repeating-linear-gradient(135deg,rgba(255,255,255,0.02) 0 2px,transparent 2px 12px),linear-gradient(180deg,rgba(30,36,52,0.7),rgba(10,13,24,0.9));border:1px solid rgba(240,200,80,0.25);border-top:3px solid var(--gold);clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,14px 100%,0 calc(100% - 14px))}
+.store-hero-title{font-family:var(--font-d);font-size:28px;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:var(--gold-bright);line-height:1}
+.store-hero-sub{font-size:10px;color:var(--slip);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+.store-testmode{margin-top:8px;display:inline-block;padding:3px 10px;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);border:1px dashed rgba(245,158,11,0.5);text-transform:uppercase}
+.store-section-title{font-family:var(--font-d);font-size:14px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--slip);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.store-section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.12),transparent)}
+.store-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vault-pack{position:relative;padding:14px 8px 10px;text-align:center;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));border:1px solid rgba(255,255,255,0.1);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));transition:border-color 0.2s,transform 0.15s}
+.vault-pack:active{transform:scale(0.97);border-color:var(--gold)}
+.vault-pack.gems-pack{background:linear-gradient(180deg,rgba(124,92,220,0.1),rgba(255,255,255,0.015))}
+.vault-pack .vp-tag{position:absolute;top:-1px;left:50%;transform:translateX(-50%);padding:2px 8px;font-size:7px;font-weight:700;letter-spacing:1px;background:var(--gold);color:#060810;clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 100%,0 100%);white-space:nowrap}
+.vault-pack .vp-amt{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);line-height:1;margin-top:6px}
+.vault-pack .vp-name{font-size:9px;color:var(--slip);letter-spacing:1px;text-transform:uppercase;margin:3px 0 8px}
+.vault-pack .vp-price{display:inline-block;padding:4px 12px;font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--gold-bright);background:rgba(240,200,80,0.1);border:1px solid rgba(240,200,80,0.35);clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+.vault-pass-card{position:relative;margin-top:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;background:linear-gradient(120deg,rgba(240,200,80,0.12),rgba(220,38,38,0.06));border:1px solid rgba(240,200,80,0.35);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+.vault-pass-card.owned{opacity:0.6;cursor:default}
+.vault-pass-card .vpc-title{font-family:var(--font-d);font-size:17px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-bright)}
+.vault-pass-card .vpc-sub{font-size:10px;color:var(--slip)}
+.store-confirm{position:fixed;left:0;right:0;bottom:0;z-index:216;max-width:420px;margin:0 auto;padding:16px;background:rgba(10,13,24,0.98);border-top:2px solid var(--gold);transform:translateY(110%);transition:transform 0.3s cubic-bezier(0.22,1,0.36,1)}
+.store-confirm.show{transform:translateY(0)}
+.store-confirm .sc-text{font-family:var(--font-d);font-size:16px;color:var(--white);letter-spacing:0.5px;margin-bottom:4px}
+.store-confirm .sc-note{font-size:9px;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.store-confirm .sc-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 </style>
 </head>
 <body>
@@ -2175,6 +2205,38 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
   </div>
 </div>
 
+<!-- ===== THE VAULT — IAP STORE STUB (F35) ===== -->
+<div class="store-overlay" id="store-overlay">
+  <div class="store-content">
+    <div class="overlay-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="back-btn" id="store-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back</div>
+      <div style="font-family:var(--font-d);font-size:12px;letter-spacing:2px;color:var(--slip);text-transform:uppercase">No cash-out &middot; Virtual only</div>
+    </div>
+    <div class="store-hero">
+      <div class="store-hero-title">The Vault</div>
+      <div class="store-hero-sub">Syndicate supply line</div>
+      <div class="store-testmode">Test Mode &mdash; no real charges</div>
+    </div>
+    <div class="store-section-title">Coins</div>
+    <div class="store-grid" id="store-coins-grid"></div>
+    <div class="store-section-title">Gems</div>
+    <div class="store-grid" id="store-gems-grid"></div>
+    <div class="store-section-title">Contract</div>
+    <div class="vault-pass-card" id="store-pass-card">
+      <div><div class="vpc-title">Premium Contract</div><div class="vpc-sub" id="store-pass-sub">Unlock the Boss Cut reward track this season</div></div>
+      <div class="vp-price" id="store-pass-price">&#8377;199</div>
+    </div>
+  </div>
+  <div class="store-confirm" id="store-confirm">
+    <div class="sc-text" id="store-confirm-text"></div>
+    <div class="sc-note">Simulated payment &mdash; test mode, no real money charged</div>
+    <div class="sc-btns">
+      <div class="btn btn-red" id="store-cancel-btn">Cancel</div>
+      <div class="btn btn-gold" id="store-buy-btn">Confirm Purchase</div>
+    </div>
+  </div>
+</div>
+
 <div class="vignette"></div>
 <div id="align-vignette"></div>
 <canvas id="particle-canvas"></canvas>
@@ -2230,6 +2292,7 @@ var GS = {
   consecutiveFavors: 0,
   rivalIntel: {},
   seasonPass: { xp: 0, premium: false, claimedFree: [], claimedPremium: [] },
+  purchases: [],
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -2252,6 +2315,7 @@ function load() {
       GS.teamName=v(d.teamName,'Your Team'); GS.managerName=v(d.managerName,'Manager'); GS.teamColor=v(d.teamColor,'gold'); GS.tutorialDone=v(d.tutorialDone,false);
       GS.seasonStats=v(d.seasonStats,{});
       GS.seasonPass=v(d.seasonPass,{xp:0,premium:false,claimedFree:[],claimedPremium:[]});
+      GS.purchases=v(d.purchases,[]);
       GS.rivalWins=v(d.rivalWins,{}); GS.pepTalkUsed=v(d.pepTalkUsed,false);
       GS.winStreak=v(d.winStreak,0); GS.bestStreak=v(d.bestStreak,0);
       GS.dailyChallenge=v(d.dailyChallenge,null); GS.lastChallengeDate=v(d.lastChallengeDate,null);
@@ -7385,6 +7449,109 @@ $('pass-tier-list').addEventListener('click', function (e) {
   if (!btn) return;
   claimPassReward(btn.getAttribute('data-track'), parseInt(btn.getAttribute('data-tier'), 10));
 });
+
+// =============================================
+// THE VAULT — IAP STORE STUB (F35)
+// Simulated payments only (test mode). Real billing
+// integration (Google Play Billing) is a launch task.
+// =============================================
+var IAP_PACKS = [
+  { id: 'coins_s', kind: 'coins', amt: 1000, name: 'Street Stash', price: '₹49', tag: '' },
+  { id: 'coins_m', kind: 'coins', amt: 3000, name: 'Dealer Crate', price: '₹129', tag: 'POPULAR' },
+  { id: 'coins_l', kind: 'coins', amt: 8000, name: 'Boss Vault', price: '₹299', tag: 'BEST VALUE' },
+  { id: 'gems_s', kind: 'gems', amt: 100, name: 'Gem Pouch', price: '₹79', tag: '' },
+  { id: 'gems_m', kind: 'gems', amt: 300, name: 'Gem Case', price: '₹199', tag: 'POPULAR' },
+  { id: 'gems_l', kind: 'gems', amt: 800, name: 'Gem Locker', price: '₹449', tag: 'BEST VALUE' },
+  { id: 'pass_premium', kind: 'pass', amt: 0, name: 'Premium Contract', price: '₹199', tag: '' }
+];
+var pendingPurchase = null;
+
+function iapPack(id) {
+  for (var i = 0; i < IAP_PACKS.length; i++) if (IAP_PACKS[i].id === id) return IAP_PACKS[i];
+  return null;
+}
+
+function renderStore() {
+  var coinsGrid = $('store-coins-grid');
+  if (!coinsGrid) return;
+  var coinsHtml = '', gemsHtml = '';
+  IAP_PACKS.forEach(function (p) {
+    if (p.kind === 'pass') return;
+    var html = '<div class="vault-pack' + (p.kind === 'gems' ? ' gems-pack' : '') + '" data-pack="' + p.id + '">' +
+      (p.tag ? '<div class="vp-tag">' + p.tag + '</div>' : '') +
+      '<div class="vp-amt">' + p.amt.toLocaleString() + '</div>' +
+      '<div class="vp-name">' + p.name + '</div>' +
+      '<div class="vp-price">' + p.price + '</div></div>';
+    if (p.kind === 'coins') coinsHtml += html; else gemsHtml += html;
+  });
+  coinsGrid.innerHTML = coinsHtml;
+  $('store-gems-grid').innerHTML = gemsHtml;
+  var passCard = $('store-pass-card');
+  if (GS.seasonPass.premium) {
+    passCard.classList.add('owned');
+    $('store-pass-sub').textContent = 'Owned this season — Boss Cut track is open';
+    $('store-pass-price').textContent = 'OWNED';
+  } else {
+    passCard.classList.remove('owned');
+    $('store-pass-sub').textContent = 'Unlock the Boss Cut reward track this season';
+    $('store-pass-price').innerHTML = '₹199';
+  }
+}
+
+function showStore() {
+  renderStore();
+  $('store-overlay').classList.add('show');
+}
+
+function hideStoreConfirm() {
+  pendingPurchase = null;
+  $('store-confirm').classList.remove('show');
+}
+
+function requestPurchase(id) {
+  var p = iapPack(id);
+  if (!p) return;
+  if (p.kind === 'pass' && GS.seasonPass.premium) { toast('Premium Contract already owned this season', 'error'); return; }
+  pendingPurchase = p.id;
+  var goods = p.kind === 'coins' ? p.amt.toLocaleString() + ' coins' :
+              p.kind === 'gems' ? p.amt.toLocaleString() + ' gems' :
+              'Premium Contract (Boss Cut track)';
+  $('store-confirm-text').textContent = 'Buy ' + p.name + ' — ' + goods + ' for ' + p.price + '?';
+  $('store-confirm').classList.add('show');
+}
+
+function completePurchase() {
+  var p = iapPack(pendingPurchase);
+  if (!p) { hideStoreConfirm(); return; }
+  if (p.kind === 'coins') GS.coins += p.amt;
+  else if (p.kind === 'gems') GS.gems += p.amt;
+  else if (p.kind === 'pass') GS.seasonPass.premium = true;
+  GS.purchases.push({ id: p.id, ts: Date.now() });
+  save();
+  updateCurrency();
+  renderStore();
+  if (typeof updatePassPanel === 'function') updatePassPanel();
+  hideStoreConfirm();
+  var got = p.kind === 'coins' ? '+' + p.amt.toLocaleString() + ' coins' :
+            p.kind === 'gems' ? '+' + p.amt.toLocaleString() + ' gems' :
+            'Boss Cut rewards open';
+  toast(p.name + ' delivered — ' + got + ' (test mode)', 'success');
+}
+
+document.querySelector('#top-bar .currency.coins').addEventListener('click', showStore);
+document.querySelector('#top-bar .currency.gems').addEventListener('click', showStore);
+$('store-back-btn').addEventListener('click', function () { hideStoreConfirm(); $('store-overlay').classList.remove('show'); });
+$('store-cancel-btn').addEventListener('click', hideStoreConfirm);
+$('store-buy-btn').addEventListener('click', completePurchase);
+$('store-coins-grid').addEventListener('click', function (e) {
+  var el = e.target.closest ? e.target.closest('.vault-pack') : null;
+  if (el) requestPurchase(el.getAttribute('data-pack'));
+});
+$('store-gems-grid').addEventListener('click', function (e) {
+  var el = e.target.closest ? e.target.closest('.vault-pack') : null;
+  if (el) requestPurchase(el.getAttribute('data-pack'));
+});
+$('store-pass-card').addEventListener('click', function () { requestPurchase('pass_premium'); });
 
 // =============================================
 // INIT
