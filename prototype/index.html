@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#060810">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Cricket Underworld</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2092,6 +2096,11 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
     </div>
 
     <div class="btn btn-gold full lg" id="custom-save-btn">Save Changes</div>
+
+    <div class="custom-section" id="install-section" style="display:none">
+      <div class="custom-section-title">Install</div>
+      <div class="btn btn-gold full" id="install-app-btn">Install App on Device</div>
+    </div>
 
     <div class="reset-section">
       <div class="text-xs">Danger zone</div>
@@ -7187,6 +7196,49 @@ try {
   var errMsg = document.getElementById('error-msg');
   if (errEl && errMsg) { errMsg.textContent = String(e.message || e); errEl.classList.add('show'); }
 }
+
+// =============================================
+// PWA — SERVICE WORKER + INSTALL PROMPT (F37)
+// =============================================
+(function () {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () { /* file:// or unsupported — game still works */ });
+    });
+  }
+
+  var deferredPrompt = null;
+  var installSection = document.getElementById('install-section');
+  var installBtn = document.getElementById('install-app-btn');
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installSection) installSection.style.display = '';
+    if (!localStorage.getItem('cu_install_hinted')) {
+      localStorage.setItem('cu_install_hinted', '1');
+      if (typeof toast === 'function') toast('Install Cricket Underworld from Settings for full-screen play', 'info');
+    }
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', function () {
+      if (!deferredPrompt) { if (typeof toast === 'function') toast('Already installed or not supported on this browser', 'info'); return; }
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (choice) {
+        if (choice.outcome === 'accepted' && typeof toast === 'function') toast('Installing Cricket Underworld...', 'success');
+        deferredPrompt = null;
+        if (installSection) installSection.style.display = 'none';
+      });
+    });
+  }
+
+  window.addEventListener('appinstalled', function () {
+    deferredPrompt = null;
+    if (installSection) installSection.style.display = 'none';
+    if (typeof toast === 'function') toast('Cricket Underworld installed!', 'success');
+  });
+})();
 </script>
 </body>
 </html>

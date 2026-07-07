@@ -154,6 +154,37 @@ test('match engine produces valid scores', async ({ page }) => {
   expect(scores).not.toMatch(/0\/0.*0\/0/);
 });
 
+test('PWA: manifest + service worker + app shell cache', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+  // Manifest is linked and valid
+  const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
+  expect(manifestHref).toBe('manifest.json');
+  const manifest = await page.evaluate(() => fetch('manifest.json').then(r => r.json()));
+  expect(manifest.name).toBe('Cricket Underworld');
+  expect(manifest.display).toBe('standalone');
+  expect(manifest.icons.length).toBeGreaterThanOrEqual(3);
+
+  // Service worker registers and activates
+  const swActive = await page.evaluate(() =>
+    navigator.serviceWorker.ready.then(reg => !!reg.active)
+  );
+  expect(swActive).toBe(true);
+
+  // App shell precached (offline-capable)
+  await page.waitForTimeout(1500);
+  const cached = await page.evaluate(async () => {
+    const keys = await caches.keys();
+    if (!keys.length) return [];
+    const cache = await caches.open(keys[0]);
+    const reqs = await cache.keys();
+    return reqs.map(r => new URL(r.url).pathname);
+  });
+  expect(cached).toContain('/index.html');
+  expect(cached).toContain('/manifest.json');
+});
+
 test('field placement setting appears in bowler picker', async ({ page }) => {
   await page.goto('/');
   await setupGameState(page);
