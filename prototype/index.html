@@ -1535,6 +1535,27 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .store-confirm .sc-text{font-family:var(--font-d);font-size:16px;color:var(--white);letter-spacing:0.5px;margin-bottom:4px}
 .store-confirm .sc-note{font-size:9px;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
 .store-confirm .sc-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ===== SPONSOR BREAK — REWARDED AD STUB (F36) ===== */
+.ad-overlay{position:fixed;inset:0;z-index:218;background:rgba(3,4,8,0.98);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.ad-overlay.show{opacity:1;pointer-events:auto}
+.ad-billboard{position:relative;width:100%;max-width:340px;padding:22px 18px 18px;background:repeating-linear-gradient(-45deg,rgba(255,255,255,0.02),rgba(255,255,255,0.02) 2px,transparent 2px,transparent 6px),linear-gradient(165deg,#12141f 0%,#0a0c14 60%,#141020 100%);border:1px solid rgba(224,120,0,0.35);border-top:3px solid var(--amber);clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%)}
+.ad-billboard::before{content:'SPONSOR BREAK';position:absolute;top:-1px;left:14px;padding:3px 10px;font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:3px;background:var(--amber);color:#060810;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.ad-brand{font-family:var(--font-d);font-size:30px;font-weight:700;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:14px;background:linear-gradient(135deg,var(--gold-bright),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ad-tagline{font-size:11px;color:var(--slip);letter-spacing:1px;text-align:center;margin-top:4px;font-style:italic}
+.ad-sim-note{margin:14px auto 0;width:max-content;padding:3px 10px;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--amber);border:1px dashed rgba(224,120,0,0.5)}
+.ad-timer-bar{height:5px;margin-top:14px;background:rgba(255,255,255,0.06);clip-path:polygon(2px 0,100% 0,calc(100% - 2px) 100%,0 100%)}
+.ad-timer-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--amber),var(--gold-bright));transition:width 3s linear}
+.ad-claim-btn{margin-top:14px;opacity:0.35;pointer-events:none;transition:opacity 0.3s}
+.ad-claim-btn.ready{opacity:1;pointer-events:auto}
+.ad-reward-lbl{font-size:10px;color:var(--slip);letter-spacing:1px;text-align:center;margin-top:10px;text-transform:uppercase}
+.ad-spot-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-top:12px;cursor:pointer;background:linear-gradient(135deg,rgba(224,120,0,0.12),rgba(224,120,0,0.03));border:1px solid rgba(224,120,0,0.35);border-left:3px solid var(--amber);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);transition:border-color 0.2s}
+.ad-spot-btn:active{border-color:var(--amber)}
+.ad-spot-btn.used{opacity:0.4;pointer-events:none}
+.ad-spot-btn .asb-icon{width:26px;height:18px;flex-shrink:0;border:1px solid var(--amber);position:relative}
+.ad-spot-btn .asb-icon::after{content:'';position:absolute;left:9px;top:4px;border-left:7px solid var(--amber);border-top:4px solid transparent;border-bottom:4px solid transparent}
+.ad-spot-btn .asb-title{font-family:var(--font-d);font-size:14px;font-weight:600;letter-spacing:1px;color:var(--amber);text-transform:uppercase}
+.ad-spot-btn .asb-sub{font-size:9px;color:var(--slip);letter-spacing:0.5px}
 </style>
 </head>
 <body>
@@ -1876,6 +1897,10 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="ae-title">Player Auction</div>
         <div class="ae-sub">Bid on players to build your squad through the auction block</div>
         <div class="btn btn-gold lg" id="start-auction-btn">Start Auction</div>
+        <div class="ad-spot-btn" id="ad-purse-btn" style="margin-top:16px">
+          <div class="asb-icon"></div>
+          <div><div class="asb-title">Sponsor Boost</div><div class="asb-sub" id="ad-purse-sub">Watch a sponsor spot &mdash; +300 purse next auction</div></div>
+        </div>
       </div>
     </div>
 
@@ -2078,6 +2103,10 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
         <div class="shop-info"><div class="shop-name">Premium Pack</div><div class="shop-desc">5 cards &middot; Guaranteed Rare+</div></div>
         <div class="shop-price text-gold">15 G</div>
       </div>
+      <div class="ad-spot-btn" id="pack-ad-btn">
+        <div class="asb-icon"></div>
+        <div><div class="asb-title">Sponsor Pack</div><div class="asb-sub" id="pack-ad-sub">Watch a sponsor spot &mdash; free pack, 2 cards &middot; 1/day</div></div>
+      </div>
     </div>
   </div>
 
@@ -2237,6 +2266,18 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
   </div>
 </div>
 
+<!-- ===== SPONSOR BREAK — REWARDED AD STUB (F36) ===== -->
+<div class="ad-overlay" id="ad-overlay">
+  <div class="ad-billboard">
+    <div class="ad-brand" id="ad-brand">Golden Bat Chai</div>
+    <div class="ad-tagline" id="ad-tagline">Sip like a champion</div>
+    <div class="ad-sim-note">Simulated ad &mdash; test mode</div>
+    <div class="ad-timer-bar"><div class="ad-timer-fill" id="ad-timer-fill"></div></div>
+    <div class="btn btn-gold full ad-claim-btn" id="ad-claim-btn">Claim Reward</div>
+    <div class="ad-reward-lbl" id="ad-reward-lbl"></div>
+  </div>
+</div>
+
 <div class="vignette"></div>
 <div id="align-vignette"></div>
 <canvas id="particle-canvas"></canvas>
@@ -2293,6 +2334,7 @@ var GS = {
   rivalIntel: {},
   seasonPass: { xp: 0, premium: false, claimedFree: [], claimedPremium: [] },
   purchases: [],
+  ads: { date: '', purse: 0, pack: 0, boost: 0, pendingPurse: false },
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -2316,6 +2358,7 @@ function load() {
       GS.seasonStats=v(d.seasonStats,{});
       GS.seasonPass=v(d.seasonPass,{xp:0,premium:false,claimedFree:[],claimedPremium:[]});
       GS.purchases=v(d.purchases,[]);
+      GS.ads=v(d.ads,{date:'',purse:0,pack:0,boost:0,pendingPurse:false});
       GS.rivalWins=v(d.rivalWins,{}); GS.pepTalkUsed=v(d.pepTalkUsed,false);
       GS.winStreak=v(d.winStreak,0); GS.bestStreak=v(d.bestStreak,0);
       GS.dailyChallenge=v(d.dailyChallenge,null); GS.lastChallengeDate=v(d.lastChallengeDate,null);
@@ -4212,6 +4255,13 @@ function startAuction() {
   auction.pool = avail.slice(0, 12);
   auction.idx = 0; auction.active = true;
   GS.auctionPurse = GS.coins;
+  if (GS.ads && GS.ads.pendingPurse) {
+    GS.auctionPurse += 300;
+    GS.ads.pendingPurse = false;
+    save();
+    if (typeof updateAdSpots === 'function') updateAdSpots();
+    toast('Sponsor Boost active — +300 auction purse', 'success');
+  }
   hide('auction-empty-area'); show('auction-active-area');
   showNextCard();
 }
@@ -6429,12 +6479,12 @@ function openPack(type) {
   if (GS.squad.length >= GS.maxSquad) { toast('Squad full (' + GS.maxSquad + ' max) — release a player first', 'error'); return; }
   if (type === 'standard' && GS.coins < 500) { toast('Not enough coins', 'error'); return; }
   if (type === 'premium' && GS.gems < 15) { toast('Not enough gems', 'error'); return; }
-  if (type === 'standard') GS.coins -= 500; else GS.gems -= 15;
+  if (type === 'standard') GS.coins -= 500; else if (type === 'premium') GS.gems -= 15;
   updateCurrency();
-  var count = type === 'standard' ? 3 : 5;
+  var count = type === 'premium' ? 5 : type === 'ad' ? 2 : 3;
   var slotsLeft = GS.maxSquad - GS.squad.length;
   if (count > slotsLeft) count = slotsLeft;
-  var minRar = type === 'standard' ? 1 : 2;
+  var minRar = type === 'premium' ? 2 : 1;
   var cards = [];
   for (var i = 0; i < count && avail.length > 0; i++) {
     var pool = avail;
@@ -6448,7 +6498,7 @@ function openPack(type) {
     avail = avail.filter(function(p) { return p.id !== card.id; });
   }
   save();
-  var html = '<div class="font-d fw-700 text-center" style="font-size:26px;text-transform:uppercase;letter-spacing:3px;background:linear-gradient(135deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">' + (type === 'premium' ? 'Premium' : 'Standard') + ' Pack</div>' +
+  var html = '<div class="font-d fw-700 text-center" style="font-size:26px;text-transform:uppercase;letter-spacing:3px;background:linear-gradient(135deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">' + (type === 'premium' ? 'Premium' : type === 'ad' ? 'Sponsor' : 'Standard') + ' Pack</div>' +
     '<div class="text-center text-slip text-sm mb-16">Tap to reveal</div>' +
     '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:16px 0" id="pack-cards">';
   for (var c = 0; c < cards.length; c++) {
