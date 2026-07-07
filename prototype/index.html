@@ -7604,6 +7604,72 @@ $('store-gems-grid').addEventListener('click', function (e) {
 $('store-pass-card').addEventListener('click', function () { requestPurchase('pass_premium'); });
 
 // =============================================
+// SPONSOR BREAK — REWARDED AD STUB (F36)
+// Simulated ads (test mode) — real ad SDK is a launch task.
+// =============================================
+var AD_BRANDS = [
+  { name: 'Golden Bat Chai', tag: 'Sip like a champion' },
+  { name: 'Dhanraj Jewellers', tag: 'Gold worthy of the Syndicate' },
+  { name: 'Nawab Biryani House', tag: 'Match-day feasts, delivered' },
+  { name: 'Thunder Tyres', tag: 'Grip the road. Own the night.' },
+  { name: 'Rana Steel & Sons', tag: 'Forged for the long innings' }
+];
+var AD_CAPS = { purse: 1, pack: 1, boost: 3 };
+function adToday() { return new Date().toISOString().slice(0, 10); }
+function adReset() {
+  if (GS.ads.date !== adToday()) { GS.ads.date = adToday(); GS.ads.purse = 0; GS.ads.pack = 0; GS.ads.boost = 0; }
+}
+function adAvailable(p) { adReset(); return GS.ads[p] < AD_CAPS[p]; }
+var adOnReward = null;
+function showRewardedAd(placement, rewardLbl, onReward) {
+  if (!adAvailable(placement)) { toast('Sponsor spots done for today — back tomorrow', 'error'); return; }
+  GS.ads[placement]++; save();
+  var b = AD_BRANDS[Math.floor(Math.random() * AD_BRANDS.length)];
+  $('ad-brand').textContent = b.name;
+  $('ad-tagline').textContent = '"' + b.tag + '"';
+  $('ad-reward-lbl').textContent = 'Reward: ' + rewardLbl;
+  var claim = $('ad-claim-btn'); claim.classList.remove('ready');
+  var fill = $('ad-timer-fill');
+  fill.style.transition = 'none'; fill.style.width = '0%';
+  adOnReward = onReward;
+  $('ad-overlay').classList.add('show');
+  setTimeout(function () { fill.style.transition = 'width 3s linear'; fill.style.width = '100%'; }, 60);
+  setTimeout(function () { claim.classList.add('ready'); }, 3100);
+}
+$('ad-claim-btn').addEventListener('click', function () {
+  $('ad-overlay').classList.remove('show');
+  var cb = adOnReward; adOnReward = null;
+  if (cb) cb();
+  updateAdSpots();
+});
+function updateAdSpots() {
+  adReset();
+  var pb = $('ad-purse-btn');
+  if (pb) {
+    if (GS.ads.pendingPurse) { pb.classList.add('used'); $('ad-purse-sub').textContent = 'Boost armed — +300 purse on your next auction'; }
+    else if (!adAvailable('purse')) { pb.classList.add('used'); $('ad-purse-sub').textContent = 'Sponsor spot used — back tomorrow'; }
+    else { pb.classList.remove('used'); $('ad-purse-sub').textContent = 'Watch a sponsor spot — +300 purse next auction'; }
+  }
+  var kb = $('pack-ad-btn');
+  if (kb) {
+    if (!adAvailable('pack')) { kb.classList.add('used'); $('pack-ad-sub').textContent = 'Free pack claimed — back tomorrow'; }
+    else { kb.classList.remove('used'); $('pack-ad-sub').textContent = 'Watch a sponsor spot — free pack, 2 cards · 1/day'; }
+  }
+}
+$('ad-purse-btn').addEventListener('click', function () {
+  if (GS.ads.pendingPurse) { toast('Boost already armed for your next auction', 'error'); return; }
+  showRewardedAd('purse', '+300 auction purse', function () {
+    GS.ads.pendingPurse = true; save(); updateAdSpots();
+    toast('Sponsor Boost armed — +300 purse next auction', 'success');
+  });
+});
+$('pack-ad-btn').addEventListener('click', function () {
+  if (GS.squad.length >= GS.maxSquad) { toast('Squad full — release a player first', 'error'); return; }
+  showRewardedAd('pack', 'Free Sponsor Pack — 2 cards', function () { openPack('ad'); });
+});
+updateAdSpots();
+
+// =============================================
 // INIT
 // =============================================
 try {
