@@ -3527,7 +3527,7 @@ function resolveTribunal() {
     verdict = { name: 'FINE', desc: 'Fined 300 coins for misconduct.', cls: 'text-amber' };
     GS.coins = Math.max(0, GS.coins - 300); GS.heat = Math.max(0, GS.heat - 5);
   } else if (gap <= 15) {
-    verdict = { name: 'POINTS DEDUCTION', desc: 'Docked 4 league points. Fan loyalty crushed.', cls: 'text-red' };
+    verdict = { name: 'POINTS DEDUCTION', desc: 'Docked 1 win (3 league points). Fan loyalty crushed.', cls: 'text-red' };
     GS.wins = Math.max(0, GS.wins - 1); GS.fanLoyalty = Math.max(0, GS.fanLoyalty - 10);
   } else if (gap <= 20) {
     verdict = { name: 'MATCH BAN', desc: 'Banned for 2 matches. Auto-loss applied.', cls: 'text-red' };
@@ -3714,6 +3714,7 @@ function showPlayerDetail(id) {
   }
   if ($('release-detail-btn')) {
     $('release-detail-btn').onclick = function() {
+      if (GS.squad.length <= 3) { toast('Squad too small — need at least 3 players to compete', 'error'); return; }
       var refund = Math.round(p.bat * 2 + p.bwl * 1.5);
       GS.squad = GS.squad.filter(function(s){return s.id !== p.id;});
       GS.coins += refund;
@@ -3733,7 +3734,7 @@ function trainPlayer(id, stat) {
   if (!p) return;
   var cost = getTrainCost(p[stat]);
   if (GS.coins < cost) { toast('Need ' + cost + ' coins', 'error'); return; }
-  if (p[stat] >= 95) { toast('Stat already maxed', 'error'); return; }
+  if (p[stat] >= 99) { toast('Stat already maxed', 'error'); return; }
   GS.coins -= cost;
   var gain = 1 + Math.floor(Math.random() * 2);
   if (stat === 'bat' && GS.staff && GS.staff.batting_coach) gain++;
@@ -3750,7 +3751,7 @@ function trainPlayerAdvanced(id, stat, gain) {
   if (!p) return;
   var cost = Math.round(getTrainCost(p[stat]) * 1.5);
   if (GS.coins < cost) { toast('Need ' + cost + ' coins', 'error'); return; }
-  if (p[stat] >= 95) { toast('Stat already maxed', 'error'); return; }
+  if (p[stat] >= 99) { toast('Stat already maxed', 'error'); return; }
   GS.coins -= cost;
   if (stat === 'bat' && GS.staff && GS.staff.batting_coach) gain++;
   if (stat === 'bwl' && GS.staff && GS.staff.bowling_coach) gain++;
@@ -4153,8 +4154,9 @@ function placeBid() {
 
 function passBid() {
   if (!auction.active) return;
+  if (auction.bidder === 'you') { toast('You hold the highest bid — let the timer run out', 'info'); return; }
   SFX.tap(); clearInterval(auction.interval);
-  if (!auction.bidder || auction.bidder === 'you') auction.bidder = RIVALS[0].name;
+  if (!auction.bidder) auction.bidder = RIVALS[0].name;
   resolveCard();
 }
 
@@ -4784,11 +4786,17 @@ function executeHeatAction(id) {
   if (!act) return;
   if (act.cost > 0 && GS.coins < act.cost) { toast('Need ' + act.cost + ' coins', 'error'); return; }
   if (act.cost > 0) GS.coins -= act.cost;
-  GS.heat = Math.min(100, GS.heat + act.heatGain);
+  var toastMsg = act.name + '! Heat +' + act.heatGain;
+  if (act.id === 'leak_rumor') {
+    var target = getNextRival();
+    if (target) { target.heat = Math.min(100, (target.heat || 0) + act.heatGain); toastMsg = act.name + '! +' + act.heatGain + ' heat on ' + target.name; }
+  } else {
+    GS.heat = Math.min(100, GS.heat + act.heatGain);
+  }
   applyAlignShift(act.alignShift);
   if (act.id === 'provoke_board') GS.morale = Math.min(100, GS.morale + 5);
   SFX.tap(); save(); updateCurrency(); updateHub();
-  toast(act.name + '! Heat +' + act.heatGain, 'info');
+  toast(toastMsg, 'info');
 }
 
 // =============================================
@@ -5038,8 +5046,9 @@ function startMatch() {
   match.bowlers = extractBowlers(match.bwlXI);
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
+  var lockedLineup = (match.bowlerSelected && match.bowlerLineup && match.bowlerLineup.length > 0) ? match.bowlerLineup : [];
   match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false; match.fieldSetting = 'standard';
-  match.drsUsed = false; match.impactUsed = false; match.superOver = false; match.lastBowler = null; match.bowlerLineup = [];
+  match.drsUsed = false; match.impactUsed = false; match.superOver = false; match.lastBowler = null; match.bowlerLineup = lockedLineup;
   match.weather = rollWeather(); match.rainOver = 0;
   $('boost-btn').classList.remove('used', 'active-boost');
   $('drs-btn').classList.remove('used'); $('drs-btn').textContent = 'DRS';
@@ -5291,9 +5300,9 @@ function showScorecard() {
       h += '<tr><td' + highlight + '>' + b.name + capTag + (b.out ? '' : '*') + '</td><td' + highlight + '>' + b.runs + '</td><td>' + b.balls + '</td><td>' + b.fours + '</td><td>' + b.sixes + '</td><td>' + sr + '</td></tr>';
     });
     h += '</table>';
-    if (sc[side].bowlers.length > 0) {
+    var otherSide = side === 'you' ? 'opp' : 'you';
+    if (sc[otherSide].bowlers.length > 0) {
       h += '<table class="sc-table"><tr><th>Bowler</th><th>O</th><th>R</th><th>W</th><th>Econ</th></tr>';
-      var otherSide = side === 'you' ? 'opp' : 'you';
       sc[otherSide].bowlers.forEach(function(b) {
         var overs = Math.floor(b.balls / 6) + '.' + (b.balls % 6);
         var econ = b.balls > 0 ? (b.runs / b.balls * 6).toFixed(1) : '0.0';
@@ -5547,7 +5556,7 @@ function skipMatch() {
     if (isYou) { match.runs += runs; if (wkt) match.wkts++; } else { match.oppRuns += runs; if (wkt) match.oppWkts++; }
     var scS = isYou ? 'you' : 'opp';
     var scB = match.scorecard[scS].batters, be = scB.find(function(b){return b.name===batter.name;});
-    if (!be) { be = {name:batter.name,runs:0,balls:0,fours:0,sixes:0,out:false}; scB.push(be); }
+    if (!be) { be = {id:batter.id,name:batter.name,runs:0,balls:0,fours:0,sixes:0,out:false}; scB.push(be); }
     be.runs += runs; be.balls++; if (runs===4) be.fours++; if (runs===6) be.sixes++; if (wkt) be.out = true;
     var bwS = isYou ? 'opp' : 'you', scW = match.scorecard[bwS].bowlers;
     var we = scW.find(function(b){return b.name===match.curBowler.name;});
@@ -5613,6 +5622,7 @@ function endMatch() {
   } else { GS.cleanStreak = 0; }
   coinR += cleanBonus;
   var bmR = zone.bmRate > 0 ? (won ? zone.bmRate : Math.round(zone.bmRate * 0.5)) : 0;
+  if (GS.staff && GS.staff.bagman && GS.alignment < -10) bmR = Math.round(bmR * 1.15);
   var rawAlignC = won ? 2 : -1;
   if (wasFix) { rawAlignC -= 2; GS.heat = Math.min(100, GS.heat + 5); }
   var externalHeat = getExternalHeat(won, match.opponent, wasFix);
@@ -5684,7 +5694,6 @@ function endMatch() {
   if (!wasFix) GS.consecutiveFavors = 0;
   processFixerCooldowns();
   applyFixerEffects();
-  if (GS.staff.bagman && GS.alignment < -10) bmR = Math.round(bmR * 1.15);
   var debtWarnings = processDebts();
   var unbannedPlayers = processBanTick();
   var banEvents = rollBanEvents(won, wasFix);
@@ -5959,7 +5968,7 @@ function showKnockout() {
   var ko=GS.knockout;
   if(!ko) return;
   var html='<div class="font-d fw-700 text-center" style="font-size:28px;text-transform:uppercase;letter-spacing:6px;margin-bottom:4px;background:linear-gradient(135deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Knockout Cup</div>'+
-    '<div class="text-center text-slip text-sm mb-16">'+ko.round.toUpperCase()+(ko.round==='final'?' FINAL':'FINALS')+'</div>';
+    '<div class="text-center text-slip text-sm mb-16">'+(ko.round==='final'?'FINAL':'SEMI-FINALS')+'</div>';
   html+='<div class="ko-bracket">';
   var matches=ko.round==='final'?[ko.final]:ko.matches;
   for(var i=0;i<matches.length;i++){
@@ -6511,6 +6520,7 @@ function buyPlayer(id) {
 function sellPlayer(id) {
   var p = GS.squad.find(function(s) { return s.id === id; });
   if (!p) return;
+  if (GS.squad.length <= 3) { toast('Squad too small — need at least 3 players to compete', 'error'); return; }
   var sellPrice = Math.round(getPlayerPrice(p) * 0.6);
   GS.squad = GS.squad.filter(function(s) { return s.id !== id; });
   GS.selectedXI = GS.selectedXI.filter(function(sid) { return sid !== id; });
