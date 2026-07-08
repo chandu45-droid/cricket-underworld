@@ -278,6 +278,82 @@ test('PWA: manifest + service worker + app shell cache', async ({ page }) => {
   expect(cached).toContain('/manifest.json');
 });
 
+test('Sponsor Break: rewarded ads — free pack, purse boost, post-match doubler, daily caps', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page); // seed has no ads key — load() defaults it
+  await dismissOverlays(page);
+
+  async function watchAd() {
+    await expect(page.locator('#ad-overlay')).toHaveClass(/show/);
+    await expect(page.locator('#ad-brand')).not.toBeEmpty();
+    await page.waitForSelector('#ad-claim-btn.ready', { timeout: 6000 });
+    await page.click('#ad-claim-btn');
+    await expect(page.locator('#ad-overlay')).not.toHaveClass(/show/);
+  }
+
+  // --- Free Sponsor Pack (Cards screen): +2 cards, zero cost ---
+  await page.click('.nav-item[data-screen="cards"]');
+  await page.waitForSelector('#cards-screen.active', { timeout: 5000 });
+  await expect(page.locator('#pack-ad-btn')).toBeVisible();
+  const before = await page.evaluate(() => ({ coins: GS.coins, gems: GS.gems, squad: GS.squad.length }));
+  await page.click('#pack-ad-btn');
+  await watchAd();
+  await expect(page.locator('#pack-overlay')).toHaveClass(/show/);
+  const afterPack = await page.evaluate(() => ({ coins: GS.coins, gems: GS.gems, squad: GS.squad.length, used: GS.ads.pack }));
+  expect(afterPack.squad).toBe(before.squad + 2);
+  expect(afterPack.coins).toBe(before.coins);
+  expect(afterPack.gems).toBe(before.gems);
+  expect(afterPack.used).toBe(1);
+  await page.evaluate(() => $('pack-overlay').classList.remove('show'));
+  await expect(page.locator('#pack-ad-btn')).toHaveClass(/used/); // cap 1/day
+
+  // --- Purse boost (Auction screen): arm via ad, consumed on auction start ---
+  await page.click('.nav-item[data-screen="auction"]');
+  await page.waitForSelector('#auction-screen.active', { timeout: 5000 });
+  await expect(page.locator('#ad-purse-btn')).toBeVisible();
+  await page.click('#ad-purse-btn');
+  await watchAd();
+  expect(await page.evaluate(() => GS.ads.pendingPurse)).toBe(true);
+  await expect(page.locator('#ad-purse-btn')).toHaveClass(/used/);
+  await page.click('#start-auction-btn');
+  const auctionState = await page.evaluate(() => ({ purse: GS.auctionPurse, coins: GS.coins, pending: GS.ads.pendingPurse }));
+  expect(auctionState.purse).toBe(auctionState.coins + 300);
+  expect(auctionState.pending).toBe(false);
+
+  // --- Post-match coin doubler ---
+  await page.click('.nav-item[data-screen="hub"]');
+  await page.waitForSelector('#hub-screen.active', { timeout: 5000 });
+  await dismissOverlays(page);
+  await page.click('#hub-match-btn');
+  await page.waitForTimeout(600);
+  await dismissOverlays(page);
+  const ssOverlay = page.locator('.squad-select-overlay.show');
+  if (await ssOverlay.count() > 0) {
+    await page.click('#ss-auto-btn');
+    await page.waitForTimeout(300);
+    await page.click('#ss-confirm-btn');
+  }
+  await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
+  await page.click('#start-match-btn');
+  await page.waitForSelector('#match-screen.active', { timeout: 5000 });
+  await page.click('#skip-btn');
+  await page.waitForSelector('.match-result-overlay.show', { timeout: 10000 });
+  await expect(page.locator('#ad-boost-btn')).toBeVisible(); // coinR is always >= 30
+  const coinsBeforeBoost = await page.evaluate(() => GS.coins);
+  await page.click('#ad-boost-btn');
+  await watchAd();
+  const afterBoost = await page.evaluate(() => ({ coins: GS.coins, boost: GS.ads.boost }));
+  expect(afterBoost.coins).toBeGreaterThan(coinsBeforeBoost);
+  expect(afterBoost.boost).toBe(1); // cap is 3/day — 2 left
+  await expect(page.locator('#ad-boost-btn')).toHaveClass(/used/);
+
+  // --- Daily caps persist in save ---
+  const savedAds = await page.evaluate(() => JSON.parse(localStorage.getItem('cu_save_v3')).ads);
+  expect(savedAds.purse).toBe(1);
+  expect(savedAds.pack).toBe(1);
+  expect(savedAds.boost).toBe(1);
+});
+
 test('field placement setting appears in bowler picker', async ({ page }) => {
   await page.goto('/');
   await setupGameState(page);

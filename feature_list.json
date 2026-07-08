@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "updated": "2026-06-11",
+  "updated": "2026-07-08",
   "legend": {
     "states": ["not_started", "active", "blocked", "passing"],
     "verification": "Each feature has an executable verification command. State advances to 'passing' ONLY when verification succeeds."
@@ -290,9 +290,9 @@
       "id": "F36",
       "system": "Economy",
       "behavior": "Rewarded ad placements (extra auction purse, free pack, coin boost)",
-      "verification": "manual — not yet implemented",
-      "state": "not_started",
-      "evidence": ""
+      "verification": "npx playwright test tests/smoke.spec.js --grep 'Sponsor Break'",
+      "state": "passing",
+      "evidence": "Sponsor Break stub: billboard overlay (3s timer), purse +300 (auction), free 2-card pack (cards), post-match coin doubler; daily caps 1/1/3 persisted — E2E green"
     },
     {
       "id": "F37",
@@ -313,10 +313,10 @@
   ],
   "summary": {
     "total": 38,
-    "passing": 37,
+    "passing": 38,
     "active": 0,
     "blocked": 0,
-    "not_started": 1,
-    "automated_test_count": "113 Playwright E2E tests across 3 spec files"
+    "not_started": 0,
+    "automated_test_count": "114 Playwright E2E tests across 3 spec files"
   }
 }

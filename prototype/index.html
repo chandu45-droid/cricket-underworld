@@ -5955,7 +5955,23 @@ function endMatch() {
   if (spEvent) {
     postEventsHtml += '<div class="glass accent-gold" style="padding:12px;margin-bottom:8px"><div class="font-d fw-600 text-sm text-gold">' + spEvent.name + '</div><div class="text-xs text-slip">' + spEvent.desc + '</div><div class="text-xs text-green" style="margin-top:4px">' + spEvent.reward + '</div><div class="btn btn-gold text-xs" style="padding:6px 14px;margin-top:8px" id="sponsor-event-btn">Accept</div></div>';
   }
+  var showBoostAd = coinR > 0 && adAvailable('boost');
+  if (showBoostAd) {
+    postEventsHtml += '<div class="ad-spot-btn" id="ad-boost-btn" style="margin-top:0;margin-bottom:8px"><div class="asb-icon"></div><div><div class="asb-title">Sponsor Bonus</div><div class="asb-sub" id="ad-boost-sub">Watch a sponsor spot &mdash; double your +' + coinR + ' match coins</div></div></div>';
+  }
   $('post-match-events').innerHTML = postEventsHtml;
+  if (showBoostAd) {
+    var boostBtn = $('ad-boost-btn');
+    if (boostBtn) boostBtn.onclick = function() {
+      var btn = this;
+      showRewardedAd('boost', '+' + coinR + ' coins', function() {
+        GS.coins += coinR; save(); updateCurrency();
+        btn.classList.add('used');
+        var sub = $('ad-boost-sub'); if (sub) sub.textContent = 'Bonus claimed — +' + coinR + ' coins';
+        toast('Sponsor bonus: +' + coinR + ' coins', 'success');
+      });
+    };
+  }
   if (won && charityAmount > 0) {
     var charityBtn = $('charity-btn');
     if (charityBtn) charityBtn.onclick = function() {
