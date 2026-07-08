@@ -1,9 +1,30 @@
 # Progress — Cricket Underworld
 
-**Last updated:** 2026-07-08
-**Last commit:** 28b7dd0 — Underworld Core plan doc
+**Last updated:** 2026-07-09
+**Last commit:** (this commit) — Underworld Core increment 1 COMPLETE
 
-## ⚠ IN-FLIGHT HANDOFF (2026-07-08): Underworld Core increment 1 — ~60% coded, UNTESTED, 3 edits remain
+## ✅ DONE (2026-07-09): Underworld Core increment 1 — Power Web + case file + weekly underworld events
+
+Founder directive #3 (*"focus more on the gameplay tuning and create a more realistic and more engaging with these elements"*) — increment 1 shipped and verified. The dormant engine is now **live and wired**:
+
+- **Power Web hub panel** — 5 faction rows (Syndicate / Thana / Neta / Bhai / Rival Bosses), each with a colored dot, relationship meter (−100..+100 → 0-100% fill with zero-marker), faction head/face name, and live status (e.g. Thana flips "Quiet — for now" → "CASE OPEN" when an investigation is active; Bhai shows "Hafta in N" / "HAFTA DUE"). Renders every `updateHub()`.
+- **Case file** — under an active investigation, `#investigation-panel` now shows the FIR→Evidence→Chargesheet→Court stage track (current stage highlighted), the assigned named inspector with trait tag (greedy/ambitious/incorruptible) + flavor, and action buttons: **Bribe** (hidden for the incorruptible DSP Arjun Sherawat / after one try) and **Political Pressure**. Inspector is lazily assigned if absent.
+- **Weekly underworld event card** — `endMatch` now calls `processUnderworldWeek(won)`; priority **hafta > election-funding > rival offer**. Notes render as `.uw-note` lines; the event renders as a `#uw-event-card` (accent-bordered) in post-match events with type-specific decision buttons, bound via `bindUnderworldEvent`.
+
+### Verification (all passed)
+- **`npx playwright test` → 120 passed (8.0m)** — 114 baseline + 6 new Underworld Core tests, zero regressions (Match Engine exercises the new `endMatch` path).
+- **Browser-verified live** (headless Playwright, real hub after splash): Power Web panel visible with 5 rows and premium angular styling; case file renders with named inspector + stage track + action buttons; Thana row correctly flips to "CASE OPEN" with the incorruptible inspector; `processUnderworldWeek(true)` with `bhai.haftaDue=1` fires a hafta event titled "Sikandar Bhai — Hafta Due".
+
+### 6 new tests (tests/comprehensive.spec.js → `test.describe('Underworld Core')`)
+1. factions lazy-init → 5 keys · 2. `#power-web-panel` visible + 5 `.pw-row` · 3. inject `investigation:{matchesLeft:3}` → inspector lazily assigned + info contains '3 matches' · 4. incorruptible inspector → `bribeInspector().success === false` · 5. `bhai.haftaDue=1` → `processUnderworldWeek(true).event.type === 'hafta'` · 6. `neta.election=1` → resolution sets `neta.power`.
+
+### Next increment (execution order)
+3. Rival outgoing bribes UI → 4. Grey Zone/Mafia redesign + Syndicate faces → 5. Politicians + elections screen (Politics zone) → 6. Local leaders (Streets zone) → 7. Remaining redesign screens in zone palettes.
+
+---
+
+<details>
+<summary>Archived handoff (increment 1 — verbatim edit drafts, now applied)</summary>
 
 **Founder directive #3 (active, verbatim):** *"focus more on the gameplay tuning and create a more relaistic and more engaging with these elements"* — mechanical depth for the underworld fantasy: named police inspectors + case pipeline, politicians/elections, local-leader hafta, incoming rival throw-match bribes, all as one-decision-per-match-week events.
 
@@ -134,10 +155,12 @@ Replace with lazy inspector + stage text (MUST keep `matchesLeft + ' matches'` p
 ### After this increment (execution order)
 3. Rival outgoing bribes UI → 4. Grey Zone/Mafia redesign + Syndicate faces → 5. Politicians screen (Politics zone) → 6. Local leaders (Streets zone) → 7. Remaining screens in zone palettes.
 
+</details>
+
 ## Current State
 
 - **Build:** HTML5 single-file PWA (`prototype/index.html`, ~7000+ lines)
-- **Tests:** 114 Playwright E2E tests across 3 spec files — last full run: all 114 passing
+- **Tests:** 120 Playwright E2E tests — last full run 2026-07-09: all 120 passing (114 baseline + 6 Underworld Core)
 - **Features:** 38/38 passing — **FEATURE-COMPLETE.** F33–F38 all shipped (bug audit c40ac4c → PWA 8318376 → Season Pass 819d5b5 → Vault IAP 77ef349 → Sponsor Break rewarded ads)
 - **Phase:** ▶ Premium UI Redesign **RESUMED by founder decision 2026-07-08** (6/16 screens done, 10 remaining — see below)
 

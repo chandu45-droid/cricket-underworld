@@ -3987,6 +3987,58 @@ function bindUnderworldEvent(ev) {
   }
 }
 
+function renderCaseFile() {
+  var inv = GS.investigation;
+  var track = $('case-stage-track'), actions = $('case-actions');
+  if (!inv || !track || !actions) return;
+  var idx = caseStageIndex(inv.matchesLeft);
+  var h = '';
+  for (var i = 0; i < CASE_STAGES.length; i++) {
+    h += '<div class="pw-stage' + (i < idx ? ' done' : i === idx ? ' now' : '') + '">' + CASE_STAGES[i] + '</div>';
+    if (i < CASE_STAGES.length - 1) h += '<div class="pw-stage-line' + (i < idx ? ' done' : '') + '"></div>';
+  }
+  track.innerHTML = h;
+  var insp = getInspector(inv.inspector);
+  var ah = '<div class="pw-insp"><span class="pw-insp-name">' + insp.name + '</span><span class="pw-insp-tag ' + insp.trait + '">' + insp.tag + '</span><span class="pw-insp-desc">' + insp.desc + '</span></div>';
+  ah += '<div class="flex gap-10" style="margin-top:8px">';
+  if (insp.trait !== 'incorruptible' && !inv.bribeTried) {
+    var cost = Math.round(insp.bribeBase * (inv.matchesLeft >= 3 ? 1 : 1.6));
+    ah += '<div class="btn btn-outline text-xs flex-1" style="padding:6px 10px" id="bribe-inspector-btn">Bribe · ' + cost + ' B$</div>';
+  }
+  ah += '<div class="btn btn-outline text-xs flex-1" style="padding:6px 10px" id="political-pressure-btn">Political Pressure</div></div>';
+  actions.innerHTML = ah;
+  var bb = $('bribe-inspector-btn');
+  if (bb) bb.onclick = function(e) { e.stopPropagation(); var r = bribeInspector(); toast(r.msg, r.success ? 'success' : 'error'); save(); updateHub(); updateCurrency(); };
+  var pb = $('political-pressure-btn');
+  if (pb) pb.onclick = function(e) { e.stopPropagation(); var r = applyPoliticalPressure(); toast(r.msg, r.success ? 'success' : 'error'); save(); updateHub(); };
+}
+function getFactionRows() {
+  initFactions();
+  var f = GS.factions;
+  var rows = [];
+  rows.push({ name:'The Syndicate', head: SYNDICATE_DON, rel: f.syndicate.rel, color:'#EF2D2D', status: GS.debts.length > 0 ? GS.debts.length + ' debt' + (GS.debts.length>1?'s':'') + ' open' : (GS.mafiaBonus ? 'Fix is set' : 'Watching you') });
+  rows.push({ name:'The Thana', head: GS.investigation ? getInspector(GS.investigation.inspector).name : 'Local Police', rel: f.thana.rel, color:'#60A5FA', status: GS.investigation ? 'CASE OPEN' : (GS.heat >= 50 ? 'Heat rising' : 'Quiet — for now') });
+  rows.push({ name:'The Neta', head: f.neta.power ? f.neta.power : 'No one in power', rel: f.neta.rel, color:'#F59E0B', status: (f.neta.election <= 3 && !f.neta.backed ? 'Election in ' + Math.max(1,f.neta.election) + ' — funding open' : 'Election in ' + Math.max(1,f.neta.election)) + (f.neta.ally ? ' · Your MLA rules' : '') });
+  rows.push({ name:'The Bhai', head: BHAI_NAME, rel: f.bhai.rel, color:'#F97316', status: f.bhai.haftaDue <= 0 ? 'HAFTA DUE' : 'Hafta in ' + f.bhai.haftaDue + (f.bhai.rel >= 40 ? ' · Crowd is yours' : f.bhai.rel <= -30 ? ' · Crowd hostile' : '') });
+  rows.push({ name:'Rival Bosses', head: '9 team owners', rel: f.bosses.rel, color:'#A78BFA', status: GS.collusionPacts && GS.collusionPacts.length > 0 ? GS.collusionPacts.length + ' pact' + (GS.collusionPacts.length>1?'s':'') + ' active' : 'Deals on the table' });
+  return rows;
+}
+function renderPowerWeb() {
+  var wrap = $('power-web-rows');
+  if (!wrap) return;
+  var rows = getFactionRows();
+  var h = '';
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var pct = Math.round((r.rel + 100) / 2);
+    h += '<div class="pw-row"><div class="pw-dot" style="background:' + r.color + ';box-shadow:0 0 8px ' + r.color + '66"></div>' +
+      '<div class="pw-main"><div class="pw-name">' + r.name + '<span class="pw-head">' + r.head + '</span></div>' +
+      '<div class="pw-meter"><div class="pw-meter-fill" style="width:' + pct + '%;background:' + r.color + '"></div><div class="pw-meter-zero"></div></div></div>' +
+      '<div class="pw-status' + (r.status.indexOf('DUE') >= 0 || r.status.indexOf('CASE OPEN') >= 0 ? ' hot' : '') + '">' + r.status + '</div></div>';
+  }
+  wrap.innerHTML = h;
+}
+
 function resolveTribunal() {
   var prosecution = GS.tribunalBonus;
   for (var i = 0; i < GS.evidence.length; i++) prosecution += GS.evidence[i].weight;
@@ -4352,9 +4404,12 @@ function updateHub() {
   } else { hide('hub-next-rival'); }
   if (GS.investigation) {
     show('investigation-panel');
-    $('investigation-info').textContent = GS.investigation.matchesLeft + ' matches until tribunal · No new favors allowed';
+    if (!GS.investigation.inspector) GS.investigation.inspector = pickInspector();
+    $('investigation-info').textContent = GS.investigation.matchesLeft + ' matches until tribunal · ' + caseStage(GS.investigation.matchesLeft) + ' · No new favors';
     $('evidence-count').textContent = GS.evidence.length;
+    renderCaseFile();
   } else { hide('investigation-panel'); }
+  renderPowerWeb();
   if (GS.debts.length > 0) {
     show('debt-panel');
     var dHtml = '';
@@ -6204,6 +6259,7 @@ function endMatch() {
   processFixerCooldowns();
   applyFixerEffects();
   var debtWarnings = processDebts();
+  var uw = processUnderworldWeek(won);
   var unbannedPlayers = processBanTick();
   var banEvents = rollBanEvents(won, wasFix);
   var matchInjuries = processMatchInjuries();
@@ -6249,6 +6305,7 @@ function endMatch() {
     (rivalEvent ? '<div class="text-xs ' + rivalEvent.cls + '" style="text-align:center;margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:3px">' + rivalEvent.text + '</div>' : '') +
     (rivalScandals.length > 0 ? rivalScandals.map(function(s) { return '<div class="text-xs text-amber" style="text-align:center;margin:4px 0;padding:8px;border:1px solid rgba(245,158,11,0.2);border-left:3px solid var(--amber);border-radius:3px;background:rgba(245,158,11,0.04)">' + s + '</div>'; }).join('') : '') +
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
+    (uw.notes.length > 0 ? uw.notes.map(function(n) { return '<div class="uw-note">' + n + '</div>'; }).join('') : '') +
     (banEvents.length > 0 ? banEvents.map(function(e) { return '<div class="ban-event"><div class="be-title">' + e.ban.label + '</div><div class="be-desc">' + e.player + ' — ' + e.ban.desc + '. Banned for ' + e.ban.matchesLeft + ' matches. (+' + e.ban.heat + ' heat)</div></div>'; }).join('') : '') +
     (unbannedPlayers.length > 0 ? '<div class="text-xs text-green" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(52,211,153,0.2);border-radius:3px;background:rgba(52,211,153,0.04)">Ban served: ' + unbannedPlayers.join(', ') + ' available again</div>' : '') +
     (matchInjuries.length > 0 ? matchInjuries.map(function(inj) { return '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(220,38,38,0.2);border-radius:3px;background:rgba(220,38,38,0.04)">INJURY: ' + inj.name + ' — ' + inj.injury.type + ' (' + inj.injury.matchesOut + ' matches)</div>'; }).join('') : '') +
@@ -6264,6 +6321,18 @@ function endMatch() {
     (GS.matchNum <= 14 && !isKnockout ? '<div class="play-again-row"><div class="btn btn-gold lg" id="match-play-again-btn">Play Again</div><div class="btn btn-outline lg" id="match-continue-btn">Hub</div></div>' : '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:10px">' + (isKnockout ? 'Knockout' : 'Continue') + '</div>') +
     '</div>';
   var postEventsHtml = '';
+  if (uw.event) {
+    var ue = uw.event;
+    var ueBtns = '';
+    if (ue.type === 'hafta') {
+      ueBtns = '<div class="flex gap-10" style="margin-top:10px"><div class="btn btn-gold text-xs flex-1" style="padding:8px 12px" id="hafta-pay-btn">Pay ' + ue.amt + '</div><div class="btn btn-outline text-xs flex-1" style="padding:8px 12px" id="hafta-refuse-btn">Refuse</div></div>';
+    } else if (ue.type === 'election') {
+      ueBtns = '<div class="flex gap-10" style="margin-top:10px"><div class="btn btn-outline text-xs flex-1" style="padding:8px 10px" id="fund-a-btn">' + NETA_CANDIDATES[0].name + '</div><div class="btn btn-outline text-xs flex-1" style="padding:8px 10px" id="fund-b-btn">' + NETA_CANDIDATES[1].name + '</div><div class="btn btn-outline text-xs flex-1" style="padding:8px 10px" id="fund-none-btn">Stay out</div></div>';
+    } else if (ue.type === 'rivaloffer') {
+      ueBtns = '<div class="flex gap-10" style="margin-top:10px"><div class="btn btn-gold text-xs flex-1" style="padding:8px 12px" id="rivaloffer-accept-btn">Take ' + ue.pay + ' B$</div><div class="btn btn-outline text-xs flex-1" style="padding:8px 12px" id="rivaloffer-refuse-btn">Walk away</div></div>';
+    }
+    postEventsHtml += '<div class="glass" id="uw-event-card" style="padding:12px;margin-bottom:8px;border-left:3px solid ' + ue.accent + '"><div class="font-d fw-600 text-sm" style="color:' + ue.accent + '">' + ue.title + '</div><div class="text-xs text-slip" style="margin-top:4px">' + ue.desc + '</div>' + ueBtns + '</div>';
+  }
   var charityAmount = Math.round(coinR * 0.2);
   if (won && charityAmount > 0) {
     postEventsHtml += '<div class="glass accent-blue" style="padding:12px;margin-bottom:8px"><div class="flex items-center justify-between"><div><div class="font-d fw-600 text-sm">Donate to Charity</div><div class="text-xs text-slip">Give ' + charityAmount + ' coins for +5 align, +3 morale, +2 fans</div></div><div class="btn btn-outline text-xs" style="padding:6px 14px" id="charity-btn">Donate</div></div></div>';
@@ -6277,6 +6346,7 @@ function endMatch() {
     postEventsHtml += '<div class="ad-spot-btn" id="ad-boost-btn" style="margin-top:0;margin-bottom:8px"><div class="asb-icon"></div><div><div class="asb-title">Sponsor Bonus</div><div class="asb-sub" id="ad-boost-sub">Watch a sponsor spot &mdash; double your +' + coinR + ' match coins</div></div></div>';
   }
   $('post-match-events').innerHTML = postEventsHtml;
+  if (uw.event) bindUnderworldEvent(uw.event);
   if (showBoostAd) {
     var boostBtn = $('ad-boost-btn');
     if (boostBtn) boostBtn.onclick = function() {

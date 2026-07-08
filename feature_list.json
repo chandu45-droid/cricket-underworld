@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "updated": "2026-07-08",
+  "updated": "2026-07-09",
   "legend": {
     "states": ["not_started", "active", "blocked", "passing"],
     "verification": "Each feature has an executable verification command. State advances to 'passing' ONLY when verification succeeds."
@@ -309,14 +309,22 @@
       "verification": "manual — startKnockout() at season end (winRate >= 0.35 at matchNum > 14)",
       "state": "passing",
       "evidence": "Fully implemented in prototype/index.html (~lines 5900-6050): startKnockout (4-team bracket: player + top-3 eligible rivals + wild cards), semi -> final rounds, play-or-sim per match, reward 300x(leagueIdx+1), wired into endMatch and save/load (GS.knockout). Verified in code audit 2026-07-07; no dedicated E2E yet."
+    },
+    {
+      "id": "F39",
+      "system": "Underworld Core",
+      "behavior": "5-faction Power Web hub panel + police case pipeline (named inspectors, bribe/political-pressure) + weekly underworld event engine (hafta / election funding / rival throw-match offer) as one-decision-per-match-week cards",
+      "verification": "npx playwright test --grep \"Underworld Core\"",
+      "state": "passing",
+      "evidence": "Increment 1 shipped 2026-07-09. GS.factions (lazy initFactions: syndicate/thana/neta/bhai/bosses). renderPowerWeb() -> #power-web-panel 5 .pw-row (dot + rel meter + head + live status) every updateHub. renderCaseFile() -> FIR->Evidence->Chargesheet->Court stage track + named inspector (INSPECTORS: greedy/ambitious/incorruptible) + bribeInspector()/applyPoliticalPressure() action buttons under #investigation-panel. processUnderworldWeek(won) wired into endMatch (priority hafta > election-funding > rival offer) -> .uw-note lines + #uw-event-card with type-specific buttons bound via bindUnderworldEvent. 6 new E2E in comprehensive.spec.js (test.describe 'Underworld Core'); full suite 120 passed 2026-07-09; browser-verified live (Power Web, case file, hafta card). Next increments: rival outgoing bribes UI, mafia/politicians/local-leaders screens."
     }
   ],
   "summary": {
-    "total": 38,
-    "passing": 38,
+    "total": 39,
+    "passing": 39,
     "active": 0,
     "blocked": 0,
     "not_started": 0,
-    "automated_test_count": "114 Playwright E2E tests across 3 spec files"
+    "automated_test_count": "120 Playwright E2E tests across 3 spec files"
   }
 }

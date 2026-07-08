@@ -827,6 +827,74 @@ test.describe('Investigation & Tribunal', () => {
 });
 
 // ============================================================
+// 16b. UNDERWORLD CORE (factions, case file, weekly events)
+// ============================================================
+test.describe('Underworld Core', () => {
+  test('factions lazy-init produces 5 factions', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, {});
+    const keys = await page.evaluate(() => {
+      window.initFactions();
+      return Object.keys(window.GS.factions);
+    });
+    expect(keys).toEqual(expect.arrayContaining(['syndicate','thana','neta','bhai','bosses']));
+    expect(keys.length).toBe(5);
+  });
+
+  test('power web panel visible on hub', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, {});
+    await expect(page.locator('#power-web-panel')).toBeVisible();
+    const rows = await page.locator('#power-web-rows .pw-row').count();
+    expect(rows).toBe(5);
+  });
+
+  test('inspector lazily assigned and info keeps matches count', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { investigation: { matchesLeft: 3 } });
+    const info = await page.locator('#investigation-info').textContent();
+    expect(info).toContain('3 matches');
+    const insp = await page.evaluate(() => window.GS.investigation.inspector);
+    expect(insp).toBeTruthy();
+  });
+
+  test('incorruptible inspector cannot be bribed', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { investigation: { matchesLeft: 3 }, blackMoney: 999 });
+    const res = await page.evaluate(() => {
+      window.GS.investigation.inspector = 'DSP Arjun Sherawat';
+      window.GS.investigation.bribeTried = false;
+      return window.bribeInspector();
+    });
+    expect(res.success).toBe(false);
+  });
+
+  test('hafta due triggers a hafta event', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { matchNum: 5 });
+    const ev = await page.evaluate(() => {
+      window.initFactions();
+      window.GS.factions.bhai.haftaDue = 1;
+      return window.processUnderworldWeek(true).event;
+    });
+    expect(ev).not.toBeNull();
+    expect(ev.type).toBe('hafta');
+  });
+
+  test('election resolves and installs a neta in power', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { matchNum: 5 });
+    const power = await page.evaluate(() => {
+      window.initFactions();
+      window.GS.factions.neta.election = 1;
+      window.processUnderworldWeek(true);
+      return window.GS.factions.neta.power;
+    });
+    expect(power).toBeTruthy();
+  });
+});
+
+// ============================================================
 // 17. CUSTOMISATION
 // ============================================================
 test.describe('Customisation', () => {
