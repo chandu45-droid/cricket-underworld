@@ -1,7 +1,138 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-08
-**Last commit:** ac78820 — Premium UI redesign Screen 08 (Card Collection + Pack Ceremony)
+**Last commit:** 28b7dd0 — Underworld Core plan doc
+
+## ⚠ IN-FLIGHT HANDOFF (2026-07-08): Underworld Core increment 1 — ~60% coded, UNTESTED, 3 edits remain
+
+**Founder directive #3 (active, verbatim):** *"focus more on the gameplay tuning and create a more relaistic and more engaging with these elements"* — mechanical depth for the underworld fantasy: named police inspectors + case pipeline, politicians/elections, local-leader hafta, incoming rival throw-match bribes, all as one-decision-per-match-week events.
+
+**State of `prototype/index.html` (~7350 lines, ES5 only — NO arrow functions):** SIX edits applied and consistent, but **dormant** — game runs identically until updateHub/endMatch wiring lands. Tests NOT run since edits. Committed as WIP.
+
+### Applied edits (done, in working tree)
+1. **CSS** (after `.glass.investigation .section-title` block, before `/* Tribunal overlay */`): `.pw-row .pw-dot .pw-main .pw-name .pw-head .pw-meter(-fill/-zero) .pw-status(.hot) @keyframes pwPulse .pw-case-stages .pw-stage(.done/.now) .pw-stage-line(.done) .pw-insp(-name/-tag .greedy/.ambitious/.incorruptible/-desc) .uw-note`
+2. **Hub HTML:** `#power-web-panel` glass (with `#power-web-rows`) inserted between mafia-banner and investigation-panel; `#case-stage-track` + `#case-actions` divs appended INSIDE `#investigation-panel` (original markup preserved byte-for-byte)
+3. **GS/state:** `factions: null,` after `ads: {...}` in GS; `GS.factions=v(d.factions,null);` in load(); `initFactions()` after initRivalData — lazy, per-key: `syndicate{rel} thana{rel} neta{rel,backed,power,ally,election:8,fundingSeen} bhai{rel,haftaDue:3} bosses{rel,offerCd:0}`
+4. **Data** (after RIVALS `];`): `INSPECTORS` (Inspector Khurana/greedy/200/0.85 · ACP Vaidehi Menon/ambitious/450/0.6 · DSP Arjun Sherawat/incorruptible/0/0), `NETA_CANDIDATES` (Bhupathi Rao–Vikas Morcha · Savitri Devi–Jan Shakti Party), `BHAI_NAME='Sikandar Bhai'`, `SYNDICATE_DON='Anna Seth'`, `pickInspector()`, `getInspector(name)` (fallback INSPECTORS[0]), `CASE_STAGES` (FIR Filed/Evidence/Chargesheet/Court Date), `caseStageIndex(m)` (m>=5→0, >=3→1, >=2→2, else 3), `caseStage(m)`
+5. **Enriched `startInvestigation()`:** `GS.investigation = { matchesLeft: 5, inspector: pickInspector(), bribeTried: false };` + fanLoyalty −15 + initFactions + thana rel −10. **matchesLeft:5 kept — test asserts it.**
+6. **New engine fns** (after startInvestigation): `bribeInspector()` (incorruptible→fail; one try per case via bribeTried; cost `round(bribeBase * (matchesLeft>=3 ? 1 : 1.6))` in blackMoney; align −5 always; success roll vs bribeSuccess → case cleared, greedy: half evidence lost +8 heat thana+10, ambitious: +10 heat; fail: ambitious DOUBLE-CROSS pushes evidence `{type:'Communication Intercept',weight:3}` +15 heat thana−15, greedy fail +6 heat) · `applyPoliticalPressure()` (needs neta.ally && neta.power && rel>=30; rel−30, clears case, +8 heat, align−8) · `processUnderworldWeek(won)` → `{notes:[], event:null|{type,title,desc,accent,...}}`, priority **hafta > election-funding > rival offer**: bhai rel≥40+won→+30 coins note; rel≤−30→−3 morale note; hafta clock (matchNum>2, haftaDue--, ≤0→event `amt=max(40,min(200,round(coins*0.05)))` accent #F97316); election-- weekly, ===3&&!backed&&!fundingSeen→funding event (cost 300, accent #F59E0B), ≤0→resolution (backed wins 60%: ally→rel+40; backed loser→rel−25 +10 heat; reset election=8/backed=null/fundingSeen=false); rival offer (`!event && !GS.investigation && !GS.mafiaBonus && offerCd<=0 && matchNum>2 && matchNum<=14 && nxt.alignment<0 && rnd<0.18`, `pay=150+round(nxt.strength)`, accent #A78BFA) · `resolveUwCard(html)` · `bindUnderworldEvent(ev)` binding `#hafta-pay-btn/#hafta-refuse-btn` (pay: −amt, bhai+6, haftaDue=3 / refuse: rel−15, haftaDue=3, align+2), `#fund-a-btn/#fund-b-btn/#fund-none-btn` (−300 coins, `neta.backed=NETA_CANDIDATES[idx].name`, align−3), `#rivaloffer-accept-btn` (blackMoney+=pay, `GS.mafiaBonus={type:'matchfixlose'}`, +8 heat, align−6, bosses+8, offerCd=4, rivalData rel+12) / `#rivaloffer-refuse-btn` (bosses−5, offerCd=2, rivalData rel−8, align+3). All call updateCurrency()/save() + resolveUwCard flavor text.
+
+### Remaining edits (3) — verbatim drafts
+
+**(a) Insert after `bindUnderworldEvent`:**
+```js
+function renderCaseFile() {
+  var inv = GS.investigation;
+  var track = $('case-stage-track'), actions = $('case-actions');
+  if (!inv || !track || !actions) return;
+  var idx = caseStageIndex(inv.matchesLeft);
+  var h = '';
+  for (var i = 0; i < CASE_STAGES.length; i++) {
+    h += '<div class="pw-stage' + (i < idx ? ' done' : i === idx ? ' now' : '') + '">' + CASE_STAGES[i] + '</div>';
+    if (i < CASE_STAGES.length - 1) h += '<div class="pw-stage-line' + (i < idx ? ' done' : '') + '"></div>';
+  }
+  track.innerHTML = h;
+  var insp = getInspector(inv.inspector);
+  var ah = '<div class="pw-insp"><span class="pw-insp-name">' + insp.name + '</span><span class="pw-insp-tag ' + insp.trait + '">' + insp.tag + '</span><span class="pw-insp-desc">' + insp.desc + '</span></div>';
+  ah += '<div class="flex gap-10" style="margin-top:8px">';
+  if (insp.trait !== 'incorruptible' && !inv.bribeTried) {
+    var cost = Math.round(insp.bribeBase * (inv.matchesLeft >= 3 ? 1 : 1.6));
+    ah += '<div class="btn btn-outline text-xs flex-1" style="padding:6px 10px" id="bribe-inspector-btn">Bribe · ' + cost + ' B$</div>';
+  }
+  ah += '<div class="btn btn-outline text-xs flex-1" style="padding:6px 10px" id="political-pressure-btn">Political Pressure</div></div>';
+  actions.innerHTML = ah;
+  var bb = $('bribe-inspector-btn');
+  if (bb) bb.onclick = function(e) { e.stopPropagation(); var r = bribeInspector(); toast(r.msg, r.success ? 'success' : 'error'); save(); updateHub(); updateCurrency(); };
+  var pb = $('political-pressure-btn');
+  if (pb) pb.onclick = function(e) { e.stopPropagation(); var r = applyPoliticalPressure(); toast(r.msg, r.success ? 'success' : 'error'); save(); updateHub(); };
+}
+function getFactionRows() {
+  initFactions();
+  var f = GS.factions;
+  var rows = [];
+  rows.push({ name:'The Syndicate', head: SYNDICATE_DON, rel: f.syndicate.rel, color:'#EF2D2D', status: GS.debts.length > 0 ? GS.debts.length + ' debt' + (GS.debts.length>1?'s':'') + ' open' : (GS.mafiaBonus ? 'Fix is set' : 'Watching you') });
+  rows.push({ name:'The Thana', head: GS.investigation ? getInspector(GS.investigation.inspector).name : 'Local Police', rel: f.thana.rel, color:'#60A5FA', status: GS.investigation ? 'CASE OPEN' : (GS.heat >= 50 ? 'Heat rising' : 'Quiet — for now') });
+  rows.push({ name:'The Neta', head: f.neta.power ? f.neta.power : 'No one in power', rel: f.neta.rel, color:'#F59E0B', status: (f.neta.election <= 3 && !f.neta.backed ? 'Election in ' + Math.max(1,f.neta.election) + ' — funding open' : 'Election in ' + Math.max(1,f.neta.election)) + (f.neta.ally ? ' · Your MLA rules' : '') });
+  rows.push({ name:'The Bhai', head: BHAI_NAME, rel: f.bhai.rel, color:'#F97316', status: f.bhai.haftaDue <= 0 ? 'HAFTA DUE' : 'Hafta in ' + f.bhai.haftaDue + (f.bhai.rel >= 40 ? ' · Crowd is yours' : f.bhai.rel <= -30 ? ' · Crowd hostile' : '') });
+  rows.push({ name:'Rival Bosses', head: '9 team owners', rel: f.bosses.rel, color:'#A78BFA', status: GS.collusionPacts && GS.collusionPacts.length > 0 ? GS.collusionPacts.length + ' pact' + (GS.collusionPacts.length>1?'s':'') + ' active' : 'Deals on the table' });
+  return rows;
+}
+function renderPowerWeb() {
+  var wrap = $('power-web-rows');
+  if (!wrap) return;
+  var rows = getFactionRows();
+  var h = '';
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var pct = Math.round((r.rel + 100) / 2);
+    h += '<div class="pw-row"><div class="pw-dot" style="background:' + r.color + ';box-shadow:0 0 8px ' + r.color + '66"></div>' +
+      '<div class="pw-main"><div class="pw-name">' + r.name + '<span class="pw-head">' + r.head + '</span></div>' +
+      '<div class="pw-meter"><div class="pw-meter-fill" style="width:' + pct + '%;background:' + r.color + '"></div><div class="pw-meter-zero"></div></div></div>' +
+      '<div class="pw-status' + (r.status.indexOf('DUE') >= 0 || r.status.indexOf('CASE OPEN') >= 0 ? ' hot' : '') + '">' + r.status + '</div></div>';
+  }
+  wrap.innerHTML = h;
+}
+```
+
+**(b) updateHub — replace lines ~4353-4357, verbatim anchor:**
+```js
+  if (GS.investigation) {
+    show('investigation-panel');
+    $('investigation-info').textContent = GS.investigation.matchesLeft + ' matches until tribunal · No new favors allowed';
+    $('evidence-count').textContent = GS.evidence.length;
+  } else { hide('investigation-panel'); }
+```
+Replace with lazy inspector + stage text (MUST keep `matchesLeft + ' matches'` prefix — test asserts `toContain('3 matches')`):
+```js
+  if (GS.investigation) {
+    show('investigation-panel');
+    if (!GS.investigation.inspector) GS.investigation.inspector = pickInspector();
+    $('investigation-info').textContent = GS.investigation.matchesLeft + ' matches until tribunal · ' + caseStage(GS.investigation.matchesLeft) + ' · No new favors';
+    $('evidence-count').textContent = GS.evidence.length;
+    renderCaseFile();
+  } else { hide('investigation-panel'); }
+  renderPowerWeb();
+```
+
+**(c) endMatch wiring (grep anchors, line numbers shifted ~+265 after orig 3811):**
+- After `var debtWarnings = processDebts();` → add `var uw = processUnderworldWeek(won);`
+- In the debtWarnings render block inside `$('match-result').innerHTML` → append `uw.notes.map(function(n){ return '<div class="uw-note">' + n + '</div>'; }).join('')`
+- In postEventsHtml assembly (follow the charity/`#charity-btn` pattern) → PREPEND `#uw-event-card` glass card: `border-left:3px solid ' + uw.event.accent`, title + desc, then type-specific button pairs: hafta → `#hafta-pay-btn` ("Pay N") / `#hafta-refuse-btn`; funding → `#fund-a-btn` / `#fund-b-btn` (candidate names) / `#fund-none-btn`; rivaloffer → `#rivaloffer-accept-btn` ("Take N B$") / `#rivaloffer-refuse-btn`
+- After `$('post-match-events').innerHTML = postEventsHtml;` → `if (uw.event) bindUnderworldEvent(uw.event);`
+- Optional: `initFactions();` after `initRivalData();` in INIT block (~line 7783) — lazy calls already cover correctness
+
+### Verified facts (do not re-derive)
+- `if (!isKnockout) GS.matchNum++;` runs BEFORE processDebts → `getNextRival()` inside processUnderworldWeek returns the true NEXT opponent ✓
+- `GS.mafiaBonus = null;` executes in endMatch BEFORE post-match event binding → setting `matchfixlose` in the accept handler survives to next match ✓ (`var wasFix = GS.mafiaBonus !== null;` adds +5 heat/−2 align/fanC−5/fixedAgainst++ next match)
+- NO `--ink` CSS token — use `var(--white)` (#F2ECE0). Tokens: `--white-06/-10/-20/-40 --slip #94A3B8 --amber #F59E0B --gold-bright #FFD23F --blood #EF2D2D --blue-bright #60A5FA --purple #A78BFA --font-d 'Teko' --font-b 'Rajdhani'`
+- Inspector names are original fiction (avoided Sacred Games IP names)
+- injectState (tests) writes `cu_save_v3` with NO factions key → every faction-touching fn calls initFactions() lazily ✓; injected `investigation:{matchesLeft:3}` has NO inspector → updateHub lazy-assign handles it
+
+### Test contracts that MUST stay green (114 tests)
+- `#investigation-info` textContent contains `matchesLeft + ' matches'` (`toContain('3 matches')`)
+- `#mafia-banner` hidden when `GS.investigation` truthy (existing guard — don't touch)
+- `window.checkInvestigation()` with heat:90 → `'started'` + `GS.investigation.matchesLeft === 5`
+- `window.resolveTribunal()` verdict names, `window.processDebts()` / `window.payDebt(0)` unchanged
+- Protected selectors: `#investigation-panel #investigation-info #evidence-count #mafia-banner #debt-panel #debt-list` + pack/tutorial set
+
+### New tests to add (tests/comprehensive.spec.js)
+1. Factions lazy-init: fresh state → `window.initFactions()` → GS.factions has 5 keys
+2. `#power-web-panel` visible on hub
+3. Inject `investigation:{matchesLeft:3}` → inspector lazily assigned + info still contains '3 matches'
+4. `GS.investigation.inspector='DSP Arjun Sherawat'` → `bribeInspector().success === false`
+5. `GS.factions.bhai.haftaDue=1` → `processUnderworldWeek(true)` returns hafta event
+6. `neta.election=1` → processUnderworldWeek resolves election, sets `neta.power`
+
+### Finish checklist
+1. Apply edits (a)(b)(c) above
+2. Add 6 new tests · serve `npx serve prototype -l 8080` (a prior background serve may still be running) · `npx playwright test` (~7.5 min, 114+6 green)
+3. Browser-verify: hub Power Web panel, case file under investigation, post-match event card
+4. Commit + push (trailer `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`), update this file + feature_list.json + memory `game-design-project.md`
+
+**Gotchas carried forward:** run node scripts FROM project dir (Temp breaks @playwright/test resolution) · dismiss `#tut-overlay` via `classList.remove('show')` + `GS.tutorialDone=true` · `#particle-canvas` z-49 behind overlays — scoped CSS sparks only.
+
+### After this increment (execution order)
+3. Rival outgoing bribes UI → 4. Grey Zone/Mafia redesign + Syndicate faces → 5. Politicians screen (Politics zone) → 6. Local leaders (Streets zone) → 7. Remaining screens in zone palettes.
 
 ## Current State
 
