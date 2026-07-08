@@ -1174,6 +1174,60 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .pw-insp-desc{font-style:italic;font-size:10px}
 .uw-note{font-size:12px;font-family:var(--font-b);font-weight:500;text-align:left;margin:6px auto;padding:8px 12px;max-width:340px;border:1px solid rgba(167,139,250,0.2);border-left:3px solid var(--purple);border-radius:3px;background:rgba(167,139,250,0.05);color:var(--slip)}
 
+/* Power Web rows — clickable into faction screens */
+.pw-row-click{cursor:pointer;transition:background 0.2s,padding-left 0.2s;padding-right:2px}
+.pw-row-click:hover{background:rgba(255,255,255,0.03);padding-left:4px}
+.pw-row-click:active{background:rgba(255,255,255,0.06)}
+.pw-chev{font-family:var(--font-d);font-size:18px;color:var(--white-40);flex-shrink:0;margin-left:2px;line-height:1;transition:color 0.2s,transform 0.2s}
+.pw-row-click:hover .pw-chev{color:var(--blood);transform:translateX(2px)}
+
+/* THE SYNDICATE — Underworld zone (blood red + smoke black, film-noir) */
+#mafia-overlay .modal[data-zone="underworld"]{background:linear-gradient(180deg,rgba(18,6,8,0.99) 0%,rgba(6,3,5,0.99) 100%)!important;border-color:rgba(239,45,45,0.35)!important;box-shadow:0 0 60px rgba(122,15,34,0.35),inset 0 0 80px rgba(0,0,0,0.5)}
+.syn-screen{position:relative}
+.syn-screen::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.14) 0px,rgba(0,0,0,0.14) 1px,transparent 1px,transparent 3px);opacity:0.5;z-index:0}
+.syn-screen>*{position:relative;z-index:1}
+.syn-title-band{text-align:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(239,45,45,0.18)}
+.syn-title{font-family:var(--font-d);font-size:26px;font-weight:800;letter-spacing:5px;text-transform:uppercase;color:var(--blood);text-shadow:0 0 26px rgba(239,45,45,0.5)}
+.syn-sub{font-family:var(--font-b);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--slip);margin-top:4px}
+.syn-don{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.syn-monogram{width:60px;height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:24px;font-weight:800;letter-spacing:1px;color:#F5DADA;background:linear-gradient(135deg,rgba(122,15,34,0.9),rgba(40,4,10,0.9));border:1px solid rgba(239,45,45,0.5);clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);box-shadow:0 0 22px rgba(239,45,45,0.3),inset 0 0 18px rgba(0,0,0,0.6)}
+.syn-don-info{flex:1;min-width:0}
+.syn-don-name{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--white);letter-spacing:1px;line-height:1.1}
+.syn-don-role{font-family:var(--font-b);font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--blood);margin-top:2px}
+.syn-tier{display:inline-block;margin-top:7px;font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border:1px solid;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+.syn-tier-made{color:var(--gold-bright);border-color:rgba(255,210,63,0.5);background:rgba(255,210,63,0.08)}
+.syn-tier-assoc{color:#FF8A8A;border-color:rgba(239,45,45,0.5);background:rgba(239,45,45,0.08)}
+.syn-tier-known{color:var(--slip);border-color:var(--white-40);background:rgba(255,255,255,0.03)}
+.syn-tier-notice{color:var(--amber);border-color:rgba(245,158,11,0.5);background:rgba(245,158,11,0.08)}
+.syn-tier-marked{color:#fff;border-color:var(--blood);background:rgba(239,45,45,0.22);animation:pwPulse 1.8s ease-in-out infinite}
+.syn-don-desc{font-family:var(--font-b);font-style:italic;font-size:12px;line-height:1.6;color:var(--slip);margin-bottom:16px;padding-left:12px;border-left:2px solid rgba(239,45,45,0.35)}
+.syn-rel-wrap{margin-bottom:16px}
+.syn-rel-head{display:flex;justify-content:space-between;font-family:var(--font-d);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--slip);margin-bottom:6px}
+.syn-rel-val{color:var(--blood);font-weight:700}
+.syn-rel-bar{position:relative;height:5px;background:rgba(255,255,255,0.06);overflow:visible}
+.syn-rel-fill{height:100%;background:linear-gradient(90deg,var(--crimson),var(--blood));transition:width 0.7s cubic-bezier(0.22,1,0.36,1);box-shadow:0 0 10px rgba(239,45,45,0.5)}
+.syn-rel-zero{position:absolute;left:50%;top:-2px;width:1px;height:9px;background:var(--white-40)}
+.syn-tier-desc{font-family:var(--font-b);font-size:11px;line-height:1.5;color:var(--slip);margin-top:7px}
+.syn-memory{margin-bottom:16px;padding:12px;background:rgba(122,15,34,0.1);border:1px solid rgba(239,45,45,0.18);clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%)}
+.syn-memory-title{font-family:var(--font-d);font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--blood);margin-bottom:8px}
+.syn-memory-row{display:flex;justify-content:space-between;font-family:var(--font-b);font-size:12px;color:var(--slip);padding:3px 0}
+.syn-mem-good{color:var(--gold-bright);font-family:var(--font-d);font-weight:700}
+.syn-mem-bad{color:var(--blood);font-family:var(--font-d);font-weight:700}
+.syn-mem-neutral{color:var(--white);font-family:var(--font-d);font-weight:700}
+.syn-memory-note{font-family:var(--font-b);font-style:italic;font-size:10px;color:var(--blood);margin-top:6px}
+.syn-lieut-title{font-family:var(--font-d);font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--slip);margin-bottom:10px}
+.syn-lieuts{display:flex;gap:10px;margin-bottom:16px}
+.syn-lieut{flex:1;min-width:0;padding:12px 10px;background:rgba(15,13,26,0.7);border:1px solid rgba(239,45,45,0.14);border-top:2px solid rgba(239,45,45,0.4);text-align:center}
+.syn-lieut-mono{width:38px;height:38px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:15px;font-weight:700;color:#F5DADA;background:rgba(122,15,34,0.6);border:1px solid rgba(239,45,45,0.35);clip-path:polygon(50% 0,100% 30%,100% 100%,0 100%,0 30%)}
+.syn-lieut-name{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--white);letter-spacing:0.3px;line-height:1.15}
+.syn-lieut-role{font-family:var(--font-b);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--blood);margin:3px 0 6px}
+.syn-lieut-desc{font-family:var(--font-b);font-size:10px;line-height:1.4;color:var(--slip)}
+.syn-debts{margin-bottom:8px;padding:10px 12px;background:rgba(239,45,45,0.06);border:1px solid rgba(239,45,45,0.2);border-left:3px solid var(--blood);border-radius:3px}
+.syn-debts-head{display:flex;justify-content:space-between;font-family:var(--font-d);font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--white)}
+.syn-debts-total{color:var(--blood);font-weight:700}
+.syn-debts-sub{font-family:var(--font-b);font-size:10px;color:var(--slip);margin-top:4px}
+.syn-offer-locked{margin-top:14px;padding:12px;text-align:center;font-family:var(--font-b);font-size:12px;font-style:italic;line-height:1.5;color:var(--slip);border:1px dashed rgba(255,255,255,0.14);border-radius:3px;background:rgba(255,255,255,0.02)}
+
 /* Tribunal overlay */
 .tribunal-overlay{position:fixed;inset:0;z-index:280;background:rgba(4,6,13,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.8s}
 .tribunal-overlay.show{opacity:1;pointer-events:auto}
@@ -2481,7 +2535,10 @@ function initRivalData() {
 function initFactions() {
   if (!GS.factions) GS.factions = {};
   var f = GS.factions;
-  if (!f.syndicate) f.syndicate = { rel: 0 };
+  if (!f.syndicate) f.syndicate = { rel: 0, favorsDone: 0, betrayed: 0, met: false };
+  if (f.syndicate.favorsDone == null) f.syndicate.favorsDone = 0;
+  if (f.syndicate.betrayed == null) f.syndicate.betrayed = 0;
+  if (f.syndicate.met == null) f.syndicate.met = false;
   if (!f.thana) f.thana = { rel: 0 };
   if (!f.neta) f.neta = { rel: 0, backed: null, power: null, ally: false, election: 8, fundingSeen: false };
   if (!f.bhai) f.bhai = { rel: 0, haftaDue: 3 };
@@ -2582,6 +2639,19 @@ var NETA_CANDIDATES = [
 ];
 var BHAI_NAME = 'Sikandar Bhai';
 var SYNDICATE_DON = 'Anna Seth';
+var SYNDICATE_DON_DESC = 'Speaks softly. Never twice. Owns half the bookies in the country and the other half owe him.';
+var SYNDICATE_LIEUTENANTS = [
+  { name: 'Rukhsana Mirza', alias: 'Ruby', role: 'The Fixer', desc: 'Runs the bookie lines. Every match-fix and umpire job passes through her.' },
+  { name: 'Balwant Teja', alias: 'Teja', role: 'The Enforcer', desc: 'Collects what is owed. When a debt turns, he is the one at your door.' },
+];
+// Relationship tiers with the Syndicate — unlock/lock what Anna Seth will offer you.
+function syndicateTier(rel) {
+  if (rel >= 60) return { name: 'Made Man', cls: 'made', priceMod: 0.85, desc: 'You are family. Best jobs, best prices — the Syndicate trusts you with the big fixes.' };
+  if (rel >= 20) return { name: 'Associate', cls: 'assoc', priceMod: 0.95, desc: 'A trusted hand. Anna Seth deals with you openly.' };
+  if (rel >= -20) return { name: 'Known', cls: 'known', priceMod: 1.0, desc: 'A face they recognise. Business is business — nothing more.' };
+  if (rel >= -60) return { name: 'On Notice', cls: 'notice', priceMod: 1.2, desc: 'You have crossed them once. Prices are up and patience is thin.' };
+  return { name: 'Marked', cls: 'marked', priceMod: 1.5, desc: 'You burned the Syndicate. Offers are shut off until you settle what you owe.' };
+}
 function pickInspector() { return INSPECTORS[Math.floor(Math.random() * INSPECTORS.length)].name; }
 function getInspector(name) {
   for (var i = 0; i < INSPECTORS.length; i++) { if (INSPECTORS[i].name === name) return INSPECTORS[i]; }
@@ -3482,6 +3552,8 @@ function processAlignDecay() {
 
 function processDebts() {
   var warnings = [];
+  initFactions();
+  var synF = GS.factions.syndicate;
   for (var i = GS.debts.length - 1; i >= 0; i--) {
     var d = GS.debts[i];
     d.matchesLeft--;
@@ -3489,16 +3561,20 @@ function processDebts() {
       d.stage = Math.min(3, d.stage + 1);
       if (d.stage === 1) {
         d.principal = Math.round(d.principal * 1.2);
-        warnings.push('Debt reminder: ' + d.source + ' — now ' + d.principal + ' B$. Pay up.');
+        synF.rel = Math.max(-100, synF.rel - 5);
+        warnings.push('Debt reminder: ' + d.source + ' — now ' + d.principal + ' B$. Pay up. ' + SYNDICATE_DON + ' is losing patience.');
       } else if (d.stage === 2) {
         d.principal = Math.round(d.principal * 1.25);
+        synF.rel = Math.max(-100, synF.rel - 10);
         if (GS.squad.length > 0) {
           var held = GS.squad[Math.floor(Math.random() * GS.squad.length)];
           d.heldPlayer = held.name;
-          warnings.push('PRESSURE: ' + held.name + ' seized as collateral for ' + d.source + ' debt!');
+          warnings.push('PRESSURE: ' + SYNDICATE_LIEUTENANTS[1].alias + ' seized ' + held.name + ' as collateral for the ' + d.source + ' debt!');
         }
         applyAlignShift(-5);
       } else if (d.stage >= 3) {
+        synF.rel = Math.max(-100, synF.rel - 20);
+        synF.betrayed = (synF.betrayed || 0) + 1;
         var seize = GS.squad.length > 0 && Math.random() < 0.5;
         if (seize) {
           var best = GS.squad.reduce(function(a, b) { return getOVR(a) > getOVR(b) ? a : b; });
@@ -3526,6 +3602,8 @@ function payDebt(idx) {
     toast(d.heldPlayer + ' released from mafia hold', 'success');
   }
   GS.debts.splice(idx, 1);
+  initFactions();
+  GS.factions.syndicate.rel = Math.min(100, GS.factions.syndicate.rel + 4);
   updateCurrency();
   save();
   return true;
@@ -4082,11 +4160,11 @@ function getFactionRows() {
   initFactions();
   var f = GS.factions;
   var rows = [];
-  rows.push({ name:'The Syndicate', head: SYNDICATE_DON, rel: f.syndicate.rel, color:'#EF2D2D', status: GS.debts.length > 0 ? GS.debts.length + ' debt' + (GS.debts.length>1?'s':'') + ' open' : (GS.mafiaBonus ? 'Fix is set' : 'Watching you') });
-  rows.push({ name:'The Thana', head: GS.investigation ? getInspector(GS.investigation.inspector).name : 'Local Police', rel: f.thana.rel, color:'#60A5FA', status: GS.investigation ? 'CASE OPEN' : (GS.heat >= 50 ? 'Heat rising' : 'Quiet — for now') });
-  rows.push({ name:'The Neta', head: f.neta.power ? f.neta.power : 'No one in power', rel: f.neta.rel, color:'#F59E0B', status: (f.neta.election <= 3 && !f.neta.backed ? 'Election in ' + Math.max(1,f.neta.election) + ' — funding open' : 'Election in ' + Math.max(1,f.neta.election)) + (f.neta.ally ? ' · Your MLA rules' : '') });
-  rows.push({ name:'The Bhai', head: BHAI_NAME, rel: f.bhai.rel, color:'#F97316', status: f.bhai.haftaDue <= 0 ? 'HAFTA DUE' : 'Hafta in ' + f.bhai.haftaDue + (f.bhai.rel >= 40 ? ' · Crowd is yours' : f.bhai.rel <= -30 ? ' · Crowd hostile' : '') });
-  rows.push({ name:'Rival Bosses', head: '9 team owners', rel: f.bosses.rel, color:'#A78BFA', status: GS.collusionPacts && GS.collusionPacts.length > 0 ? GS.collusionPacts.length + ' pact' + (GS.collusionPacts.length>1?'s':'') + ' active' : 'Deals on the table' });
+  rows.push({ key:'syndicate', name:'The Syndicate', head: SYNDICATE_DON, rel: f.syndicate.rel, color:'#EF2D2D', status: GS.debts.length > 0 ? GS.debts.length + ' debt' + (GS.debts.length>1?'s':'') + ' open' : (GS.mafiaBonus ? 'Fix is set' : 'Watching you') });
+  rows.push({ key:'thana', name:'The Thana', head: GS.investigation ? getInspector(GS.investigation.inspector).name : 'Local Police', rel: f.thana.rel, color:'#60A5FA', status: GS.investigation ? 'CASE OPEN' : (GS.heat >= 50 ? 'Heat rising' : 'Quiet — for now') });
+  rows.push({ key:'neta', name:'The Neta', head: f.neta.power ? f.neta.power : 'No one in power', rel: f.neta.rel, color:'#F59E0B', status: (f.neta.election <= 3 && !f.neta.backed ? 'Election in ' + Math.max(1,f.neta.election) + ' — funding open' : 'Election in ' + Math.max(1,f.neta.election)) + (f.neta.ally ? ' · Your MLA rules' : '') });
+  rows.push({ key:'bhai', name:'The Bhai', head: BHAI_NAME, rel: f.bhai.rel, color:'#F97316', status: f.bhai.haftaDue <= 0 ? 'HAFTA DUE' : 'Hafta in ' + f.bhai.haftaDue + (f.bhai.rel >= 40 ? ' · Crowd is yours' : f.bhai.rel <= -30 ? ' · Crowd hostile' : '') });
+  rows.push({ key:'bosses', name:'Rival Bosses', head: '9 team owners', rel: f.bosses.rel, color:'#A78BFA', status: GS.collusionPacts && GS.collusionPacts.length > 0 ? GS.collusionPacts.length + ' pact' + (GS.collusionPacts.length>1?'s':'') + ' active' : 'Deals on the table' });
   return rows;
 }
 function renderPowerWeb() {
@@ -4097,12 +4175,125 @@ function renderPowerWeb() {
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
     var pct = Math.round((r.rel + 100) / 2);
-    h += '<div class="pw-row"><div class="pw-dot" style="background:' + r.color + ';box-shadow:0 0 8px ' + r.color + '66"></div>' +
+    h += '<div class="pw-row pw-row-click" data-faction="' + r.key + '"><div class="pw-dot" style="background:' + r.color + ';box-shadow:0 0 8px ' + r.color + '66"></div>' +
       '<div class="pw-main"><div class="pw-name">' + r.name + '<span class="pw-head">' + r.head + '</span></div>' +
       '<div class="pw-meter"><div class="pw-meter-fill" style="width:' + pct + '%;background:' + r.color + '"></div><div class="pw-meter-zero"></div></div></div>' +
-      '<div class="pw-status' + (r.status.indexOf('DUE') >= 0 || r.status.indexOf('CASE OPEN') >= 0 ? ' hot' : '') + '">' + r.status + '</div></div>';
+      '<div class="pw-status' + (r.status.indexOf('DUE') >= 0 || r.status.indexOf('CASE OPEN') >= 0 ? ' hot' : '') + '">' + r.status + '</div><div class="pw-chev">›</div></div>';
   }
   wrap.innerHTML = h;
+  var nodes = wrap.querySelectorAll('.pw-row-click');
+  for (var j = 0; j < nodes.length; j++) {
+    nodes[j].onclick = function() { openFactionScreen(this.getAttribute('data-faction')); };
+  }
+}
+// Router for the Power Web rows → each faction's identity screen.
+function openFactionScreen(key) {
+  SFX.tap();
+  if (key === 'syndicate') { showSyndicateScreen(); return; }
+  if (key === 'bosses') {
+    var nx = (typeof getNextRival === 'function') ? getNextRival() : null;
+    if (nx) { showRivalProfile(nx.name); } else { toast('No rival lined up yet', 'info'); }
+    return;
+  }
+  if (key === 'thana') {
+    if (typeof showThanaScreen === 'function') { showThanaScreen(); return; }
+    if (GS.investigation) { toast('Case open — resolve it from the file below', 'info'); }
+    else { toast('The Thana is quiet. Heat ' + GS.heat + '/100.', 'info'); }
+    return;
+  }
+  if (key === 'neta') {
+    if (typeof showNetaScreen === 'function') { showNetaScreen(); return; }
+    toast('Politics desk opens closer to election', 'info'); return;
+  }
+  if (key === 'bhai') {
+    if (typeof showBhaiScreen === 'function') { showBhaiScreen(); return; }
+    toast(BHAI_NAME + ' runs the home end. Hafta in ' + Math.max(0, GS.factions.bhai.haftaDue), 'info'); return;
+  }
+}
+
+// =============================================
+// THE SYNDICATE — faction identity screen (Underworld zone)
+// =============================================
+function showSyndicateScreen() {
+  SFX.mafia();
+  initFactions();
+  var f = GS.factions.syndicate;
+  var tier = syndicateTier(f.rel);
+  var pct = Math.round((f.rel + 100) / 2);
+  var zone = getAlignmentZone(GS.alignment);
+  var totalOwed = 0;
+  for (var di = 0; di < GS.debts.length; di++) totalOwed += GS.debts[di].principal;
+
+  // Determine the offer button state.
+  var offerLocked = null;
+  if (!zone.mafiaAccess) offerLocked = 'Too clean for their business — drift into the grey zone first';
+  else if (GS.investigation) offerLocked = 'A case is open — the Syndicate lies low';
+  else if (tier.cls === 'marked') offerLocked = SYNDICATE_DON + ' has cut you off — settle your debts to earn trust back';
+  else if (GS.debts.length >= 5) offerLocked = 'Too many debts already — pay some down first';
+
+  var monogram = SYNDICATE_DON.split(' ').map(function(w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+
+  var h = '';
+  h += '<div class="syn-screen">';
+  // Title band
+  h += '<div class="syn-title-band"><div class="syn-title">THE SYNDICATE</div><div class="syn-sub">Underworld · off the books</div></div>';
+  // Don hero
+  h += '<div class="syn-don">';
+  h += '<div class="syn-monogram">' + monogram + '</div>';
+  h += '<div class="syn-don-info"><div class="syn-don-name">' + SYNDICATE_DON + '</div>' +
+       '<div class="syn-don-role">The Don</div>' +
+       '<div class="syn-tier syn-tier-' + tier.cls + '">' + tier.name + '</div></div>';
+  h += '</div>';
+  h += '<div class="syn-don-desc">"' + SYNDICATE_DON_DESC + '"</div>';
+  // Relationship meter
+  h += '<div class="syn-rel-wrap"><div class="syn-rel-head"><span>Standing</span><span class="syn-rel-val">' + (f.rel > 0 ? '+' : '') + f.rel + '</span></div>' +
+       '<div class="syn-rel-bar"><div class="syn-rel-fill" style="width:' + pct + '%"></div><div class="syn-rel-zero"></div></div>' +
+       '<div class="syn-tier-desc">' + tier.desc + '</div></div>';
+  // Betrayal memory strip
+  h += '<div class="syn-memory"><div class="syn-memory-title">The Syndicate remembers</div>' +
+       '<div class="syn-memory-row"><span>Favors done for them</span><span class="syn-mem-good">' + (f.favorsDone || 0) + '</span></div>' +
+       '<div class="syn-memory-row"><span>Debts you let turn</span><span class="' + ((f.betrayed || 0) > 0 ? 'syn-mem-bad' : 'syn-mem-neutral') + '">' + (f.betrayed || 0) + '</span></div>' +
+       ((f.betrayed || 0) > 0 ? '<div class="syn-memory-note">Every broken deal makes the next one costlier.</div>' : '') +
+       '</div>';
+  // Lieutenants
+  h += '<div class="syn-lieut-title">His Lieutenants</div><div class="syn-lieuts">';
+  for (var li = 0; li < SYNDICATE_LIEUTENANTS.length; li++) {
+    var L = SYNDICATE_LIEUTENANTS[li];
+    var lm = L.name.split(' ').map(function(w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+    h += '<div class="syn-lieut"><div class="syn-lieut-mono">' + lm + '</div>' +
+         '<div class="syn-lieut-name">' + L.name + '</div>' +
+         '<div class="syn-lieut-role">' + L.role + '</div>' +
+         '<div class="syn-lieut-desc">' + L.desc + '</div></div>';
+  }
+  h += '</div>';
+  // Active debts summary
+  if (GS.debts.length > 0) {
+    h += '<div class="syn-debts"><div class="syn-debts-head"><span>Open debts</span><span class="syn-debts-total">' + totalOwed + ' B$ owed</span></div>' +
+         '<div class="syn-debts-sub">' + GS.debts.length + '/5 slots used · manage them from the hub</div></div>';
+  }
+  // Offer action
+  if (offerLocked) {
+    h += '<div class="syn-offer-locked">' + offerLocked + '</div>';
+  } else {
+    h += '<div class="btn btn-red pulse" id="syn-hear-offer-btn" style="width:100%;margin-top:14px">Hear an Offer</div>';
+  }
+  h += '<div class="btn btn-outline" id="syn-close-btn" style="width:100%;margin-top:10px">Walk Away</div>';
+  h += '</div>';
+
+  var content = $('mafia-offer-content');
+  content.innerHTML = h;
+  f.met = true;
+  var modal = document.querySelector('#mafia-overlay .modal');
+  if (modal) modal.setAttribute('data-zone', 'underworld');
+  $('mafia-overlay').classList.add('show');
+  var ob = $('syn-hear-offer-btn');
+  if (ob) ob.onclick = function() { showMafiaOffer(); };
+  var cb = $('syn-close-btn');
+  if (cb) cb.onclick = function() {
+    $('mafia-overlay').classList.remove('show');
+    if (modal) modal.removeAttribute('data-zone');
+  };
+  save();
 }
 
 function resolveTribunal() {
@@ -7022,8 +7213,13 @@ function showMafiaOffer() {
   SFX.mafia();
   if (GS.debts.length >= 5) { toast('Max debts reached — pay up first', 'error'); return; }
   if (GS.investigation) { toast('Under investigation — no favors allowed', 'error'); return; }
+  initFactions();
+  var synF = GS.factions.syndicate;
+  var synT = syndicateTier(synF.rel);
+  if (synT.cls === 'marked') { toast(SYNDICATE_DON + ' has cut you off — settle your debts first', 'error'); return; }
+  synF.met = true;
   var zone = getAlignmentZone(GS.alignment);
-  var priceMod = zone.tier <= 2 ? 1.5 : zone.tier === 3 ? 1.0 : zone.tier === 4 ? 0.85 : 0.7;
+  var priceMod = (zone.tier <= 2 ? 1.5 : zone.tier === 3 ? 1.0 : zone.tier === 4 ? 0.85 : 0.7) * synT.priceMod;
   var deadlineMod = zone.tier <= 2 ? 1 : zone.tier >= 5 ? -1 : 0;
   var allOffers = [
     {name:'Match Fix',desc:'Your batters get +30% power next match. The bookies handle the rest.',cost:30,heat:15,align:-8,bonus:{type:'matchfix'},debt:150,deadline:2},
@@ -7090,6 +7286,8 @@ function showMafiaOffer() {
       GS.debts.push({ source: offer.name, principal: offer.debt, matchesLeft: offer.deadline, stage: 0, heldPlayer: null });
     }
     GS.consecutiveFavors = (GS.consecutiveFavors || 0) + 1;
+    synF.rel = Math.min(100, synF.rel + 5);
+    synF.favorsDone = (synF.favorsDone || 0) + 1;
     updateCurrency(); $('mafia-overlay').classList.remove('show');
     var msg = '';
     if (!skipLoyalty && !lc.success) {
@@ -7114,6 +7312,7 @@ function showMafiaOffer() {
   $('decline-mafia-btn').onclick = function() {
     var declineShift = applyAlignShift(3);
     GS.consecutiveFavors = 0;
+    synF.rel = Math.max(-100, synF.rel - 4);
     $('mafia-overlay').classList.remove('show');
     toast('Offer declined. Alignment +' + declineShift, 'success');
     save();
