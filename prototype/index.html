@@ -944,19 +944,47 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 /* ================================================================
    CARDS / COLLECTION
    ================================================================ */
-.card-filters{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
-.card-filter{padding:7px 16px;border-radius:3px;border:1px solid var(--border);font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--slip);cursor:pointer;transition:all 0.2s;white-space:nowrap;text-transform:uppercase;letter-spacing:0.8px;background:rgba(255,255,255,0.02)}
-.card-filter.active{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(240,200,80,0.08);box-shadow:0 0 10px rgba(240,200,80,0.1)}
-.cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;perspective:800px}
+.coll-progress{position:relative;margin-bottom:14px;padding:12px 14px;background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:var(--glass-border);border-left:3px solid var(--gold);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);box-shadow:0 2px 14px rgba(0,0,0,0.25)}
+.coll-progress .cp-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.coll-progress .cp-label{font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--slip)}
+.coll-progress .cp-count{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--gold-bright);text-shadow:0 0 14px rgba(240,200,80,0.25);line-height:1}
+.coll-progress .cp-count span{font-size:13px;color:var(--slip);text-shadow:none;font-weight:600}
+.coll-progress .cp-bar{height:5px;background:rgba(255,255,255,0.05);clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%);overflow:hidden;margin-bottom:9px}
+.coll-progress .cp-fill{height:100%;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-bright) 60%,#FFE9A8 100%);box-shadow:0 0 12px rgba(240,200,80,0.5);transition:width 0.8s var(--spring);position:relative}
+.coll-progress .cp-rarities{display:flex;gap:12px;flex-wrap:wrap}
+.coll-progress .cp-r{display:flex;align-items:center;gap:5px;font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--slip)}
+.coll-progress .cp-r i{width:7px;height:7px;transform:rotate(45deg);background:var(--rc);box-shadow:0 0 8px var(--rc);display:inline-block}
 
-.shop-item{display:flex;align-items:center;gap:14px;padding:16px;background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:var(--glass-border);border-radius:4px;margin-bottom:10px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
-.shop-item:active{transform:scale(0.98);background:rgba(255,255,255,0.06)}
-.shop-item .shop-icon{width:52px;height:52px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.card-filters{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.card-filter{position:relative;padding:8px 16px;border:1px solid var(--border);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--slip);cursor:pointer;transition:all 0.25s var(--spring);white-space:nowrap;text-transform:uppercase;letter-spacing:1.2px;background:linear-gradient(160deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))}
+.card-filter:active{transform:scale(0.94)}
+.card-filter .cf-count{margin-left:6px;font-size:11px;color:var(--slip);opacity:0.7}
+.card-filter.active{border-color:rgba(240,200,80,0.55);color:var(--gold-bright);background:linear-gradient(160deg,rgba(240,200,80,0.16),rgba(240,200,80,0.04));box-shadow:0 0 16px rgba(240,200,80,0.18),inset 0 0 12px rgba(240,200,80,0.06);text-shadow:0 0 10px rgba(240,200,80,0.35)}
+.card-filter.active .cf-count{color:var(--gold-bright);opacity:1}
+
+.cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;perspective:900px}
+.cards-grid .player-card{animation:cardDealIn 0.4s var(--spring-bounce) both}
+.cards-grid .player-card:nth-child(2){animation-delay:0.05s}
+.cards-grid .player-card:nth-child(3){animation-delay:0.1s}
+.cards-grid .player-card:nth-child(4){animation-delay:0.15s}
+.cards-grid .player-card:nth-child(5){animation-delay:0.2s}
+.cards-grid .player-card:nth-child(6){animation-delay:0.25s}
+.cards-grid .player-card:nth-child(n+7){animation-delay:0.3s}
+@keyframes cardDealIn{0%{opacity:0;transform:translateY(22px) rotateX(7deg) scale(0.95)}100%{opacity:1;transform:translateY(0) rotateX(0) scale(1)}}
+
+.shop-item{position:relative;display:flex;align-items:center;gap:14px;padding:16px;background:linear-gradient(160deg,rgba(20,26,40,0.85),rgba(8,10,18,0.92));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));margin-bottom:10px;cursor:pointer;transition:all 0.25s var(--spring);overflow:hidden}
+.shop-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--pk,#3B82F6),transparent);pointer-events:none}
+.shop-item::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.06) 50%,transparent 65%);transform:translateX(-100%);animation:packSheen 4.5s ease-in-out infinite;pointer-events:none}
+@keyframes packSheen{0%,55%{transform:translateX(-100%)}90%,100%{transform:translateX(100%)}}
+#pack-standard{--pk:#3B82F6}
+#pack-premium{--pk:var(--gold-bright)}
+.shop-item:active{transform:scale(0.97)}
+.shop-item .shop-icon{width:54px;height:54px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;filter:drop-shadow(0 0 10px var(--pk,rgba(59,130,246,0.4)))}
 .shop-item .shop-info{flex:1}
-.shop-item .shop-name{font-family:var(--font-d);font-size:17px;font-weight:600;letter-spacing:0.3px}
-.shop-item .shop-desc{font-size:11px;color:var(--slip);margin-top:2px}
-.shop-item .shop-price{font-family:var(--font-d);font-size:16px;font-weight:700}
-.shop-item.premium{border:1px solid rgba(240,200,80,0.12);animation:premiumGlow 3s ease-in-out infinite}
+.shop-item .shop-name{font-family:var(--font-d);font-size:18px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase}
+.shop-item .shop-desc{font-size:11px;color:var(--slip);margin-top:3px;letter-spacing:0.3px}
+.shop-item .shop-price{font-family:var(--font-d);font-size:15px;font-weight:700;padding:6px 12px;border:1px solid rgba(240,200,80,0.25);background:rgba(240,200,80,0.07);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);box-shadow:0 0 12px rgba(240,200,80,0.08)}
+.shop-item.premium{border-color:rgba(240,200,80,0.3);box-shadow:0 0 20px rgba(240,200,80,0.08),inset 0 0 24px rgba(240,200,80,0.03);animation:premiumGlow 3s ease-in-out infinite}
 
 /* ================================================================
    LEAGUE
@@ -1055,7 +1083,8 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
    TOAST
    ================================================================ */
 .toast{position:fixed;top:calc(var(--top-h) + 12px);left:50%;transform:translateX(-50%) translateY(-120%);background:var(--dugout);border:1px solid var(--border);border-radius:3px;padding:12px 24px;font-size:13px;z-index:400;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:90%;text-align:center;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-weight:600;letter-spacing:0.3px}
-.toast.show{transform:translateX(-50%) translateY(0)}
+.toast{opacity:0;pointer-events:none;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1),opacity 0.25s ease}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
 .toast.success{border-color:rgba(34,212,126,0.3);color:var(--green-bright);background:linear-gradient(135deg,rgba(34,212,126,0.1),var(--dugout))}
 .toast.error{border-color:rgba(220,38,38,0.3);color:var(--blood);background:linear-gradient(135deg,rgba(220,38,38,0.1),var(--dugout))}
 .toast.info{border-color:rgba(240,200,80,0.3);color:var(--gold-bright);background:linear-gradient(135deg,rgba(240,200,80,0.1),var(--dugout))}
@@ -1180,6 +1209,25 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .pack-card-back::after{content:'CU';font-family:var(--font-d);font-size:32px;font-weight:700;color:rgba(255,207,68,0.1);letter-spacing:10px}
 .pack-card-back .back-pattern{position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,207,68,0.015) 8px,rgba(255,207,68,0.015) 9px),repeating-linear-gradient(-45deg,transparent,transparent 8px,rgba(255,207,68,0.015) 8px,rgba(255,207,68,0.015) 9px);pointer-events:none}
 .pack-flip-inner.flipped .pack-card-front{animation:packBurst 0.5s ease-out 0.45s both}
+
+/* Pack opening ceremony — spotlight stage */
+#pack-overlay::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 50% 38%,rgba(240,200,80,0.10) 0%,rgba(240,200,80,0.03) 30%,transparent 65%);pointer-events:none}
+#pack-overlay::after{content:'';position:fixed;left:50%;top:38%;width:140vmax;height:140vmax;margin-left:-70vmax;margin-top:-70vmax;background:conic-gradient(from 0deg,transparent 0deg,rgba(240,200,80,0.05) 12deg,transparent 26deg,transparent 90deg,rgba(240,200,80,0.04) 102deg,transparent 118deg,transparent 180deg,rgba(240,200,80,0.05) 195deg,transparent 210deg,transparent 275deg,rgba(240,200,80,0.04) 288deg,transparent 305deg);animation:packRays 26s linear infinite;pointer-events:none}
+@keyframes packRays{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.pack-title{font-family:var(--font-d);font-size:28px;font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:4px;background:linear-gradient(135deg,#FFE9A8,var(--gold-bright) 40%,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:textReveal 0.7s ease-out both;filter:drop-shadow(0 0 18px rgba(240,200,80,0.25));padding-top:36px}
+.pack-sub{text-align:center;color:var(--slip);font-size:12px;text-transform:uppercase;letter-spacing:2.5px;margin:6px 0 14px}
+.pack-flip-container{position:relative}
+.pack-flip-container::before{content:'';position:absolute;inset:-8px;border:2px solid var(--rev-color,#F0C850);opacity:0;pointer-events:none;z-index:2}
+.pack-flip-container.revealed::before{animation:revealRing 0.7s ease-out 0.4s}
+@keyframes revealRing{0%{opacity:0.9;transform:scale(0.85)}100%{opacity:0;transform:scale(1.25)}}
+.pack-flip-container.revealed .pack-card-front .player-card{box-shadow:0 0 22px var(--rev-glow,rgba(240,200,80,0.25)),var(--elevation-3)}
+.pack-flip-container[data-r="legendary"].revealed{animation:legendarySpot 1.8s ease-out 0.45s}
+@keyframes legendarySpot{0%{filter:brightness(1.9) drop-shadow(0 0 32px rgba(220,38,38,0.65))}100%{filter:none}}
+.pack-spark{position:absolute;left:50%;top:50%;width:5px;height:5px;background:var(--rev-color,#F0C850);transform:rotate(45deg);box-shadow:0 0 8px var(--rev-color,#F0C850);pointer-events:none;z-index:3;animation:sparkFly 0.8s ease-out forwards}
+@keyframes sparkFly{0%{opacity:1;transform:translate(0,0) rotate(45deg) scale(1)}100%{opacity:0;transform:translate(var(--sx),var(--sy)) rotate(405deg) scale(0.2)}}
+.pack-card-front::after{content:'NEW';position:absolute;top:8px;left:0;z-index:5;font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:2px;color:#0A0C14;background:linear-gradient(135deg,#FFE9A8,var(--gold-bright));padding:3px 10px;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%);opacity:0;pointer-events:none}
+.pack-flip-inner.flipped .pack-card-front::after{animation:newBadgeIn 0.4s var(--spring-bounce) 0.55s both}
+@keyframes newBadgeIn{0%{opacity:0;transform:translateX(-10px) scale(0.7)}100%{opacity:1;transform:translateX(0) scale(1)}}
 
 /* Bowler picker between overs */
 .bowler-picker{margin-bottom:12px;animation:fadeSlideUp 0.3s var(--spring)}
@@ -1456,7 +1504,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .hub-meter .meter-fill{transition:width 0.8s var(--spring)}
 
 /* Toast spring entrance */
-.toast{transition:transform 0.4s var(--spring-bounce)}
+.toast{transition:transform 0.4s var(--spring-bounce),opacity 0.25s ease}
 
 /* ================================================================
    P1.5 — ENHANCED LOADING TRANSITIONS
@@ -2083,12 +2131,13 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
     <!-- CARDS -->
     <div class="screen" id="cards-screen">
       <div class="section-title">Collection<span class="accent-line"></span></div>
+      <div class="coll-progress" id="coll-progress"></div>
       <div class="card-filters" id="card-filters">
-        <div class="card-filter active" data-filter="all">All</div>
-        <div class="card-filter" data-filter="batter">Batters</div>
-        <div class="card-filter" data-filter="bowler">Bowlers</div>
-        <div class="card-filter" data-filter="allrounder">All-Round</div>
-        <div class="card-filter" data-filter="keeper">Keepers</div>
+        <div class="card-filter active" data-filter="all">All<span class="cf-count"></span></div>
+        <div class="card-filter" data-filter="batter">Batters<span class="cf-count"></span></div>
+        <div class="card-filter" data-filter="bowler">Bowlers<span class="cf-count"></span></div>
+        <div class="card-filter" data-filter="allrounder">All-Round<span class="cf-count"></span></div>
+        <div class="card-filter" data-filter="keeper">Keepers<span class="cf-count"></span></div>
       </div>
       <div class="cards-grid" id="cards-grid"></div>
       <div class="divider"></div>
@@ -4190,6 +4239,26 @@ function updateCardsScreen() {
   $('cards-grid').innerHTML = players.length
     ? players.map(renderPlayerCard).join('')
     : '<div class="text-center text-slip" style="grid-column:1/-1;padding:60px 0"><div style="font-size:40px;opacity:0.08;margin-bottom:12px">&#9830;</div>No cards in this category</div>';
+  // Collection progress strip
+  var total = ALL_PLAYERS.length, owned = GS.squad.length;
+  var pct = total ? Math.round(owned / total * 100) : 0;
+  var rCounts = {};
+  for (var i = 0; i < GS.squad.length; i++) rCounts[GS.squad[i].rarity] = (rCounts[GS.squad[i].rarity] || 0) + 1;
+  var rHtml = '';
+  for (var r = 0; r < RARITIES.length; r++) rHtml += '<div class="cp-r" style="--rc:' + RARITY_COLORS[RARITIES[r]] + '"><i></i>' + (rCounts[RARITIES[r]] || 0) + '</div>';
+  $('coll-progress').innerHTML =
+    '<div class="cp-top"><span class="cp-label">Collection</span><span class="cp-count">' + owned + '<span> / ' + total + '</span></span></div>' +
+    '<div class="cp-bar"><div class="cp-fill" style="width:' + pct + '%"></div></div>' +
+    '<div class="cp-rarities">' + rHtml + '</div>';
+  // Live filter counts
+  var cfs = document.querySelectorAll('.card-filter');
+  for (var c = 0; c < cfs.length; c++) {
+    var f = cfs[c].getAttribute('data-filter');
+    var n = 0;
+    for (var j = 0; j < GS.squad.length; j++) if (f === 'all' || ROLE_FILTER[GS.squad[j].role] === f) n++;
+    var span = cfs[c].querySelector('.cf-count');
+    if (span) span.textContent = n;
+  }
 }
 
 // =============================================
@@ -6514,11 +6583,12 @@ function openPack(type) {
     avail = avail.filter(function(p) { return p.id !== card.id; });
   }
   save();
-  var html = '<div class="font-d fw-700 text-center" style="font-size:26px;text-transform:uppercase;letter-spacing:3px;background:linear-gradient(135deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">' + (type === 'premium' ? 'Premium' : type === 'ad' ? 'Sponsor' : 'Standard') + ' Pack</div>' +
-    '<div class="text-center text-slip text-sm mb-16">Tap to reveal</div>' +
+  var html = '<div class="pack-title">' + (type === 'premium' ? 'Premium' : type === 'ad' ? 'Sponsor' : 'Standard') + ' Pack</div>' +
+    '<div class="pack-sub">Tap to reveal</div>' +
     '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:16px 0" id="pack-cards">';
   for (var c = 0; c < cards.length; c++) {
-    html += '<div class="pack-flip-container" data-idx="' + c + '"><div class="pack-flip-inner"><div class="pack-card-front">' + renderPlayerCard(cards[c]) + '</div><div class="pack-card-back"><div class="back-pattern"></div></div></div></div>';
+    var rc = RARITY_COLORS[cards[c].rarity] || '#F0C850';
+    html += '<div class="pack-flip-container" data-idx="' + c + '" data-r="' + cards[c].rarity + '" style="--rev-color:' + rc + ';--rev-glow:' + rc + '66"><div class="pack-flip-inner"><div class="pack-card-front">' + renderPlayerCard(cards[c]) + '</div><div class="pack-card-back"><div class="back-pattern"></div></div></div></div>';
   }
   html += '</div><div class="btn btn-gold lg" id="pack-collect-btn" style="margin-top:20px">Collect All</div>';
   $('pack-opening-content').innerHTML = html;
@@ -6527,13 +6597,33 @@ function openPack(type) {
   var flipped = 0;
   for (var f = 0; f < flips.length; f++) {
     (function(el, delay) {
-      setTimeout(function() { el.classList.add('flipped'); SFX.reveal(); flipped++; }, delay);
+      setTimeout(function() {
+        el.classList.add('flipped'); SFX.reveal(); flipped++;
+        var cont = el.parentNode;
+        cont.classList.add('revealed');
+        var r = cont.getAttribute('data-r');
+        var n = r === 'legendary' ? 18 : r === 'epic' ? 12 : r === 'rare' ? 8 : r === 'uncommon' ? 5 : 0;
+        if (n) setTimeout(function() { spawnPackSparks(cont, n); }, 350);
+      }, delay);
     })(flips[f], 600 + f * 500);
   }
   $('pack-collect-btn').onclick = function() {
     $('pack-overlay').classList.remove('show');
     updateCardsScreen(); updateCurrency();
   };
+}
+
+function spawnPackSparks(cont, n) {
+  for (var i = 0; i < n; i++) {
+    var s = document.createElement('span');
+    s.className = 'pack-spark';
+    var a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 55;
+    s.style.setProperty('--sx', Math.cos(a) * d + 'px');
+    s.style.setProperty('--sy', Math.sin(a) * d + 'px');
+    s.style.animationDelay = (Math.random() * 0.15) + 's';
+    cont.appendChild(s);
+    (function(el) { setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 1100); })(s);
+  }
 }
 
 // =============================================
