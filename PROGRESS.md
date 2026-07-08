@@ -1,7 +1,30 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-09
-**Last commit:** (this commit) — Underworld Core increment 1 COMPLETE
+**Last commit:** (this commit) — Underworld Core increment 3 COMPLETE (rival outgoing bribes)
+
+## ✅ DONE (2026-07-09): Underworld Core increment 3 — Rival outgoing bribes (two-way F5 complete)
+
+Founder directive #3 continues. Increment 1 shipped the INCOMING bribe (rival pays you to throw, `rivaloffer` → `matchfixlose`). Increment 3 adds the OUTGOING direction, completing the two-way rival-boss bribe loop (plan doc F5, "smallest lift, extends live code"):
+
+- **You can now bribe a rival boss to throw the match for you.** In the next opponent's rival profile, a premium angular red **"Bribe to Throw the Match · N B$"** button appears (only when they're your *next* opponent, no fix is already set, you're not under investigation, and they're not suspended). Cost = `150 + round(strength)`, paid in **black money**.
+- **Acceptance is personality-gated:** shark 0.85 · politician 0.70 · pragmatist 0.35–0.65 (worse if the rival is clean) · coward 0.30–0.55 (worse when hot) · purist 0.04. Modified by relationship (`rel/400`) and slashed to ×0.3 for clean rivals (alignment > 30). Floor 0.02.
+- **Accept:** deducts cost, sets `GS.mafiaBonus = {type:'rivalthrow', rival}`, +10 rel with that boss, **+10 heat**, alignment −8, 15% chance to drop an "Intercepted Call" evidence item.
+- **Refuse:** clean/purist rivals report the approach (+12 heat, 50% chance of a "Witness Statement" evidence item) and rel −12; others just take offence (+4 heat, rel −6). No fix is set.
+- **Match effect (`rivalthrow`):** the OPPONENT is weakened both innings — their batting ×0.62 (when they bat) / bowling ×0.72 (when they bowl). Distinct from `matchfixlose`/`forcelose`, which weaken YOU.
+- **Pre-match banner** announces the specific rival: *"<Rival> is folding — their team weakened"*.
+
+### Verification (all passed)
+- **`npx playwright test` → 125 passed (8.3m)** — 120 baseline + 5 new outgoing-bribe tests, zero regressions.
+- **Browser-verified live chain** (headless Playwright, real UI): next-rival profile renders the premium red "BRIBE TO THROW THE MATCH · 224 B$" button + flavor text; forcing accept deducts black money (999→775) and sets `mafiaBonus.type==='rivalthrow'`; pre-match banner reads "Priya Sundaram is folding — their team weakened".
+
+### 5 new tests (tests/comprehensive.spec.js → `test.describe('Underworld Core')`)
+1. accept (shark, `Math.random→0`) → `mafiaBonus.type==='rivalthrow'` + black money spent · 2. clean rival (purist, `Math.random→0.99`) refuses → no fix, heat rises · 3. rejected for a non-next opponent (msg contains "next opponent") · 4. blocked when a fix is already active · 5. `#rp-throw-btn` visible in the next-rival profile.
+
+### Next increment (execution order)
+4. Grey Zone/Mafia redesign + Syndicate faces → 5. Politicians + elections screen (Politics zone) → 6. Local leaders (Streets zone) → 7. Remaining redesign screens in zone palettes.
+
+---
 
 ## ✅ DONE (2026-07-09): Underworld Core increment 1 — Power Web + case file + weekly underworld events
 
@@ -18,8 +41,8 @@ Founder directive #3 (*"focus more on the gameplay tuning and create a more real
 ### 6 new tests (tests/comprehensive.spec.js → `test.describe('Underworld Core')`)
 1. factions lazy-init → 5 keys · 2. `#power-web-panel` visible + 5 `.pw-row` · 3. inject `investigation:{matchesLeft:3}` → inspector lazily assigned + info contains '3 matches' · 4. incorruptible inspector → `bribeInspector().success === false` · 5. `bhai.haftaDue=1` → `processUnderworldWeek(true).event.type === 'hafta'` · 6. `neta.election=1` → resolution sets `neta.power`.
 
-### Next increment (execution order)
-3. Rival outgoing bribes UI → 4. Grey Zone/Mafia redesign + Syndicate faces → 5. Politicians + elections screen (Politics zone) → 6. Local leaders (Streets zone) → 7. Remaining redesign screens in zone palettes.
+### Next increment (execution order) — superseded, see increment 3 above
+3. ~~Rival outgoing bribes UI~~ **DONE (increment 3)** → 4. Grey Zone/Mafia redesign + Syndicate faces → 5. Politicians + elections screen (Politics zone) → 6. Local leaders (Streets zone) → 7. Remaining redesign screens in zone palettes.
 
 ---
 
@@ -160,7 +183,7 @@ Replace with lazy inspector + stage text (MUST keep `matchesLeft + ' matches'` p
 ## Current State
 
 - **Build:** HTML5 single-file PWA (`prototype/index.html`, ~7000+ lines)
-- **Tests:** 120 Playwright E2E tests — last full run 2026-07-09: all 120 passing (114 baseline + 6 Underworld Core)
+- **Tests:** 125 Playwright E2E tests — last full run 2026-07-09: all 125 passing (114 baseline + 6 Underworld Core increment 1 + 5 outgoing-bribe increment 3)
 - **Features:** 38/38 passing — **FEATURE-COMPLETE.** F33–F38 all shipped (bug audit c40ac4c → PWA 8318376 → Season Pass 819d5b5 → Vault IAP 77ef349 → Sponsor Break rewarded ads)
 - **Phase:** ▶ Premium UI Redesign **RESUMED by founder decision 2026-07-08** (6/16 screens done, 10 remaining — see below)
 

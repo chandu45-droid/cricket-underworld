@@ -3663,6 +3663,55 @@ function proposeCollusion(rivalName) {
   return { success: true, msg: 'Collusion pact with ' + rival.name + '! Shared favor access, but mutual risk.' };
 }
 
+// Outgoing bribe (F5, two-way): pay a rival boss to throw YOUR next match.
+function bribeRivalToThrowCost(rival) { return 150 + Math.round(rival.strength); }
+
+function bribeRivalToThrow(rivalName) {
+  var rival = null;
+  for (var i = 0; i < RIVALS.length; i++) { if (RIVALS[i].name === rivalName) { rival = RIVALS[i]; break; } }
+  if (!rival) return { success: false, msg: 'Rival not found.' };
+  var rd = GS.rivalData[rivalName];
+  if (!rd) return { success: false, msg: 'No data on this rival.' };
+  var nxt = getNextRival();
+  if (!nxt || nxt.name !== rivalName) return { success: false, msg: 'You can only fix your next match. ' + rival.name + ' is not your next opponent.' };
+  if (GS.mafiaBonus) return { success: false, msg: 'A fix is already set for the next match.' };
+  if (GS.investigation) return { success: false, msg: 'Too hot — you are under investigation. No new fixes.' };
+  if (rival.banned) return { success: false, msg: rival.name + ' is suspended. No match to throw.' };
+  if (rd.rel < -40) return { success: false, msg: rival.name + ' won\'t deal with you — too much bad blood.' };
+  var cost = bribeRivalToThrowCost(rival);
+  if (GS.blackMoney < cost) return { success: false, msg: 'Need ' + cost + ' black money. You have ' + GS.blackMoney + '.' };
+  var acceptChance = 0.45;
+  if (rival.personality === 'shark') acceptChance = 0.85;
+  else if (rival.personality === 'politician') acceptChance = 0.7;
+  else if (rival.personality === 'purist') acceptChance = 0.04;
+  else if (rival.personality === 'coward') acceptChance = rival.heat >= 40 ? 0.3 : 0.55;
+  else if (rival.personality === 'pragmatist') acceptChance = rival.alignment < 0 ? 0.65 : 0.35;
+  acceptChance += rd.rel / 400;
+  if (rival.alignment > 30) acceptChance *= 0.3;
+  if (acceptChance < 0.02) acceptChance = 0.02;
+  if (Math.random() > acceptChance) {
+    var clean = rival.alignment > 30;
+    rd.rel = Math.max(-100, rd.rel - (clean ? 12 : 6));
+    var heatUp = clean ? 12 : 4;
+    GS.heat = Math.min(100, GS.heat + heatUp);
+    if (clean && Math.random() < 0.5) {
+      GS.evidence.push({ type: 'Witness Statement', weight: 3, source: 'rival_bribe_refused', match: GS.matchNum });
+    }
+    save();
+    return { success: false, msg: rival.name + ' refused your money' + (clean ? ' and reported the approach' : '. Word travels') + ' (+' + heatUp + ' heat).' };
+  }
+  GS.blackMoney -= cost;
+  GS.mafiaBonus = { type: 'rivalthrow', rival: rivalName };
+  rd.rel = Math.min(100, rd.rel + 10);
+  GS.heat = Math.min(100, GS.heat + 10);
+  applyAlignShift(-8);
+  if (Math.random() < 0.15) {
+    GS.evidence.push({ type: 'Intercepted Call', weight: 3, source: 'rival_bribe', match: GS.matchNum });
+  }
+  updateCurrency(); save();
+  return { success: true, msg: rival.name + ' takes the bag. Their team will fold next match. +10 heat, alignment down.' };
+}
+
 function processCollusionLeaks() {
   for (var i = GS.collusionPacts.length - 1; i >= 0; i--) {
     var pact = GS.collusionPacts[i];
@@ -3707,6 +3756,16 @@ function showRivalProfile(rivalName) {
     html += '<div class="glass accent-purple" style="padding:10px;margin-bottom:12px;text-align:center"><div class="text-xs text-slip">Intel (Dossier)</div>' +
       '<div class="text-sm">Alignment: <span class="fw-600">' + rival.alignment + '</span> · Heat: <span class="fw-600">' + rival.heat + '</span> · Debts: <span class="fw-600">' + rival.debts + '</span></div></div>';
   }
+  var nextR = getNextRival();
+  var canThrow = nextR && nextR.name === rivalName && !GS.mafiaBonus && !GS.investigation && !rival.banned;
+  if (canThrow) {
+    var throwCost = bribeRivalToThrowCost(rival);
+    var afford = GS.blackMoney >= throwCost;
+    html += '<div class="btn btn-red' + (afford ? '' : ' disabled') + '" id="rp-throw-btn" style="width:100%;margin-bottom:6px">Bribe to Throw the Match · ' + throwCost + ' B$</div>' +
+      '<div class="text-xs text-slip" style="text-align:center;margin-bottom:12px">' +
+      (afford ? 'Pay ' + rival.name.split(' ')[0] + ' to fold next match. Big heat, big alignment hit — and their price stains you.' : 'Not enough black money (you have ' + GS.blackMoney + ' B$).') +
+      '</div>';
+  }
   html += '<div class="flex gap-10">';
   if (hasIntel && rival.alignment < 20 && !rival.banned) {
     html += '<div class="btn btn-red flex-1" id="rp-expose-btn">Expose</div>';
@@ -3727,6 +3786,13 @@ function showRivalProfile(rivalName) {
   var colludeBtn = $('rp-collude-btn');
   if (colludeBtn) colludeBtn.onclick = function() {
     var result = proposeCollusion(rivalName);
+    $('mafia-overlay').classList.remove('show');
+    toast(result.msg, result.success ? 'success' : 'error');
+    updateHub();
+  };
+  var throwBtn = $('rp-throw-btn');
+  if (throwBtn) throwBtn.onclick = function() {
+    var result = bribeRivalToThrow(rivalName);
     $('mafia-overlay').classList.remove('show');
     toast(result.msg, result.success ? 'success' : 'error');
     updateHub();
@@ -4895,6 +4961,10 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
       if (isYourBatting) batStr *= 0.50;
       else bwlStr *= 0.50;
     }
+    if (GS.mafiaBonus.type==='rivalthrow') {
+      if (!isYourBatting) batStr *= 0.62;
+      else bwlStr *= 0.72;
+    }
   }
   if (GS.scoutWeakness && match.opponent && GS.scoutWeakness === match.opponent.name && !isYourBatting) bwlStr *= 1.10;
   if (match.weather === 'overcast') { if (isPace) bwlStr *= 1.10; }
@@ -5587,8 +5657,9 @@ function startPreMatch() {
   GS.strategy = 'balanced';
   if (GS.mafiaBonus) {
     show('fix-active-banner');
-    var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',matchfixlose:'THROWING MATCH — Earning 300 B$',forcelose:'FORCED LOSS — Mafia debt punishment',auctionleak:'Auction Leak — Intel active',scoutintel:'Scout Intel — Hidden stats revealed'};
-    $('fix-active-text').textContent = fixNames[GS.mafiaBonus.type] || 'Fix Active';
+    var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',matchfixlose:'THROWING MATCH — Earning 300 B$',forcelose:'FORCED LOSS — Mafia debt punishment',auctionleak:'Auction Leak — Intel active',scoutintel:'Scout Intel — Hidden stats revealed',rivalthrow:'RIVAL BRIBED — Opponent Throwing the Match'};
+    var rtName = (GS.mafiaBonus.type === 'rivalthrow' && GS.mafiaBonus.rival) ? GS.mafiaBonus.rival + ' is folding — their team weakened' : null;
+    $('fix-active-text').textContent = rtName || fixNames[GS.mafiaBonus.type] || 'Fix Active';
   } else { hide('fix-active-banner'); }
   renderBowlerLineup();
   goScreen('prematch');

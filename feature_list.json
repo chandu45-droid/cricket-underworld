@@ -317,14 +317,22 @@
       "verification": "npx playwright test --grep \"Underworld Core\"",
       "state": "passing",
       "evidence": "Increment 1 shipped 2026-07-09. GS.factions (lazy initFactions: syndicate/thana/neta/bhai/bosses). renderPowerWeb() -> #power-web-panel 5 .pw-row (dot + rel meter + head + live status) every updateHub. renderCaseFile() -> FIR->Evidence->Chargesheet->Court stage track + named inspector (INSPECTORS: greedy/ambitious/incorruptible) + bribeInspector()/applyPoliticalPressure() action buttons under #investigation-panel. processUnderworldWeek(won) wired into endMatch (priority hafta > election-funding > rival offer) -> .uw-note lines + #uw-event-card with type-specific buttons bound via bindUnderworldEvent. 6 new E2E in comprehensive.spec.js (test.describe 'Underworld Core'); full suite 120 passed 2026-07-09; browser-verified live (Power Web, case file, hafta card). Next increments: rival outgoing bribes UI, mafia/politicians/local-leaders screens."
+    },
+    {
+      "id": "F40",
+      "system": "Underworld Core",
+      "behavior": "Rival boss two-way bribes complete — you can bribe your next rival boss to throw the match for you (outgoing direction; incoming rivaloffer->matchfixlose shipped in F39)",
+      "verification": "npx playwright test --grep \"outgoing bribe\"",
+      "state": "passing",
+      "evidence": "Increment 3 shipped 2026-07-09. bribeRivalToThrow(name) + bribeRivalToThrowCost (150 + round(strength), paid in blackMoney). Guards: must be your next opponent, no fix already set, not under investigation, rival not banned, rel > -40. Personality-gated accept (shark .85 / politician .7 / pragmatist .35-.65 / coward .3-.55 / purist .04), rel/400 modifier, x0.3 for clean rivals (alignment>30), floor .02. Accept -> GS.mafiaBonus={type:'rivalthrow',rival}, +10 rel, +10 heat, align -8, 15% Intercepted Call evidence. Refuse -> clean/purist report (+12 heat, 50% Witness Statement, rel -12), others +4 heat rel -6, no fix. Match calc: rivalthrow weakens OPPONENT both innings (bat x0.62 / bwl x0.72). UI: premium angular red '#rp-throw-btn' in next-rival showRivalProfile + flavor text; pre-match #fix-active-text shows '<Rival> is folding — their team weakened'. 5 new E2E in comprehensive.spec.js (test.describe 'Underworld Core'); full suite 125 passed 2026-07-09 (8.3m); browser-verified live chain (button->accept deducts blackMoney->rivalthrow set->pre-match banner). Next increments: 4 mafia/Syndicate screen redesign, 5 politicians/elections, 6 local leaders, 7 remaining redesign screens."
     }
   ],
   "summary": {
-    "total": 39,
-    "passing": 39,
+    "total": 40,
+    "passing": 40,
     "active": 0,
     "blocked": 0,
     "not_started": 0,
-    "automated_test_count": "120 Playwright E2E tests across 3 spec files"
+    "automated_test_count": "125 Playwright E2E tests across 3 spec files"
   }
 }

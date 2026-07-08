@@ -892,6 +892,80 @@ test.describe('Underworld Core', () => {
     });
     expect(power).toBeTruthy();
   });
+
+  test('outgoing bribe: rival boss accepts, sets rivalthrow and spends black money', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { matchNum: 6, blackMoney: 999, mafiaBonus: null });
+    const res = await page.evaluate(() => {
+      window.initRivalData();
+      const r = window.getNextRival();
+      const before = window.GS.blackMoney;
+      const rng = Math.random;
+      Math.random = function () { return 0; }; // force accept
+      const out = window.bribeRivalToThrow(r.name);
+      Math.random = rng;
+      return { out, bonus: window.GS.mafiaBonus, name: r.name, before, after: window.GS.blackMoney };
+    });
+    expect(res.out.success).toBe(true);
+    expect(res.bonus).not.toBeNull();
+    expect(res.bonus.type).toBe('rivalthrow');
+    expect(res.bonus.rival).toBe(res.name);
+    expect(res.after).toBeLessThan(res.before);
+  });
+
+  test('outgoing bribe: clean rival refuses, no fix set, heat rises', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { matchNum: 2, blackMoney: 999, mafiaBonus: null, heat: 0 });
+    const res = await page.evaluate(() => {
+      window.initRivalData();
+      const r = window.getNextRival();
+      const rng = Math.random;
+      Math.random = function () { return 0.99; }; // force refuse
+      const out = window.bribeRivalToThrow(r.name);
+      Math.random = rng;
+      return { out, bonus: window.GS.mafiaBonus, heat: window.GS.heat, align: r.alignment };
+    });
+    expect(res.align).toBeGreaterThan(30); // Arvind Patil is a purist
+    expect(res.out.success).toBe(false);
+    expect(res.bonus).toBeNull();
+    expect(res.heat).toBeGreaterThan(0);
+  });
+
+  test('outgoing bribe: rejected for a rival who is not the next opponent', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { matchNum: 6, blackMoney: 999 });
+    const res = await page.evaluate(() => {
+      window.initRivalData();
+      const nxt = window.getNextRival().name;
+      let other = null;
+      for (let i = 0; i < window.RIVALS.length; i++) { if (window.RIVALS[i].name !== nxt) { other = window.RIVALS[i].name; break; } }
+      return window.bribeRivalToThrow(other);
+    });
+    expect(res.success).toBe(false);
+    expect(res.msg).toContain('next opponent');
+  });
+
+  test('outgoing bribe: blocked when a fix is already active', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { matchNum: 6, blackMoney: 999, mafiaBonus: { type: 'matchfix' } });
+    const res = await page.evaluate(() => {
+      window.initRivalData();
+      const r = window.getNextRival();
+      return window.bribeRivalToThrow(r.name);
+    });
+    expect(res.success).toBe(false);
+  });
+
+  test('outgoing bribe: throw button appears in next-rival profile', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { matchNum: 6, blackMoney: 999, mafiaBonus: null });
+    await page.evaluate(() => {
+      window.initRivalData();
+      const r = window.getNextRival();
+      window.showRivalProfile(r.name);
+    });
+    await expect(page.locator('#rp-throw-btn')).toBeVisible();
+  });
 });
 
 // ============================================================
