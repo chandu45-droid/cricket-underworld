@@ -1228,6 +1228,55 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .syn-debts-sub{font-family:var(--font-b);font-size:10px;color:var(--slip);margin-top:4px}
 .syn-offer-locked{margin-top:14px;padding:12px;text-align:center;font-family:var(--font-b);font-size:12px;font-style:italic;line-height:1.5;color:var(--slip);border:1px dashed rgba(255,255,255,0.14);border-radius:3px;background:rgba(255,255,255,0.02)}
 
+/* ============ POLITICS ZONE — ivory + deep amber, election-poster style ============ */
+#mafia-overlay .modal[data-zone="politics"]{background:linear-gradient(180deg,#F6EEDA 0%,#EADFBF 100%)!important;border-color:rgba(180,83,9,0.45)!important;box-shadow:0 0 55px rgba(245,158,11,0.28),inset 0 0 70px rgba(146,64,14,0.06)}
+#mafia-overlay .modal[data-zone="politics"] .modal-handle{background:rgba(180,83,9,0.5)}
+#mafia-overlay .modal[data-zone="politics"] .btn-outline{color:#5C4A2A;border-color:rgba(146,64,14,0.4)}
+#mafia-overlay .modal[data-zone="politics"] .btn-outline:hover{border-color:rgba(146,64,14,0.7);color:#3A2C12}
+.pol-screen{color:#2E2410;position:relative}
+.pol-title-band{border-bottom:3px solid #B45309;padding-bottom:8px;margin-bottom:14px}
+.pol-title{font-family:var(--font-d);font-weight:700;font-size:22px;letter-spacing:3px;color:#92400E;text-transform:uppercase}
+.pol-sub{font-family:var(--font-b);font-size:11px;letter-spacing:1px;color:#8A6D3B;margin-top:3px}
+.pol-status{font-family:var(--font-b);font-size:12px;font-weight:600;color:#7A4A0A;background:rgba(180,83,9,0.1);border-left:3px solid #B45309;padding:8px 10px;margin-bottom:14px;clip-path:polygon(0 0,100% 0,100% 100%,4px 100%)}
+.pol-posters{display:flex;gap:10px;margin-bottom:14px}
+.pol-poster{flex:1;position:relative;background:#FBF6E9;border:1px solid rgba(146,64,14,0.22);padding:14px 10px 12px;text-align:center;overflow:hidden;clip-path:polygon(0 7px,7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%)}
+.pol-poster.backed{border-color:rgba(180,83,9,0.6);box-shadow:0 0 0 1px rgba(180,83,9,0.4),0 6px 18px rgba(146,64,14,0.14)}
+.pol-poster.inpower{background:#FDF4DE}
+.pol-poster-bar{height:5px;background:var(--poster,#B45309);margin:-14px -10px 12px;}
+.pol-poster-mono{width:44px;height:44px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:17px;color:#FBF6E9;clip-path:polygon(0 5px,5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%)}
+.pol-poster-name{font-family:var(--font-d);font-weight:700;font-size:14px;color:#2E2410;line-height:1.15}
+.pol-poster-party{font-family:var(--font-b);font-size:10px;font-weight:600;letter-spacing:0.5px;color:#8A6D3B;text-transform:uppercase;margin-top:2px}
+.pol-poster-style{font-family:var(--font-b);font-size:10px;font-style:italic;color:#5C4A2A;line-height:1.35;margin-top:6px}
+.pol-ribbon{margin-top:8px;display:inline-block;font-family:var(--font-b);font-size:9px;font-weight:700;letter-spacing:1px;color:#FBF6E9;background:#92400E;padding:3px 8px;clip-path:polygon(0 0,100% 0,calc(100% - 4px) 100%,4px 100%)}
+.pol-poster.inpower .pol-ribbon{background:#166534}
+.pol-fund-btn{margin-top:10px;font-family:var(--font-b);font-size:11px;font-weight:700;letter-spacing:0.5px;color:#FBF6E9;background:linear-gradient(180deg,#D97706,#B45309);padding:7px 8px;cursor:pointer;clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%);transition:filter 0.15s}
+.pol-fund-btn:hover{filter:brightness(1.1)}
+.pol-power{background:rgba(251,246,233,0.7);border:1px solid rgba(146,64,14,0.2);border-left:3px solid #B45309;padding:12px;margin-bottom:14px}
+.pol-power-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.pol-power-name{font-family:var(--font-d);font-weight:700;font-size:15px;color:#2E2410}
+.pol-badge-ally{font-family:var(--font-b);font-size:9px;font-weight:700;letter-spacing:1px;color:#FBF6E9;background:#166534;padding:3px 8px;clip-path:polygon(0 0,100% 0,calc(100% - 4px) 100%,4px 100%)}
+.pol-badge-opp{font-family:var(--font-b);font-size:9px;font-weight:700;letter-spacing:1px;color:#FBF6E9;background:#9A3412;padding:3px 8px;clip-path:polygon(0 0,100% 0,calc(100% - 4px) 100%,4px 100%)}
+.pol-rel-wrap{margin-top:4px}
+.pol-rel-head{display:flex;justify-content:space-between;font-family:var(--font-b);font-size:11px;color:#5C4A2A;margin-bottom:4px}
+.pol-rel-val{font-weight:700;color:#92400E}
+.pol-rel-bar{position:relative;height:7px;background:rgba(146,64,14,0.15);border-radius:2px;overflow:hidden}
+.pol-rel-fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,#D97706,#B45309)}
+.pol-rel-zero{position:absolute;top:0;left:50%;width:1px;height:100%;background:rgba(46,36,16,0.35)}
+.pol-perks{margin-top:10px}
+.pol-perks-title{font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8A6D3B;margin-bottom:5px}
+.pol-perk{font-family:var(--font-b);font-size:11px;color:#3A2C12;padding:3px 0 3px 14px;position:relative}
+.pol-perk::before{content:'▪';position:absolute;left:0;color:#B45309}
+.pol-warn{margin-top:8px;font-family:var(--font-b);font-size:11px;font-style:italic;color:#9A3412}
+.pol-demand{background:#FDF4DE;border:1px solid rgba(180,83,9,0.4);border-top:3px solid #B45309;padding:12px;margin-bottom:14px;clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%)}
+.pol-demand-title{font-family:var(--font-d);font-weight:700;font-size:14px;color:#92400E}
+.pol-demand-desc{font-family:var(--font-b);font-size:12px;font-style:italic;line-height:1.45;color:#4A3A1C;margin-top:6px}
+.pol-memory{background:rgba(251,246,233,0.6);border:1px solid rgba(146,64,14,0.18);padding:10px 12px}
+.pol-memory-title{font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8A6D3B;margin-bottom:6px}
+.pol-memory-row{display:flex;justify-content:space-between;font-family:var(--font-b);font-size:12px;color:#3A2C12;padding:2px 0}
+.pol-mem-good{font-weight:700;color:#166534}
+.pol-mem-bad{font-weight:700;color:#9A3412}
+.pol-mem-neutral{font-weight:700;color:#8A6D3B}
+
 /* Tribunal overlay */
 .tribunal-overlay{position:fixed;inset:0;z-index:280;background:rgba(4,6,13,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.8s}
 .tribunal-overlay.show{opacity:1;pointer-events:auto}
@@ -2540,7 +2589,11 @@ function initFactions() {
   if (f.syndicate.betrayed == null) f.syndicate.betrayed = 0;
   if (f.syndicate.met == null) f.syndicate.met = false;
   if (!f.thana) f.thana = { rel: 0 };
-  if (!f.neta) f.neta = { rel: 0, backed: null, power: null, ally: false, election: 8, fundingSeen: false };
+  if (!f.neta) f.neta = { rel: 0, backed: null, power: null, ally: false, election: 8, fundingSeen: false, demand: null, demandCd: 3, favorsDone: 0, demandsRefused: 0 };
+  if (f.neta.demand === undefined) f.neta.demand = null;
+  if (f.neta.demandCd == null) f.neta.demandCd = 3;
+  if (f.neta.favorsDone == null) f.neta.favorsDone = 0;
+  if (f.neta.demandsRefused == null) f.neta.demandsRefused = 0;
   if (!f.bhai) f.bhai = { rel: 0, haftaDue: 3 };
   if (!f.bosses) f.bosses = { rel: 0, offerCd: 0 };
 }
@@ -2634,9 +2687,23 @@ var INSPECTORS = [
   { name: 'DSP Arjun Sherawat', trait: 'incorruptible', tag: 'Incorruptible', desc: 'Cannot be bought. This one goes to court.', bribeBase: 0, bribeSuccess: 0 },
 ];
 var NETA_CANDIDATES = [
-  { name: 'Bhupathi Rao', party: 'Vikas Morcha', style: 'Strongman — cases vanish under his shadow' },
-  { name: 'Savitri Devi', party: 'Jan Shakti Party', style: 'Reformer — clean image, useful friends' },
+  { name: 'Bhupathi Rao', party: 'Vikas Morcha', style: 'Strongman — cases vanish under his shadow', color: '#B45309' },
+  { name: 'Savitri Devi', party: 'Jan Shakti Party', style: 'Reformer — clean image, useful friends', color: '#3730A3' },
 ];
+// What your MLA demands once they are in power. One is picked at random per demand cycle.
+var NETA_DEMANDS = [
+  { type: 'fundraiser', title: 'A Fundraiser Match', label: 'Host It · 220', desc: '"The party is short of funds. Play a benefit match — the whole gate collection comes to us. You do not mind, na?"' },
+  { type: 'nephew', title: 'Sign the Nephew', label: 'Sign Him', desc: '"My sister\'s boy fancies himself a batsman. Put him on your books — good for the family, good for you. He will not play much, do not worry."' },
+  { type: 'throwmatch', title: 'Lose in the Constituency', label: 'Take a Dive', desc: '"A big man is watching next match, and his home team must win. You understand what I am saying. Lose it — quietly."' },
+];
+function netaNephewCard() {
+  var surname = 'Rao';
+  if (GS.factions && GS.factions.neta && GS.factions.neta.power) {
+    var parts = GS.factions.neta.power.split(' ');
+    surname = parts[parts.length - 1];
+  }
+  return { id: 9001, name: 'Chintu ' + surname, role: 'Middle-Order Batter', bat: 40, bwl: 18, fld: 42, fit: 48, form: 38, loyalty: 95, greed: 75, rarity: 'common', overseas: false, stars: 1 };
+}
 var BHAI_NAME = 'Sikandar Bhai';
 var SYNDICATE_DON = 'Anna Seth';
 var SYNDICATE_DON_DESC = 'Speaks softly. Never twice. Owns half the bookies in the country and the other half owe him.';
@@ -4066,6 +4133,19 @@ function processUnderworldWeek(won) {
         accent: '#A78BFA' };
     }
   }
+  // Neta demands — once your MLA is in power, they will come asking for favours.
+  if (f.neta.demandCd > 0) f.neta.demandCd--;
+  if (!event && f.neta.ally && f.neta.power && !f.neta.demand && f.neta.demandCd <= 0 && GS.matchNum > 3) {
+    var dpick = NETA_DEMANDS[Math.floor(Math.random() * NETA_DEMANDS.length)];
+    f.neta.demand = dpick.type;
+    event = { type: 'netademand', dtype: dpick.type, label: dpick.label,
+      title: f.neta.power + ' — ' + dpick.title,
+      desc: dpick.desc, accent: '#F59E0B' };
+  }
+  // Ally-in-power perk: heat cools faster while your MLA holds office (patronage at work).
+  if (f.neta.ally && f.neta.power && GS.heat > 0) {
+    GS.heat = Math.max(0, GS.heat - 3);
+  }
   return { notes: notes, event: event };
 }
 
@@ -4128,6 +4208,15 @@ function bindUnderworldEvent(ev) {
       save();
       resolveUwCard('<div class="text-xs text-slip">You walked. ' + ev.rival + ' will remember this at the next auction.</div>');
     };
+  } else if (ev.type === 'netademand') {
+    var ny = $('netademand-yes-btn'), nn = $('netademand-no-btn');
+    if (ny) ny.onclick = function() {
+      if (satisfyNetaDemand()) resolveUwCard('<div class="text-xs text-slip">Done. ' + f.neta.power + ' nods. "I will not forget this."</div>');
+    };
+    if (nn) nn.onclick = function() {
+      refuseNetaDemand();
+      resolveUwCard('<div class="text-xs" style="color:var(--amber)">You refused the party. In this town, that is remembered too.</div>');
+    };
   }
 }
 
@@ -4162,7 +4251,7 @@ function getFactionRows() {
   var rows = [];
   rows.push({ key:'syndicate', name:'The Syndicate', head: SYNDICATE_DON, rel: f.syndicate.rel, color:'#EF2D2D', status: GS.debts.length > 0 ? GS.debts.length + ' debt' + (GS.debts.length>1?'s':'') + ' open' : (GS.mafiaBonus ? 'Fix is set' : 'Watching you') });
   rows.push({ key:'thana', name:'The Thana', head: GS.investigation ? getInspector(GS.investigation.inspector).name : 'Local Police', rel: f.thana.rel, color:'#60A5FA', status: GS.investigation ? 'CASE OPEN' : (GS.heat >= 50 ? 'Heat rising' : 'Quiet — for now') });
-  rows.push({ key:'neta', name:'The Neta', head: f.neta.power ? f.neta.power : 'No one in power', rel: f.neta.rel, color:'#F59E0B', status: (f.neta.election <= 3 && !f.neta.backed ? 'Election in ' + Math.max(1,f.neta.election) + ' — funding open' : 'Election in ' + Math.max(1,f.neta.election)) + (f.neta.ally ? ' · Your MLA rules' : '') });
+  rows.push({ key:'neta', name:'The Neta', head: f.neta.power ? f.neta.power : 'No one in power', rel: f.neta.rel, color:'#F59E0B', status: f.neta.demand ? f.neta.power + ' wants a favour' : ((f.neta.election <= 3 && !f.neta.backed ? 'Election in ' + Math.max(1,f.neta.election) + ' — funding open' : 'Election in ' + Math.max(1,f.neta.election)) + (f.neta.ally ? ' · Your MLA rules' : '')) });
   rows.push({ key:'bhai', name:'The Bhai', head: BHAI_NAME, rel: f.bhai.rel, color:'#F97316', status: f.bhai.haftaDue <= 0 ? 'HAFTA DUE' : 'Hafta in ' + f.bhai.haftaDue + (f.bhai.rel >= 40 ? ' · Crowd is yours' : f.bhai.rel <= -30 ? ' · Crowd hostile' : '') });
   rows.push({ key:'bosses', name:'Rival Bosses', head: '9 team owners', rel: f.bosses.rel, color:'#A78BFA', status: GS.collusionPacts && GS.collusionPacts.length > 0 ? GS.collusionPacts.length + ' pact' + (GS.collusionPacts.length>1?'s':'') + ' active' : 'Deals on the table' });
   return rows;
@@ -4289,6 +4378,159 @@ function showSyndicateScreen() {
   var ob = $('syn-hear-offer-btn');
   if (ob) ob.onclick = function() { showMafiaOffer(); };
   var cb = $('syn-close-btn');
+  if (cb) cb.onclick = function() {
+    $('mafia-overlay').classList.remove('show');
+    if (modal) modal.removeAttribute('data-zone');
+  };
+  save();
+}
+
+// =============================================
+// THE POLITICS DESK — neta faction screen (Politics zone: ivory + amber, poster style)
+// =============================================
+function fundNetaCampaign(idx) {
+  initFactions();
+  var f = GS.factions.neta;
+  if (f.election > 3 || f.backed) return;
+  var cost = 300;
+  if (GS.coins < cost) { toast('Need ' + cost + ' coins to fund a campaign', 'error'); return; }
+  GS.coins -= cost;
+  f.backed = NETA_CANDIDATES[idx].name;
+  f.fundingSeen = true;
+  applyAlignShift(-3);
+  updateCurrency(); save();
+  toast('Backed ' + NETA_CANDIDATES[idx].name + ' — result in ' + Math.max(1, f.election) + ' match' + (Math.max(1, f.election) === 1 ? '' : 'es'), 'success');
+  showNetaScreen();
+}
+function satisfyNetaDemand() {
+  initFactions();
+  var f = GS.factions.neta;
+  if (!f.demand) return false;
+  var d = f.demand;
+  if (d === 'fundraiser') {
+    if (GS.coins < 220) { toast('Need 220 coins for the fundraiser', 'error'); return false; }
+    GS.coins -= 220; f.rel = Math.min(100, f.rel + 15); applyAlignShift(-2);
+    toast('Gate handed to the party — your MLA is pleased', 'success');
+  } else if (d === 'nephew') {
+    if (GS.squad.some(function(s) { return s.id === 9001; })) { toast('The nephew is already on your books', 'info'); }
+    else if (GS.squad.length < GS.maxSquad) { GS.squad.push(netaNephewCard()); toast('Signed the nephew. The dressing room grumbles.', 'success'); }
+    else { GS.coins = Math.max(0, GS.coins - 150); GS.morale = Math.max(20, GS.morale - 4); toast('No squad room — you paid his salary anyway (-150, -4 morale)', 'info'); }
+    f.rel = Math.min(100, f.rel + 16); applyAlignShift(-3); GS.heat = Math.min(100, GS.heat + 2);
+  } else if (d === 'throwmatch') {
+    if (GS.investigation) { toast('A case is open — cannot take a dive now', 'error'); return false; }
+    if (GS.mafiaBonus) { toast('You already have a fix set for the next match', 'error'); return false; }
+    GS.mafiaBonus = { type: 'forcelose' };
+    f.rel = Math.min(100, f.rel + 22); applyAlignShift(-8); GS.heat = Math.min(100, GS.heat + 6);
+    toast('You will take a dive next match. The big man is grateful.', 'success');
+  }
+  f.favorsDone = (f.favorsDone || 0) + 1;
+  f.demand = null; f.demandCd = 4;
+  updateCurrency(); save(); updateHub();
+  if ($('mafia-overlay') && $('mafia-overlay').classList.contains('show')) showNetaScreen();
+  return true;
+}
+function refuseNetaDemand() {
+  initFactions();
+  var f = GS.factions.neta;
+  if (!f.demand) return;
+  f.rel = Math.max(-100, f.rel - 15);
+  f.demandsRefused = (f.demandsRefused || 0) + 1;
+  applyAlignShift(2);
+  var disowned = false;
+  if (f.rel <= -30 && f.ally) { f.ally = false; disowned = true; }
+  f.demand = null; f.demandCd = 4;
+  save(); updateHub();
+  toast(disowned ? f.power + ' has disowned you — the patronage is gone' : 'You refused. Your MLA will remember this.', disowned ? 'error' : 'info');
+  if ($('mafia-overlay') && $('mafia-overlay').classList.contains('show')) showNetaScreen();
+}
+function showNetaScreen() {
+  if (SFX && SFX.tap) SFX.tap();
+  initFactions();
+  var f = GS.factions.neta;
+  var pct = Math.round((f.rel + 100) / 2);
+  var fundingOpen = (f.election <= 3 && !f.backed);
+  var demandData = null;
+  if (f.demand) {
+    for (var qi = 0; qi < NETA_DEMANDS.length; qi++) { if (NETA_DEMANDS[qi].type === f.demand) demandData = NETA_DEMANDS[qi]; }
+  }
+
+  var h = '';
+  h += '<div class="pol-screen">';
+  h += '<div class="pol-title-band"><div class="pol-title">THE POLITICS DESK</div><div class="pol-sub">Elections · patronage · pressure</div></div>';
+
+  // Election status ticker
+  if (f.election > 0) {
+    h += '<div class="pol-status">' + (fundingOpen ? 'Campaign season — the funds are moving' : 'Next election in ' + f.election + ' match' + (f.election === 1 ? '' : 'es')) + '</div>';
+  } else {
+    h += '<div class="pol-status">Votes are being counted…</div>';
+  }
+
+  // Candidate posters
+  h += '<div class="pol-posters">';
+  for (var pi = 0; pi < NETA_CANDIDATES.length; pi++) {
+    var c = NETA_CANDIDATES[pi];
+    var mono = c.name.split(' ').map(function(w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+    var inPower = (f.power === c.name);
+    var isBacked = (f.backed === c.name);
+    h += '<div class="pol-poster' + (isBacked ? ' backed' : '') + (inPower ? ' inpower' : '') + '" style="--poster:' + c.color + '">';
+    h += '<div class="pol-poster-bar"></div>';
+    h += '<div class="pol-poster-mono" style="background:' + c.color + '">' + mono + '</div>';
+    h += '<div class="pol-poster-name">' + c.name + '</div>';
+    h += '<div class="pol-poster-party">' + c.party + '</div>';
+    h += '<div class="pol-poster-style">' + c.style + '</div>';
+    if (inPower) h += '<div class="pol-ribbon">IN POWER</div>';
+    else if (isBacked) h += '<div class="pol-ribbon">YOUR HORSE</div>';
+    if (fundingOpen) h += '<div class="pol-fund-btn" data-idx="' + pi + '">Fund · 300</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+
+  // In-power / patronage block
+  if (f.power) {
+    h += '<div class="pol-power">';
+    h += '<div class="pol-power-head"><span class="pol-power-name">' + f.power + '</span>' +
+         (f.ally ? '<span class="pol-badge-ally">YOUR MLA</span>' : '<span class="pol-badge-opp">OPPOSITION</span>') + '</div>';
+    h += '<div class="pol-rel-wrap"><div class="pol-rel-head"><span>Goodwill</span><span class="pol-rel-val">' + (f.rel > 0 ? '+' : '') + f.rel + '</span></div>' +
+         '<div class="pol-rel-bar"><div class="pol-rel-fill" style="width:' + pct + '%"></div><div class="pol-rel-zero"></div></div></div>';
+    if (f.ally) {
+      h += '<div class="pol-perks"><div class="pol-perks-title">What your MLA does for you</div>' +
+           '<div class="pol-perk">Heat cools faster while they hold office</div>' +
+           '<div class="pol-perk">Court cases can be pressured (need 30+ goodwill)</div>' +
+           '<div class="pol-perk">Funding doors open at the next election</div></div>';
+    } else {
+      h += '<div class="pol-warn">The regime you crossed is watching. Expect harder scrutiny.</div>';
+    }
+    h += '</div>';
+  }
+
+  // Pending demand
+  if (demandData) {
+    h += '<div class="pol-demand"><div class="pol-demand-title">' + f.power + ' asks: ' + demandData.title + '</div>' +
+         '<div class="pol-demand-desc">' + demandData.desc + '</div>' +
+         '<div class="flex gap-10" style="margin-top:10px"><div class="btn btn-gold text-xs flex-1" style="padding:8px 12px" id="pol-demand-yes">' + demandData.label + '</div>' +
+         '<div class="btn btn-outline text-xs flex-1" style="padding:8px 12px" id="pol-demand-no">Refuse</div></div></div>';
+  }
+
+  // Loyalty memory
+  h += '<div class="pol-memory"><div class="pol-memory-title">The party keeps a ledger</div>' +
+       '<div class="pol-memory-row"><span>Favours done</span><span class="pol-mem-good">' + (f.favorsDone || 0) + '</span></div>' +
+       '<div class="pol-memory-row"><span>Times you refused</span><span class="' + ((f.demandsRefused || 0) > 0 ? 'pol-mem-bad' : 'pol-mem-neutral') + '">' + (f.demandsRefused || 0) + '</span></div></div>';
+
+  h += '<div class="btn btn-outline" id="pol-close-btn" style="width:100%;margin-top:12px">Leave</div>';
+  h += '</div>';
+
+  var content = $('mafia-offer-content');
+  content.innerHTML = h;
+  var modal = document.querySelector('#mafia-overlay .modal');
+  if (modal) modal.setAttribute('data-zone', 'politics');
+  $('mafia-overlay').classList.add('show');
+  var fbtns = content.querySelectorAll('.pol-fund-btn');
+  for (var bi = 0; bi < fbtns.length; bi++) {
+    (function(btn) { btn.onclick = function() { fundNetaCampaign(parseInt(btn.getAttribute('data-idx'), 10)); }; })(fbtns[bi]);
+  }
+  var dy = $('pol-demand-yes'); if (dy) dy.onclick = function() { satisfyNetaDemand(); };
+  var dn = $('pol-demand-no'); if (dn) dn.onclick = function() { refuseNetaDemand(); };
+  var cb = $('pol-close-btn');
   if (cb) cb.onclick = function() {
     $('mafia-overlay').classList.remove('show');
     if (modal) modal.removeAttribute('data-zone');
@@ -6592,6 +6834,8 @@ function endMatch() {
       ueBtns = '<div class="flex gap-10" style="margin-top:10px"><div class="btn btn-outline text-xs flex-1" style="padding:8px 10px" id="fund-a-btn">' + NETA_CANDIDATES[0].name + '</div><div class="btn btn-outline text-xs flex-1" style="padding:8px 10px" id="fund-b-btn">' + NETA_CANDIDATES[1].name + '</div><div class="btn btn-outline text-xs flex-1" style="padding:8px 10px" id="fund-none-btn">Stay out</div></div>';
     } else if (ue.type === 'rivaloffer') {
       ueBtns = '<div class="flex gap-10" style="margin-top:10px"><div class="btn btn-gold text-xs flex-1" style="padding:8px 12px" id="rivaloffer-accept-btn">Take ' + ue.pay + ' B$</div><div class="btn btn-outline text-xs flex-1" style="padding:8px 12px" id="rivaloffer-refuse-btn">Walk away</div></div>';
+    } else if (ue.type === 'netademand') {
+      ueBtns = '<div class="flex gap-10" style="margin-top:10px"><div class="btn btn-gold text-xs flex-1" style="padding:8px 12px" id="netademand-yes-btn">' + ue.label + '</div><div class="btn btn-outline text-xs flex-1" style="padding:8px 12px" id="netademand-no-btn">Refuse</div></div>';
     }
     postEventsHtml += '<div class="glass" id="uw-event-card" style="padding:12px;margin-bottom:8px;border-left:3px solid ' + ue.accent + '"><div class="font-d fw-600 text-sm" style="color:' + ue.accent + '">' + ue.title + '</div><div class="text-xs text-slip" style="margin-top:4px">' + ue.desc + '</div>' + ueBtns + '</div>';
   }
