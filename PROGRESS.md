@@ -1,7 +1,7 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-08
-**Last commit:** F36 Sponsor Break complete — game is FEATURE-COMPLETE (38/38)
+**Last commit:** ac78820 — Premium UI redesign Screen 08 (Card Collection + Pack Ceremony)
 
 ## Current State
 
@@ -14,17 +14,22 @@
 
 Founder verdict: *"the game UI is very basic and I am not okay with it"* — redesign with rich, modern frames that hook players. This **overrides** the ship-and-measure pause on UI work. Rationale: shipping a basic-feeling game would poison the D7 measurement anyway — first impressions gate retention. Ship-and-measure (analytics + distribution) remains the step AFTER the redesign, not cancelled.
 
-Remaining screens, in hook-impact priority order (each committed + tested individually, CSS-first):
-1. Card Collection + pack opening (the dopamine moment)
-2. Tutorial / first-session overlays (first impression)
-3. League Table (broadcast-style)
-4. Select Playing XI
-5. Mafia Offers / Grey Zone (the game's identity moment)
-6. Scorecard
-7. Transfer Market
-8. Scout Report
-9. Facilities
-10. Settings/Customisation
+- [x] ~~1. Card Collection + pack opening~~ **DONE 2026-07-08 (ac78820)** — collection progress strip, angular filter chips w/ live counts, card deal-in stagger, premium pack showcase, full reveal ceremony (spotlight rays, rarity-tinted rings, spark bursts, legendary flash, NEW badges); also fixed pre-existing hidden-toast peek. 114/114 tests green.
+
+## FOUNDER DIRECTION 2026-07-08 (#2): Underworld Core — supersedes the screen queue order
+
+Founder verdict: *"the core game play is underworld, politicians, mafia, local leaders, other team boss bribes, police cases — majorly missing at the current structure. Also colors need not stay the same — re-plan them properly."*
+
+Code audit confirmed it: mafia = offer menu only; politicians = a tag on 2 rivals; police = zero mentions; local leaders = zero; rival bribes one-directional. **Full plan: `docs/underworld-core-plan.md`** — 5-faction Power Web (Syndicate / Thana police cases / Neta politicians / Bhai local leaders / rival bosses two-way bribes) + zone-based color re-plan (Underworld=blood red noir, Law=steel blue, Politics=ivory/amber, Streets=sodium orange, Cricket=broadcast green, Economy=neon teal).
+
+**New execution order (each built → tested → committed individually):**
+1. Power Web hub panel + `GS.factions` skeleton ← NEXT
+2. Police case pipeline (FIR → evidence → chargesheet → court) + Law zone
+3. Rival boss two-way bribes
+4. Grey Zone / Mafia screen redesign + Syndicate faces (Underworld zone)
+5. Politicians + elections (Politics zone)
+6. Local leaders (Streets zone)
+7. Remaining redesign screens in their zone palettes: tutorial, league, XI, scorecard, market, scout, facilities, settings
 
 ## STRATEGIC PIVOT: Ship & Measure (2026-07-06 — Vidura portfolio audit)
 
