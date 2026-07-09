@@ -1277,6 +1277,64 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .pol-mem-bad{font-weight:700;color:#9A3412}
 .pol-mem-neutral{font-weight:700;color:#8A6D3B}
 
+/* Streets zone (Sikandar Bhai / area don) — sodium orange + concrete grey */
+#mafia-overlay .modal[data-zone="streets"]{background:linear-gradient(180deg,#26292E 0%,#1A1C20 100%)!important;border-color:rgba(249,115,22,0.4)!important;box-shadow:0 0 55px rgba(249,115,22,0.22),inset 0 0 70px rgba(0,0,0,0.5)}
+#mafia-overlay .modal[data-zone="streets"] .modal-handle{background:rgba(249,115,22,0.55)}
+#mafia-overlay .modal[data-zone="streets"] .btn-outline{color:#F4A261;border-color:rgba(249,115,22,0.4)}
+#mafia-overlay .modal[data-zone="streets"] .btn-outline:hover{border-color:rgba(249,115,22,0.75);color:#FDBA74}
+.str-screen{color:#D6D3CE;position:relative}
+.str-title-band{border-bottom:3px solid #F97316;padding-bottom:8px;margin-bottom:12px}
+.str-title{font-family:var(--font-d);font-weight:700;font-size:22px;letter-spacing:3px;color:#FB923C;text-transform:uppercase;text-shadow:0 0 18px rgba(249,115,22,0.4)}
+.str-sub{font-family:var(--font-b);font-size:11px;letter-spacing:0.5px;color:#8B8680;margin-top:3px}
+.str-status{font-family:var(--font-b);font-size:12px;font-weight:600;padding:8px 10px;margin-bottom:14px;border-left:3px solid #F97316;background:rgba(249,115,22,0.1);clip-path:polygon(0 0,100% 0,100% 100%,4px 100%)}
+.str-status-good{color:#86EFAC;border-left-color:#22C55E;background:rgba(34,197,94,0.1)}
+.str-status-bad{color:#FCA5A5;border-left-color:#EF4444;background:rgba(239,68,68,0.1)}
+.str-status-neutral{color:#FDBA74}
+.str-don{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.str-monogram{width:52px;height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:20px;color:#1A1C20;background:linear-gradient(135deg,#FB923C,#F97316);clip-path:polygon(0 6px,6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%);box-shadow:0 0 20px rgba(249,115,22,0.35)}
+.str-don-info{flex:1}
+.str-don-name{font-family:var(--font-d);font-weight:700;font-size:18px;letter-spacing:1px;color:#F5F3EF}
+.str-don-role{font-family:var(--font-b);font-size:11px;color:#8B8680;margin-top:1px}
+.str-courted{display:inline-block;margin-top:4px;font-family:var(--font-b);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#86EFAC;border:1px solid rgba(34,197,94,0.5);padding:1px 6px}
+.str-don-desc{font-family:var(--font-b);font-size:12px;font-style:italic;line-height:1.5;color:#A8A39C;border-left:2px solid rgba(249,115,22,0.35);padding-left:10px;margin-bottom:14px}
+.str-rel-wrap{margin-bottom:14px}
+.str-rel-head{display:flex;justify-content:space-between;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#8B8680;margin-bottom:5px}
+.str-rel-val{color:#FB923C}
+.str-rel-bar{position:relative;height:8px;background:rgba(255,255,255,0.08);overflow:hidden}
+.str-rel-fill{height:100%;background:linear-gradient(90deg,#F97316,#FB923C);box-shadow:0 0 10px rgba(249,115,22,0.5)}
+.str-rel-zero{position:absolute;top:0;left:50%;width:1px;height:100%;background:rgba(255,255,255,0.25)}
+.str-crew-title{font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8B8680;margin-bottom:6px}
+.str-crew{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.str-crew-mem{display:flex;align-items:flex-start;gap:10px;background:rgba(255,255,255,0.03);border-left:2px solid rgba(249,115,22,0.4);padding:8px 10px}
+.str-crew-mono{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:700;font-size:13px;color:#FB923C;border:1px solid rgba(249,115,22,0.45);background:rgba(249,115,22,0.08)}
+.str-crew-info{flex:1}
+.str-crew-name{font-family:var(--font-b);font-size:13px;font-weight:700;color:#E8E5E0}
+.str-crew-role{font-family:var(--font-b);font-size:9px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#F97316;margin-left:4px}
+.str-crew-desc{font-family:var(--font-b);font-size:11px;color:#8B8680;margin-top:2px;line-height:1.4}
+.str-hafta{background:rgba(255,255,255,0.03);border-top:3px solid #F97316;padding:10px 12px;margin-bottom:12px}
+.str-hafta-due{background:rgba(239,68,68,0.08);border-top-color:#EF4444}
+.str-hafta-head{font-family:var(--font-b);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#FB923C}
+.str-hafta-due .str-hafta-head{color:#FCA5A5}
+.str-hafta-desc{font-family:var(--font-b);font-size:11px;color:#8B8680;margin-top:4px;line-height:1.4}
+.str-court-btn{font-family:var(--font-b);font-size:13px;font-weight:700;letter-spacing:0.5px;text-align:center;color:#1A1C20;background:linear-gradient(180deg,#FB923C,#F97316);padding:11px;margin-bottom:14px;cursor:pointer;clip-path:polygon(0 5px,5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%);transition:filter 0.15s}
+.str-court-btn:hover{filter:brightness(1.1)}
+.str-favors-title{font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8B8680;margin-bottom:8px}
+.str-favor{background:rgba(255,255,255,0.03);border:1px solid rgba(249,115,22,0.25);padding:10px 12px;margin-bottom:8px}
+.str-favor.locked{opacity:0.55}
+.str-favor-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.str-favor-name{font-family:var(--font-b);font-size:14px;font-weight:700;color:#F5F3EF}
+.str-favor-cost{font-family:var(--font-d);font-size:13px;font-weight:700;color:#FB923C}
+.str-favor-desc{font-family:var(--font-b);font-size:11px;color:#8B8680;line-height:1.45;margin-bottom:8px}
+.str-favor-btn{font-family:var(--font-b);font-size:12px;font-weight:700;letter-spacing:0.5px;text-align:center;color:#1A1C20;background:linear-gradient(180deg,#FB923C,#F97316);padding:8px;cursor:pointer;clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%);transition:filter 0.15s}
+.str-favor-btn:hover{filter:brightness(1.1)}
+.str-favor-lock{font-family:var(--font-b);font-size:10px;font-weight:600;letter-spacing:0.5px;text-align:center;color:#8B8680;padding:6px;border:1px dashed rgba(139,134,128,0.4)}
+.str-memory{background:rgba(255,255,255,0.03);border:1px solid rgba(249,115,22,0.2);padding:10px 12px}
+.str-memory-title{font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#8B8680;margin-bottom:6px}
+.str-memory-row{display:flex;justify-content:space-between;font-family:var(--font-b);font-size:12px;color:#D6D3CE;padding:2px 0}
+.str-mem-good{font-weight:700;color:#86EFAC}
+.str-mem-bad{font-weight:700;color:#FCA5A5}
+.str-mem-neutral{font-weight:700;color:#8B8680}
+
 /* Tribunal overlay */
 .tribunal-overlay{position:fixed;inset:0;z-index:280;background:rgba(4,6,13,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.8s}
 .tribunal-overlay.show{opacity:1;pointer-events:auto}
@@ -2494,7 +2552,7 @@ var GS = {
   squad: [], maxSquad: 15,
   morale: 75, auctionPurse: 2000,
   strategy: 'balanced', league: 'gully',
-  mafiaBonus: null,
+  mafiaBonus: null, bhaiBonus: null,
   fanLoyalty: 50, cleanStreak: 0,
   sponsor: { tier: 3, name: 'Local Brand', purseBonus: 0 },
   rivalData: {},
@@ -2537,7 +2595,7 @@ function load() {
       GS.coins=v(d.coins,2000); GS.gems=v(d.gems,50); GS.blackMoney=v(d.blackMoney,0);
       GS.alignment=v(d.alignment,0); GS.heat=v(d.heat,0); GS.fans=v(d.fans,50);
       GS.season=v(d.season,1); GS.matchNum=v(d.matchNum,1); GS.wins=v(d.wins,0); GS.losses=v(d.losses,0);
-      GS.morale=v(d.morale,75); GS.league=v(d.league,'gully'); GS.mafiaBonus=v(d.mafiaBonus,null);
+      GS.morale=v(d.morale,75); GS.league=v(d.league,'gully'); GS.mafiaBonus=v(d.mafiaBonus,null); GS.bhaiBonus=v(d.bhaiBonus,null);
       GS.fanLoyalty=v(d.fanLoyalty,50); GS.cleanStreak=v(d.cleanStreak,0);
       GS.sponsor=v(d.sponsor,{tier:3,name:'Ceat Tyres',purseBonus:0});
       GS.rivalData=v(d.rivalData,{});
@@ -2594,7 +2652,10 @@ function initFactions() {
   if (f.neta.demandCd == null) f.neta.demandCd = 3;
   if (f.neta.favorsDone == null) f.neta.favorsDone = 0;
   if (f.neta.demandsRefused == null) f.neta.demandsRefused = 0;
-  if (!f.bhai) f.bhai = { rel: 0, haftaDue: 3 };
+  if (!f.bhai) f.bhai = { rel: 0, haftaDue: 3, courted: false, favorsDone: 0, refusals: 0 };
+  if (f.bhai.courted == null) f.bhai.courted = false;
+  if (f.bhai.favorsDone == null) f.bhai.favorsDone = 0;
+  if (f.bhai.refusals == null) f.bhai.refusals = 0;
   if (!f.bosses) f.bosses = { rel: 0, offerCd: 0 };
 }
 
@@ -2705,6 +2766,17 @@ function netaNephewCard() {
   return { id: 9001, name: 'Chintu ' + surname, role: 'Middle-Order Batter', bat: 40, bwl: 18, fld: 42, fit: 48, form: 38, loyalty: 95, greed: 75, rarity: 'common', overseas: false, stars: 1 };
 }
 var BHAI_NAME = 'Sikandar Bhai';
+var BHAI_TITLE = 'Area Don · runs the home end';
+var BHAI_DESC = 'Every gully, every ticket tout, every drum in the stands answers to him. Keep him sweet and your home ground is a fortress. Cross him and your own crowd turns on you.';
+var BHAI_CREW = [
+  { name: 'Munna Tawde', alias: 'Munna', role: 'The Stands', desc: 'Decides who fills the cheap seats — and exactly how loud they get.' },
+  { name: 'Kaali Prasad', alias: 'Kaali', role: 'Ground Staff', desc: 'A quiet word from him and the roller comes out at midnight.' },
+];
+// What Sikandar Bhai can arrange for your next home match. rel gate rises with respect.
+var BHAI_FAVORS = [
+  { key: 'crowd', title: 'Pack the Stands', cost: 90, cur: 'coins', need: -10, desc: 'His boys fill your home end and roar your name. Your batting lifts and the opposition wilts next match.' },
+  { key: 'pitchprep', title: 'Roll the Pitch Your Way', cost: 110, cur: 'blackMoney', need: 20, desc: 'Ground staff prepare a track that plays to your squad\'s strength next match.' },
+];
 var SYNDICATE_DON = 'Anna Seth';
 var SYNDICATE_DON_DESC = 'Speaks softly. Never twice. Owns half the bookies in the country and the other half owe him.';
 var SYNDICATE_LIEUTENANTS = [
@@ -4083,6 +4155,10 @@ function processUnderworldWeek(won) {
   } else if (f.bhai.rel <= -30) {
     GS.morale = Math.max(20, GS.morale - 3);
     notes.push('Crowd trouble at your home ground. ' + BHAI_NAME + ' is not happy. (-3 morale)');
+    if (!GS.bhaiBonus && !GS.mafiaBonus && GS.matchNum > 2 && Math.random() < 0.4) {
+      GS.bhaiBonus = { type: 'pitchtamper' };
+      notes.push(BHAI_NAME + '\'s men doctored your home pitch overnight — you\'ll play weakened next match.');
+    }
   }
   if (GS.matchNum > 2) {
     if (f.bhai.haftaDue > 0) f.bhai.haftaDue--;
@@ -4170,6 +4246,7 @@ function bindUnderworldEvent(ev) {
     if (refB) refB.onclick = function() {
       f.bhai.rel = Math.max(-100, f.bhai.rel - 15);
       f.bhai.haftaDue = 3;
+      f.bhai.refusals = (f.bhai.refusals || 0) + 1;
       applyAlignShift(2);
       save();
       resolveUwCard('<div class="text-xs" style="color:var(--blood)">Refused. Word spreads fast in the gullies. Expect a colder crowd.</div>');
@@ -4532,6 +4609,164 @@ function showNetaScreen() {
   var dn = $('pol-demand-no'); if (dn) dn.onclick = function() { refuseNetaDemand(); };
   var cb = $('pol-close-btn');
   if (cb) cb.onclick = function() {
+    $('mafia-overlay').classList.remove('show');
+    if (modal) modal.removeAttribute('data-zone');
+  };
+  save();
+}
+
+// Which pitch reads to your squad's strength — used by Bhai's 'Roll the Pitch Your Way' favour.
+function squadPitchLean() {
+  var squad = GS.squad || [];
+  var pace = 0, spin = 0, batTotal = 0, n = 0;
+  for (var i = 0; i < squad.length; i++) {
+    var p = squad[i];
+    if (!p) continue;
+    if (p.role === 'Fast Bowler') pace++;
+    else if (p.role === 'Spin Bowler') spin++;
+    batTotal += (p.bat || 0); n++;
+  }
+  if (spin > pace) return 'TURNING';
+  if (pace > spin) return 'SEAMING';
+  return 'FLAT';
+}
+
+// Pay your respects — build standing with the area don.
+function courtBhai() {
+  initFactions();
+  var f = GS.factions.bhai;
+  var cost = 130;
+  if (GS.coins < cost) { toast('Need ' + cost + ' coins to pay your respects', 'error'); return; }
+  GS.coins -= cost;
+  f.rel = Math.min(100, f.rel + 12);
+  f.courted = true;
+  applyAlignShift(-3);
+  GS.heat = Math.min(100, GS.heat + 1);
+  if (SFX && SFX.mafia) SFX.mafia();
+  updateCurrency(); save(); updateHub();
+  toast('You paid your respects to ' + BHAI_NAME + '. He remembers his friends.', 'success');
+  showBhaiScreen();
+}
+
+// Arrange a favour for your next home match: crowd or pitch prep.
+function bhaiFavor(key) {
+  initFactions();
+  var f = GS.factions.bhai;
+  var fav = null;
+  for (var i = 0; i < BHAI_FAVORS.length; i++) { if (BHAI_FAVORS[i].key === key) fav = BHAI_FAVORS[i]; }
+  if (!fav) return;
+  if (GS.bhaiBonus || GS.mafiaBonus) { toast('You already have something lined up for next match', 'error'); return; }
+  if (f.rel < fav.need) { toast('Get on ' + BHAI_NAME + '’s good side first', 'error'); return; }
+  var have = fav.cur === 'coins' ? GS.coins : GS.blackMoney;
+  if (have < fav.cost) { toast('Not enough ' + (fav.cur === 'coins' ? 'coins' : 'black money'), 'error'); return; }
+  if (fav.cur === 'coins') GS.coins -= fav.cost; else GS.blackMoney -= fav.cost;
+  GS.bhaiBonus = { type: key };
+  f.rel = Math.min(100, f.rel + 4);
+  f.favorsDone = (f.favorsDone || 0) + 1;
+  applyAlignShift(key === 'pitchprep' ? -4 : -2);
+  GS.heat = Math.min(100, GS.heat + (key === 'pitchprep' ? 2 : 1));
+  if (SFX && SFX.mafia) SFX.mafia();
+  updateCurrency(); save(); updateHub();
+  toast(key === 'crowd' ? 'The stands will roar for you next match' : 'The pitch will read your way next match', 'success');
+  showBhaiScreen();
+}
+
+// Pay the hafta straight from the Streets screen when it falls due.
+function payHaftaFromScreen() {
+  initFactions();
+  var f = GS.factions.bhai;
+  if (f.haftaDue > 0) return;
+  var amt = Math.max(40, Math.min(200, Math.round(GS.coins * 0.05)));
+  if (GS.coins < amt) { toast('Not enough coins for the hafta', 'error'); return; }
+  GS.coins -= amt;
+  f.rel = Math.min(100, f.rel + 6);
+  f.haftaDue = 3;
+  updateCurrency(); save(); updateHub();
+  toast('Hafta paid. The stands stay friendly.', 'success');
+  showBhaiScreen();
+}
+
+function showBhaiScreen() {
+  if (SFX && SFX.mafia) SFX.mafia();
+  initFactions();
+  var f = GS.factions.bhai;
+  var pct = Math.round((f.rel + 100) / 2);
+  var mono = BHAI_NAME.split(' ').map(function(w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+  var moodLabel, moodCls;
+  if (f.rel >= 40) { moodLabel = 'The crowd is yours'; moodCls = 'good'; }
+  else if (f.rel <= -30) { moodLabel = 'The gullies have turned on you'; moodCls = 'bad'; }
+  else { moodLabel = 'An uneasy peace on the home end'; moodCls = 'neutral'; }
+  var haftaAmt = Math.max(40, Math.min(200, Math.round(GS.coins * 0.05)));
+  var lineup = !!(GS.bhaiBonus || GS.mafiaBonus);
+
+  var h = '';
+  h += '<div class="str-screen">';
+  h += '<div class="str-title-band"><div class="str-title">THE STREETS</div><div class="str-sub">Home ground · the gullies answer to one man</div></div>';
+  h += '<div class="str-status str-status-' + moodCls + '">' + moodLabel + '</div>';
+  // Don hero
+  h += '<div class="str-don"><div class="str-monogram">' + mono + '</div>' +
+       '<div class="str-don-info"><div class="str-don-name">' + BHAI_NAME + '</div><div class="str-don-role">' + BHAI_TITLE + '</div>' +
+       (f.courted ? '<div class="str-courted">On his good side</div>' : '') + '</div></div>';
+  h += '<div class="str-don-desc">“' + BHAI_DESC + '”</div>';
+  // Respect meter
+  h += '<div class="str-rel-wrap"><div class="str-rel-head"><span>Respect</span><span class="str-rel-val">' + (f.rel > 0 ? '+' : '') + f.rel + '</span></div>' +
+       '<div class="str-rel-bar"><div class="str-rel-fill" style="width:' + pct + '%"></div><div class="str-rel-zero"></div></div></div>';
+  // Crew
+  h += '<div class="str-crew-title">His crew</div><div class="str-crew">';
+  for (var ci = 0; ci < BHAI_CREW.length; ci++) {
+    var cm = BHAI_CREW[ci];
+    var cmono = cm.name.split(' ').map(function(w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+    h += '<div class="str-crew-mem"><div class="str-crew-mono">' + cmono + '</div>' +
+         '<div class="str-crew-info"><div class="str-crew-name">' + cm.name + ' <span class="str-crew-role">' + cm.role + '</span></div>' +
+         '<div class="str-crew-desc">' + cm.desc + '</div></div></div>';
+  }
+  h += '</div>';
+  // Hafta status
+  if (f.haftaDue <= 0) {
+    h += '<div class="str-hafta str-hafta-due"><div class="str-hafta-head">HAFTA DUE</div>' +
+         '<div class="str-hafta-desc">His boys are at the gate. Pay up to keep the stands friendly.</div>' +
+         '<div class="str-favor-btn" id="str-pay-hafta">Pay Hafta · ' + haftaAmt + '</div></div>';
+  } else {
+    h += '<div class="str-hafta"><div class="str-hafta-head">Hafta in ' + f.haftaDue + ' match' + (f.haftaDue === 1 ? '' : 'es') + '</div>' +
+         '<div class="str-hafta-desc">Keep it flowing and the home end stays yours.</div></div>';
+  }
+  // Court button
+  h += '<div class="str-court-btn" id="str-court-btn">Pay Your Respects · 130</div>';
+  // Favours
+  h += '<div class="str-favors-title">Ask a favour · next home match</div>';
+  for (var vi = 0; vi < BHAI_FAVORS.length; vi++) {
+    var fav = BHAI_FAVORS[vi];
+    var unlocked = f.rel >= fav.need;
+    var costLabel = fav.cost + (fav.cur === 'coins' ? '' : ' B$');
+    var canBuy = unlocked && !lineup;
+    h += '<div class="str-favor' + (canBuy ? '' : ' locked') + '">' +
+         '<div class="str-favor-head"><span class="str-favor-name">' + fav.title + '</span><span class="str-favor-cost">' + costLabel + '</span></div>' +
+         '<div class="str-favor-desc">' + fav.desc + '</div>';
+    if (lineup) h += '<div class="str-favor-lock">Something is already lined up for next match</div>';
+    else if (!unlocked) h += '<div class="str-favor-lock">Needs +' + fav.need + ' respect — court him first</div>';
+    else h += '<div class="str-favor-btn" data-fav="' + fav.key + '">Arrange it</div>';
+    h += '</div>';
+  }
+  // Memory ledger
+  h += '<div class="str-memory"><div class="str-memory-title">The gully keeps count</div>' +
+       '<div class="str-memory-row"><span>Favours he did you</span><span class="str-mem-good">' + (f.favorsDone || 0) + '</span></div>' +
+       '<div class="str-memory-row"><span>Times you snubbed him</span><span class="' + ((f.refusals || 0) > 0 ? 'str-mem-bad' : 'str-mem-neutral') + '">' + (f.refusals || 0) + '</span></div></div>';
+  h += '<div class="btn btn-outline" id="str-close-btn" style="width:100%;margin-top:12px">Leave</div>';
+  h += '</div>';
+
+  var content = $('mafia-offer-content');
+  content.innerHTML = h;
+  var modal = document.querySelector('#mafia-overlay .modal');
+  if (modal) modal.setAttribute('data-zone', 'streets');
+  $('mafia-overlay').classList.add('show');
+  var cbt = $('str-court-btn'); if (cbt) cbt.onclick = function() { courtBhai(); };
+  var ph = $('str-pay-hafta'); if (ph) ph.onclick = function() { payHaftaFromScreen(); };
+  var fbtns = content.querySelectorAll('.str-favor-btn[data-fav]');
+  for (var bi = 0; bi < fbtns.length; bi++) {
+    (function(btn) { btn.onclick = function() { bhaiFavor(btn.getAttribute('data-fav')); }; })(fbtns[bi]);
+  }
+  var clb = $('str-close-btn');
+  if (clb) clb.onclick = function() {
     $('mafia-overlay').classList.remove('show');
     if (modal) modal.removeAttribute('data-zone');
   };
@@ -5399,6 +5634,14 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
       else bwlStr *= 0.72;
     }
   }
+  if (match.bhaiCrowd) {
+    if (isYourBatting) batStr *= 1.10;
+    else batStr *= 0.90;
+  }
+  if (match.bhaiTamper) {
+    if (isYourBatting) batStr *= 0.90;
+    else bwlStr *= 0.90;
+  }
   if (GS.scoutWeakness && match.opponent && GS.scoutWeakness === match.opponent.name && !isYourBatting) bwlStr *= 1.10;
   if (match.weather === 'overcast') { if (isPace) bwlStr *= 1.10; }
   if (match.weather === 'dew' && innings === 2) { batStr *= 1.08; }
@@ -6081,9 +6324,18 @@ function startPreMatch() {
   }
   if ($('pm-rival-trait')) $('pm-rival-trait').textContent = rival.trait;
   var pitches = [{t:'SEAMING',d:'Pace bowlers get extra help'},{t:'TURNING',d:'Spinners dominate this track'},{t:'FLAT',d:'A batting paradise'},{t:'GREEN TOP',d:'Early movement, rewards discipline'}];
-  var pitch = pitches[Math.floor(Math.random() * pitches.length)];
+  var pitch = null;
+  if (GS.bhaiBonus && GS.bhaiBonus.type === 'pitchprep') {
+    var lean = squadPitchLean();
+    for (var pp = 0; pp < pitches.length; pp++) { if (pitches[pp].t === lean) pitch = pitches[pp]; }
+  }
+  if (!pitch) pitch = pitches[Math.floor(Math.random() * pitches.length)];
   $('pitch-type').textContent = pitch.t;
-  $('pitch-desc').textContent = pitch.d;
+  var pdesc = pitch.d;
+  if (GS.bhaiBonus && GS.bhaiBonus.type === 'pitchprep') pdesc += ' · ' + BHAI_NAME + '’s men rolled it your way';
+  else if (GS.bhaiBonus && GS.bhaiBonus.type === 'crowd') pdesc += ' · the home crowd is yours today';
+  else if (GS.bhaiBonus && GS.bhaiBonus.type === 'pitchtamper') pdesc += ' · the track looks doctored — not in your favour';
+  $('pitch-desc').textContent = pdesc;
   match.pitchType = pitch.t;
   var opts = document.querySelectorAll('.strategy-opt');
   for (var i = 0; i < opts.length; i++) { opts[i].className = 'strategy-opt' + (opts[i].getAttribute('data-strat') === 'balanced' ? ' selected' : ''); }
@@ -6118,6 +6370,8 @@ function startMatch() {
   match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false; match.fieldSetting = 'standard';
   match.drsUsed = false; match.impactUsed = false; match.superOver = false; match.lastBowler = null; match.bowlerLineup = lockedLineup;
   match.weather = rollWeather(); match.rainOver = 0;
+  match.bhaiCrowd = !!(GS.bhaiBonus && GS.bhaiBonus.type === 'crowd');
+  match.bhaiTamper = !!(GS.bhaiBonus && GS.bhaiBonus.type === 'pitchtamper');
   $('boost-btn').classList.remove('used', 'active-boost');
   $('drs-btn').classList.remove('used'); $('drs-btn').textContent = 'DRS';
   $('impact-btn').classList.remove('used'); $('impact-btn').textContent = 'IMPACT'; $('impact-btn').style.display = 'none';
@@ -6713,6 +6967,9 @@ function endMatch() {
   if (Math.abs(GS.alignment - match.opponent.alignment) > 40) relShift = Math.round(relShift * 0.5);
   rd.rel = Math.max(-100, Math.min(100, rd.rel + relShift));
   GS.mafiaBonus = null;
+  GS.bhaiBonus = null;
+  match.bhaiCrowd = false;
+  match.bhaiTamper = false;
   GS.pepTalkUsed = false;
   GS.scoutWeakness = null;
   var wasFirstMatch = GS.matchNum === 1;
