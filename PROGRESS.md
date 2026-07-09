@@ -3,6 +3,32 @@
 **Last updated:** 2026-07-09
 **Last commit:** (this commit) — Underworld Core increments 4-7 COMPLETE (Syndicate / Neta / Bhai screens + zone re-skins) + deferred test pass
 
+---
+
+## 🔎 REVIEW SESSION 2026-07-09 — "feel rich + stickiness" multi-agent audit → FULL DOC: `CRICKET-REVIEW-2026-07-09.md`
+
+Founder brief: *"suggestions, improvements and bugs… UI/screens/colors too basic, no trigger to make the user stick and feel rich."* Ran ui-designer + user-researcher + component-architect + a bug-hunt agent, grounded in **live screenshots of all 5 screens** (`review-shots/`).
+
+**Two headline findings:**
+1. **Not under-built — under-differentiated.** 80+ tokens, glass, 70+ animations already exist; every element wears the SAME dark-blue-glass + faint-gold (8-15%) costume, so nothing reads expensive. Fix = CONTRAST: solid gold on ONE hero per screen (the money number + primary CTA), strip gold off the other 40 panels. On every screenshot the single best element is the one solid-gold button — that's the whole thesis.
+2. **Zero reason to return.** Daily-login/streak was GDD-specced but NEVER built (`loginReward`/`lastLogin`/`dailyLogin` absent). Plus no "empire net-worth + rank" progress line = no feel-rich pull.
+
+**Note on the pause:** the 2026-07-06 "UI redesign PAUSED / ship-and-measure" was **already formally reversed on 2026-07-08** (see "FOUNDER DECISION 2026-07-08" section below). This review executes under that live directive — consistent, not a new reversal.
+
+**NEXT STEPS (resume here):**
+1. **Read the bug-hunt agent output** (general-purpose id `a99bcfd880f12f72e` — was STILL RUNNING at write time; file under `…/tasks/a99bcfd880f12f72e.output`). Fold into CRICKET-REVIEW §2. **Do NOT spawn a duplicate.**
+2. **Ship Tier 1 batch (feel-rich + retention):** (a) global `.money` class — make the headline number `index.html:547` solid gold + bigger + ₹ symbol; (b) gold austerity pass (strip gold off the 40 low-opacity panels); (c) build Daily Login Streak; (d) add "Empire Net-Worth + Rank" line to Hub.
+3. **Fix HIGH bug first:** tutorial overlay `#tut-overlay.show` intercepts pointer events on fresh load → blocks ALL nav until dismissed.
+4. Load **Space Grotesk** (specced in `docs/visual-design-system.md`, never loaded); route money/stats through `.money`. Also Cinzel specced/not loaded.
+5. **PRESERVE** the alignment theming cascade at `index.html` **lines 126–133** through any restyle.
+6. After each change: `npx serve prototype -l 8080` + `npx playwright test` + eyeball (hard-rule #10). Commit & push each.
+
+**Bugs logged (full table in CRICKET-REVIEW §2):** HIGH tutorial-overlay pointer-block · MED font spec drift (Space Grotesk/Cinzel not loaded, money in Teko) · MED UI-AUDIT keyframe count wrong (34 vs actual 70+) · LOW dup nav loop (8471–8481), win-streak resets to 0 no grace (6815), pack dupe dead-end (7686–7688) · missing GDD systems: daily-login, gacha pity, dupe→fragment.
+
+**First PR when resuming:** `Feel-rich + retention batch 1: gold money hero, gold austerity, daily streak, empire net-worth`
+
+---
+
 ## ✅ DONE (2026-07-09): Underworld Core increments 4-7 — faction screens + zone-palette re-skins
 
 Founder directive #3 finishes here. Increments 1 & 3 stood up the engine + rival two-way bribes; 4-7 give the three human-facing factions their own full-screen destinations and dress every remaining screen in its zone palette. **Built as four commits (89b1d3f, 026c3e3, 70a775d, 8803423), tests deferred to one pass at the end per founder instruction ("no need to do the testing after each increment").**
