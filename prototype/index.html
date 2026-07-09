@@ -1335,6 +1335,49 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 .str-mem-bad{font-weight:700;color:#FCA5A5}
 .str-mem-neutral{font-weight:700;color:#8B8680}
 
+/* ===== Increment 7: zone-palette re-skins for the remaining screens ===== */
+/* League table — Cricket zone (broadcast green stadium scoreboard) */
+#league-screen .section-title{color:#EAFBF3}
+#league-screen .section-title .accent-line{background:linear-gradient(90deg,rgba(52,211,153,0.55),transparent 80%)}
+#league-screen>.glass{border-top:2px solid rgba(52,211,153,0.4);background:linear-gradient(160deg,rgba(52,211,153,0.05) 0%,rgba(255,255,255,0.015) 55%,rgba(5,150,105,0.03) 100%)}
+#league-screen .league-header-row{border-bottom:1px solid rgba(52,211,153,0.16);padding-bottom:8px;margin-bottom:8px}
+#league-screen .league-header-row .lh-pts{color:var(--green-bright)}
+#league-screen #season-stats-btn{border-color:rgba(52,211,153,0.32);color:#7EE7C0;position:relative;overflow:hidden}
+#league-screen #season-stats-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green-bright)}
+#league-screen #season-stats-btn:active{background:rgba(52,211,153,0.08)}
+#league-screen .league-row .form-dot.w{box-shadow:0 0 7px rgba(52,211,153,0.55)}
+
+/* Playing XI selector — Cricket zone (team-sheet green) */
+.squad-select-overlay .ss-title{color:var(--green-bright);text-shadow:0 0 18px rgba(52,211,153,0.3)}
+.squad-select-overlay .ss-header{border-bottom:1px solid rgba(52,211,153,0.14);padding-bottom:10px;background:linear-gradient(180deg,rgba(52,211,153,0.04),transparent)}
+.ss-counter.full{border-color:rgba(52,211,153,0.3);background:rgba(52,211,153,0.07)}
+.ss-role-tag.has{box-shadow:0 0 8px rgba(52,211,153,0.15)}
+
+/* Scorecard — Cricket zone (broadcast dark green wash) */
+.scorecard-overlay{background:linear-gradient(180deg,rgba(4,11,8,0.97) 0%,rgba(6,8,16,0.98) 100%)}
+.sc-table .sc-highlight{color:var(--green-bright);text-shadow:0 0 8px rgba(52,211,153,0.25)}
+
+/* Transfer Market — Economy zone (neon teal) */
+.market-overlay .section-title{color:#D3FAF2}
+.market-overlay .section-title .accent-line{background:linear-gradient(90deg,rgba(45,212,191,0.55),transparent 80%)}
+.market-tabs{border-color:rgba(45,212,191,0.14)}
+.market-tab.active{color:#2DD4BF;background:rgba(45,212,191,0.1);border-bottom:2px solid #2DD4BF}
+.market-item{border-color:rgba(45,212,191,0.1)}
+.market-item .mi-cost{color:#2DD4BF}
+.market-overlay .back-btn{color:#7EEAD9}
+.market-overlay .market-refresh .btn{border-color:rgba(45,212,191,0.28);color:#7EEAD9}
+
+/* Scout panel (hub) — Law/Intel zone (steel blue) */
+#scout-panel{border-top:2px solid rgba(59,130,246,0.4)!important;background:linear-gradient(160deg,rgba(59,130,246,0.05) 0%,rgba(255,255,255,0.015) 55%,rgba(37,99,235,0.03) 100%)!important}
+#scout-panel .section-title{color:#DCE8FF}
+#scout-panel .section-title .accent-line{background:linear-gradient(90deg,rgba(59,130,246,0.55),transparent 80%)}
+#scout-panel [data-scout]{border-color:rgba(59,130,246,0.28)!important}
+#scout-panel [data-scout]:active{background:rgba(59,130,246,0.1)!important}
+
+/* Customise / Settings — Hub zone (noir + gold), angular section headers */
+.custom-section-title{border-left:3px solid var(--gold-bright);padding-left:9px;line-height:1.1}
+.custom-overlay .back-btn{color:var(--gold-bright)}
+
 /* Tribunal overlay */
 .tribunal-overlay{position:fixed;inset:0;z-index:280;background:rgba(4,6,13,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.8s}
 .tribunal-overlay.show{opacity:1;pointer-events:auto}
