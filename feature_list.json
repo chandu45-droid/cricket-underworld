@@ -325,14 +325,22 @@
       "verification": "npx playwright test --grep \"outgoing bribe\"",
       "state": "passing",
       "evidence": "Increment 3 shipped 2026-07-09. bribeRivalToThrow(name) + bribeRivalToThrowCost (150 + round(strength), paid in blackMoney). Guards: must be your next opponent, no fix already set, not under investigation, rival not banned, rel > -40. Personality-gated accept (shark .85 / politician .7 / pragmatist .35-.65 / coward .3-.55 / purist .04), rel/400 modifier, x0.3 for clean rivals (alignment>30), floor .02. Accept -> GS.mafiaBonus={type:'rivalthrow',rival}, +10 rel, +10 heat, align -8, 15% Intercepted Call evidence. Refuse -> clean/purist report (+12 heat, 50% Witness Statement, rel -12), others +4 heat rel -6, no fix. Match calc: rivalthrow weakens OPPONENT both innings (bat x0.62 / bwl x0.72). UI: premium angular red '#rp-throw-btn' in next-rival showRivalProfile + flavor text; pre-match #fix-active-text shows '<Rival> is folding — their team weakened'. 5 new E2E in comprehensive.spec.js (test.describe 'Underworld Core'); full suite 125 passed 2026-07-09 (8.3m); browser-verified live chain (button->accept deducts blackMoney->rivalthrow set->pre-match banner). Next increments: 4 mafia/Syndicate screen redesign, 5 politicians/elections, 6 local leaders, 7 remaining redesign screens."
+    },
+    {
+      "id": "F41",
+      "system": "Underworld Core",
+      "behavior": "Faction destination screens (Syndicate / Neta / Bhai) + zone-palette re-skins for every remaining screen — completing all 7 Underworld Core increments",
+      "verification": "npx playwright test --grep \"Underworld Core\"",
+      "state": "passing",
+      "evidence": "Increments 4-7 shipped 2026-07-09 (four commits 89b1d3f, 026c3e3, 70a775d, 8803423; tests deferred to one final pass per founder instruction). Inc4 showSyndicateScreen() .syn-screen (Don Anna Seth + 2 lieutenants Rukhsana Mirza/Balwant Teja, rel meter, syndicateTier badge Made Man>=60/Associate>=20/Known>=-20/On Notice>=-60/Marked, offer button #syn-hear-offer-btn) offer locks (.syn-offer-locked) when !mafiaAccess (alignment>=45) / case open / marked / debts>=5; data-zone=underworld. Inc5 showNetaScreen() .pol-screen (2 fictional candidate posters Bhupathi Rao-Vikas Morcha / Savitri Devi-Jan Shakti Party, power/ally, demand block, memory); fundNetaCampaign(idx) 300 coins while election<=3 && !backed -> neta.backed set, align -3; data-zone=politics. Inc6 showBhaiScreen() .str-screen (Sikandar Bhai + 2 crew Munna Tawde/Kaali Prasad, rel meter, hafta block); courtBhai() 130 coins -> rel +12/courted/heat+1/align-3; bhaiFavor(key) crowd(90 coins)/pitchprep(110 B$) -> single GS.bhaiBonus slot, guarded vs stacking with GS.mafiaBonus; payHaftaFromScreen() clears clock; squadPitchLean() -> TURNING/SEAMING/FLAT; data-zone=streets. Inc7 scoped CSS re-skins (test-protected selectors preserved): league+XI+scorecard Cricket green, market Economy teal, scout Law steel-blue, customise/settings Hub noir+gold. 8 new E2E in comprehensive.spec.js (test.describe 'Underworld Core'); full suite 133 passed 2026-07-09 (9.1m), zero regressions. Underworld Core COMPLETE (7/7). Next strategic step: ship-and-measure (analytics + distribution)."
     }
   ],
   "summary": {
-    "total": 40,
-    "passing": 40,
+    "total": 41,
+    "passing": 41,
     "active": 0,
     "blocked": 0,
     "not_started": 0,
-    "automated_test_count": "125 Playwright E2E tests across 3 spec files"
+    "automated_test_count": "133 Playwright E2E tests across 3 spec files"
   }
 }

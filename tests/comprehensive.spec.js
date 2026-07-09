@@ -966,6 +966,101 @@ test.describe('Underworld Core', () => {
     });
     await expect(page.locator('#rp-throw-btn')).toBeVisible();
   });
+
+  // ---- Increment 4: The Syndicate screen (underworld zone) ----
+  test('syndicate screen renders don + lieutenants in underworld zone', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { alignment: -40 });
+    await page.evaluate(() => window.showSyndicateScreen());
+    await expect(page.locator('.syn-title')).toHaveText('THE SYNDICATE');
+    const lieuts = await page.locator('.syn-lieut').count();
+    expect(lieuts).toBe(2);
+    const zone = await page.getAttribute('#mafia-overlay .modal', 'data-zone');
+    expect(zone).toBe('underworld');
+  });
+
+  test('syndicate offer locked when too clean', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { alignment: 80 });
+    await page.evaluate(() => window.showSyndicateScreen());
+    await expect(page.locator('.syn-offer-locked')).toBeVisible();
+    expect(await page.locator('#syn-hear-offer-btn').count()).toBe(0);
+  });
+
+  // ---- Increment 5: The Politics Desk (politics zone) ----
+  test('neta screen renders candidate posters in politics zone', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, {});
+    await page.evaluate(() => window.showNetaScreen());
+    await expect(page.locator('.pol-title')).toHaveText('THE POLITICS DESK');
+    expect(await page.locator('.pol-poster').count()).toBe(2);
+    const zone = await page.getAttribute('#mafia-overlay .modal', 'data-zone');
+    expect(zone).toBe('politics');
+  });
+
+  test('funding a campaign backs a candidate and spends coins', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 5000 });
+    const res = await page.evaluate(() => {
+      window.initFactions();
+      window.GS.factions.neta.election = 2;
+      window.GS.factions.neta.backed = null;
+      const before = window.GS.coins;
+      window.fundNetaCampaign(0);
+      return { backed: window.GS.factions.neta.backed, before, after: window.GS.coins };
+    });
+    expect(res.backed).toBeTruthy();
+    expect(res.after).toBe(res.before - 300);
+  });
+
+  // ---- Increment 6: The Streets / Sikandar Bhai (streets zone) ----
+  test('bhai screen renders crew in streets zone', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, {});
+    await page.evaluate(() => window.showBhaiScreen());
+    await expect(page.locator('.str-title')).toHaveText('THE STREETS');
+    expect(await page.locator('.str-crew-mem').count()).toBe(2);
+    const zone = await page.getAttribute('#mafia-overlay .modal', 'data-zone');
+    expect(zone).toBe('streets');
+  });
+
+  test('courting the bhai raises respect and spends coins', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 5000 });
+    const res = await page.evaluate(() => {
+      window.initFactions();
+      const before = window.GS.factions.bhai.rel;
+      const coinsBefore = window.GS.coins;
+      window.courtBhai();
+      return { before, relAfter: window.GS.factions.bhai.rel, coinsBefore, coinsAfter: window.GS.coins, courted: window.GS.factions.bhai.courted };
+    });
+    expect(res.relAfter).toBeGreaterThan(res.before);
+    expect(res.coinsAfter).toBe(res.coinsBefore - 130);
+    expect(res.courted).toBe(true);
+  });
+
+  test('bhai favour sets a match bonus and cannot be stacked', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 5000, blackMoney: 5000, mafiaBonus: null });
+    const res = await page.evaluate(() => {
+      window.initFactions();
+      window.GS.factions.bhai.rel = 50;
+      window.bhaiFavor('crowd');
+      const first = window.GS.bhaiBonus ? window.GS.bhaiBonus.type : null;
+      window.bhaiFavor('pitchprep'); // must be blocked while one is lined up
+      const second = window.GS.bhaiBonus ? window.GS.bhaiBonus.type : null;
+      return { first, second };
+    });
+    expect(res.first).toBe('crowd');
+    expect(res.second).toBe('crowd');
+  });
+
+  test('squad pitch lean returns a valid pitch type', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, {});
+    const lean = await page.evaluate(() => window.squadPitchLean());
+    expect(['TURNING', 'SEAMING', 'FLAT']).toContain(lean);
+  });
 });
 
 // ============================================================

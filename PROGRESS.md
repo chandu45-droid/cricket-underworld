@@ -1,7 +1,25 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-09
-**Last commit:** (this commit) — Underworld Core increment 3 COMPLETE (rival outgoing bribes)
+**Last commit:** (this commit) — Underworld Core increments 4-7 COMPLETE (Syndicate / Neta / Bhai screens + zone re-skins) + deferred test pass
+
+## ✅ DONE (2026-07-09): Underworld Core increments 4-7 — faction screens + zone-palette re-skins
+
+Founder directive #3 finishes here. Increments 1 & 3 stood up the engine + rival two-way bribes; 4-7 give the three human-facing factions their own full-screen destinations and dress every remaining screen in its zone palette. **Built as four commits (89b1d3f, 026c3e3, 70a775d, 8803423), tests deferred to one pass at the end per founder instruction ("no need to do the testing after each increment").**
+
+- **Increment 4 — The Syndicate (Underworld zone, blood red + smoke black), commit 89b1d3f.** `showSyndicateScreen()` renders a `.syn-screen` with Don **Anna Seth** + 2 lieutenants (Rukhsana Mirza, Balwant Teja), a relationship meter, syndicate-tier badge (`syndicateTier`: Made Man ≥60 / Associate ≥20 / Known ≥−20 / On Notice ≥−60 / Marked), memory line, and an "Hear the offer" button. The offer **locks** (`.syn-offer-locked`, button removed) when you're too clean (`!zone.mafiaAccess`, i.e. alignment ≥45), a case is open, you're marked, or debts ≥5. Wraps the existing offer economy — nothing lost. `data-zone='underworld'`.
+- **Increment 5 — The Politics Desk (Politics zone, ivory + deep amber poster), commit 026c3e3.** `showNetaScreen()` renders `.pol-screen` with a campaign poster per candidate (NETA_CANDIDATES = Bhupathi Rao/Vikas Morcha, Savitri Devi/Jan Shakti Party — all fictional), a power/ally readout, a live demand block (fundraiser / nephew-in-squad / throw-a-match), and memory line. `fundNetaCampaign(idx)` (300 coins, only while `election ≤ 3 && !backed`) backs a candidate and shifts alignment −3. `data-zone='politics'`.
+- **Increment 6 — The Streets (Streets zone, sodium orange #F97316 + concrete grey), commit 70a775d.** `showBhaiScreen()` renders `.str-screen` for area don **Sikandar Bhai** + 2 crew (Munna Tawde, Kaali Prasad), relationship meter, hafta status/pay block, `courtBhai()` ("Pay Your Respects · 130 coins" → rel +12, courted, heat +1, align −3), and favour buttons. `bhaiFavor(key)` buys a home-ground match edge (`crowd` 90 coins / `pitchprep` 110 B$) into a single `GS.bhaiBonus` slot — **guarded against stacking** with `GS.mafiaBonus`. `payHaftaFromScreen()` clears the hafta clock. `squadPitchLean()` reports TURNING / SEAMING / FLAT from squad make-up. `data-zone='streets'`.
+- **Increment 7 — zone-palette re-skins for the remaining screens, commit 8803423.** Scoped CSS overrides (no risky rewrites, all test-protected selectors preserved) give each remaining screen its zone identity: **League table + Playing XI + Scorecard → Cricket broadcast green**; **Transfer Market → Economy neon teal**; **Scout panel → Law/Intel steel blue**; **Customise/Settings → Hub noir + gold** with angular section headers. All selectors verified against real markup before commit — no dead selectors relied on for effect.
+
+### Verification (deferred single pass — all passed)
+- **`npx playwright test` → 133 passed (9.1m)** — 125 baseline + 8 new Underworld Core tests, zero regressions.
+- New tests (tests/comprehensive.spec.js → `test.describe('Underworld Core')`): syndicate screen renders don+2 lieutenants in `data-zone='underworld'` · syndicate offer locked when too clean (alignment 80) · neta screen renders 2 candidate posters in `data-zone='politics'` · `fundNetaCampaign(0)` backs a candidate + spends 300 coins · bhai screen renders 2 crew in `data-zone='streets'` · `courtBhai()` raises respect + spends 130 coins + sets courted · `bhaiFavor('crowd')` sets the bonus and a second favour is blocked by the stacking guard · `squadPitchLean()` returns a valid pitch type.
+
+### Underworld Core — COMPLETE
+All 7 increments shipped (1 Power Web + case file + weekly events · 2 Law zone/case pipeline · 3 rival two-way bribes · 4 Syndicate screen · 5 Neta screen · 6 Bhai screen · 7 zone re-skins). The underworld fantasy now has faces, screens, and decisions across all 5 factions. Ship-and-measure (analytics + distribution) is the next strategic step.
+
+---
 
 ## ✅ DONE (2026-07-09): Underworld Core increment 3 — Rival outgoing bribes (two-way F5 complete)
 
@@ -182,10 +200,10 @@ Replace with lazy inspector + stage text (MUST keep `matchesLeft + ' matches'` p
 
 ## Current State
 
-- **Build:** HTML5 single-file PWA (`prototype/index.html`, ~7000+ lines)
-- **Tests:** 125 Playwright E2E tests — last full run 2026-07-09: all 125 passing (114 baseline + 6 Underworld Core increment 1 + 5 outgoing-bribe increment 3)
-- **Features:** 38/38 passing — **FEATURE-COMPLETE.** F33–F38 all shipped (bug audit c40ac4c → PWA 8318376 → Season Pass 819d5b5 → Vault IAP 77ef349 → Sponsor Break rewarded ads)
-- **Phase:** ▶ Premium UI Redesign **RESUMED by founder decision 2026-07-08** (6/16 screens done, 10 remaining — see below)
+- **Build:** HTML5 single-file PWA (`prototype/index.html`, ~8800+ lines)
+- **Tests:** 133 Playwright E2E tests — last full run 2026-07-09: all 133 passing (125 baseline + 8 Underworld Core increments 4-6 screen/behaviour tests)
+- **Features:** feature-complete + Underworld Core (all 7 increments) shipped. F33–F38 shipped; F39/F40 = Underworld Core increments 1 & 3.
+- **Phase:** ✅ Underworld Core COMPLETE (7/7 increments); premium redesign 16/16 screens dressed in zone palettes. NEXT strategic step: ship-and-measure (analytics + distribution).
 
 ## FOUNDER DECISION 2026-07-08: UI Redesign resumes NOW
 
@@ -199,14 +217,14 @@ Founder verdict: *"the core game play is underworld, politicians, mafia, local l
 
 Code audit confirmed it: mafia = offer menu only; politicians = a tag on 2 rivals; police = zero mentions; local leaders = zero; rival bribes one-directional. **Full plan: `docs/underworld-core-plan.md`** — 5-faction Power Web (Syndicate / Thana police cases / Neta politicians / Bhai local leaders / rival bosses two-way bribes) + zone-based color re-plan (Underworld=blood red noir, Law=steel blue, Politics=ivory/amber, Streets=sodium orange, Cricket=broadcast green, Economy=neon teal).
 
-**New execution order (each built → tested → committed individually):**
-1. Power Web hub panel + `GS.factions` skeleton ← NEXT
-2. Police case pipeline (FIR → evidence → chargesheet → court) + Law zone
-3. Rival boss two-way bribes
-4. Grey Zone / Mafia screen redesign + Syndicate faces (Underworld zone)
-5. Politicians + elections (Politics zone)
-6. Local leaders (Streets zone)
-7. Remaining redesign screens in their zone palettes: tutorial, league, XI, scorecard, market, scout, facilities, settings
+**New execution order (each built → committed individually) — ALL COMPLETE:**
+1. [x] Power Web hub panel + `GS.factions` skeleton (increment 1)
+2. [x] Police case pipeline (FIR → evidence → chargesheet → court) + Law zone (increment 1/2)
+3. [x] Rival boss two-way bribes (increment 3)
+4. [x] Grey Zone / Mafia screen redesign + Syndicate faces — Underworld zone (89b1d3f)
+5. [x] Politicians + elections — Politics zone (026c3e3)
+6. [x] Local leaders — Streets zone (70a775d)
+7. [x] Remaining redesign screens in their zone palettes: league, XI, scorecard, market, scout, customise/settings (8803423)
 
 ## STRATEGIC PIVOT: Ship & Measure (2026-07-06 — Vidura portfolio audit)
 
