@@ -3,7 +3,12 @@
 **Source:** `Cricket Underworld v2 (standalone).html` (a static React "design_doc_mode" canvas — 3 presentation mockups: Home Hub / Squad / Auction, on device frames with placeholder art)
 **Target:** `prototype/index.html` (the shipped, functional game)
 **Date:** 2026-07-10
-**Status:** PLAN ONLY — no implementation until founder says "build it"
+**Status:** ✅ **SHIPPED 2026-07-11 — Phases 1–6 all complete.** Founder-directed build.
+Depth recipe ported into `prototype/index.html` (Phase 4 = b306154, Phase 5 = 713615e,
+Phase 6 doc+canon = 09363d0). **135 Playwright tests green** (incl. #124 light-default,
+#125 dark-toggle-persists). Token spec locked in `docs/visual-design-system.md` §2.4.
+Recipe promoted to `CORE-MEMORY.md` §5 as a reusable pattern (§7 below). **Founder decision
+pending:** light is the enforced default theme — flip to dark? (do not change test #124 alone).
 
 ---
 
@@ -234,3 +239,6 @@ The extracted "depth recipe" (lifted base + solid gradient panels + bevel-as-bor
 spotlight + restrained colored glows) is a reusable premium-dark-UI pattern. Candidates:
 Financial Wellness App (dark mode), Katha Cheppana story cards, TaskFlow. Capture in CORE-MEMORY
 if it proves out on the Cricket port.
+
+> ✅ **Proved out 2026-07-11 → captured in `CORE-MEMORY.md` §5** (6-move recipe + zero-dead-black
+> empty-state rule + reuse candidates). Full token spec lives in `docs/visual-design-system.md` §2.4.
