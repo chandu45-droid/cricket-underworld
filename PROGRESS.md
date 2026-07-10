@@ -26,14 +26,54 @@ Founder: *"Remove dark theme as well from the game. Can include a toggle to enab
 
 ## 🎯 PROJECT SCOPE (2026-07-10): Sell to investors / gaming companies
 
-Founder set the goal: sell the game to investors or other gaming companies. Gap analysis done this session. Finalized sequence:
+Founder set the goal: sell the game to investors or other gaming companies. Gap analysis done this session. Traction data is the valuation driver — "prototype + D7%" prices as a product, "prototype, zero users" prices as an asset sale. No analytics exist in the build today.
 
-- **Phase 0 — demo blockers (days):** fix HIGH tutorial-overlay pointer-block bug → refresh stale pitch.html/outreach.md numbers (says 110 tests/$3.2B; actual 135 tests/$5.91B market) → verify GitHub Pages live + real-device mobile QA.
-- **Phase 1 — look expensive (~1wk):** Tier 1 feel-rich batch from CRICKET-REVIEW-2026-07-09 (gold money hero, gold austerity, fonts, daily login streak, empire net-worth line).
-- **Phase 2 — traction number (~1-2wk):** analytics (anon ID + session/match/return events → D1/D7), then itch.io/Reddit/X distribution timed to a cricket moment; freeze new systems until ~200 organic users.
-- **Phase 3 — outreach (parallel):** 30-60s demo video, live metrics in pitch.html, fire outreach.md templates at Indian gaming studios + micro-VCs after ~2wks of retention data.
-- **Gate:** D7 > 15% → lead pitch with retention; < 15% → fix funnel, pitch as tech/IP acquisition.
-- Key insight: traction data is the valuation driver — "prototype + D7%" prices as a product, "prototype, zero users" prices as an asset sale. No analytics exist in the build today.
+---
+
+## 📋 FINALIZED ROADMAP — RESUME DEVELOPMENT HERE (written 2026-07-10, founder-approved scope)
+
+Work top-to-bottom. WIP=1, verify each item (`npx playwright test` + browser eyeball) before the next, commit each. All work continues on PR #1 branch (`claude/current-status-gpzh42`) until it merges.
+
+### Phase 0 — Demo blockers (do FIRST, ~1 day total)
+Every investor clicks the game link before reading anything. These three make the first 30 seconds survivable.
+
+- [ ] **0.1 Fix HIGH bug: tutorial overlay pointer-block.** `#tut-overlay.show` intercepts ALL taps on fresh load until dismissed — a fresh visitor sees a game that "doesn't respond". Repro: clear localStorage, load, try tapping nav. Fix direction: make the overlay scrim `pointer-events:none` except on the tut box/buttons, or auto-dismiss on any outside tap. Add an E2E: fresh load → tap nav → screen switches. (Effort: S)
+- [ ] **0.2 Refresh pitch materials with real numbers.** `outreach.md` + `pitch.html` say "43+ systems, 110 tests, $3.2B market" — actual: 42 tracked features passing, 135 E2E tests, $5.91B→$16.72B (2034) market. Add the two missing strongest cards: (a) Underworld Core differentiation (5-faction Power Web — no competitor has it), (b) regulatory moat (no-RMG design is PROG Act 2026-proof while fantasy apps died). (Effort: S)
+- [ ] **0.3 Verify live deployment + real-device QA.** Confirm `chandu45-droid.github.io/cricket-underworld/prototype/` serves the CURRENT build (needs founder or a session with github.io network access — cloud container can't reach it). Check light theme + toggle on a real budget Android. Note: GitHub Pages serves from `master` — the theme work must be MERGED (PR #1) before the public URL shows it. (Effort: S, founder-assisted)
+
+### Phase 1 — Look expensive (~1 week) — Tier 1 of CRICKET-REVIEW-2026-07-09
+The demo IS the pitch. Full rationale + Tier 2/3 backlog in `CRICKET-REVIEW-2026-07-09.md`.
+
+- [ ] **1.1 Global `.money` class — make money look like money.** Headline auction bid (was `index.html:547`, shifted) solid gold, bigger, ₹ symbol, proper number font; route every currency value through `.money`. **Use `var(--gold-bright)` not a hex** so it works in both themes (light overrides it to #B08D0A). (Effort: S, highest feel-rich leverage)
+- [ ] **1.2 Gold austerity pass.** Strip gold off the ~40 panels using it at 8-15% opacity; reserve gold for ONE hero element per screen (the number that matters + primary CTA). Rich is a contrast phenomenon. (Effort: S-M)
+- [ ] **1.3 Load Space Grotesk (+ Cinzel if used)** — specced in `docs/visual-design-system.md`, never loaded; money/stats currently render in Teko. (Effort: S)
+- [ ] **1.4 Daily Login Streak.** GDD-specced, never built (`loginReward`/`lastLogin`/`dailyLogin` absent from code). Streak counter + escalating reward row on hub; persists in GS; also feeds Phase 2 retention data. (Effort: M)
+- [ ] **1.5 Empire Net-Worth + Rank line on hub.** One line: "Your empire: ₹X · Rank #Y of 10" (squad value + coins + assets). The feel-rich progress pull. (Effort: S)
+- [ ] **1.6 Remaining LOW bugs from review §2** (opportunistic): dup nav loop (~8471), win-streak resets with no grace (~6815), pack dupe dead-end (~7686). (Effort: S each)
+
+### Phase 2 — The traction number (~1-2 weeks)
+- [ ] **2.1 Analytics.** Anonymous localStorage user ID + event log (session_start, match_completed, return_visit, tutorial_done, purchase_stub) → computable D1/D7 cohorts. Lightweight: either a free tier (PostHog/Plausible) or a self-owned endpoint; must not break offline PWA. (Effort: M)
+- [ ] **2.2 Distribution.** itch.io listing + Reddit (r/WebGames, r/incremental_games, cricket subs) + X; time waves to a cricket moment. (Effort: S, founder-assisted for accounts)
+- [ ] **2.3 FREEZE new systems** until ~200 organic users produce D7 data.
+
+### Phase 3 — Outreach (parallel with Phase 2, founder-led)
+- [ ] **3.1 30-60s demo video/GIF** (what actually gets forwarded inside a studio).
+- [ ] **3.2 Wire live metrics into pitch.html** once analytics has ~2 weeks of data.
+- [ ] **3.3 Fire `outreach.md` templates** at Indian gaming studios (Nazara/JetSynthesys/Gametion-type) + micro-VCs.
+
+### Decision gate
+- **D7 > 15%** → lead every pitch with the retention number.
+- **D7 < 15%** → diagnose funnel drop-off via events, fix only that, re-measure; pitch as tech/IP acquisition meanwhile.
+
+### Backlog (post-gate / opportunistic — not scheduled)
+- Automated E2E for manual-only features: F09 (DRS/impact/weather/super-over/injury), F25 academy, F27 staff, F29 mentorship, F32 bans, F38 knockout.
+- Tier 2/3 feel-rich items from `CRICKET-REVIEW-2026-07-09.md` (per-zone panel silhouettes, number-roll animations, haptics).
+- GDD systems still unbuilt: gacha pity counter, dupe→fragment conversion.
+- Real billing integration (IAP stubs are launch-blocking for stores, not for the pitch).
+- Split `index.html` (~9000 lines) when it crosses ~10K per decisions log.
+
+### Session-restart cheat sheet
+`/resume` → this section → Phase 0.1. Server: `npx serve prototype -l 8080`. Tests: `npx playwright test` (~9min local, ~50min cloud container). Cloud container: config auto-uses `/opt/pw-browsers/chromium`; run node scripts with `NODE_PATH=<repo>/node_modules`. Dismiss tutorial in scripts: `classList.remove('show')` + `GS.tutorialDone=true`. PRESERVE alignment cascade (`index.html` ~lines 126-133 dark block + light-theme equivalents). Light theme is default — verify visual work in BOTH themes (toggle: Settings → Appearance).
 
 ---
 
@@ -258,10 +298,11 @@ Replace with lazy inspector + stage text (MUST keep `matchesLeft + ' matches'` p
 
 ## Current State
 
-- **Build:** HTML5 single-file PWA (`prototype/index.html`, ~8800+ lines)
-- **Tests:** 133 Playwright E2E tests — last full run 2026-07-09: all 133 passing (125 baseline + 8 Underworld Core increments 4-6 screen/behaviour tests)
-- **Features:** feature-complete + Underworld Core (all 7 increments) shipped. F33–F38 shipped; F39/F40 = Underworld Core increments 1 & 3.
-- **Phase:** ✅ Underworld Core COMPLETE (7/7 increments); premium redesign 16/16 screens dressed in zone palettes. NEXT strategic step: ship-and-measure (analytics + distribution).
+- **Build:** HTML5 single-file PWA (`prototype/index.html`, ~9000 lines). Light theme default + dark toggle (F42).
+- **Tests:** 135 Playwright E2E tests — last full run 2026-07-10: all 135 passing (cloud container, 51min).
+- **Features:** 42/42 tracked features passing. Underworld Core complete (7/7); F42 theming shipped 2026-07-10.
+- **PR:** #1 open (`claude/current-status-gpzh42` → master), mergeable, session subscribed to its events.
+- **Phase:** Sale scope active — next work = FINALIZED ROADMAP above, starting Phase 0.1 (tutorial-overlay bug).
 
 ## FOUNDER DECISION 2026-07-08: UI Redesign resumes NOW
 
@@ -352,8 +393,8 @@ Code audit confirmed it: mafia = offer menu only; politicians = a tag on 2 rival
 
 ## Next Session Checklist
 
-1. Read this file for current state
+1. Read this file — start at **📋 FINALIZED ROADMAP** (top of file), Phase 0.1
 2. Read `feature_list.json` for system-level status
 3. Run `npx playwright test` to verify repo is green
-4. Pick next feature from `feature_list.json` (state: `not_started`) or address known issues
-5. WIP=1: finish and verify one feature before starting next
+4. Work the roadmap top-to-bottom; WIP=1: finish and verify one item before starting next
+5. Commit each item; pushes update PR #1 automatically
