@@ -1,7 +1,39 @@
 # Progress — Cricket Underworld
 
-**Last updated:** 2026-07-09
-**Last commit:** (this commit) — Underworld Core increments 4-7 COMPLETE (Syndicate / Neta / Bhai screens + zone re-skins) + deferred test pass
+**Last updated:** 2026-07-10
+**Last commit:** (this commit) — Light theme is now the DEFAULT; dark noir available via Settings → Appearance toggle
+
+---
+
+## ✅ DONE (2026-07-10): Light theme default + dark-theme toggle (founder directive)
+
+Founder: *"Remove dark theme as well from the game. Can include a toggle to enable or disable dark theme easily."* Also new **project scope: sell the game to investors / gaming companies** (see plan below).
+
+**Architecture** (all in `prototype/index.html`):
+- Existing dark-noir CSS stays as the base layer; `html[data-theme="light"]` overrides ~60 design tokens (surfaces → warm ivory #F4EFE6 family, warm-white text → ink #1A2333, accents deepened for contrast, light glass, softer elevations).
+- Hardcoded colors converted to **rgb channel variables** so one variable flips whole families: `--hl-rgb` (155× white hairlines/fills), `--ov-rgb` (20× full-screen overlay scrims), `--chrome-rgb` (top bar/nav), `--abyss-rgb` (deep gradient stops).
+- **Noir set-pieces stay dark in light theme** (mafia banner, shop pack rows, vault hero, ad billboard, syndicate/streets faction modals, corruption report) — scoped rule re-maps text tokens back to light values + `color:var(--white)` to re-resolve inherited color (computed-value inheritance gotcha). This IS the review's contrast thesis: dark underworld set-pieces read premium against ivory.
+- Inc-7 zone re-skin text tones that assumed dark backdrops get deepened light variants (league green, market teal, scout blue).
+- **Boot**: inline script right after `</style>` reads `cu_save_v3` and sets `data-theme` before first paint (no flash); updates `<meta theme-color>`. Default = light; dark only when save has `darkTheme:true`.
+- **State**: `GS.darkTheme` (default false) in defaults + load(); `applyTheme()` beside save(); toggle row in Settings → Appearance (`#theme-toggle-row` / `#theme-switch`, angular clip-path switch) bound in INIT.
+- `playwright.config.js`: conditional `executablePath:/opt/pw-browsers/chromium` when that path exists (cloud containers ship a Chromium whose revision mismatches @playwright/test 1.60; no effect on local Windows).
+
+**Verified**: 2 new E2E in comprehensive.spec.js (`test.describe('Theme')`): light default + toggle→dark→persists-across-reload→toggle-back. Browser-verified screenshots (390×844 DPR2): hub/squad/cards/league/auction/market/settings in light, syndicate+bhai set-pieces stay noir w/ readable text, dark mode unchanged. Theme+Customisation targeted run: 4/4 green. Full-suite regression pass initiated (this container runs ~50min vs 9min local — one pre-existing env flake: 'bowler picker appears when bowling' timeout, unrelated to theme).
+
+**Note for next session**: alignment cascade (index.html lines ~126-133) untouched ✓. `.money` gold-hero class from the feel-rich plan should use `--gold-bright` so it works in both themes.
+
+---
+
+## 🎯 PROJECT SCOPE (2026-07-10): Sell to investors / gaming companies
+
+Founder set the goal: sell the game to investors or other gaming companies. Gap analysis done this session. Finalized sequence:
+
+- **Phase 0 — demo blockers (days):** fix HIGH tutorial-overlay pointer-block bug → refresh stale pitch.html/outreach.md numbers (says 110 tests/$3.2B; actual 135 tests/$5.91B market) → verify GitHub Pages live + real-device mobile QA.
+- **Phase 1 — look expensive (~1wk):** Tier 1 feel-rich batch from CRICKET-REVIEW-2026-07-09 (gold money hero, gold austerity, fonts, daily login streak, empire net-worth line).
+- **Phase 2 — traction number (~1-2wk):** analytics (anon ID + session/match/return events → D1/D7), then itch.io/Reddit/X distribution timed to a cricket moment; freeze new systems until ~200 organic users.
+- **Phase 3 — outreach (parallel):** 30-60s demo video, live metrics in pitch.html, fire outreach.md templates at Indian gaming studios + micro-VCs after ~2wks of retention data.
+- **Gate:** D7 > 15% → lead pitch with retention; < 15% → fix funnel, pitch as tech/IP acquisition.
+- Key insight: traction data is the valuation driver — "prototype + D7%" prices as a product, "prototype, zero users" prices as an asset sale. No analytics exist in the build today.
 
 ---
 

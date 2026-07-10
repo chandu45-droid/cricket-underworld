@@ -1089,6 +1089,43 @@ test.describe('Customisation', () => {
 });
 
 // ============================================================
+// 17b. THEME (light default + dark toggle)
+// ============================================================
+test.describe('Theme', () => {
+  test('light theme is the default', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    expect(theme).toBe('light');
+    const dark = await page.evaluate(() => window.GS.darkTheme);
+    expect(dark).toBe(false);
+  });
+
+  test('settings toggle enables dark theme and persists across reload', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    await page.click('#settings-btn');
+    await page.waitForTimeout(500);
+    await page.click('#theme-toggle-row');
+    await page.waitForTimeout(300);
+    let theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    expect(theme).toBe('dark');
+    await page.reload();
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+    theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    expect(theme).toBe('dark');
+    // toggle back off
+    await dismissOverlays(page);
+    await page.click('#settings-btn');
+    await page.waitForTimeout(500);
+    await page.click('#theme-toggle-row');
+    await page.waitForTimeout(300);
+    theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    expect(theme).toBe('light');
+  });
+});
+
+// ============================================================
 // 18. TUTORIAL
 // ============================================================
 test.describe('Tutorial', () => {
