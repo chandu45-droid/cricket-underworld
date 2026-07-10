@@ -455,6 +455,8 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .btn.full{width:100%}
 .btn.lg{padding:16px 40px;font-size:18px;min-height:54px}
 .btn:disabled,.btn.disabled{opacity:0.35;pointer-events:none;filter:grayscale(0.5)}
+.btn-hero{background:var(--cta-red);color:#fff;box-shadow:var(--cta-red-shadow);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.btn-hero:active{box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.25),0 4px 10px rgba(204,17,0,0.35)}
 
 /* ================================================================
    STAT BARS — Premium with glow fills
@@ -463,7 +465,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .stat-bar::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(var(--hl-rgb),0.02),transparent);pointer-events:none}
 .stat-bar .fill{height:100%;border-radius:3px;transition:width 0.8s var(--ease-premium);position:relative}
 .stat-bar .fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:8px;border-radius:0 3px 3px 0;filter:blur(3px)}
-.stat-bar .fill.green{background:linear-gradient(90deg,var(--green),var(--green-bright))}.stat-bar .fill.green::after{background:var(--green-bright)}
+.stat-bar .fill.green{background:linear-gradient(90deg,var(--green),var(--green-bright));box-shadow:var(--glow-green)}.stat-bar .fill.green::after{background:var(--green-bright)}
 .stat-bar .fill.gold{background:linear-gradient(90deg,var(--gold),var(--gold-bright))}.stat-bar .fill.gold::after{background:var(--gold-bright)}
 .stat-bar .fill.red{background:linear-gradient(90deg,var(--crimson),var(--blood))}.stat-bar .fill.red::after{background:var(--blood)}
 .stat-bar .fill.amber{background:linear-gradient(90deg,var(--amber),#F0960A)}.stat-bar .fill.amber::after{background:#F0960A}
@@ -475,8 +477,8 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .badge.rarity-uncommon{background:rgba(59,130,246,0.14);color:#60A5FA;border:1px solid rgba(59,130,246,0.12);box-shadow:0 0 8px rgba(59,130,246,0.06)}
 .badge.rarity-rare{background:rgba(34,212,126,0.12);color:var(--green-bright);border:1px solid rgba(34,212,126,0.10);box-shadow:0 0 8px rgba(34,212,126,0.06)}
 .badge.rarity-epic{background:rgba(255,210,63,0.12);color:var(--gold-bright);border:1px solid rgba(255,210,63,0.10);box-shadow:0 0 12px rgba(255,210,63,0.08)}
-.badge.rarity-legendary{background:linear-gradient(135deg,rgba(255,210,63,0.15),rgba(239,45,45,0.12));color:var(--gold-bright);border:1px solid rgba(255,210,63,0.15);box-shadow:0 0 16px rgba(255,210,63,0.10);animation:legendaryBadgePulse 3s ease-in-out infinite}
-@keyframes legendaryBadgePulse{0%,100%{box-shadow:0 0 16px rgba(255,210,63,0.10)}50%{box-shadow:0 0 24px rgba(255,210,63,0.18)}}
+.badge.rarity-legendary{background:var(--gold-badge);color:var(--gold-ink);border:1px solid rgba(255,233,168,0.5);box-shadow:var(--glow-gold);text-shadow:0 1px 0 rgba(255,255,255,0.25);animation:legendaryBadgePulse 3s ease-in-out infinite}
+@keyframes legendaryBadgePulse{0%,100%{box-shadow:var(--glow-gold)}50%{box-shadow:0 0 24px rgba(218,165,32,0.6),0 0 6px rgba(218,165,32,0.75)}}
 
 .star{color:var(--gold-bright);font-size:11px;letter-spacing:2px}
 .star .dim{opacity:0.2}
@@ -610,7 +612,9 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .auction-purse-zone .purse-col{display:flex;flex-direction:column;align-items:flex-end;gap:0}
 
 /* Round chip — centered with decorative lines */
-.auction-round-chip{text-align:center;margin-bottom:8px}
+.auction-round-chip{display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:8px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--blood);box-shadow:0 0 8px rgba(204,17,0,0.8),0 0 2px rgba(204,17,0,1);flex-shrink:0;animation:liveDotPulse 1.4s ease-in-out infinite}
+@keyframes liveDotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.65)}}
 .auction-round-chip .round-info{font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--white-40);text-transform:uppercase;letter-spacing:2px;display:inline-flex;align-items:center;gap:8px}
 .auction-round-chip .round-info::before,.auction-round-chip .round-info::after{content:'';width:24px;height:1px;background:linear-gradient(90deg,transparent,var(--white-10),transparent)}
 
@@ -720,8 +724,8 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .pm-fix{position:relative;overflow:hidden}
 .pm-fix::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 60%);pointer-events:none;animation:pmFixPulse 2s ease-in-out infinite}
 @keyframes pmFixPulse{0%,100%{opacity:0.3}50%{opacity:1}}
-.pm-start{width:100%;padding:16px;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;background:linear-gradient(135deg,var(--green-bright),#0a7a42);color:#fff;border:none;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);cursor:pointer;margin-top:18px;box-shadow:0 4px 24px rgba(14,155,82,0.25);transition:all 0.2s}
-.pm-start:hover{box-shadow:0 4px 30px rgba(14,155,82,0.4)}
+.pm-start{width:100%;padding:16px;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;background:var(--cta-red);color:#fff;border:none;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);cursor:pointer;margin-top:18px;box-shadow:var(--cta-red-shadow);text-shadow:0 1px 2px rgba(0,0,0,0.35);transition:all 0.2s}
+.pm-start:hover{box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.35),0 8px 26px rgba(204,17,0,0.55)}
 .pm-start:active{transform:scale(0.97)}
 
 /* ================================================================
@@ -2322,6 +2326,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           </div>
         </div>
         <div class="auction-round-chip">
+          <span class="live-dot"></span>
           <div class="round-info" id="round-info">Round 1</div>
         </div>
         <div class="auction-stage">
@@ -2350,7 +2355,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="bid-timer-bar"><div class="timer-bar-fill" id="timer-bar-fill"></div></div>
         <div style="display:none"><div id="timer-fill"></div><div id="timer-text"></div></div>
         <div class="bid-actions">
-          <div class="btn btn-gold full" id="bid-btn">Bid <span id="bid-amount">120</span></div>
+          <div class="btn btn-hero full" id="bid-btn">Bid <span id="bid-amount">120</span></div>
           <div class="btn btn-outline full" id="pass-btn">Pass</div>
         </div>
         <div class="auction-intel-panel" id="auction-intel-panel" style="display:none">
@@ -2366,7 +2371,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="ae-icon"><svg viewBox="0 0 80 80"><rect x="25" y="12" width="30" height="14" rx="2" transform="rotate(-40 40 19)"/><line x1="40" y1="32" x2="40" y2="54"/><rect x="22" y="58" width="36" height="8" rx="2"/><line x1="16" y1="70" x2="64" y2="70"/></svg></div>
         <div class="ae-title">Player Auction</div>
         <div class="ae-sub">Bid on players to build your squad through the auction block</div>
-        <div class="btn btn-gold lg" id="start-auction-btn">Start Auction</div>
+        <div class="btn btn-hero lg" id="start-auction-btn">Start Auction</div>
         <div class="ad-spot-btn" id="ad-purse-btn" style="margin-top:16px">
           <div class="asb-icon"></div>
           <div><div class="asb-title">Sponsor Boost</div><div class="asb-sub" id="ad-purse-sub">Watch a sponsor spot &mdash; +300 purse next auction</div></div>
@@ -2530,7 +2535,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="empty-icon"><svg viewBox="0 0 64 64"><path d="M32 6L32 42" stroke-linecap="round"/><path d="M24 6C24 6 28 2 32 6C36 2 40 6 40 6" stroke-linecap="round"/><ellipse cx="32" cy="50" rx="10" ry="10"/><path d="M26 47L38 53M38 47L26 53" stroke-linecap="round"/></svg></div>
         <div class="font-d fw-600 text-lg">No players yet</div>
         <div class="text-sm mt-8">Head to the Auction to build your squad</div>
-        <div class="btn btn-gold mt-16" id="squad-go-auction">Go to Auction</div>
+        <div class="btn btn-hero mt-16" id="squad-go-auction">Go to Auction</div>
       </div>
     </div>
 
@@ -2611,7 +2616,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
   <div class="ss-player-list" id="ss-player-list"></div>
   <div class="ss-footer">
     <div class="btn btn-outline" id="ss-auto-btn">Auto</div>
-    <div class="btn btn-gold disabled" id="ss-confirm-btn">Confirm XI</div>
+    <div class="btn btn-hero disabled" id="ss-confirm-btn">Confirm XI</div>
   </div>
 </div>
 
@@ -6455,7 +6460,7 @@ function renderSquadSelect(sel) {
       '</div>';
   });
   $('ss-player-list').innerHTML = html;
-  $('ss-confirm-btn').className = 'btn btn-gold' + (sel.length >= 3 && sel.length <= 11 && osCount <= 4 ? '' : ' disabled');
+  $('ss-confirm-btn').className = 'btn btn-hero' + (sel.length >= 3 && sel.length <= 11 && osCount <= 4 ? '' : ' disabled');
 }
 
 function toggleSquadPlayer(id) {
