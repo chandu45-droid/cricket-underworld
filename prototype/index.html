@@ -686,6 +686,14 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .auction-empty .ae-sub{color:var(--slip);font-size:13px;margin-bottom:28px;max-width:240px;line-height:1.5}
 .auction-empty #start-auction-btn{min-width:200px}
 
+/* Shared premium empty-state — angular tactile tile + prompt (+ optional CTA) */
+.empty-state{grid-column:1/-1;text-align:center;padding:52px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:44vh}
+.empty-state .es-tile{width:76px;height:76px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;background:var(--glass-bg);box-shadow:var(--glass-shadow);clip-path:var(--clip-14)}
+.empty-state .es-tile svg{width:36px;height:36px;fill:none;stroke:var(--slip);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.empty-state .es-title{font-family:var(--font-d);font-size:20px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--white);margin-bottom:6px}
+.empty-state .es-sub{color:var(--slip);font-size:13px;line-height:1.5;max-width:250px;margin-bottom:22px}
+.empty-state .btn{min-width:190px}
+
 /* RTM banner — slides down from top */
 .rtm-banner{position:absolute;top:0;left:0;right:0;z-index:10;padding:10px 16px;background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:var(--void);font-family:var(--font-d);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;text-align:center;transform:translateY(-100%);transition:transform 0.4s var(--spring);clip-path:polygon(0 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px))}
 .rtm-banner.show{transform:translateY(0)}
@@ -5523,7 +5531,18 @@ function updateCardsScreen() {
   if (filter !== 'all') players = players.filter(function(p) { return ROLE_FILTER[p.role] === filter; });
   $('cards-grid').innerHTML = players.length
     ? players.map(renderPlayerCard).join('')
-    : '<div class="text-center text-slip" style="grid-column:1/-1;padding:60px 0"><div style="font-size:40px;opacity:0.08;margin-bottom:12px">&#9830;</div>No cards in this category</div>';
+    : (GS.squad.length === 0
+        ? '<div class="empty-state">' +
+            '<div class="es-tile"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="15" rx="1"/><path d="M7 3h11a1 1 0 0 1 1 1v13"/><path d="M7 11h5M7 15h5"/></svg></div>' +
+            '<div class="es-title">No Cards Yet</div>' +
+            '<div class="es-sub">Win auctions to collect player cards and build your dream squad.</div>' +
+            '<div class="btn btn-hero" onclick="goScreen(\'auction\'); if(!auction.active) startAuction();">Go to Auction</div>' +
+          '</div>'
+        : '<div class="empty-state">' +
+            '<div class="es-tile"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="15" rx="1"/><path d="M7 3h11a1 1 0 0 1 1 1v13"/></svg></div>' +
+            '<div class="es-title">Nothing Here</div>' +
+            '<div class="es-sub">No cards match this filter. Try another category.</div>' +
+          '</div>');
   // Collection progress strip
   var total = ALL_PLAYERS.length, owned = GS.squad.length;
   var pct = total ? Math.round(owned / total * 100) : 0;
@@ -8103,7 +8122,11 @@ function renderMarket() {
   var html = '';
   if (marketTab === 'buy') {
     if (marketListings.length === 0) {
-      html = '<div class="market-empty">No players available. Check back next match.</div>';
+      html = '<div class="empty-state">' +
+        '<div class="es-tile"><svg viewBox="0 0 24 24"><path d="M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9z"/><path d="M3 9l2-5h14l2 5"/><path d="M9 20v-5h6v5"/></svg></div>' +
+        '<div class="es-title">Market Closed</div>' +
+        '<div class="es-sub">No players on the block right now. Refresh the listings or check back after your next match.</div>' +
+        '</div>';
     } else {
       marketListings.forEach(function(p) {
         var price = getPlayerPrice(p);
@@ -8122,7 +8145,12 @@ function renderMarket() {
     $('market-refresh-area').innerHTML = '<div class="btn btn-outline full text-xs" id="market-refresh-btn" style="padding:10px">Refresh Listings (100C)</div>';
   } else {
     if (GS.squad.length === 0) {
-      html = '<div class="market-empty">No players to sell.</div>';
+      html = '<div class="empty-state">' +
+        '<div class="es-tile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>' +
+        '<div class="es-title">No Players to Sell</div>' +
+        '<div class="es-sub">Your squad is empty. Sign players at the auction first.</div>' +
+        '<div class="btn btn-hero" onclick="goScreen(\'auction\'); if(!auction.active) startAuction();">Go to Auction</div>' +
+        '</div>';
     } else {
       GS.squad.forEach(function(p) {
         var sellPrice = Math.round(getPlayerPrice(p) * 0.6);
