@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cricket Underworld — Design Lab</title>
+
+<!--
+================================================================================
+  DESIGN NOTES  —  read before wiring any of this into prototype/index.html
+================================================================================
+  Thesis: RICH IS A CONTRAST PHENOMENON. Exactly ONE solid-gold hero per screen,
+  everything else neutral dark glass. Money is the loudest thing on screen: every
+  currency value uses .money (Space Grotesk, tabular-nums, ₹ via ::before so the
+  ₹ stays out of textContent and Playwright's parseInt/toBe assertions still pass).
+  Angular only — 3–4px corners + clip-path chamfers, no rounded game cards.
+  All names fictional. Tokens are copied verbatim from prototype/index.html :root.
+
+  ── HUB ──────────────────────────────────────────────────────────────────────
+  (a) GOLD HERO: the Empire Net-Worth number (₹4,20,000, 40px solid gold). It is
+      the one place wealth is loud. Rank #1 + escalating title (City Baron) +
+      a slim gold progress bar toward the next title anchor the "getting richer".
+  (b) CHANGED vs current Hub: money went from tiny bare integers ("2,000") to a
+      gold ₹-prefixed hero line. The AUCTION action tile — previously the ONLY
+      good-looking element because it was solid gold — is deliberately DEMOTED to
+      dark glass with a gold hairline, so the net-worth number is the sole gold.
+      That single swap is the whole "feel rich" argument in one screen.
+  (c) NEW COMPONENTS: Empire Net-Worth + Rank + Title bar (with progress-to-next-
+      title), the Daily Login Streak strip (7-day dots, tomorrow's reward, claim
+      chip), and a rival Battle Card that now carries a real STAKE.
+
+  ── AUCTION ──────────────────────────────────────────────────────────────────
+  (a) GOLD HERO: the Current Bid (₹1,80,000, 60px solid gold, number font). It is
+      the tense money-moment; everything else (purse, player card, timer, log)
+      recedes to neutral. The BID button stays gold because it is the single
+      primary CTA / the player's own move — but the bid NUMBER out-scales it 3:1,
+      so the hero reads unambiguously as the money on the block.
+  (b) CHANGED vs current Auction: current bid was 46px plain white Teko with a
+      bare integer. Now it is a huge gold ₹ number in the numeric face, sitting
+      beside the countdown ring as the focal point of the screen.
+  (c) NEW COMPONENTS: "on-the-block" player card with rarity frame + role + rating
+      bars + base price, and a compact bid-history ledger.
+
+  ── SQUAD ────────────────────────────────────────────────────────────────────
+  (a) GOLD HERO: the Squad Market Value (₹3,15,000, 40px solid gold). Turns Squad
+      into a "look how much I own" wealth showcase instead of a roster list.
+  (b) CHANGED vs current Squad: the old screen was four stat cards over a huge
+      empty "No players yet" void. Now every owned player shows a per-player ₹
+      value (neutral white money, so the gold TOTAL pops), and the empty roster
+      slots became a real illustrated empty-state CTA that pushes the core loop.
+  (c) NEW COMPONENTS: squad-value hero panel, per-player value column with rarity
+      dots, and the "spots open → back to the Auction" empty-slot prompt.
+================================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* ---- palette (verbatim from prototype/index.html) ---- */
+  --void:#020408; --pitch:#060A16; --dugout:#0B1222; --pavilion:#141E34; --sight:#1C2E4A;
+  --gold:#C49A15; --gold-bright:#FFD23F; --gold-dim:rgba(255,210,63,0.08); --gold-glow:rgba(255,210,63,0.15);
+  --crimson:#7A0F22; --blood:#EF2D2D; --blood-dim:rgba(239,45,45,0.08); --blood-glow:rgba(239,45,45,0.15);
+  --amber:#F59E0B; --green:#059669; --green-bright:#34D399; --green-dim:rgba(52,211,153,0.07);
+  --blue:#3B82F6; --blue-bright:#60A5FA; --blue-dim:rgba(59,130,246,0.08);
+  --purple:#A78BFA; --purple-bright:#C4B5FD; --cyan:#22D3EE;
+  --white:#F2ECE0; --white-60:rgba(242,236,224,0.6); --white-40:rgba(242,236,224,0.4);
+  --white-20:rgba(242,236,224,0.2); --white-10:rgba(242,236,224,0.1); --white-06:rgba(242,236,224,0.06);
+  --slip:#94A3B8; --border:rgba(148,163,184,0.10); --border-strong:rgba(148,163,184,0.20);
+  --disabled:#475569; --black-money:#0C0A16; --fixer:#162B48;
+  /* ---- glass ---- */
+  --glass-bg:linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.015) 40%, rgba(255,255,255,0.04) 80%, rgba(255,255,255,0.06) 100%);
+  --glass-border:1px solid rgba(255,255,255,0.10);
+  --glass-inner:inset 0 0 30px rgba(255,255,255,0.02);
+  /* ---- fonts ---- */
+  --font-d:'Teko', sans-serif; --font-b:'Rajdhani', sans-serif; --font-n:'Space Grotesk','Rajdhani',sans-serif;
+  --nav-h:64px; --top-h:52px;
+  /* ---- angular clip-paths (verbatim) ---- */
+  --clip-btn:polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
+  --clip-btn-sm:polygon(4px 0, calc(100% - 4px) 0, 100% 50%, calc(100% - 4px) 100%, 4px 100%, 0 50%);
+  --clip-card-tl:polygon(0 12px, 12px 0, 100% 0, 100% 100%, 0 100%);
+  --clip-card-tr:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  --clip-hex:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  /* ---- springs / elevation (verbatim) ---- */
+  --spring:cubic-bezier(0.22, 1, 0.36, 1);
+  --spring-bounce:cubic-bezier(0.34, 1.56, 0.64, 1);
+  --elevation-1:0 2px 6px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.2);
+  --elevation-2:0 4px 16px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.3);
+  --elevation-3:0 8px 28px rgba(0,0,0,0.55), 0 16px 56px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.35);
+  --glow-gold:0 0 20px rgba(255,210,63,0.2), 0 0 40px rgba(255,210,63,0.08);
+  --glow-red:0 0 20px rgba(239,45,45,0.2), 0 0 40px rgba(239,45,45,0.08);
+  --glow-blue:0 0 20px rgba(59,130,246,0.2), 0 0 40px rgba(59,130,246,0.08);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 0%, rgba(255,210,63,0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 80% 100%, rgba(59,130,246,0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 40%, #0a0f1c 0%, #05070d 60%, #020306 100%);
+  color:var(--white); font-family:var(--font-b); font-weight:500;
+  -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; align-items:center;
+  padding:26px 16px 60px; gap:22px;
+}
+
+/* ============================ LAB CHROME ============================ */
+.lab-head{display:flex; flex-direction:column; align-items:center; gap:14px}
+.lab-kicker{font-family:var(--font-b); font-size:10px; font-weight:700; letter-spacing:5px; text-transform:uppercase; color:var(--slip)}
+.lab-title{font-family:var(--font-d); font-size:34px; font-weight:700; letter-spacing:4px; text-transform:uppercase;
+  background:linear-gradient(135deg,#FFE082 0%,var(--gold-bright) 35%,var(--gold) 70%,#FFE082 100%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 26px rgba(255,207,68,0.22)); line-height:0.9}
+.lab-sub{font-size:11px; color:var(--white-40); letter-spacing:1px}
+
+.lab-tabs{display:flex; gap:8px; padding:5px; background:rgba(255,255,255,0.03); border:1px solid var(--border-strong); border-radius:4px}
+.lab-tab{font-family:var(--font-d); font-size:15px; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+  color:var(--slip); padding:9px 22px; cursor:pointer; background:transparent; border:none;
+  clip-path:var(--clip-btn-sm); transition:all .25s var(--spring); position:relative}
+.lab-tab:hover{color:var(--white)}
+.lab-tab.on{color:var(--void);
+  background:linear-gradient(135deg,#FFD95A 0%,var(--gold-bright) 35%,var(--gold) 70%,#C8930F 100%);
+  box-shadow:0 4px 18px rgba(255,210,63,0.35)}
+
+/* ============================ DEVICE FRAME ============================ */
+.device{position:relative; width:410px; height:864px; padding:10px; border-radius:48px;
+  background:linear-gradient(160deg,#15171c 0%,#08090c 60%,#000 100%);
+  border:1px solid #24262c;
+  box-shadow:0 40px 90px rgba(0,0,0,0.7), 0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)}
+.device-inner{position:relative; width:390px; height:844px; border-radius:40px; overflow:hidden;
+  background:var(--void); display:flex; flex-direction:column}
+.notch{position:absolute; top:8px; left:50%; transform:translateX(-50%); width:118px; height:26px;
+  background:#000; border-radius:16px; z-index:300;
+  border:1px solid rgba(255,255,255,0.05)}
+
+/* ---- shared: money (verbatim from prototype) ---- */
+.money{font-family:var(--font-n); font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1; letter-spacing:-0.01em}
+.money.gold{color:var(--gold-bright); text-shadow:0 0 16px var(--gold-glow)}
+.money.rupee::before{content:'\20B9'; margin-right:0.1em; font-weight:500; opacity:0.85}
+
+/* ---- glass (verbatim, corners kept sharp at 3px) ---- */
+.glass{background:var(--glass-bg); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border:var(--glass-border); border-radius:3px; box-shadow:var(--elevation-2),var(--glass-inner);
+  padding:16px; margin-bottom:14px; position:relative; overflow:hidden}
+.glass::after{content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent 3%,rgba(255,255,255,0.12) 25%,rgba(255,255,255,0.06) 75%,transparent 97%); pointer-events:none}
+
+/* ---- buttons (verbatim) ---- */
+.btn{font-family:var(--font-d); font-weight:600; font-size:16px; text-transform:uppercase; letter-spacing:1.5px;
+  border:none; clip-path:var(--clip-btn); padding:14px 32px; cursor:pointer; position:relative; overflow:hidden;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px;
+  transition:transform .2s var(--spring-bounce)}
+.btn::before{content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,0.15) 0%,rgba(255,255,255,0.03) 40%,transparent 100%); pointer-events:none}
+.btn:active{transform:scale(0.96) translateY(1px)}
+.btn-gold{background:linear-gradient(135deg,#FFD95A 0%,var(--gold-bright) 35%,var(--gold) 70%,#C8930F 100%);
+  color:var(--void); box-shadow:0 4px 24px rgba(255,210,63,0.4),0 1px 3px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.2)}
+.btn-gold .money{color:var(--void); text-shadow:none}
+.btn-outline{background:linear-gradient(145deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.015) 100%);
+  border:1.5px solid var(--border-strong); color:var(--slip); box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  clip-path:none; border-radius:3px}
+.btn.full{width:100%}
+.btn.lg{padding:16px 40px; font-size:18px; min-height:54px}
+
+.section-title{font-family:var(--font-d); font-size:18px; font-weight:600; text-transform:uppercase; letter-spacing:2px;
+  color:var(--white); margin-bottom:12px; display:flex; align-items:center; gap:10px}
+.section-title .accent-line{flex:1; height:1px; background:linear-gradient(90deg,rgba(255,255,255,0.10),transparent 80%)}
+
+/* ============================ TOP BAR ============================ */
+#top-bar{height:var(--top-h); min-height:var(--top-h); z-index:100; position:relative;
+  display:flex; align-items:center; gap:6px; padding:0 14px; padding-top:6px;
+  background:linear-gradient(180deg,rgba(6,10,22,0.97) 0%,rgba(6,10,22,0.9) 100%);
+  backdrop-filter:blur(24px) saturate(160%); border-bottom:1px solid rgba(255,255,255,0.07);
+  box-shadow:0 4px 24px rgba(0,0,0,0.4)}
+.currency{display:flex; align-items:center; gap:6px; padding:5px 11px; clip-path:var(--clip-btn-sm);
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06);
+  font-family:var(--font-n); font-weight:600; font-size:12px; letter-spacing:-0.01em}
+.currency .icon{width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:9px; font-weight:700; color:var(--void); flex-shrink:0}
+.currency.coins .icon{background:linear-gradient(135deg,var(--gold-bright),var(--gold)); box-shadow:0 0 10px rgba(255,210,63,0.35)}
+.currency.gems .icon{background:linear-gradient(135deg,#60A5FA,var(--blue)); border-radius:4px; transform:rotate(45deg); box-shadow:0 0 10px rgba(59,130,246,0.35)}
+.currency.gems .icon span{transform:rotate(-45deg); display:block}
+.currency.bmoney .icon{background:linear-gradient(135deg,var(--blood),var(--crimson)); box-shadow:0 0 10px rgba(220,38,38,0.35)}
+.season-badge{margin-left:auto; font-family:var(--font-d); font-size:12px; font-weight:600; color:var(--gold-bright);
+  letter-spacing:1.5px; text-transform:uppercase; padding:4px 10px; clip-path:var(--clip-btn-sm);
+  background:var(--gold-dim); border:1px solid rgba(255,255,255,0.06)}
+
+/* ============================ SCREENS ============================ */
+#screens{flex:1; position:relative; overflow:hidden}
+.device-screen{position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; display:none;
+  padding:14px 14px 24px; -webkit-overflow-scrolling:touch}
+.device-screen.active{display:block}
+.device-screen::-webkit-scrollbar{width:3px}
+.device-screen::-webkit-scrollbar-thumb{background:rgba(136,150,176,0.18); border-radius:3px}
+
+#hub-screen{background:
+  radial-gradient(ellipse 120% 80% at 22% 0%, var(--gold-dim) 0%, transparent 44%),
+  radial-gradient(ellipse 100% 60% at 80% 14%, rgba(59,130,246,0.06) 0%, transparent 40%),
+  radial-gradient(circle at 90% 82%, var(--gold-dim) 0%, transparent 35%),
+  linear-gradient(180deg,var(--pitch) 0%,var(--void) 100%)}
+#auction-screen{background:
+  radial-gradient(circle 50% 50% at 50% 22%, rgba(255,210,63,0.07) 0%, transparent 36%),
+  radial-gradient(ellipse 80% 60% at 30% 82%, rgba(239,45,45,0.06) 0%, transparent 45%),
+  linear-gradient(180deg,var(--pitch) 0%,var(--void) 100%)}
+#squad-screen{background:
+  radial-gradient(ellipse 100% 70% at 40% 8%, rgba(59,130,246,0.09) 0%, transparent 45%),
+  radial-gradient(ellipse at 72% 82%, rgba(167,139,250,0.06) 0%, transparent 45%),
+  linear-gradient(180deg,var(--pitch) 0%,var(--void) 100%)}
+
+/* ============================ HUB ============================ */
+/* GOLD HERO — the one loud place */
+.empire-bar{position:relative; margin-bottom:14px; padding:15px 16px 14px;
+  background:linear-gradient(120deg,rgba(255,210,63,0.10) 0%,rgba(255,255,255,0.02) 55%,rgba(196,154,21,0.05) 100%);
+  border:1px solid rgba(255,210,63,0.22); border-left:2px solid var(--gold-bright);
+  clip-path:polygon(0 0,100% 0,100% 100%,12px 100%,0 calc(100% - 12px));
+  box-shadow:0 4px 22px rgba(0,0,0,0.35),0 0 26px rgba(255,210,63,0.06)}
+.empire-row{display:flex; align-items:flex-start; justify-content:space-between; gap:12px}
+.empire-label{font-family:var(--font-b); font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--white-40); margin-bottom:2px}
+.empire-worth{font-size:40px; font-weight:700; line-height:0.95; white-space:nowrap}
+.empire-meta{text-align:right; flex-shrink:0; display:flex; flex-direction:column; gap:4px; align-items:flex-end}
+.empire-rank{font-family:var(--font-b); font-size:11px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--white-60)}
+.empire-rank .money{color:var(--white); font-weight:700}
+.empire-title{font-family:var(--font-d); font-size:17px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  color:var(--gold-bright); text-shadow:0 0 12px var(--gold-glow); line-height:1}
+.empire-prog{margin-top:12px}
+.empire-prog-bar{height:4px; background:rgba(136,150,176,0.10); border-radius:3px; overflow:hidden}
+.empire-prog-fill{height:100%; width:70%; border-radius:3px; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); box-shadow:0 0 10px rgba(255,210,63,0.4)}
+.empire-prog-cap{margin-top:5px; font-size:9.5px; font-weight:600; letter-spacing:0.5px; color:var(--white-40); text-transform:uppercase}
+.empire-prog-cap b{color:var(--gold-bright); font-weight:700}
+
+/* manager card */
+.mgr-card{padding:14px}
+.mgr-top{display:flex; align-items:center; gap:12px}
+.mgr-avatar{width:46px; height:46px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-d); font-size:20px; font-weight:700; color:var(--void);
+  background:linear-gradient(135deg,#2a3a5c,#1a2740); border:1px solid rgba(255,255,255,0.12);
+  clip-path:var(--clip-hex); color:var(--white)}
+.mgr-id{flex:1; min-width:0}
+.mgr-name{font-family:var(--font-d); font-size:20px; font-weight:600; letter-spacing:0.5px; line-height:1}
+.mgr-team{font-size:11px; color:var(--slip); letter-spacing:0.5px; margin-top:2px}
+.mgr-lvl{font-family:var(--font-d); font-size:12px; font-weight:700; letter-spacing:1px; color:var(--white-60);
+  padding:4px 9px; background:rgba(255,255,255,0.05); border:1px solid var(--border-strong); clip-path:var(--clip-btn-sm)}
+.mgr-meters{display:flex; gap:8px; margin-top:14px}
+.mgr-meter{flex:1; padding:9px 10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:4px}
+.mm-head{display:flex; align-items:center; gap:6px; margin-bottom:7px}
+.mm-dot{width:8px; height:8px; border-radius:2px; flex-shrink:0}
+.mm-label{font-size:8.5px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--slip)}
+.mm-val{margin-left:auto; font-family:var(--font-d); font-size:14px; font-weight:700; line-height:1}
+.mm-bar{height:4px; background:rgba(136,150,176,0.08); border-radius:3px; overflow:hidden}
+.mm-fill{height:100%; border-radius:3px}
+.mm-align .mm-dot{background:var(--gold-bright)} .mm-align .mm-fill{background:linear-gradient(90deg,var(--gold),var(--gold-bright)); width:62%}
+.mm-heat .mm-dot{background:var(--amber)} .mm-heat .mm-fill{background:linear-gradient(90deg,var(--amber),#F0960A); width:45%}
+.mm-fans .mm-dot{background:var(--blue-bright)} .mm-fans .mm-fill{background:linear-gradient(90deg,var(--fixer),var(--blue)); width:78%}
+
+/* daily streak (NEW) */
+.streak{padding:13px 14px; margin-bottom:14px; position:relative; overflow:hidden;
+  background:linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));
+  border:1px solid var(--border-strong); border-radius:4px}
+.streak-head{display:flex; align-items:center; gap:8px; margin-bottom:11px}
+.streak-flame{width:22px; height:22px; flex-shrink:0}
+.streak-title{font-family:var(--font-d); font-size:15px; font-weight:600; letter-spacing:1px; text-transform:uppercase}
+.streak-day{margin-left:auto; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gold-bright)}
+.streak-dots{display:flex; gap:6px; align-items:center}
+.sd{flex:1; height:32px; border-radius:3px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06)}
+.sd .sd-n{font-family:var(--font-d); font-size:11px; font-weight:700; color:var(--slip); line-height:1}
+.sd .sd-r{font-size:7.5px; font-weight:700; letter-spacing:0.3px; color:var(--white-40)}
+.sd.done{background:rgba(255,210,63,0.10); border-color:rgba(255,210,63,0.28)}
+.sd.done .sd-n{color:var(--gold-bright)} .sd.done .sd-r{color:var(--gold-bright)}
+.sd.today{background:rgba(255,210,63,0.16); border-color:var(--gold-bright); box-shadow:0 0 14px rgba(255,210,63,0.2)}
+.sd.today .sd-n,.sd.today .sd-r{color:var(--gold-bright)}
+.streak-foot{display:flex; align-items:center; gap:10px; margin-top:11px}
+.streak-next{font-size:10.5px; color:var(--white-60); letter-spacing:0.3px}
+.streak-next b{color:var(--white); font-weight:700}
+.streak-claim{margin-left:auto; font-family:var(--font-d); font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--gold-bright); padding:7px 16px; clip-path:var(--clip-btn-sm);
+  background:transparent; border:1.5px solid var(--gold-bright); box-shadow:0 0 14px rgba(255,210,63,0.12)}
+
+/* action tiles — neutral glass, gold DEMOTED (austerity) */
+.action-row{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px}
+.action-tile{position:relative; overflow:hidden; padding:16px 14px 15px; min-height:112px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  background:linear-gradient(150deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015)); border-radius:4px}
+.action-tile.tile-auction{border:1px solid rgba(255,255,255,0.08); border-top:2px solid var(--gold)}
+.action-tile.tile-match{border:1px solid rgba(255,255,255,0.08); border-top:2px solid var(--green-bright)}
+.at-ico{width:30px; height:30px}
+.at-ico svg{width:30px; height:30px; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+.tile-auction .at-ico svg{stroke:var(--gold-bright)}
+.tile-match .at-ico svg{stroke:var(--green-bright)}
+.at-title{font-family:var(--font-d); font-size:23px; font-weight:600; letter-spacing:2px; text-transform:uppercase; line-height:1}
+.at-sub{font-size:10px; color:var(--slip); letter-spacing:0.3px; margin-top:3px}
+.at-tag{position:absolute; top:12px; right:12px; font-size:8px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  padding:3px 7px; border-radius:2px; background:rgba(255,210,63,0.14); color:var(--gold-bright)}
+.tile-match .at-tag{background:rgba(52,211,153,0.14); color:var(--green-bright)}
+
+/* quick tiles */
+.quick-row{display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin-bottom:14px}
+.quick-tile{aspect-ratio:1/1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:4px}
+.quick-tile svg{width:22px; height:22px; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+.quick-tile .qt-l{font-size:9px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:var(--slip)}
+.qt-squad{border-bottom:2px solid rgba(59,130,246,0.3)} .qt-squad svg{stroke:var(--blue-bright)}
+.qt-league{border-bottom:2px solid rgba(255,210,63,0.3)} .qt-league svg{stroke:var(--gold-bright)}
+.qt-cards{border-bottom:2px solid rgba(167,139,250,0.3)} .qt-cards svg{stroke:var(--purple)}
+.qt-market{border-bottom:2px solid rgba(52,211,153,0.3)} .qt-market svg{stroke:var(--green-bright)}
+
+/* rival battle card with STAKE */
+.battle-card{position:relative; overflow:hidden; padding:15px; border-radius:4px;
+  background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(239,45,45,0.05),rgba(255,210,63,0.02));
+  border:1px solid rgba(239,45,45,0.18); box-shadow:var(--elevation-2)}
+.bc-label{font-family:var(--font-d); font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+  color:var(--blood); text-align:center; margin-bottom:12px}
+.bc-vs{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.bc-team{flex:1; text-align:center; min-width:0}
+.bc-crest{width:40px; height:40px; margin:0 auto 8px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-d); font-size:16px; font-weight:700; clip-path:var(--clip-hex)}
+.bc-crest.you{background:linear-gradient(135deg,#2a3a5c,#101a30); color:var(--white); border:1px solid rgba(255,255,255,0.14)}
+.bc-crest.them{background:linear-gradient(135deg,#3a1520,#1a0810); color:var(--blood); border:1px solid rgba(239,45,45,0.3)}
+.bc-name{font-family:var(--font-d); font-size:14px; font-weight:600; letter-spacing:0.5px; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.bc-str{font-size:9px; color:var(--slip); letter-spacing:0.5px; margin-top:3px}
+.bc-mid{flex-shrink:0; text-align:center}
+.bc-vs-txt{font-family:var(--font-d); font-size:24px; font-weight:700; color:var(--white-40); line-height:1}
+.bc-h2h{font-size:9px; color:var(--slip); margin-top:2px}
+.bc-stake{margin-top:13px; padding:9px 12px; text-align:center; border-radius:3px;
+  background:rgba(239,45,45,0.10); border:1px solid rgba(239,45,45,0.22)}
+.bc-stake-t{font-size:10.5px; font-weight:600; letter-spacing:0.3px; color:var(--white)}
+.bc-stake-t b{color:var(--blood); font-weight:700}
+
+/* ============================ AUCTION ============================ */
+.auc-top{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+.back-btn{display:inline-flex; align-items:center; gap:6px; font-family:var(--font-d); font-size:14px; font-weight:600;
+  color:var(--slip); padding:6px 12px; text-transform:uppercase; letter-spacing:0.5px; clip-path:var(--clip-btn-sm);
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); cursor:pointer}
+.back-btn svg{width:15px; height:15px; stroke:var(--slip); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.round-chip{margin-left:auto; font-family:var(--font-d); font-size:12px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--white-60); padding:6px 12px; clip-path:var(--clip-btn-sm); background:rgba(255,255,255,0.04); border:1px solid var(--border-strong)}
+
+.purse-line{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; padding:0 2px}
+.purse-label{font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--white-40)}
+.purse-val{font-size:18px; font-weight:600; color:var(--white)}
+
+/* player on the block — neutral, recedes */
+.block-card{padding:14px; margin-bottom:14px; clip-path:var(--clip-card-tl)}
+.block-top{display:flex; align-items:center; gap:12px}
+.block-portrait{width:56px; height:70px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-d); font-size:26px; font-weight:700; color:var(--purple-bright);
+  background:linear-gradient(160deg,rgba(167,139,250,0.14),rgba(167,139,250,0.03));
+  border:1px solid rgba(167,139,250,0.35); clip-path:var(--clip-card-tl)}
+.block-id{flex:1; min-width:0}
+.block-rar{display:inline-block; font-size:8.5px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  padding:2px 8px; border-radius:2px; margin-bottom:5px; background:rgba(167,139,250,0.16); color:var(--purple-bright); border:1px solid rgba(167,139,250,0.3)}
+.block-name{font-family:var(--font-d); font-size:22px; font-weight:600; letter-spacing:0.5px; line-height:1}
+.block-role{font-size:11px; color:var(--slip); letter-spacing:0.4px; margin-top:2px}
+.block-ovr{flex-shrink:0; text-align:center}
+.block-ovr-n{font-family:var(--font-d); font-size:32px; font-weight:700; color:var(--white); line-height:0.9}
+.block-ovr-l{font-size:8px; font-weight:700; letter-spacing:1.5px; color:var(--slip)}
+.block-stats{display:flex; gap:8px; margin-top:12px}
+.bs{flex:1}
+.bs-head{display:flex; justify-content:space-between; margin-bottom:5px}
+.bs-l{font-size:8.5px; font-weight:700; letter-spacing:0.8px; color:var(--slip)}
+.bs-v{font-family:var(--font-n); font-size:10px; font-weight:600; color:var(--white)}
+.bs-bar{height:4px; background:rgba(136,150,176,0.08); border-radius:3px; overflow:hidden}
+.bs-fill{height:100%; border-radius:3px}
+.block-base{display:flex; align-items:center; justify-content:space-between; margin-top:13px; padding-top:11px; border-top:1px solid var(--border)}
+.block-base-l{font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--white-40)}
+.block-base-v{font-family:var(--font-n); font-size:13px; font-weight:600; color:var(--white-60)}
+
+/* bid arena — GOLD HERO lives here */
+.bid-arena{display:flex; align-items:center; gap:16px; padding:16px 18px; margin-bottom:14px;
+  background:linear-gradient(135deg,rgba(255,210,63,0.06),rgba(255,255,255,0.015),rgba(196,154,21,0.03));
+  border:1px solid rgba(255,210,63,0.16); border-radius:4px; box-shadow:var(--elevation-2)}
+.timer-ring{position:relative; width:74px; height:74px; flex-shrink:0}
+.timer-ring svg{width:74px; height:74px; transform:rotate(-90deg)}
+.timer-ring .t-track{fill:none; stroke:rgba(136,150,176,0.14); stroke-width:6}
+.timer-ring .t-prog{fill:none; stroke:var(--blood); stroke-width:6; stroke-linecap:round;
+  stroke-dasharray:226; stroke-dashoffset:78; filter:drop-shadow(0 0 6px rgba(239,45,45,0.5))}
+.timer-cen{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center}
+.timer-sec{font-family:var(--font-n); font-size:22px; font-weight:700; color:var(--white); line-height:1}
+.timer-l{font-size:7.5px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--slip)}
+.bid-hero{flex:1; min-width:0}
+.bid-hero-l{font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--white-40); margin-bottom:1px}
+.current-bid{font-size:44px; font-weight:700; line-height:0.9; white-space:nowrap}
+.bid-by{font-size:10.5px; color:var(--slip); letter-spacing:0.3px; margin-top:4px}
+.bid-by b{color:var(--blood); font-weight:700}
+
+.bid-actions{display:flex; gap:10px; margin-bottom:16px}
+.bid-actions .btn{flex:1}
+
+/* bid history ledger */
+.log-panel{padding:12px 14px}
+.log-row{display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:11px}
+.log-row:last-child{border-bottom:none}
+.log-who{color:var(--white-60); flex:1; letter-spacing:0.3px}
+.log-who.you{color:var(--gold-bright); font-weight:700}
+.log-amt{font-family:var(--font-n); font-weight:600; color:var(--white)}
+.log-tick{font-size:9px; color:var(--slip); width:34px; text-align:right}
+
+/* ============================ SQUAD ============================ */
+.squad-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
+.squad-head-l{font-family:var(--font-d); font-size:24px; font-weight:600; letter-spacing:2px; text-transform:uppercase}
+.squad-count{font-family:var(--font-n); font-size:12px; font-weight:600; color:var(--slip);
+  padding:5px 11px; clip-path:var(--clip-btn-sm); background:rgba(255,255,255,0.04); border:1px solid var(--border-strong)}
+.squad-count b{color:var(--white)}
+
+/* GOLD HERO — squad market value */
+.squad-value{position:relative; overflow:hidden; padding:16px 18px; margin-bottom:14px;
+  background:linear-gradient(120deg,rgba(255,210,63,0.10) 0%,rgba(255,255,255,0.02) 55%,rgba(196,154,21,0.05) 100%);
+  border:1px solid rgba(255,210,63,0.22); border-left:2px solid var(--gold-bright);
+  clip-path:polygon(0 0,100% 0,100% 100%,12px 100%,0 calc(100% - 12px));
+  box-shadow:0 4px 22px rgba(0,0,0,0.35),0 0 26px rgba(255,210,63,0.06);
+  display:flex; align-items:center; justify-content:space-between; gap:12px}
+.sv-main{min-width:0}
+.sv-label{font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--white-40); margin-bottom:2px}
+.sv-worth{font-size:40px; font-weight:700; line-height:0.95; white-space:nowrap}
+.sv-meta{text-align:right; flex-shrink:0}
+.sv-trend{font-family:var(--font-n); font-size:14px; font-weight:700; color:var(--green-bright); line-height:1}
+.sv-trend-l{font-size:8.5px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--white-40); margin-top:3px}
+
+/* stat summary */
+.squad-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px}
+.ss{padding:10px 8px; text-align:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:4px}
+.ss-v{font-family:var(--font-d); font-size:22px; font-weight:700; line-height:0.9}
+.ss-l{font-size:8px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--slip); margin-top:4px}
+.ss.bat .ss-v{color:var(--blue-bright)} .ss.bowl .ss-v{color:var(--green-bright)}
+.ss.ovr .ss-v{color:var(--white)} .ss.mor .ss-v{color:var(--gold-bright)}
+
+/* player list — per-player value, neutral (so total pops) */
+.player-row{display:flex; align-items:center; gap:11px; padding:11px 12px; margin-bottom:8px;
+  background:linear-gradient(150deg,rgba(255,255,255,0.045),rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.07); border-radius:4px}
+.pr-rar{width:4px; align-self:stretch; border-radius:2px; flex-shrink:0}
+.pr-rar.legend{background:linear-gradient(180deg,var(--gold-bright),var(--gold))}
+.pr-rar.epic{background:linear-gradient(180deg,var(--purple-bright),var(--purple))}
+.pr-rar.rare{background:linear-gradient(180deg,var(--blue-bright),var(--blue))}
+.pr-rar.common{background:var(--disabled)}
+.pr-ovr{width:38px; height:38px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  clip-path:var(--clip-hex); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1)}
+.pr-ovr-n{font-family:var(--font-d); font-size:17px; font-weight:700; line-height:0.85; color:var(--white)}
+.pr-id{flex:1; min-width:0}
+.pr-name{font-family:var(--font-d); font-size:16px; font-weight:600; letter-spacing:0.4px; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.pr-role{font-size:10px; color:var(--slip); letter-spacing:0.3px; margin-top:2px}
+.pr-val{text-align:right; flex-shrink:0}
+.pr-val-n{font-family:var(--font-n); font-size:15px; font-weight:600; color:var(--white); font-variant-numeric:tabular-nums; letter-spacing:-0.01em}
+.pr-val-l{font-size:8px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--white-40); margin-top:2px}
+
+/* empty-state — real CTA, kills the dead-zone */
+.empty-state{margin-top:14px; padding:22px 18px; text-align:center; border-radius:4px;
+  background:linear-gradient(160deg,rgba(59,130,246,0.05),rgba(255,255,255,0.01));
+  border:1px dashed rgba(148,163,184,0.28)}
+.es-ico{width:46px; height:46px; margin:0 auto 12px}
+.es-ico svg{width:46px; height:46px; fill:none; stroke:var(--slip); stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round}
+.es-title{font-family:var(--font-d); font-size:19px; font-weight:600; letter-spacing:1px; text-transform:uppercase}
+.es-sub{font-size:11px; color:var(--slip); margin:6px 0 16px; line-height:1.5; letter-spacing:0.2px}
+.es-slots{display:flex; gap:6px; justify-content:center; margin-bottom:16px}
+.es-slot{width:34px; height:34px; border-radius:3px; display:flex; align-items:center; justify-content:center;
+  border:1px dashed rgba(148,163,184,0.35); color:var(--white-40); font-family:var(--font-d); font-size:18px}
+
+/* ============================ BOTTOM NAV ============================ */
+#bottom-nav{height:var(--nav-h); min-height:var(--nav-h); z-index:100; position:relative;
+  background:linear-gradient(180deg,rgba(6,10,22,0.94) 0%,rgba(2,4,8,0.99) 100%);
+  backdrop-filter:blur(24px) saturate(160%); border-top:1px solid rgba(255,255,255,0.06);
+  display:flex; align-items:center; padding-top:4px; box-shadow:0 -6px 24px rgba(0,0,0,0.35)}
+.nav-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 0; cursor:pointer; position:relative}
+.nav-item svg{width:21px; height:21px; stroke:var(--disabled); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; transition:stroke .3s}
+.nav-item .nav-l{font-family:var(--font-b); font-size:9.5px; font-weight:600; color:var(--disabled); letter-spacing:0.5px; text-transform:uppercase; transition:color .3s}
+.nav-item.active svg{stroke:var(--gold-bright); filter:drop-shadow(0 0 6px var(--gold-dim))}
+.nav-item.active .nav-l{color:var(--gold-bright)}
+.nav-item.active::before{content:''; position:absolute; top:-4px; left:50%; transform:translateX(-50%); width:34px; height:3px;
+  background:var(--gold-bright); border-radius:0 0 3px 3px; box-shadow:0 0 12px var(--gold-glow)}
+</style>
+</head>
+<body>
+
+<div class="lab-head">
+  <div class="lab-kicker">Approval Comp · Static Mockup</div>
+  <div class="lab-title">Cricket Underworld</div>
+  <div class="lab-sub">Feel-rich redesign · 390 × 844 · one gold hero per screen</div>
+  <div class="lab-tabs">
+    <button class="lab-tab on" data-target="hub">Hub</button>
+    <button class="lab-tab" data-target="auction">Auction</button>
+    <button class="lab-tab" data-target="squad">Squad</button>
+  </div>
+</div>
+
+<div class="device">
+  <div class="notch"></div>
+  <div class="device-inner">
+
+    <!-- TOP BAR (shared) -->
+    <div id="top-bar">
+      <div class="currency coins"><span class="icon">C</span><span class="money rupee">1.05L</span></div>
+      <div class="currency gems"><span class="icon"><span>G</span></span><span>240</span></div>
+      <div class="currency bmoney"><span class="icon">B</span><span class="money rupee">28K</span></div>
+      <div class="season-badge">S3 · W7</div>
+    </div>
+
+    <div id="screens">
+
+      <!-- ================= HUB ================= -->
+      <div class="device-screen active" id="hub-screen">
+
+        <!-- GOLD HERO -->
+        <div class="empire-bar">
+          <div class="empire-row">
+            <div class="empire-main">
+              <div class="empire-label">Empire Net Worth</div>
+              <div class="empire-worth money gold rupee">4,20,000</div>
+            </div>
+            <div class="empire-meta">
+              <div class="empire-rank">Rank <span class="money">#1</span></div>
+              <div class="empire-title">City Baron</div>
+            </div>
+          </div>
+          <div class="empire-prog">
+            <div class="empire-prog-bar"><div class="empire-prog-fill"></div></div>
+            <div class="empire-prog-cap">&#8377;1,80,000 to <b>National Don</b></div>
+          </div>
+        </div>
+
+        <!-- manager card -->
+        <div class="mgr-card glass">
+          <div class="mgr-top">
+            <div class="mgr-avatar">VR</div>
+            <div class="mgr-id">
+              <div class="mgr-name">Vikram &ldquo;Vault&rdquo; Rao</div>
+              <div class="mgr-team">Deccan Sabres · Owner-Manager</div>
+            </div>
+            <div class="mgr-lvl">LVL 12</div>
+          </div>
+          <div class="mgr-meters">
+            <div class="mgr-meter mm-align">
+              <div class="mm-head"><span class="mm-dot"></span><span class="mm-label">Align</span><span class="mm-val">62</span></div>
+              <div class="mm-bar"><div class="mm-fill"></div></div>
+            </div>
+            <div class="mgr-meter mm-heat">
+              <div class="mm-head"><span class="mm-dot"></span><span class="mm-label">Heat</span><span class="mm-val">45</span></div>
+              <div class="mm-bar"><div class="mm-fill"></div></div>
+            </div>
+            <div class="mgr-meter mm-fans">
+              <div class="mm-head"><span class="mm-dot"></span><span class="mm-label">Fans</span><span class="mm-val">78</span></div>
+              <div class="mm-bar"><div class="mm-fill"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- daily streak (NEW) -->
+        <div class="streak">
+          <div class="streak-head">
+            <svg class="streak-flame" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3 4 4 4 8a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 9 9 7 12 2z"/><path d="M12 22a6 6 0 0 0 6-6c0-3-2-5-3-6 0 2-1 3-2 3.5C11 13 11 11 11 9c-2 2-5 4-5 7a6 6 0 0 0 6 6z"/></svg>
+            <span class="streak-title">Daily Streak</span>
+            <span class="streak-day">Day 4 of 7</span>
+          </div>
+          <div class="streak-dots">
+            <div class="sd done"><span class="sd-n">1</span><span class="sd-r">50</span></div>
+            <div class="sd done"><span class="sd-n">2</span><span class="sd-r">80</span></div>
+            <div class="sd done"><span class="sd-n">3</span><span class="sd-r">120</span></div>
+            <div class="sd today"><span class="sd-n">4</span><span class="sd-r">200</span></div>
+            <div class="sd"><span class="sd-n">5</span><span class="sd-r">300</span></div>
+            <div class="sd"><span class="sd-n">6</span><span class="sd-r">450</span></div>
+            <div class="sd"><span class="sd-n">7</span><span class="sd-r">PACK</span></div>
+          </div>
+          <div class="streak-foot">
+            <div class="streak-next">Miss a day and the streak resets. <b>Day 7 = free Epic pack.</b></div>
+            <div class="streak-claim">Claim</div>
+          </div>
+        </div>
+
+        <!-- action tiles (gold deliberately DEMOTED) -->
+        <div class="action-row">
+          <div class="action-tile tile-auction">
+            <div class="at-tag">Live</div>
+            <div class="at-ico"><svg viewBox="0 0 24 24"><path d="M14 3l-9 9 4 4 9-9z"/><path d="M11 6l4 4"/><path d="M6 21h12"/></svg></div>
+            <div><div class="at-title">Auction</div><div class="at-sub">3 lots left today</div></div>
+          </div>
+          <div class="action-tile tile-match">
+            <div class="at-tag">Ready</div>
+            <div class="at-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></div>
+            <div><div class="at-title">Match</div><div class="at-sub">vs Vultures</div></div>
+          </div>
+        </div>
+
+        <!-- quick tiles -->
+        <div class="quick-row">
+          <div class="quick-tile qt-squad"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></svg><span class="qt-l">Squad</span></div>
+          <div class="quick-tile qt-league"><svg viewBox="0 0 24 24"><path d="M8 4h8v3a4 4 0 0 1-8 0z"/><path d="M8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3"/><path d="M12 11v4M9 20h6M10 17h4"/></svg><span class="qt-l">League</span></div>
+          <div class="quick-tile qt-cards"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="11" height="14" rx="1.5"/><path d="M9 9l3-1 3 8"/><rect x="13" y="7" width="7" height="11" rx="1.5" transform="rotate(12 16 12)"/></svg><span class="qt-l">Cards</span></div>
+          <div class="quick-tile qt-market"><svg viewBox="0 0 24 24"><path d="M4 7h16l-1.5 9a2 2 0 0 1-2 1.7H7.5a2 2 0 0 1-2-1.7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="qt-l">Market</span></div>
+        </div>
+
+        <!-- rival battle card with STAKE -->
+        <div class="battle-card">
+          <div class="bc-label">Next Fixture</div>
+          <div class="bc-vs">
+            <div class="bc-team">
+              <div class="bc-crest you">DS</div>
+              <div class="bc-name">Deccan Sabres</div>
+              <div class="bc-str">STR 84 · You</div>
+            </div>
+            <div class="bc-mid">
+              <div class="bc-vs-txt">VS</div>
+              <div class="bc-h2h">H2H 2&ndash;1</div>
+            </div>
+            <div class="bc-team">
+              <div class="bc-crest them">HV</div>
+              <div class="bc-name">Hyd. Vultures</div>
+              <div class="bc-str">STR 82 · Balraj Teja</div>
+            </div>
+          </div>
+          <div class="bc-stake">
+            <div class="bc-stake-t">Win to defend Rank #1. <b>Lose and you drop to #4.</b></div>
+          </div>
+        </div>
+
+      </div><!-- /hub -->
+
+      <!-- ================= AUCTION ================= -->
+      <div class="device-screen" id="auction-screen">
+
+        <div class="auc-top">
+          <div class="back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Hub</div>
+          <div class="round-chip">Round 2 · Lot 14</div>
+        </div>
+
+        <div class="purse-line">
+          <span class="purse-label">Purse Remaining</span>
+          <span class="money rupee purse-val">2,40,000</span>
+        </div>
+
+        <!-- player on the block (neutral, recedes) -->
+        <div class="block-card glass">
+          <div class="block-top">
+            <div class="block-portrait">IK</div>
+            <div class="block-id">
+              <div class="block-rar">Epic</div>
+              <div class="block-name">Ishaan Kulkarni</div>
+              <div class="block-role">Power Hitter · Top Order</div>
+            </div>
+            <div class="block-ovr">
+              <div class="block-ovr-n">88</div>
+              <div class="block-ovr-l">OVR</div>
+            </div>
+          </div>
+          <div class="block-stats">
+            <div class="bs">
+              <div class="bs-head"><span class="bs-l">Bat</span><span class="bs-v">90</span></div>
+              <div class="bs-bar"><div class="bs-fill" style="width:90%;background:linear-gradient(90deg,var(--fixer),var(--blue))"></div></div>
+            </div>
+            <div class="bs">
+              <div class="bs-head"><span class="bs-l">Bowl</span><span class="bs-v">24</span></div>
+              <div class="bs-bar"><div class="bs-fill" style="width:24%;background:linear-gradient(90deg,var(--green),var(--green-bright))"></div></div>
+            </div>
+            <div class="bs">
+              <div class="bs-head"><span class="bs-l">Field</span><span class="bs-v">76</span></div>
+              <div class="bs-bar"><div class="bs-fill" style="width:76%;background:linear-gradient(90deg,#7c5cd6,var(--purple))"></div></div>
+            </div>
+          </div>
+          <div class="block-base">
+            <span class="block-base-l">Base Price</span>
+            <span class="block-base-v money rupee">80,000</span>
+          </div>
+        </div>
+
+        <!-- bid arena — GOLD HERO -->
+        <div class="bid-arena">
+          <div class="timer-ring">
+            <svg viewBox="0 0 80 80"><circle class="t-track" cx="40" cy="40" r="36"/><circle class="t-prog" cx="40" cy="40" r="36"/></svg>
+            <div class="timer-cen"><div class="timer-sec">5.2</div><div class="timer-l">Sec</div></div>
+          </div>
+          <div class="bid-hero">
+            <div class="bid-hero-l">Current Bid</div>
+            <div class="current-bid money gold rupee">1,80,000</div>
+            <div class="bid-by"><b>Hyderabad Vultures</b> lead</div>
+          </div>
+        </div>
+
+        <!-- actions: BID = single primary CTA -->
+        <div class="bid-actions">
+          <div class="btn btn-gold">Bid <span class="money rupee">2,00,000</span></div>
+          <div class="btn btn-outline">Pass</div>
+        </div>
+
+        <!-- bid history -->
+        <div class="log-panel glass">
+          <div class="section-title" style="font-size:14px;letter-spacing:1.5px">Bid History<span class="accent-line"></span></div>
+          <div class="log-row"><span class="log-who">Hyderabad Vultures</span><span class="log-amt money rupee">1,80,000</span><span class="log-tick">now</span></div>
+          <div class="log-row"><span class="log-who you">You</span><span class="log-amt money rupee">1,60,000</span><span class="log-tick">3s</span></div>
+          <div class="log-row"><span class="log-who">Malabar Storm</span><span class="log-amt money rupee">1,40,000</span><span class="log-tick">7s</span></div>
+          <div class="log-row"><span class="log-who">Nagpur Nawabs</span><span class="log-amt money rupee">1,10,000</span><span class="log-tick">12s</span></div>
+        </div>
+
+      </div><!-- /auction -->
+
+      <!-- ================= SQUAD ================= -->
+      <div class="device-screen" id="squad-screen">
+
+        <div class="squad-head">
+          <div class="squad-head-l">Your Squad</div>
+          <div class="squad-count"><b>8</b> / 11</div>
+        </div>
+
+        <!-- GOLD HERO — squad market value -->
+        <div class="squad-value">
+          <div class="sv-main">
+            <div class="sv-label">Squad Market Value</div>
+            <div class="sv-worth money gold rupee">3,15,000</div>
+          </div>
+          <div class="sv-meta">
+            <div class="sv-trend">&#9650; 12%</div>
+            <div class="sv-trend-l">This Season</div>
+          </div>
+        </div>
+
+        <!-- stat summary -->
+        <div class="squad-stats">
+          <div class="ss bat"><div class="ss-v">84</div><div class="ss-l">Bat</div></div>
+          <div class="ss bowl"><div class="ss-v">79</div><div class="ss-l">Bowl</div></div>
+          <div class="ss ovr"><div class="ss-v">82</div><div class="ss-l">Overall</div></div>
+          <div class="ss mor"><div class="ss-v">91</div><div class="ss-l">Morale</div></div>
+        </div>
+
+        <div class="section-title" style="font-size:15px;letter-spacing:1.5px">Owned Players<span class="accent-line"></span></div>
+
+        <div class="player-row">
+          <div class="pr-rar legend"></div>
+          <div class="pr-ovr"><span class="pr-ovr-n">88</span></div>
+          <div class="pr-id"><div class="pr-name">Ishaan Kulkarni</div><div class="pr-role">Power Hitter · Top Order</div></div>
+          <div class="pr-val"><div class="pr-val-n money rupee">68,000</div><div class="pr-val-l">Value</div></div>
+        </div>
+        <div class="player-row">
+          <div class="pr-rar epic"></div>
+          <div class="pr-ovr"><span class="pr-ovr-n">85</span></div>
+          <div class="pr-id"><div class="pr-name">Ravi Nambiar</div><div class="pr-role">Pace Spearhead</div></div>
+          <div class="pr-val"><div class="pr-val-n money rupee">54,000</div><div class="pr-val-l">Value</div></div>
+        </div>
+        <div class="player-row">
+          <div class="pr-rar epic"></div>
+          <div class="pr-ovr"><span class="pr-ovr-n">83</span></div>
+          <div class="pr-id"><div class="pr-name">Kabir Sethi</div><div class="pr-role">Wrist Spinner</div></div>
+          <div class="pr-val"><div class="pr-val-n money rupee">47,000</div><div class="pr-val-l">Value</div></div>
+        </div>
+        <div class="player-row">
+          <div class="pr-rar rare"></div>
+          <div class="pr-ovr"><span class="pr-ovr-n">81</span></div>
+          <div class="pr-id"><div class="pr-name">Farhan Sheikh</div><div class="pr-role">Anchor · Middle Order</div></div>
+          <div class="pr-val"><div class="pr-val-n money rupee">42,000</div><div class="pr-val-l">Value</div></div>
+        </div>
+        <div class="player-row">
+          <div class="pr-rar rare"></div>
+          <div class="pr-ovr"><span class="pr-ovr-n">79</span></div>
+          <div class="pr-id"><div class="pr-name">Tejas Bhonsle</div><div class="pr-role">All-Rounder</div></div>
+          <div class="pr-val"><div class="pr-val-n money rupee">38,000</div><div class="pr-val-l">Value</div></div>
+        </div>
+        <div class="player-row">
+          <div class="pr-rar common"></div>
+          <div class="pr-ovr"><span class="pr-ovr-n">72</span></div>
+          <div class="pr-id"><div class="pr-name">Manav Chauhan</div><div class="pr-role">Death Bowler</div></div>
+          <div class="pr-val"><div class="pr-val-n money rupee">19,000</div><div class="pr-val-l">Value</div></div>
+        </div>
+
+        <!-- real empty-state — kills the dead-zone, pushes core loop -->
+        <div class="empty-state">
+          <div class="es-ico"><svg viewBox="0 0 48 48"><circle cx="24" cy="16" r="7"/><path d="M11 40c0-8 6-12 13-12s13 4 13 12"/><path d="M38 10v8M34 14h8"/></svg></div>
+          <div class="es-title">3 Spots Open</div>
+          <div class="es-sub">Your XI isn&rsquo;t complete. Win the next lots to grow your empire&rsquo;s value.</div>
+          <div class="es-slots">
+            <div class="es-slot">+</div>
+            <div class="es-slot">+</div>
+            <div class="es-slot">+</div>
+          </div>
+          <div class="btn btn-gold lg" style="width:100%">Go to Auction</div>
+        </div>
+
+      </div><!-- /squad -->
+
+    </div><!-- /screens -->
+
+    <!-- BOTTOM NAV (shared) -->
+    <div id="bottom-nav">
+      <div class="nav-item active" data-nav="hub"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg><span class="nav-l">Hub</span></div>
+      <div class="nav-item" data-nav="squad"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></svg><span class="nav-l">Squad</span></div>
+      <div class="nav-item" data-nav="auction"><svg viewBox="0 0 24 24"><path d="M14 3l-9 9 4 4 9-9z"/><path d="M11 6l4 4"/><path d="M6 21h12"/></svg><span class="nav-l">Auction</span></div>
+      <div class="nav-item" data-nav="cards"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="11" height="14" rx="1.5"/><rect x="13" y="7" width="7" height="11" rx="1.5" transform="rotate(12 16 12)"/></svg><span class="nav-l">Cards</span></div>
+      <div class="nav-item" data-nav="league"><svg viewBox="0 0 24 24"><path d="M8 4h8v3a4 4 0 0 1-8 0z"/><path d="M8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3"/><path d="M12 11v4M9 20h6"/></svg><span class="nav-l">League</span></div>
+    </div>
+
+  </div><!-- /device-inner -->
+</div><!-- /device -->
+
+<script>
+/* ES5-only screen switcher (var / function, no arrow / let / const) — house style */
+(function(){
+  var tabs = document.querySelectorAll('.lab-tab');
+  var screens = document.querySelectorAll('.device-screen');
+  var navItems = document.querySelectorAll('.nav-item');
+  var i;
+
+  function activate(name){
+    var j;
+    for(j = 0; j < tabs.length; j++){
+      if(tabs[j].getAttribute('data-target') === name){ tabs[j].classList.add('on'); }
+      else { tabs[j].classList.remove('on'); }
+    }
+    for(j = 0; j < screens.length; j++){
+      if(screens[j].id === name + '-screen'){ screens[j].classList.add('active'); }
+      else { screens[j].classList.remove('active'); }
+    }
+    for(j = 0; j < navItems.length; j++){
+      if(navItems[j].getAttribute('data-nav') === name){ navItems[j].classList.add('active'); }
+      else { navItems[j].classList.remove('active'); }
+    }
+    var el = document.getElementById(name + '-screen');
+    if(el){ el.scrollTop = 0; }
+  }
+
+  for(i = 0; i < tabs.length; i++){
+    tabs[i].addEventListener('click', function(){ activate(this.getAttribute('data-target')); });
+  }
+  for(i = 0; i < navItems.length; i++){
+    navItems[i].addEventListener('click', function(){
+      var target = this.getAttribute('data-nav');
+      if(target === 'hub' || target === 'auction' || target === 'squad'){ activate(target); }
+    });
+  }
+
+  activate('hub');
+})();
+</script>
+
+</body>
+</html>

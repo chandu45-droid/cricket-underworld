@@ -31,22 +31,29 @@
    ROOT VARIABLES
    ================================================================ */
 :root {
-  /* === PREMIUM VOID PALETTE — deeper, richer blacks === */
-  --void: #020408;
-  --pitch: #060A16;
-  --dugout: #0B1222;
-  --pavilion: #141E34;
-  --sight: #1C2E4A;
-  /* === GOLD SPECTRUM — richer, more saturated === */
-  --gold: #C49A15;
-  --gold-bright: #FFD23F;
-  --gold-dim: rgba(255,210,63,0.08);
-  --gold-glow: rgba(255,210,63,0.15);
-  /* === CRIMSON SPECTRUM === */
-  --crimson: #7A0F22;
-  --blood: #EF2D2D;
-  --blood-dim: rgba(239,45,45,0.08);
-  --blood-glow: rgba(239,45,45,0.15);
+  /* === LIFTED SURFACE PALETTE — panels must separate from base (v2 port) === */
+  --void: #080B11;
+  --pitch: #0D1117;
+  --dugout: #161B26;
+  --pavilion: #1E2536;
+  --sight: #2A3247;
+  --panel-lo: #10141D;
+  --panel-grad: linear-gradient(160deg,#1E2536,#10141D);
+  /* === GOLD SPECTRUM — burnished, not lemon (v2 port) === */
+  --gold: #B8862F;
+  --gold-bright: #DAA520;
+  --gold-dim: rgba(218,165,32,0.10);
+  --gold-glow: rgba(218,165,32,0.18);
+  --gold-grad: linear-gradient(160deg,#D4AF6A,#8C6B32);
+  --gold-badge: radial-gradient(circle at 35% 30%,#FFE9A8,#C9A44C 70%);
+  --gold-ink: #241A08;
+  /* === CRIMSON SPECTRUM — deeper blood + gradient hero (v2 port) === */
+  --crimson: #8B0000;
+  --blood: #CC1100;
+  --blood-dim: rgba(204,17,0,0.10);
+  --blood-glow: rgba(204,17,0,0.18);
+  --cta-red: linear-gradient(160deg,#E43A1F,#8B0000);
+  --cta-red-shadow: inset 0 1.5px 0 rgba(255,255,255,0.35), 0 8px 18px rgba(204,17,0,0.4);
   /* === ACCENT SPECTRUM === */
   --amber: #F59E0B;
   --green: #059669;
@@ -63,18 +70,20 @@
   --purple-glow: rgba(167,139,250,0.15);
   --cyan: #22D3EE;
   --cyan-dim: rgba(34,211,238,0.08);
-  /* === PREMIUM WHITES — warmer tone === */
-  --white: #F2ECE0;
-  --white-60: rgba(242,236,224,0.6);
-  --white-40: rgba(242,236,224,0.4);
-  --white-20: rgba(242,236,224,0.2);
-  --white-10: rgba(242,236,224,0.1);
-  --white-06: rgba(242,236,224,0.06);
-  --white-03: rgba(242,236,224,0.03);
-  --slip: #94A3B8;
-  --border: rgba(148,163,184,0.10);
-  --border-strong: rgba(148,163,184,0.20);
-  --border-glow: rgba(148,163,184,0.06);
+  /* === PREMIUM WHITES — warmer wicket-white (v2 port) === */
+  --white: #E8E0D4;
+  --white-60: rgba(232,224,212,0.6);
+  --white-40: rgba(232,224,212,0.4);
+  --white-20: rgba(232,224,212,0.2);
+  --white-10: rgba(232,224,212,0.1);
+  --white-06: rgba(232,224,212,0.06);
+  --white-03: rgba(232,224,212,0.03);
+  --slip: #7A8299;
+  --border: rgba(122,130,153,0.16);
+  --border-strong: rgba(122,130,153,0.30);
+  --border-glow: rgba(122,130,153,0.08);
+  --border-lit: rgba(232,224,212,0.14);
+  --bevel-top: inset 0 1px 0 rgba(232,224,212,0.12);
   --disabled: #475569;
   --black-money: #0C0A16;
   --fixer: #162B48;
@@ -94,7 +103,7 @@
   --screen-glow: var(--gold-dim);
   --align-accent: var(--gold-bright);
   --align-accent-dim: var(--gold-dim);
-  --align-tint: rgba(255,210,63,0.03);
+  --align-tint: rgba(218,165,32,0.04);
   --align-vignette: transparent;
   --align-border-glow: none;
   --clip-btn: polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);
@@ -103,6 +112,11 @@
   --clip-card-tr: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
   --clip-diamond: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
   --clip-hex: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  /* === TWO-CORNER CHAMFER (v2 signature: top-left + bottom-right cut) === */
+  --clip-14: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  --clip-10: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  --clip-6: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  --vignette-strong: inset 0 0 90px 20px rgba(7,12,13,0.65);
   /* === PREMIUM SPRING PHYSICS === */
   --spring: cubic-bezier(0.22, 1, 0.36, 1);
   --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -116,8 +130,8 @@
   --elevation-3: 0 8px 28px rgba(0,0,0,0.55), 0 16px 56px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.35);
   --elevation-4: 0 12px 40px rgba(0,0,0,0.6), 0 24px 72px rgba(0,0,0,0.35), 0 6px 14px rgba(0,0,0,0.4);
   /* === PREMIUM GLOW TOKENS === */
-  --glow-gold: 0 0 20px rgba(255,210,63,0.2), 0 0 40px rgba(255,210,63,0.08);
-  --glow-red: 0 0 20px rgba(239,45,45,0.2), 0 0 40px rgba(239,45,45,0.08);
+  --glow-gold: 0 0 16px rgba(218,165,32,0.45), 0 0 4px rgba(218,165,32,0.6);
+  --glow-red: 0 0 20px rgba(204,17,0,0.28), 0 0 40px rgba(204,17,0,0.10);
   --glow-green: 0 0 20px rgba(52,211,153,0.2), 0 0 40px rgba(52,211,153,0.08);
   --glow-blue: 0 0 20px rgba(59,130,246,0.2), 0 0 40px rgba(59,130,246,0.08);
   /* === THEME CHANNELS — rgb triplets flipped by the light theme === */
@@ -212,7 +226,13 @@ html[data-theme="light"] {
    ================================================================ */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);font-family:var(--font-b);font-weight:500;font-size:14px;-webkit-font-smoothing:antialiased;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
-#app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;background:radial-gradient(circle at 50% 0%, #1A2130 0%, var(--pitch) 65%);transition:background 0.5s var(--spring)}
+/* === PER-SCREEN COLOR GRADING (v2 port) — spotlight tint keyed to active screen === */
+#app:has(#auction-screen.active){background:radial-gradient(circle at 50% 15%, #241318 0%, var(--pitch) 60%)}
+#app:has(#match-screen.active),#app:has(#prematch-screen.active){background:radial-gradient(circle at 50% 20%, #12251A 0%, var(--pitch) 62%)}
+#app:has(#cards-screen.active){background:radial-gradient(circle at 50% 8%, #1C1A2E 0%, var(--pitch) 62%)}
+/* Light theme keeps a clean flat surface — dark spotlight tints must not smear over ivory */
+html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.active),html[data-theme="light"] #app:has(#match-screen.active),html[data-theme="light"] #app:has(#prematch-screen.active),html[data-theme="light"] #app:has(#cards-screen.active){background:var(--void)}
 #app::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-repeat:repeat;background-size:200px 200px}
 *::-webkit-scrollbar{width:3px}
 *::-webkit-scrollbar-track{background:transparent}
@@ -1168,7 +1188,7 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 /* ================================================================
    EFFECTS
    ================================================================ */
-.vignette{position:fixed;inset:0;pointer-events:none;z-index:50;background:radial-gradient(ellipse at center,transparent 55%,rgba(var(--ov-rgb),0.6) 100%);opacity:0.5}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:50;background:radial-gradient(ellipse at center,transparent 50%,rgba(var(--ov-rgb),0.66) 100%);opacity:0.6}
 #align-vignette{position:fixed;inset:0;pointer-events:none;z-index:51;background:radial-gradient(ellipse at center,transparent 40%,var(--align-vignette) 100%);transition:background 1.5s ease}
 #app.align-deep #align-vignette{animation:corruptPulse 4s ease-in-out infinite}
 @keyframes corruptPulse{0%,100%{opacity:0.7}50%{opacity:1}}

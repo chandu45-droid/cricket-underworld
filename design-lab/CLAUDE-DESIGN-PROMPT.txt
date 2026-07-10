@@ -1,0 +1,102 @@
+========================================================================
+CRICKET UNDERWORLD — DESIGN PROMPT FOR CLAUDE
+Open this file, select all (Ctrl+A), copy (Ctrl+C), paste into Claude.
+Screen 1 = HUB (paste this first). Auction + Squad variants at the bottom.
+========================================================================
+
+
+------------------------- PROMPT: HUB --------------------------------
+
+You are a senior mobile game UI/visual designer. Design ONE screen — the HOME HUB —
+for a premium mobile game called "Cricket Underworld."
+
+THE GAME (mood): A cricket-auction + squad-building strategy game set in an Indian
+underworld. Think IPL auction broadcast glamour crossed with Mumbai crime-noir
+(Sacred Games energy). The player is a team owner building a cricket EMPIRE while
+navigating mafia, police, politicians and street dons. Core fantasy: "I am getting
+RICH and POWERFUL, and I want to come back tomorrow."
+
+WHY I'M BRIEFING YOU: My current design scored 1/10 with me. Its failure was that it
+was just flat dark-blue glass PANELS with numbers on them — UI chrome, not desire.
+Do NOT give me tidy panels. I want a category jump.
+
+THE 5 THINGS THE DESIGN MUST DELIVER (this is the whole brief):
+1. ART & WORLD — a lit, deep, atmospheric scene, not flat glass. Floodlit-stadium
+   meets crime-noir. Real depth, rim lighting, a light source, a sense of place.
+2. MATERIAL — surfaces look physical and expensive: brushed metal, gold foil,
+   embossed edges, faceted gemstone-like accents. Nothing looks like a plain rectangle.
+3. A HERO MOMENT — one dominant focal element the eye lands on first: the player's
+   EMPIRE NET-WORTH, staged like a trophy, with the money in SOLID GOLD.
+4. MONEY THAT FEELS EXPENSIVE — currency is the star, presented like it's climbing /
+   just went up. Big, gold, celebratory — not a quiet grey number.
+5. GOLD AUSTERITY — solid gold appears on ONLY two things (the hero net-worth number
+   and the primary action button). Everywhere else uses restraint so the gold reads as
+   valuable by contrast. Do not spray gold at 10% opacity across every panel.
+
+CONTENT THAT MUST APPEAR ON THE HUB:
+- HERO: "Your Empire" net-worth number in Rupees (e.g. Rs 4,20,000), a Rank (#1), and an
+  escalating title (Gully Cricketer -> City Baron -> National Don -> Cricket Emperor),
+  with a progress bar to the next title.
+- Three currencies in the top bar: Coins (gold), Gems, and Black Money (shady cash).
+- A DAILY STREAK strip: Day 1->7 escalating rewards, a flame/streak counter, a
+  "don't break your streak" pull.
+- A NEXT-RIVAL battle card with a STAKE ("Beat the Deccan Sharks or drop to Rank #4"),
+  a menacing rival boss portrait, and a primary CTA.
+- A "Power Web" glance at 5 underworld factions the player is entangled with
+  (Syndicate / Police / Politician / Street Don / Rival Bosses) — status at a glance.
+- Primary action button: START AUCTION (the money-making core loop) — solid gold.
+- A bottom navigation bar.
+
+NON-NEGOTIABLE IDENTITY:
+- ANGULAR design language: sharp 3-4px corners, clip-path facets, knife-edge geometry.
+  NO rounded cards. (Sharp = premium/dangerous, fits the underworld tone — like a cut
+  gem or a blade, not soft bubbly UI.)
+- FICTIONAL everything: no real cricketer names, faces, or likenesses. Any player
+  figure must be an original illustrated archetype/silhouette, never a real person.
+- India-first, mobile portrait, single screen.
+
+REFERENCES FOR THE CEILING (match this level of craft): EA Sports FC Ultimate Team
+card material & rarity, IPL auction broadcast presentation, Dream11's polish,
+crime-noir color grading.
+
+OUTPUT: A single self-contained HTML file with inline CSS (no frameworks, no external
+assets except Google Fonts) rendering a HIGH-FIDELITY static mockup of this Hub at
+390x844 (portrait, DPR 2). Use CSS gradients, shadows, clip-paths and layered elements
+to fake the lighting, metal, and depth. Make it look like a $10M game's home screen.
+Show me the finished screen — no explanation needed.
+
+
+========================================================================
+SWAP-IN VARIANTS (reuse the SAME prompt above; only change the marked parts)
+========================================================================
+
+To make the AUCTION screen instead of the Hub:
+  - Change the first line's "the HOME HUB" to "the AUCTION screen".
+  - Replace the "CONTENT THAT MUST APPEAR" block with:
+
+CONTENT THAT MUST APPEAR ON THE AUCTION:
+- HERO: the live CURRENT BID, huge, in solid gold Rupees (e.g. Rs 1,80,000),
+  presented like the number is climbing in real time — this is the money moment.
+- The player card up for auction: an original illustrated cricketer archetype
+  (fictional), styled like a premium physical foil/metal collectible with rarity tier.
+- Bid controls: a big gold BID button + quick-raise chips (+5k / +10k / +25k).
+- Your remaining purse and a purse-pressure feel (running low = tension).
+- A recede-to-background bid ledger (who bid what) and rival bidders reacting.
+- A countdown timer creating "going once, going twice" auction tension.
+Keep everything else in the prompt (the 5 THINGS, NON-NEGOTIABLE IDENTITY, OUTPUT) identical.
+
+
+To make the SQUAD screen instead of the Hub:
+  - Change the first line's "the HOME HUB" to "the SQUAD screen".
+  - Replace the "CONTENT THAT MUST APPEAR" block with:
+
+CONTENT THAT MUST APPEAR ON THE SQUAD:
+- HERO: total SQUAD MARKET VALUE, huge, in solid gold Rupees (e.g. Rs 3,15,000) —
+  the wealth you've assembled, staged like a trophy.
+- A grid of player cards: original illustrated cricketer archetypes (fictional),
+  each a premium physical foil/metal collectible with an OVR rating badge and rarity
+  tier; per-player value shown in a clean white number.
+- Role/rarity filter chips (angular), a captain marker on the star player.
+- An inspiring EMPTY STATE for open squad slots ("3 spots open") with a gold
+  "Go to Auction" CTA — never a blank void.
+Keep everything else in the prompt (the 5 THINGS, NON-NEGOTIABLE IDENTITY, OUTPUT) identical.
