@@ -1,8 +1,16 @@
 # Visual Design System — Cricket Underworld
 ## The Look, Feel, and Identity
 
-**Version:** 1.0
-**Status:** Design Lock Candidate
+**Version:** 2.0 — v2 depth-recipe port (Phases 1–5 shipped 2026-07-10)
+**Status:** Live in `prototype/index.html`. This doc is the single source of truth for token values.
+
+> **Theme model:** the game ships **two themes**. **Light is the enforced default**
+> (test #124); **premium dark-noir** sits behind a Settings toggle that persists across
+> reloads (test #125). Tokens below list **dark → light** pairs. Values are the real
+> shipped `:root` / `html[data-theme="light"]` blocks (`prototype/index.html` ~lines 34–205),
+> not aspirational. A third, scoped block (~line 1988) re-darkens intentional "dark islands"
+> (mafia overlay, shop heroes, corruption report) inside light theme so their light-on-dark
+> text stays legible — that is an override, **not** the canonical palette.
 
 ---
 
@@ -33,36 +41,41 @@ The UI blends both — **broadcast-clean data presentation** layered over **noir
 
 ### 2.1 Core Palette
 
+Every surface/text/border token is **theme-aware**. Format below: `--token` — **dark** / **light**.
+The v2 port's headline fix was **lifting the surfaces off pure black** so panels visibly
+separate from the base (old base was `#020408`; panels barely lifted). These are the real values.
+
 ```
-BACKGROUNDS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Void            #07090C     Deepest layer — behind everything
-Pitch           #0D1117     Primary background — the "table"
-Dugout          #161B26     Surface panels — cards, modals, drawers
-Pavilion        #1E2536     Elevated surface — active elements, hover states
-Sight Screen    #2A3247     Highest surface — tooltips, dropdowns
+SURFACES (dark → light)              TOKEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Void            #080B11 → #F4EFE6    --void      Deepest layer — behind everything
+Pitch (base)    #0D1117 → #EDE7DA    --pitch     Primary background — the screen floor
+Dugout (panel)  #161B26 → #E3DBCB    --dugout    Surface panels — visibly lifts off base
+Pavilion        #1E2536 → #D6CCB8    --pavilion  Elevated surface — active/hover states
+Sight Screen    #2A3247 → #C7BBA3    --sight     Highest surface — tooltips, dropdowns
+Panel-lo        #10141D              --panel-lo  Dark gradient stop for solid panels
 
-ACCENT — ALIGNMENT-DRIVEN
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Antique Gold    #B8860B     Clean path — sponsors, legacy, prestige
-Burnished Gold  #DAA520     Clean highlight — active clean elements
-Crimson Deep    #8B0000     Corrupt path — mafia, danger, debt
-Blood Red       #CC1100     Corrupt highlight — warnings, heat
-Amber Warning   #CF6A00     Heat system — investigations, pressure
+ACCENT — ALIGNMENT-DRIVEN (dark → light)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Antique Gold    #B8862F → #9A7A08    --gold        Clean path — sponsors, legacy, prestige
+Burnished Gold  #DAA520 → #B08D0A    --gold-bright Clean highlight — burnished, NOT lemon
+Crimson Deep    #8B0000             --crimson     Corrupt path — mafia, danger, debt
+Blood Red       #CC1100 → #C81E2E    --blood       Corrupt highlight — warnings, heat
+Amber Warning   #CF6A00             --amber       Heat system — investigations, pressure
 
-FUNCTIONAL
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Pitch Green     #0E6B3A     Cricket-specific — clean wins, positive outcomes
-Wicket White    #E8E0D4     Primary text — warm off-white, never harsh #FFF
-Slip Cordon     #7A8299     Secondary text — muted steel
-Boundary Rope   #3D4A63     Tertiary — borders, dividers, inactive elements
-Stumps Grey     #4A5568     Disabled states
+FUNCTIONAL (dark → light)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Pitch Green     #2FBE6E             --green       Clean wins, positive stat bars
+Wicket White    #E8E0D4 → #1A2333    --white       Primary text — warm off-white / dark ink
+Slip Cordon     #7A8299 → #57687C    --slip        Secondary text — most-used (muted steel)
+Border          rgba(122,130,153,.16) → rgba(26,35,51,.14)   --border         Dividers, inactive
+Border-strong   rgba(122,130,153,.30) → rgba(26,35,51,.26)   --border-strong  Emphasized dividers
 
 SPECIAL
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Black Money     #1A1A2E     Dark indigo — the shadow currency
-Fixer Blue      #1A3A5C     Rare staff cards, intel
-Legendary Holo  #B8860B → #CC1100 → #0E6B3A    Gradient for legendary card shimmer
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fixer Blue      #2268D1     Rare staff cards, intel
+Purple          #5B4A8A     Epic tier accent
+Legendary Holo  #D4AF6A → #CC1100 → #2FBE6E    Gradient for legendary card shimmer
 ```
 
 ### 2.2 Alignment-Responsive UI
@@ -93,6 +106,71 @@ Every background surface has a subtle texture overlay (5-8% opacity):
 
 Implementation: CSS `background-image` with tiling SVG patterns at low opacity, or canvas noise generation.
 
+### 2.4 v2 Depth-Recipe Tokens (shipped 2026-07-10, Phases 1–5)
+
+The premium "console-grade" feel comes from six techniques, each backed by a token. These replaced
+the old flat-black + glassmorphism look. **All values are the real shipped `:root` block.**
+
+**Solid gradient panels (replaces glassmorphism).** Content panels use a solid two-stop gradient +
+baked bevel, not translucent blur. `backdrop-filter` is now reserved for true overlays (toasts/modals).
+```
+--panel-grad : linear-gradient(160deg,#1E2536,#10141D)                 /* default solid panel      */
+--glass-bg   : linear-gradient(160deg,#232B40,#141926)   [dark]        /* theme-aware panel surface */
+             : linear-gradient(160deg,#FFFFFF,#F4EEE2)    [light]
+--glass-shadow : 0 4px 16px rgba(0,0,0,.45), 0 10px 34px rgba(0,0,0,.28),
+                 inset 0 1px 0 rgba(232,224,212,.12), inset 0 -1px 0 rgba(0,0,0,.28)   [dark]
+               /* light flips the insets to white-highlight + dark-hairline */
+--glass-border : 1px solid rgba(232,224,212,.08) [dark] / rgba(26,35,51,.10) [light]
+```
+> **Panel token rule:** panels bind to `--glass-bg` / `--glass-shadow` / `--glass-border` (all
+> theme-aware). `--panel-grad` is the dark-only default gradient; do **not** paint theme-switching
+> panels straight onto it. Where a chamfered (`clip-path`) tile needs an edge, use the
+> `--glass-shadow` insets as the border — a real CSS `border` clips off at the chamfer corners.
+
+**Bevel-as-border (asymmetric top-lit edge).** A lit top edge over darker sides = cheap tactility.
+```
+--bevel-top  : inset 0 1px 0 rgba(232,224,212,0.12)     /* panel top highlight     */
+--border-lit : rgba(232,224,212,0.14)                   /* lit top edge of a bevel */
+```
+
+**Red hero CTA (single highest-impact change).** The primary action on every screen is the red button
+(`.btn-hero`): PLAY MATCH, PLACE BID, START AUCTION, GO TO AUCTION, confirm.
+```
+--cta-red        : linear-gradient(160deg,#E43A1F,#8B0000)
+--cta-red-shadow : inset 0 1.5px 0 rgba(255,255,255,.35), 0 8px 18px rgba(204,17,0,.4)
+```
+
+**Burnished-gold badge + restrained glows (on state, not everywhere).**
+```
+--gold-grad  : linear-gradient(160deg,#D4AF6A,#8C6B32)                 /* gold fills            */
+--gold-badge : radial-gradient(circle at 35% 30%,#FFE9A8,#C9A44C 70%)  /* OVR/tier badge        */
+--gold-ink   : #241A08                                                 /* text on gold          */
+--glow-gold  : 0 0 16px rgba(218,165,32,.45), 0 0 4px rgba(218,165,32,.6)   [dark, softer in light]
+```
+
+**Strengthened vignette.** Edges fall into shadow so the per-screen spotlight center pops.
+```
+--vignette-strong : inset 0 0 90px 20px rgba(7,12,13,0.65)
+```
+
+**Chamfer geometry — the v2 signature two-opposite-corner cut (top-left + bottom-right).**
+```
+--clip-14 : polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)
+--clip-10 : polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)
+--clip-6  : polygon(6px  0, 100% 0, 100% calc(100% -  6px), calc(100% -  6px) 100%, 0 100%, 0  6px)
+```
+`--clip-14` = large panels/cards, `--clip-10` = buttons, `--clip-6` = chips/small tiles.
+Legacy `--clip-hex` / `--clip-diamond` stay for special badges.
+
+**Per-screen radial grading (depth technique #1).** Each screen backdrop is a radial spotlight, not
+flat black: most screens cool (`circle at 50% 0%, #1A2130 → #0D1117`), auction red-tense
+(`circle at 50% 15%, #241318 → #0D1117`), match/prematch green-tinted, corrupt-alignment red-tinted.
+
+**Empty-states (the "void" killer).** Every empty screen (no cards, market closed/empty, no players
+to sell) renders a *designed* state: chamfered `--glass-bg` icon tile (`--clip-14`, monoline SVG in
+`--slip`) + Teko title + one-line prompt + a red `.btn-hero` CTA where an action exists. A brand-new
+save now has **zero dead-black screens**. (League never empties — always renders team + rivals.)
+
 ---
 
 ## 3. Typography
@@ -107,9 +185,9 @@ Implementation: CSS `background-image` with tiling SVG patterns at low opacity, 
 | **UI / Body** | **Rajdhani** (Google Fonts) | 400, 500, 600 | Indian-designed geometric sans. Sharp terminals, not bubbly. Reads clean at small sizes but has character — the angles whisper "this isn't a regular app." |
 | **Numbers / Stats / Currency** | **Rajdhani** (tabular figures) | 600, 700 | Rajdhani has clean tabular figures that work for stats. Same font family as body = faster load, consistent feel. Use 700 weight for scores, 600 for tables. |
 | **Dramatic / Mafia / Quotes** | **Teko** (condensed, all-caps) | 700 | Teko at max weight with +2px letter-spacing creates gravitas without a fourth font. Used for tribunal verdicts, mafia messages, and season titles. |
+| **Micro / Labels / Tags** | **Rajdhani** | 500 | Same as body but smaller (10-11px) with letter-spacing +0.5px for legibility. Tags, badges, countdown timers. |
 
 **[v2 CHANGE]:** Cut from 4 fonts to **2 fonts** (Teko + Rajdhani). Saves ~100-150KB, critical for slow Indian connections (tier-2/3 cities on 2G/slow 4G). Space Grotesk and Cinzel dropped — Rajdhani's tabular figures handle numbers, and Teko bold handles dramatic moments.
-| **Micro / Labels / Tags** | **Rajdhani** | 500 | Same as body but smaller (10-11px) with letter-spacing +0.5px for legibility. Tags, badges, countdown timers. |
 
 ### 3.2 Type Scale
 
@@ -127,19 +205,23 @@ Body 2:     14px / 400 / 0px tracking        → Secondary text, flavor text
 Caption:    12px / 500 / +0.3px tracking     → Labels, timestamps, metadata
 Micro:      10px / 500 / +0.5px tracking     → Badges, tiny tags, countdown
 
-NUMBERS (Space Grotesk)
+NUMBERS (Rajdhani, tabular figures — font-feature-settings:"tnum")
 ━━━━━━━━━━━━━━━━━━━━━━━
 Score Big:  56px / 700 / -1px tracking       → Match score display
 Score Med:  32px / 700 / 0px tracking        → Currency totals, stat headers
-Stat:       18px / 500 / +0.5px tracking     → Stat values in tables/cards
-Stat Small: 14px / 500 / +0.3px tracking     → Inline numbers, small counters
+Stat:       18px / 600 / +0.5px tracking     → Stat values in tables/cards
+Stat Small: 14px / 600 / +0.3px tracking     → Inline numbers, small counters
 
-DRAMATIC (Cinzel)
+DRAMATIC (Teko, condensed all-caps)
 ━━━━━━━━━━━━━━━━━━━━━━━
 Verdict:    28px / 700 / +2px tracking       → Tribunal verdicts ("GUILTY", "CLEARED")
-Quote:      16px / 400 / +0.5px tracking     → Mafia messages, flavor quotes
+Quote:      16px / 600 / +1px  tracking       → Mafia messages, flavor quotes
 Season:     20px / 700 / +1px tracking       → Season titles ("SEASON III")
 ```
+> **[v2 CHANGE]:** the two blocks above formerly used Space Grotesk (numbers) and Cinzel
+> (dramatic). Both fonts were cut in the 4→2 consolidation (§3.1). Numbers now render in
+> **Rajdhani tabular figures** (700 for scores, 600 for stats); dramatic copy renders in
+> **Teko** at max weight with wider tracking. No third or fourth family ships.
 
 ### 3.3 Font Loading Strategy
 
@@ -153,6 +235,11 @@ Season:     20px / 700 / +1px tracking       → Season titles ("SEASON III")
 ---
 
 ## 4. Component Design Language
+
+> **Font annotations in the wireframes below (§4–§7) predate the 4→2 font cut.** Read every
+> **"Space Grotesk"** annotation as **Rajdhani tabular figures** and every **"Cinzel"** annotation
+> as **Teko** (see §3.1/§3.2). The wireframes are illustrative layout sketches; §2–§3 are the
+> authoritative token/font values.
 
 ### 4.1 Buttons
 
