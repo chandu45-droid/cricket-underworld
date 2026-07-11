@@ -11,7 +11,7 @@
 ================================================================================
   Thesis: RICH IS A CONTRAST PHENOMENON. Exactly ONE solid-gold hero per screen,
   everything else neutral dark glass. Money is the loudest thing on screen: every
-  currency value uses .money (Space Grotesk, tabular-nums, ₹ via ::before so the
+  currency value uses .money (Rajdhani tabular-nums — Space Grotesk dropped, L3 2026-07-11; ₹ via ::before so the
   ₹ stays out of textContent and Playwright's parseInt/toBe assertions still pass).
   Angular only — 3–4px corners + clip-path chamfers, no rounded game cards.
   All names fictional. Tokens are copied verbatim from prototype/index.html :root.
@@ -75,7 +75,7 @@
   --glass-border:1px solid rgba(255,255,255,0.10);
   --glass-inner:inset 0 0 30px rgba(255,255,255,0.02);
   /* ---- fonts ---- */
-  --font-d:'Teko', sans-serif; --font-b:'Rajdhani', sans-serif; --font-n:'Space Grotesk','Rajdhani',sans-serif;
+  --font-d:'Teko', sans-serif; --font-b:'Rajdhani', sans-serif; --font-n:'Rajdhani',sans-serif; /* L3 2026-07-11: Space Grotesk DROPPED — numeric face is Rajdhani tabular (two-tier system; see docs/visual-design-system.md §3.1) */
   --nav-h:64px; --top-h:52px;
   /* ---- angular clip-paths (verbatim) ---- */
   --clip-btn:polygon(6px 0, calc(100% - 6px) 0, 100% 50%, calc(100% - 6px) 100%, 6px 100%, 0 50%);

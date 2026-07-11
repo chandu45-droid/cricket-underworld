@@ -1,7 +1,32 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-11
-**Last commit:** (this commit) — LOOK pillar **L2** shipped: gold austerity pass — de-golded 7 hero-duplicating / stand-alone-decorative panels to neutral, reserving gold for one focal hero + CTA per screen; kept hue-coded-parallel golds (semantic) + wayfinding/rarity/atmosphere; verified both themes (evidence in `docs/l2-evidence/`); full suite green (152/152) (prior: LOOK L1 `.money` hero; STORE SAFETY PATCH `BILLING_LIVE=false`; balance-tester gate F1+F3; FEATURE pillar F1–F4)
+**Last commit:** (this commit) — LOOK pillar **L3** DECIDED → **DROP** (font pass): re-add-vs-drop resolved as DROP — Space Grotesk + Cinzel stay cut; instead routed dense stat-grid numbers (`.player-card .stat-val`, `.pd-stat-row .stat-val`) from condensed Teko → already-loaded **Rajdhani tabular**, fixing the "reads cheap" defect at zero network cost; hero money/scores stay Teko by deliberate L1 choice → **two-tier numeric system** ratified in `docs/visual-design-system.md`; both themes eyeballed (`docs/l3-evidence/`); full suite green (152/152) (prior: LOOK L2 gold austerity; L1 `.money` hero; STORE SAFETY PATCH `BILLING_LIVE=false`; balance-tester gate F1+F3; FEATURE pillar F1–F4)
+
+---
+
+## ✅ DONE (2026-07-11): BUILD-SHEET-10K — LOOK pillar L3 (font pass — DECIDED: DROP)
+
+Founder directive: *"L3 the font pass — decide: re-add or drop."* A binary decision, not a build. Built/decided directly (Chanakya, no agent spawned per standing instruction).
+
+**The conflict (evidence-first, CORE-MEMORY principle #8).** Two ratified docs disagreed:
+- `docs/visual-design-system.md` v2.0 §3.1 (line 190) deliberately **dropped** Space Grotesk + Cinzel — "cut 4 fonts → 2… saves ~100-150KB, critical for slow Indian connections… Rajdhani's tabular figures handle numbers, Teko bold handles dramatic moments."
+- `CRICKET-REVIEW-2026-07-09.md` #5 (line 48) argued the **opposite** — "Teko is a condensed poster face — makes numbers read cheap. Load a proper numeric face (Space Grotesk)."
+
+**The resolution — separate the CONCERN from the PRESCRIPTION.** Both docs actually *agree* on the concern: **dense numbers should not be condensed Teko** (it reads cheap in small stat tiles). They differ only on the *fix*. The review's fix (load a new font) fights the ratified performance budget; the doc already offers a fix that costs nothing — **Rajdhani tabular, already loaded.** So: **DROP** the re-add. Space Grotesk + Cinzel stay cut.
+
+**Shipped (2 edits in `prototype/index.html`) — route dense stats off Teko:**
+- **`.player-card .stat-val`** (line 528): `var(--font-d)` → `var(--font-b)` + `letter-spacing:0.5px` + `font-variant-numeric:tabular-nums` + `font-feature-settings:"tnum" 1`.
+- **`.pd-stat-row .stat-val`** (line 1190): `var(--font-d)` → `var(--font-b)` + `tabular-nums` + `"tnum" 1`.
+- The Google Fonts `<link>` (line 15) already loads Rajdhani `400;500;600;700`, so 600/700 tabular were available — **zero new network cost**, confirming the DROP was free.
+
+**Two-tier numeric system (now ratified in `docs/visual-design-system.md` §3.1).**
+- **Hero / dramatic → Teko** (`--font-d`, tabular): `.money`, match scores, big auction bids. Condensed poster face at large size = broadcast-scoreboard drama (this is the deliberate L1 `.money` choice, NOT drift — documented so no future pass "fixes" it).
+- **Dense data → Rajdhani** (`--font-b`, tabular): stat-grid values in cards/tables. Squarer engineered figures read clean at 18px in small tiles.
+
+**Verified.** Full Playwright suite **152 passed**. Both-theme screenshots via throwaway spec (mirrors `injectState`/`dismissOverlays`, navigated squad + `window.showPlayerDetail(1)`) eyeballed — dense stat numbers now render in Rajdhani tabular, clean and even-width, no layout break in either theme. Shots in `docs/l3-evidence/` (`{squad,detail}-{light,dark}.png`); temp spec deleted. `CRICKET-REVIEW-2026-07-09.md` #5 + its MED font-drift bug are now **superseded** (left as historical record; this DROP decision overrides them).
+
+**Roadmap next:** **NEW founder directive (interrupt, higher priority than L4/L5):** *"almost all screens have larger screens — need to scroll a lot, lots of information everywhere; show them much better with critical UX in mind."* → information-density / progressive-disclosure pass, evidence-based (measure per-screen scrollHeight vs viewport, worst offenders first). Then L4 (juice pass), L5 (first-60-seconds reel).
 
 ---
 
@@ -122,9 +147,9 @@ Every investor clicks the game link before reading anything. These three make th
 ### Phase 1 — Look expensive (~1 week) — Tier 1 of CRICKET-REVIEW-2026-07-09
 The demo IS the pitch. Full rationale + Tier 2/3 backlog in `CRICKET-REVIEW-2026-07-09.md`.
 
-- [ ] **1.1 Global `.money` class — make money look like money.** Headline auction bid (was `index.html:547`, shifted) solid gold, bigger, ₹ symbol, proper number font; route every currency value through `.money`. **Use `var(--gold-bright)` not a hex** so it works in both themes (light overrides it to #B08D0A). (Effort: S, highest feel-rich leverage)
-- [ ] **1.2 Gold austerity pass.** Strip gold off the ~40 panels using it at 8-15% opacity; reserve gold for ONE hero element per screen (the number that matters + primary CTA). Rich is a contrast phenomenon. (Effort: S-M)
-- [ ] **1.3 Load Space Grotesk (+ Cinzel if used)** — specced in `docs/visual-design-system.md`, never loaded; money/stats currently render in Teko. (Effort: S)
+- [x] **1.1 Global `.money` class — make money look like money.** ✅ Shipped 2026-07-11 (LOOK L1). Solid gold theme-aware `.money` hero routed through hub net-worth / auction purse / match payout; coin unit `C` (₹ reserved for store). E2E green.
+- [x] **1.2 Gold austerity pass.** ✅ Shipped 2026-07-11 (LOOK L2). De-golded 7 hero-duplicating/decorative panels → one focal gold + CTA per screen; kept hue-coded/wayfinding/rarity/atmosphere golds. 152/152.
+- [x] **1.3 Font pass — DECIDED: DROP** ✅ 2026-07-11 (LOOK L3). Re-add-vs-drop resolved **DROP**: Space Grotesk + Cinzel stay cut (perf budget); instead routed dense stat-grid numbers Teko → already-loaded **Rajdhani tabular** (zero network cost). Hero money/scores stay Teko → **two-tier numeric system** ratified in `docs/visual-design-system.md` §3.1. 152/152, both themes eyeballed (`docs/l3-evidence/`).
 - [x] **1.4 Daily Login Streak.** ✅ Shipped 2026-07-11 (BUILD-SHEET F1 / tracker F43). Streak counter + escalating 7-day reward row on hub, persists in GS, feeds Phase 2 retention. E2E 3/3.
 - [x] **1.5 Empire Net-Worth + Rank line on hub.** ✅ Shipped 2026-07-11 (BUILD-SHEET F2 / tracker F44). "YOUR EMPIRE · C X · #Y OF 10". **Rendered in coin unit "C" for now — the ₹ symbol/`.money` styling is intentionally left to LOOK-pillar item 1.1.** E2E 3/3.
 - [ ] **1.6 Remaining LOW bugs from review §2** (opportunistic): dup nav loop (~8471), win-streak resets with no grace (~6815), pack dupe dead-end (~7686). (Effort: S each)

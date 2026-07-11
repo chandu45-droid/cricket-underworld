@@ -189,6 +189,10 @@ save now has **zero dead-black screens**. (League never empties — always rende
 
 **[v2 CHANGE]:** Cut from 4 fonts to **2 fonts** (Teko + Rajdhani). Saves ~100-150KB, critical for slow Indian connections (tier-2/3 cities on 2G/slow 4G). Space Grotesk and Cinzel dropped — Rajdhani's tabular figures handle numbers, and Teko bold handles dramatic moments.
 
+**[L3 DECISION 2026-07-11 — two-tier numeric system, ratified]:** the specced-but-absent Space Grotesk + Cinzel were **dropped for good** (not re-added). Numbers split into two tiers by intent, both inside the 2-font system:
+- **Hero / dramatic numbers → Teko** (`--font-d`, `tabular-nums`): `.money` currency heroes, match scores, big auction bids. Condensed poster face at large size = broadcast-scoreboard power (this is the deliberate L1 `.money` choice, not drift).
+- **Dense data numbers → Rajdhani** (`--font-b`, `tabular-nums`): stat-grid values in cards/tables (`.player-card .stat-val`, `.pd-stat-row .stat-val`). Squarer engineered figures read clean at 18px in small tiles, where Teko condensed read cheap (the defect `CRICKET-REVIEW-2026-07-09` #5 flagged — now fixed with an already-loaded font, zero network cost).
+
 ### 3.2 Type Scale
 
 ```
