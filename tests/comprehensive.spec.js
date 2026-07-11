@@ -159,6 +159,7 @@ test.describe('Hub', () => {
   test('clean streak tag visible at 3+ matches', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { cleanStreak: 5 });
+    await page.click('#drawer-club-toggle');
     await expect(page.locator('#clean-streak-tag')).toBeVisible();
     const text = await page.locator('#clean-streak-tag').textContent();
     expect(text).toContain('5 matches');
@@ -569,6 +570,7 @@ test.describe('Cards & Packs', () => {
     const sq = makeSquad().slice(0, 3);
     await injectState(page, { coins: 600, squad: sq });
     await navigateTo(page, 'cards');
+    await page.click('#drawer-packs-toggle');
     await page.click('#pack-standard');
     await page.waitForTimeout(500);
     await expect(page.locator('#pack-overlay.show')).toBeVisible();
@@ -580,6 +582,7 @@ test.describe('Cards & Packs', () => {
     await page.goto('/');
     await injectState(page, { coins: 100 });
     await navigateTo(page, 'cards');
+    await page.click('#drawer-packs-toggle');
     await page.click('#pack-standard');
     await page.waitForTimeout(500);
     const toast = await page.locator('.toast.show').textContent();
@@ -591,6 +594,7 @@ test.describe('Cards & Packs', () => {
     const sq = makeSquad().slice(0, 3);
     await injectState(page, { gems: 20, squad: sq });
     await navigateTo(page, 'cards');
+    await page.click('#drawer-packs-toggle');
     await page.click('#pack-premium');
     await page.waitForTimeout(500);
     await expect(page.locator('#pack-overlay.show')).toBeVisible();
@@ -664,6 +668,7 @@ test.describe('Facilities', () => {
   test('pep talk boosts morale', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 1000, morale: 50 });
+    await page.click('#drawer-club-toggle');
     await page.click('#morale-boost-btn');
     await page.waitForTimeout(500);
     const morale = await page.evaluate(() => window.GS.morale);
@@ -673,6 +678,7 @@ test.describe('Facilities', () => {
   test('pep talk fails without coins', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 50 });
+    await page.click('#drawer-club-toggle');
     await page.click('#morale-boost-btn');
     await page.waitForTimeout(500);
     const toast = await page.locator('.toast.show').textContent();
@@ -682,6 +688,7 @@ test.describe('Facilities', () => {
   test('media bribe reduces heat', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 1000, heat: 50 });
+    await page.click('#drawer-club-toggle');
     await page.click('#heat-bribe-btn');
     await page.waitForTimeout(500);
     const heat = await page.evaluate(() => window.GS.heat);
@@ -844,6 +851,7 @@ test.describe('Underworld Core', () => {
   test('power web panel visible on hub', async ({ page }) => {
     await page.goto('/');
     await injectState(page, {});
+    await page.click('#drawer-underworld-toggle');
     await expect(page.locator('#power-web-panel')).toBeVisible();
     const rows = await page.locator('#power-web-rows .pw-row').count();
     expect(rows).toBe(5);

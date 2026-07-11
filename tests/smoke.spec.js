@@ -123,6 +123,7 @@ test('pack opening has 3D card flip', async ({ page }) => {
   await setupGameState(page);
   await page.click('#hub-cards-btn');
   await page.waitForSelector('#cards-screen.active', { timeout: 5000 });
+  await page.click('#drawer-packs-toggle');
   await page.click('#pack-standard');
   await page.waitForTimeout(500);
   expect(await page.locator('.pack-flip-container').count()).toBeGreaterThan(0);
@@ -297,6 +298,7 @@ test('Sponsor Break: rewarded ads — free pack, purse boost, post-match doubler
   // --- Free Sponsor Pack (Cards screen): +2 cards, zero cost ---
   await page.click('.nav-item[data-screen="cards"]');
   await page.waitForSelector('#cards-screen.active', { timeout: 5000 });
+  await page.click('#drawer-packs-toggle');
   await expect(page.locator('#pack-ad-btn')).toBeVisible();
   const before = await page.evaluate(() => ({ coins: GS.coins, gems: GS.gems, squad: GS.squad.length }));
   await page.click('#pack-ad-btn');
