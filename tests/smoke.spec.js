@@ -203,48 +203,51 @@ test('Season Pass: hub panel, tier progression, claim + premium flow', async ({ 
   expect(saved.premium).toBe(true);
 });
 
-test('Vault store: open via currency chip, stub purchase grants goods', async ({ page }) => {
+test('Vault store: opens & browses, but grants NOTHING while billing is off (BILLING_LIVE=false)', async ({ page }) => {
   await page.goto('/');
   await setupGameState(page);
   await dismissOverlays(page);
 
-  // Tap coins chip → Vault opens with packs + test-mode badge
+  // Tap coins chip → Vault opens with packs + "opens at launch" badge (payments not live)
   await page.click('#top-bar .currency.coins');
   await expect(page.locator('#store-overlay')).toHaveClass(/show/);
-  await expect(page.locator('.store-testmode')).toContainText(/test mode/i);
+  await expect(page.locator('.store-testmode')).toContainText(/opens at launch/i);
   expect(await page.locator('#store-coins-grid .vault-pack').count()).toBe(3);
   expect(await page.locator('#store-gems-grid .vault-pack').count()).toBe(3);
 
-  // Buy coin pack → confirm sheet, then goods delivered + purchase logged
   const coinsBefore = await page.evaluate(() => GS.coins);
+  const gemsBefore = await page.evaluate(() => GS.gems);
+  const purchasesBefore = await page.evaluate(() => GS.purchases.length);
+
+  // Tapping a coin pack must NOT open the confirm sheet and must grant nothing
   await page.click('.vault-pack[data-pack="coins_m"]');
-  await expect(page.locator('#store-confirm')).toHaveClass(/show/);
-  await expect(page.locator('#store-confirm-text')).toContainText('Dealer Crate');
-  await page.click('#store-buy-btn');
   await expect(page.locator('#store-confirm')).not.toHaveClass(/show/);
-  expect(await page.evaluate(() => GS.coins)).toBe(coinsBefore + 3000);
-  expect(await page.evaluate(() => GS.purchases.length)).toBe(1);
+  expect(await page.evaluate(() => GS.coins)).toBe(coinsBefore);
+  expect(await page.evaluate(() => GS.purchases.length)).toBe(purchasesBefore);
 
-  // Cancel path grants nothing
-  await page.click('.vault-pack[data-pack="gems_s"]');
-  await page.click('#store-cancel-btn');
-  expect(await page.evaluate(() => GS.gems)).toBe(50);
-  expect(await page.evaluate(() => GS.purchases.length)).toBe(1);
+  // Defense-in-depth: even force-completing a purchase grants nothing
+  const guarded = await page.evaluate(() => {
+    if (typeof window.completePurchase !== 'function') return false;
+    window.pendingPurchase = 'coins_m';
+    window.completePurchase();
+    return true;
+  });
+  expect(guarded).toBe(true);
+  expect(await page.evaluate(() => GS.coins)).toBe(coinsBefore);
+  expect(await page.evaluate(() => GS.purchases.length)).toBe(purchasesBefore);
 
-  // Premium Contract purchase flips season pass premium + card shows owned
+  // Premium Contract must NOT flip season pass premium while billing is off
   await page.click('#store-pass-card');
-  await page.click('#store-buy-btn');
-  expect(await page.evaluate(() => GS.seasonPass.premium)).toBe(true);
-  await expect(page.locator('#store-pass-card')).toHaveClass(/owned/);
-  await expect(page.locator('#store-pass-price')).toHaveText('OWNED');
+  await expect(page.locator('#store-confirm')).not.toHaveClass(/show/);
+  expect(await page.evaluate(() => GS.seasonPass.premium)).toBe(false);
 
-  // Back closes; purchases persist in save
+  // Back closes; nothing was granted and nothing persisted to save
   await page.click('#store-back-btn');
   await expect(page.locator('#store-overlay')).not.toHaveClass(/show/);
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('cu_save_v3')));
-  expect(saved.purchases.length).toBe(2);
-  expect(saved.purchases[0].id).toBe('coins_m');
-  expect(saved.seasonPass.premium).toBe(true);
+  expect(saved.purchases.length).toBe(purchasesBefore);
+  expect(saved.gems).toBe(gemsBefore);
+  expect(saved.seasonPass.premium).toBe(false);
 });
 
 test('PWA: manifest + service worker + app shell cache', async ({ page }) => {

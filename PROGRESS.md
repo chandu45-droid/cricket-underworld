@@ -1,7 +1,7 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-11
-**Last commit:** (this commit) — Balance-tester gate run on F1+F3 (founder-authorized): sign-off recorded, 2 in-scope F3 polish fixes applied, fix-queue logged (prior: BUILD-SHEET-10K FEATURE pillar F1–F4 shipped)
+**Last commit:** (this commit) — STORE SAFETY PATCH: `BILLING_LIVE=false` gate neutralizes the 🔴 F3-1 free-currency leak (both `requestPurchase` + `completePurchase` guarded, banner honest, buy-intent still logged); 2 regression tests locked (features-10k SAFETY + rewritten smoke Vault test) — full suite 149 green (prior: balance-tester gate on F1+F3; BUILD-SHEET-10K FEATURE pillar F1–F4 shipped)
 
 ---
 
@@ -30,11 +30,11 @@ Formal exploit/fairness pass run against the balance-tester charter (`.claude/ag
 - **F3-4** — `adToday()` now uses the local-date boundary (`_todayStr()`), consistent with the daily-login reset; was UTC (05:30 IST rollover mismatch). `index.html` ~9458.
 
 **FIX-QUEUE (deferred, with rationale):**
-- 🔴 **F3-1 — Vault store stub leaks free currency.** `completePurchase()` (F35 store, `index.html` ~9415–9417) grants coins/gems in "(test mode)" with no payment gate, and F3's hub Vault tile now surfaces it one tap away. **This IS the storefront/billing decision the founder reserved** ("mostly will go with playstore model"). Must be gated behind real Play Billing OR the free-grant neutralized/tile hidden **before any Play Store push**. NOT a today-gate (we are pre-launch; monetization stays stubbed through the acquisition-validation phase) — but it is *the* thing the billing decision must resolve. **Founder call.**
+- ✅ **F3-1 — Vault store stub leaked free currency — PATCHED (2026-07-11, founder-authorized "apply the store safety patch now").** Added `var BILLING_LIVE = false;` (`index.html` ~9356) gating ALL purchase grants until Google Play Billing is wired + verified. `requestPurchase()` now early-returns while off — logs a `store_intent` analytics event (keeps acquisition-phase demand measurable) + shows an honest toast, and **never opens the confirm sheet**. `completePurchase()` has a defense-in-depth hard guard that grants nothing even if reached directly (exploit-site guard). Store banner reworded "Test Mode" → "Opens at launch — payments not live yet, nothing charged". Store stays browsable so F3's "reachable in ≤2 taps" done-criterion holds. **Locked by 2 regression tests:** features-10k `SAFETY: Vault store grants NO currency…` (drives real UI-tap path + proves `window.completePurchase` is genuinely exercised) and the rewritten smoke `Vault store: opens & browses, but grants NOTHING while billing is off`. **Real Play Billing still DEFERRED — founder call to flip `BILLING_LIVE=true` only when billing is integrated + verified.**
 - 🟡 **F3-2 — aborted rewarded-ad burns the daily spot.** Cap is consumed at ad-START (`index.html` ~9466) not at reward-grant, so closing the ad early wastes the day's sponsor spot (feel-bad). Fix = move `GS.ads[placement]++; save()` into the claim handler + track the pending placement. Deferred because it touches the shared purse/pack/boost ad machinery → needs a full-suite regression, and it is a wk-2-retention polish item, not a launch blocker.
 - 🟡 **F1-1 / F1-2 — clock-forward streak farming & concurrent-window multi-claim.** Both self-harm-only on an offline single-player save with no real PvP stakes; cheap guards (persist `maxDateSeen`; re-read save before the claim gate) available if wanted. Deferred as low-value hardening for an offline game.
 
-**Deferred per founder:** storefront/billing decision (leaning Play Store) — now sharpened by 🔴 F3-1 above. Rupee `.money` styling stays with the LOOK pillar (roadmap Phase 1).
+**Deferred per founder:** real Play Billing integration (leaning Play Store) — 🔴 F3-1's *free-grant exploit* is now neutralized (see ✅ above); what remains deferred is wiring actual billing + flipping `BILLING_LIVE=true`. Rupee `.money` styling stays with the LOOK pillar (roadmap Phase 1).
 
 ---
 

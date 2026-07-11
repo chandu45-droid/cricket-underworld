@@ -2838,7 +2838,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <div class="store-hero">
       <div class="store-hero-title">The Vault</div>
       <div class="store-hero-sub">Syndicate supply line</div>
-      <div class="store-testmode">Test Mode &mdash; no real charges</div>
+      <div class="store-testmode">Opens at launch &mdash; payments not live yet, nothing charged</div>
     </div>
     <div class="store-section-title">Coins</div>
     <div class="store-grid" id="store-coins-grid"></div>
@@ -9354,6 +9354,10 @@ var IAP_PACKS = [
   { id: 'pass_premium', kind: 'pass', amt: 0, name: 'Premium Contract', price: '₹199', tag: '' }
 ];
 var pendingPurchase = null;
+// SAFETY GATE (2026-07-11): store is a real-money IAP stub with NO billing wired.
+// While false, no purchase grants any currency (was leaking free coins/gems in test mode).
+// Flip to true ONLY when Google Play Billing is integrated + verified. See PROGRESS fix-queue F3-1.
+var BILLING_LIVE = false;
 
 function iapPack(id) {
   for (var i = 0; i < IAP_PACKS.length; i++) if (IAP_PACKS[i].id === id) return IAP_PACKS[i];
@@ -9401,6 +9405,12 @@ function requestPurchase(id) {
   var p = iapPack(id);
   if (!p) return;
   if (p.kind === 'pass' && GS.seasonPass.premium) { toast('Premium Contract already owned this season', 'error'); return; }
+  if (!BILLING_LIVE) {
+    // Log buy-intent (valuable acquisition-phase signal) but charge/grant nothing.
+    trackEvent('store_intent', { id: p.id, kind: p.kind, price: p.price });
+    toast('The Vault opens at launch — payments aren’t live yet, nothing charged', 'error');
+    return;
+  }
   pendingPurchase = p.id;
   var goods = p.kind === 'coins' ? p.amt.toLocaleString() + ' coins' :
               p.kind === 'gems' ? p.amt.toLocaleString() + ' gems' :
@@ -9412,6 +9422,12 @@ function requestPurchase(id) {
 function completePurchase() {
   var p = iapPack(pendingPurchase);
   if (!p) { hideStoreConfirm(); return; }
+  if (!BILLING_LIVE) {
+    // Hard exploit-site guard (defense in depth): never grant currency without live billing.
+    hideStoreConfirm();
+    toast('The Vault opens at launch — payments aren’t live yet, nothing charged', 'error');
+    return;
+  }
   if (p.kind === 'coins') GS.coins += p.amt;
   else if (p.kind === 'gems') GS.gems += p.amt;
   else if (p.kind === 'pass') GS.seasonPass.premium = true;

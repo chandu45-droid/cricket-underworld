@@ -239,6 +239,34 @@ test.describe('F3 — Monetization surfaces & drop rates', () => {
     const after = await page.evaluate(() => window.GS.squad.length);
     expect(after).toBeGreaterThan(before); // free pack added cards
   });
+
+  test('SAFETY: Vault store grants NO currency while billing is not live', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 2000, gems: 50 });
+
+    const before = await page.evaluate(() => ({ c: window.GS.coins, g: window.GS.gems }));
+
+    // Real UI path: open the Vault and tap a real coin pack tile.
+    await page.click('#hub-vault-tile');
+    await expect(page.locator('#store-overlay')).toHaveClass(/show/);
+    await page.locator('#store-coins-grid .vault-pack').first().click();
+
+    // Tapping a pack must NOT open the confirm dialog while billing is off.
+    await expect(page.locator('#store-confirm')).not.toHaveClass(/show/);
+
+    // Hard exploit-site guard: even reaching completePurchase directly grants nothing.
+    const guarded = await page.evaluate(() => {
+      if (typeof window.completePurchase !== 'function') return false; // fail loudly if not reachable
+      window.pendingPurchase = 'gems_l'; // 800-gem pack
+      window.completePurchase();
+      return true;
+    });
+    expect(guarded).toBe(true); // proves the guard function was actually exercised
+
+    const after = await page.evaluate(() => ({ c: window.GS.coins, g: window.GS.gems }));
+    expect(after.c).toBe(before.c); // no free coins granted
+    expect(after.g).toBe(before.g); // no free gems granted
+  });
 });
 
 // ============================================================
