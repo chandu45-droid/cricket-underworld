@@ -862,9 +862,14 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
    TUTORIAL / ONBOARDING
    ================================================================ */
 .tut-overlay{position:fixed;inset:0;z-index:300;background:rgba(var(--ov-rgb),0.92);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.4s}
-.tut-overlay.show{opacity:1;pointer-events:auto}
+/* NOTE: scrim intentionally stays pointer-events:none even when shown, so nav taps
+   pass through and are never swallowed (P0 demo-blocker fix). Only .tut-card is
+   interactive; goScreen() auto-dismisses the overlay on any navigation. */
+.tut-overlay.show{opacity:1}
 .tut-card{max-width:340px;width:100%;background:linear-gradient(160deg,var(--dugout),var(--pitch));border-radius:4px;border:1px solid rgba(240,200,80,0.15);box-shadow:0 12px 48px rgba(0,0,0,0.6),0 0 40px rgba(240,200,80,0.06);padding:28px 24px;text-align:center;transform:translateY(20px) scale(0.95);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
-.tut-overlay.show .tut-card{transform:translateY(0) scale(1)}
+/* Card is only hit-testable while the overlay is actually shown; the scrim itself
+   stays pointer-events:none so it never intercepts taps when hidden OR shown. */
+.tut-overlay.show .tut-card{transform:translateY(0) scale(1);pointer-events:auto}
 .tut-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent 5%,var(--gold-bright) 50%,transparent 95%)}
 .tut-icon{width:64px;height:64px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(240,200,80,0.08);border:1.5px solid rgba(240,200,80,0.15)}
 .tut-title{font-family:var(--font-d);font-size:24px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold-bright);margin-bottom:8px}
@@ -2743,7 +2748,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
 <!-- TUTORIAL -->
 <div class="tut-overlay" id="tut-overlay">
-  <div class="tut-card">
+  <div class="tut-card" id="tut-card">
     <div class="tut-icon" id="tut-icon"></div>
     <div class="tut-title" id="tut-title"></div>
     <div class="tut-body" id="tut-body"></div>
@@ -5639,6 +5644,10 @@ function trainPlayerAdvanced(id, stat, gain) {
 // =============================================
 var currentScreen = 'hub';
 function goScreen(name) {
+  // P0 demo-blocker fix: any navigation dismisses a shown tutorial/context overlay
+  // so a first-time visitor's nav taps are never swallowed by the onboarding scrim.
+  var _tutOv = $('tut-overlay');
+  if (_tutOv && _tutOv.classList.contains('show')) closeTutorial();
   if (name === currentScreen) return;
   SFX.tap();
   var old = $(currentScreen + '-screen');
@@ -9136,7 +9145,9 @@ function bindEvents() {
   }, { passive: true });
 
   // --- Tutorial swipe ---
-  var tutEl = $('tut-overlay');
+  // Bind to the card, not the overlay: the overlay is pointer-events:none (P0 fix)
+  // so it no longer receives touch events; the card is the interactive surface.
+  var tutEl = $('tut-card');
   if (tutEl) {
     var tutTouchX = 0;
     tutEl.addEventListener('touchstart', function(e) {

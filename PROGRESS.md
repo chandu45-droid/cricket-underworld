@@ -70,7 +70,7 @@ Work top-to-bottom. WIP=1, verify each item (`npx playwright test` + browser eye
 ### Phase 0 — Demo blockers (do FIRST, ~1 day total)
 Every investor clicks the game link before reading anything. These three make the first 30 seconds survivable.
 
-- [ ] **0.1 Fix HIGH bug: tutorial overlay pointer-block.** `#tut-overlay.show` intercepts ALL taps on fresh load until dismissed — a fresh visitor sees a game that "doesn't respond". Repro: clear localStorage, load, try tapping nav. Fix direction: make the overlay scrim `pointer-events:none` except on the tut box/buttons, or auto-dismiss on any outside tap. Add an E2E: fresh load → tap nav → screen switches. (Effort: S)
+- [x] **0.1 Fix HIGH bug: tutorial overlay pointer-block.** ✅ Shipped 2026-07-11 (BUILD-SHEET P0). Scrim now stays `pointer-events:none` even when `.show` (nav taps pass straight through); `.tut-card` re-enabled to `pointer-events:auto` **only** under `.tut-overlay.show .tut-card` (not unconditionally — the first attempt did that and an invisible centred card intercepted mid-screen clicks, breaking auction-bid + ad-claim; caught by the full suite, fixed by scoping to `.show`). `goScreen()` auto-dismisses the onboarding/context overlay on ANY navigation. Swipe handlers moved from the (now pass-through) overlay onto `#tut-card`. 3 new E2E (fresh-install → 1 nav tap switches screen + auto-dismisses & marks tutorialDone; scrim computed `pointer-events:none` while card is `auto`; in-card Skip still dismisses). **Full suite 152 green** (149 → 152). (Effort: S)
 - [ ] **0.2 Refresh pitch materials with real numbers.** `outreach.md` + `pitch.html` say "43+ systems, 110 tests, $3.2B market" — actual: 42 tracked features passing, 135 E2E tests, $5.91B→$16.72B (2034) market. Add the two missing strongest cards: (a) Underworld Core differentiation (5-faction Power Web — no competitor has it), (b) regulatory moat (no-RMG design is PROG Act 2026-proof while fantasy apps died). (Effort: S)
 - [ ] **0.3 Verify live deployment + real-device QA.** Confirm `chandu45-droid.github.io/cricket-underworld/prototype/` serves the CURRENT build (needs founder or a session with github.io network access — cloud container can't reach it). Check light theme + toggle on a real budget Android. Note: GitHub Pages serves from `master` — the theme work must be MERGED (PR #1) before the public URL shows it. (Effort: S, founder-assisted)
 
@@ -335,7 +335,7 @@ Replace with lazy inspector + stage text (MUST keep `matchesLeft + ' matches'` p
 - **Tests:** 135 Playwright E2E tests — last full run 2026-07-10: all 135 passing (cloud container, 51min).
 - **Features:** 42/42 tracked features passing. Underworld Core complete (7/7); F42 theming shipped 2026-07-10.
 - **PR:** #1 open (`claude/current-status-gpzh42` → master), mergeable, session subscribed to its events.
-- **Phase:** Sale scope active — next work = FINALIZED ROADMAP above, starting Phase 0.1 (tutorial-overlay bug).
+- **Phase:** Sale scope active — Phase 0.1 (tutorial-overlay bug) ✅ DONE 2026-07-11. Next work = Phase 0.2 (refresh pitch materials with real numbers), then the LOOK pass (1.1 `.money` → 1.2 gold austerity → 1.3 Space Grotesk).
 
 ## FOUNDER DECISION 2026-07-08: UI Redesign resumes NOW
 
@@ -426,7 +426,7 @@ Code audit confirmed it: mafia = offer menu only; politicians = a tag on 2 rival
 
 ## Next Session Checklist
 
-1. Read this file — start at **📋 FINALIZED ROADMAP** (top of file), Phase 0.1
+1. Read this file — start at **📋 FINALIZED ROADMAP** (top of file), Phase 0.2 (0.1 done)
 2. Read `feature_list.json` for system-level status
 3. Run `npx playwright test` to verify repo is green
 4. Work the roadmap top-to-bottom; WIP=1: finish and verify one item before starting next

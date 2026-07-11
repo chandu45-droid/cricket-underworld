@@ -315,3 +315,57 @@ test.describe('F4 — Analytics', () => {
     await assertNoBootError(page);
   });
 });
+
+// ============================================================
+// P0 — DEMO BLOCKER: tutorial-overlay pointer-block
+// BUILD-SHEET-10K §6 P0. Done-criterion: fresh load → tap nav → screen switches.
+// The onboarding scrim (#tut-overlay.show) must NEVER swallow nav taps.
+// ============================================================
+async function bootFresh(page) {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForSelector('#loading.hide', { timeout: 10000 });
+  // onboarding fires ~600ms after loading hides on a first install
+  await page.waitForSelector('#tut-overlay.show', { timeout: 8000 });
+}
+
+test.describe('P0 — Tutorial overlay must not block navigation', () => {
+  test('fresh install: a single nav tap switches screen AND auto-dismisses the tutorial', async ({ page }) => {
+    await bootFresh(page);
+    await assertNoBootError(page);
+
+    // start state: on hub, onboarding scrim up
+    await expect(page.locator('#hub-screen')).toHaveClass(/active/);
+    await expect(page.locator('#tut-overlay')).toHaveClass(/show/);
+
+    // the fix: ONE tap on a nav item must switch screens (not be eaten by the scrim)
+    await page.locator('.nav-item[data-screen="squad"]').click();
+
+    await expect(page.locator('#squad-screen')).toHaveClass(/active/);
+    await expect(page.locator('#tut-overlay')).not.toHaveClass(/show/);
+    await assertNoBootError(page);
+
+    // onboarding is marked done so it does not re-trigger next boot
+    const done = await page.evaluate(() => JSON.parse(localStorage.getItem('cu_save_v3') || '{}').tutorialDone);
+    expect(done).toBe(true);
+  });
+
+  test('the onboarding scrim is pointer-transparent while shown; only the card is interactive', async ({ page }) => {
+    await bootFresh(page);
+    const pe = await page.evaluate(() => ({
+      overlay: getComputedStyle(document.getElementById('tut-overlay')).pointerEvents,
+      card: getComputedStyle(document.getElementById('tut-card')).pointerEvents,
+    }));
+    expect(pe.overlay).toBe('none'); // scrim never blocks underlying taps
+    expect(pe.card).toBe('auto');    // Next/Skip + swipe still work
+  });
+
+  test('the in-card Skip button still dismisses the tutorial', async ({ page }) => {
+    await bootFresh(page);
+    await page.locator('#tut-skip-btn').click();
+    await expect(page.locator('#tut-overlay')).not.toHaveClass(/show/);
+    const done = await page.evaluate(() => JSON.parse(localStorage.getItem('cu_save_v3') || '{}').tutorialDone);
+    expect(done).toBe(true);
+  });
+});
