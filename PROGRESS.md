@@ -1,7 +1,28 @@
 # Progress — Cricket Underworld
 
-**Last updated:** 2026-07-10
-**Last commit:** (this commit) — Light theme is now the DEFAULT; dark noir available via Settings → Appearance toggle
+**Last updated:** 2026-07-11
+**Last commit:** (this commit) — BUILD-SHEET-10K FEATURE pillar F1–F4 shipped (login streak, empire net-worth+rank, monetization surfacing + published drop rates, analytics)
+
+---
+
+## ✅ DONE (2026-07-11): BUILD-SHEET-10K — FEATURE pillar (F1–F4)
+
+Founder directive: *"first build the features part, this part [storefront/billing] we can do later. mostly will go with playstore model."* Built the four FEATURE-pillar items directly (Chanakya, no agents spawned per standing instruction); storefront/billing DEFERRED, Play Store the working (non-final) model.
+
+**Shipped (all in `prototype/index.html`, tracker IDs F43–F46):**
+- **F1 Daily Login Streak (F43).** `GS.loginStreak/lastLogin/bestLoginStreak/loginClaimedDate` (defaults + load persistence). `processDailyLogin()` at boot: same-day no-op / +1 consecutive / reset-to-1 on a gap (best preserved). `LOGIN_REWARDS` 7-day curve (200c → 300c → 500c+5g → 600c → 800c+10g → 1000c → 1500c+25g), cycles via `_loginCycleIndex`. `renderLoginPanel()` hub row (streak/best header + per-day tiles + claim CTA), `claimDailyLogin()` grants once/day guarded against double-grant.
+- **F2 Empire Net-Worth + Rank (F44).** `computeNetWorth()` = coins + gems·rate + blackMoney·rate + Σ`playerMarketValue`. `getEmpireRank()` ranks player among the 10 league teams by net worth. `formatCompactCoins()` → "14.8K". `renderEmpireLine()` → hub line "YOUR EMPIRE · C X · #Y OF 10 LEAGUE RANK", recomputed in `updateHub()` after auction/match. Rendered in coin unit "C" — **rupee ₹ is deliberately a LOOK-pillar task (roadmap 1.1/1.5), not introduced here.**
+- **F3 Monetization surfacing + published drop rates (F45).** Hub `#hub-money-strip`: angular clip-path tiles — `#hub-vault-tile` (gold → showStore) + `#hub-sponsor-tile` (blue → free 2-card Sponsor Pack via `showRewardedAd('pack')`, guarded vs daily-cap + squad-full); Syndicate already 1 tap via `#hub-pass-panel`. Published gacha odds: `#odds-overlay` reachable from hub link **and** Vault link; `renderOdds()`/`poolRarityPct()` compute per-rarity % live from the `ALL_PLAYERS` distribution (honest — `openPack` draws uniformly from the unowned pool), 3 pack blocks × 5 color-coded rarity rows + per-pack floor rule + legal note (odds shift with collection, no duplicates, virtual only, no cash-out). Satisfies constraints #3 (no gambling) + #4 (Play gacha-disclosure policy).
+- **F4 Analytics (F46).** `ANALYTICS` module on a SEPARATE key `cu_analytics_v1` (isolated from `cu_save_v3`), fully try/catch-wrapped → silent no-op offline. `trackEvent(n,p)`/`analyticsSessionStart()`/`getAnalytics()`/`computeRetention()` → `{uid,installDay,daysActive[],d0,d1,d7}`. Instrumented at `purchase_stub` + `odds_view`, extensible.
+
+**Verified:** new `tests/features-10k.spec.js` — **12/12 green** (F1×3, F2×3, F3×3, F4×3). Browser-eyeballed in a real Chromium (412×892): hub empire line "C 14.8K · #1 OF 10", "2-day streak · best 3 / CLAIM DAY 2 · 300 COINS", money strip (Vault gold + Sponsor Break blue), and the full Drop Rates page (3 packs × 5 rarities, Common 26/Uncommon 32/Rare 26/Epic 14/Legendary 2%). Boot error-free with analytics wiped.
+
+**Exploit/fairness self-review (F1+F3), Chanakya inline call (balance-tester NOT spawned — standing "don't spawn agents" instruction):**
+- F1 clock-set replay is bounded by `loginClaimedDate` day-string (one grant per calendar day); rewards live entirely inside the F2P coin/gem curve, no cash-out — no exploit surface.
+- F3 sponsor pack shares the existing `pack` daily ad cap (1/day) and is guarded against squad-full; drop-rates page is honest (computed from the live pool, not hard-coded), so no misrepresentation risk.
+- **Open gate before any Play Store ship:** formal `balance-tester` sign-off on the F1 reward curve + F3 economy — deferred to a founder-initiated run (agent-spawn currently disabled).
+
+**Deferred per founder:** storefront/billing decision (leaning Play Store). Rupee `.money` styling stays with the LOOK pillar (roadmap Phase 1).
 
 ---
 
@@ -47,12 +68,12 @@ The demo IS the pitch. Full rationale + Tier 2/3 backlog in `CRICKET-REVIEW-2026
 - [ ] **1.1 Global `.money` class — make money look like money.** Headline auction bid (was `index.html:547`, shifted) solid gold, bigger, ₹ symbol, proper number font; route every currency value through `.money`. **Use `var(--gold-bright)` not a hex** so it works in both themes (light overrides it to #B08D0A). (Effort: S, highest feel-rich leverage)
 - [ ] **1.2 Gold austerity pass.** Strip gold off the ~40 panels using it at 8-15% opacity; reserve gold for ONE hero element per screen (the number that matters + primary CTA). Rich is a contrast phenomenon. (Effort: S-M)
 - [ ] **1.3 Load Space Grotesk (+ Cinzel if used)** — specced in `docs/visual-design-system.md`, never loaded; money/stats currently render in Teko. (Effort: S)
-- [ ] **1.4 Daily Login Streak.** GDD-specced, never built (`loginReward`/`lastLogin`/`dailyLogin` absent from code). Streak counter + escalating reward row on hub; persists in GS; also feeds Phase 2 retention data. (Effort: M)
-- [ ] **1.5 Empire Net-Worth + Rank line on hub.** One line: "Your empire: ₹X · Rank #Y of 10" (squad value + coins + assets). The feel-rich progress pull. (Effort: S)
+- [x] **1.4 Daily Login Streak.** ✅ Shipped 2026-07-11 (BUILD-SHEET F1 / tracker F43). Streak counter + escalating 7-day reward row on hub, persists in GS, feeds Phase 2 retention. E2E 3/3.
+- [x] **1.5 Empire Net-Worth + Rank line on hub.** ✅ Shipped 2026-07-11 (BUILD-SHEET F2 / tracker F44). "YOUR EMPIRE · C X · #Y OF 10". **Rendered in coin unit "C" for now — the ₹ symbol/`.money` styling is intentionally left to LOOK-pillar item 1.1.** E2E 3/3.
 - [ ] **1.6 Remaining LOW bugs from review §2** (opportunistic): dup nav loop (~8471), win-streak resets with no grace (~6815), pack dupe dead-end (~7686). (Effort: S each)
 
 ### Phase 2 — The traction number (~1-2 weeks)
-- [ ] **2.1 Analytics.** Anonymous localStorage user ID + event log (session_start, match_completed, return_visit, tutorial_done, purchase_stub) → computable D1/D7 cohorts. Lightweight: either a free tier (PostHog/Plausible) or a self-owned endpoint; must not break offline PWA. (Effort: M)
+- [x] **2.1 Analytics.** ✅ Shipped 2026-07-11 (BUILD-SHEET F4 / tracker F46). Anonymous localStorage user id + event log on separate key `cu_analytics_v1` → computable D1/D7 cohorts, offline-safe (silent no-op). Instrumented at session_start / purchase_stub / odds_view; extensible to match_completed etc. E2E 3/3. (No external endpoint yet — local-only ledger; wiring to a free tier/self-owned endpoint remains for when distribution starts.)
 - [ ] **2.2 Distribution.** itch.io listing + Reddit (r/WebGames, r/incremental_games, cricket subs) + X; time waves to a cricket moment. (Effort: S, founder-assisted for accounts)
 - [ ] **2.3 FREEZE new systems** until ~200 organic users produce D7 data.
 

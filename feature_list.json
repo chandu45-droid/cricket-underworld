@@ -1,6 +1,6 @@
 {
-  "version": "3.0",
-  "updated": "2026-07-10",
+  "version": "3.1",
+  "updated": "2026-07-11",
   "legend": {
     "states": ["not_started", "active", "blocked", "passing"],
     "verification": "Each feature has an executable verification command. State advances to 'passing' ONLY when verification succeeds."
@@ -342,13 +342,45 @@
       "state": "passing",
       "evidence": "Shipped 2026-07-10 (founder directive). html[data-theme=light] token override layer (~60 tokens: ivory surfaces, ink text, deepened accents, light glass/elevations) over the existing dark base; hardcoded colors converted to rgb channel vars (--hl-rgb x155, --ov-rgb x20 overlay scrims, --chrome-rgb, --abyss-rgb); noir set-pieces (mafia banner, pack rows, vault hero, ad billboard, underworld/streets modals, corruption report) stay dark with locally re-mapped light text tokens; inc-7 zone-reskin pale text deepened for ivory. GS.darkTheme default false + applyTheme() + pre-paint boot script (reads cu_save_v3, sets data-theme + meta theme-color, no flash). Toggle: #theme-toggle-row/#theme-switch in Settings Appearance section. 2 new E2E (test.describe 'Theme'): light default; toggle->dark->persists across reload->toggle back. Browser-verified screenshots across hub/squad/cards/league/auction/market/settings light + syndicate/bhai noir set-pieces + dark mode."
     }
+    ,{
+      "id": "F43",
+      "system": "Retention",
+      "behavior": "BUILD-SHEET-10K F1 — Daily Login Streak: escalating 7-day reward cycle on the hub; boot advances streak on new-day return, resets on a missed day (best streak preserved), claim grants that day's reward once and persists across reload",
+      "verification": "npx playwright test features-10k --grep \"F1\"",
+      "state": "passing",
+      "evidence": "Shipped 2026-07-11. GS.loginStreak/lastLogin/bestLoginStreak/loginClaimedDate (defaults + load persistence). processDailyLogin() at boot (same-day no-op / +1 on consecutive day / reset-to-1 on gap, bestLoginStreak = max). LOGIN_REWARDS 7-day curve (Day1 200c, Day2 300c, Day3 500c+5g, Day4 600c, Day5 800c+10g, Day6 1000c, Day7 1500c+25g), cycles via _loginCycleIndex. renderLoginPanel() -> hub daily-reward row (streak/best header, per-day tiles, current highlighted, claim button). claimDailyLogin() grants once/day, sets loginClaimedDate, guarded against double-grant. 3 E2E (F1 group): day-2 increment+grant+persist, same-day no re-grant, missed-day reset (best preserved) — all green. Browser-verified: '2-day streak · best 3', 'CLAIM DAY 2 · 300 COINS'. Exploit self-review: clock-set replay bounded by loginClaimedDate day-string; only reward is coins/gems within F2P curve, no cash-out."
+    }
+    ,{
+      "id": "F44",
+      "system": "Retention",
+      "behavior": "BUILD-SHEET-10K F2 — Empire Net-Worth + League Rank line on hub: 'Your empire: C X · Rank #Y of 10', recomputes live after squad/balance changes",
+      "verification": "npx playwright test features-10k --grep \"F2\"",
+      "state": "passing",
+      "evidence": "Shipped 2026-07-11. computeNetWorth() = coins + gems*gemRate + blackMoney*bmRate + sum(playerMarketValue). playerMarketValue(p) blends stats*rarity multiplier (RARITY_VALUE_MULT). getEmpireRank() ranks player among the 10-team league by net worth (returns {rank,total:10}). formatCompactCoins() -> '14.8K' style. renderEmpireLine() -> #empire-value (coin 'C' unit, NOT rupee — rupee is a LOOK-pillar task) + #empire-rank-lbl ('#1 OF 10 LEAGUE RANK'); called from updateHub after auction/match. 3 E2E (F2 group): renders coin value + rank in [1,10]; net worth recomputes exactly on +100000 coins; adding a legendary player raises net worth by its market value — all green. Browser-verified 'YOUR EMPIRE · C 14.8K · #1 OF 10'."
+    }
+    ,{
+      "id": "F45",
+      "system": "Economy",
+      "behavior": "BUILD-SHEET-10K F3 — Surface + polish monetization: Vault, Sponsor Break and Syndicate Contract all reachable within 2 taps of the hub; rewarded-ad stub grants a reward; published gacha drop-rates page (Play policy)",
+      "verification": "npx playwright test features-10k --grep \"F3\"",
+      "state": "passing",
+      "evidence": "Shipped 2026-07-11. Hub #hub-money-strip: angular clip-path tiles #hub-vault-tile (gold, 1 tap -> showStore/The Vault) + #hub-sponsor-tile (blue, 1 tap -> showRewardedAd('pack') -> free 2-card Sponsor Pack, guarded vs daily-cap + squad-full); Syndicate already 1 tap via #hub-pass-panel. updateHubSponsorTile() dims tile + 'back tomorrow' when pack ad cap spent. Published drop rates: #odds-overlay reachable from #hub-odds-link AND #store-odds-link; renderOdds()/poolRarityPct() compute per-rarity % from live ALL_PLAYERS distribution (honest: openPack draws uniformly from unowned pool), 3 pack blocks x 5 color-coded rarity rows (Common 26/Uncommon 32/Rare 26/Epic 14/Legendary 2%) + per-pack floor rule + legal note (odds shift with collection, no duplicates, virtual only, no cash-out). 3 E2E (F3 group): 3 surfaces <=2 taps; odds page 3 blocks x 5 rows summing to ~100%; sponsor stub grows squad — all green. Browser-verified strip + drop-rates page. Constraints #3 (no gambling) + #4 (gacha rates published) honored."
+    }
+    ,{
+      "id": "F46",
+      "system": "Analytics",
+      "behavior": "BUILD-SHEET-10K F4 — Anonymous analytics: localStorage user id + event log, computable D1/D7 cohorts, must not break offline PWA",
+      "verification": "npx playwright test features-10k --grep \"F4\"",
+      "state": "passing",
+      "evidence": "Shipped 2026-07-11. ANALYTICS module on SEPARATE localStorage key cu_analytics_v1 (isolated from game save cu_save_v3), all try/catch-wrapped -> silent no-op on failure (offline-safe). Lazy _anLoad() (avoids var-hoist boot order issue). trackEvent(n,p) -> {n,t,p} appended; analyticsSessionStart() fires 'session_start' at boot; getAnalytics() returns {uid,installDay,events[]}; computeRetention() returns {uid,installDay,totalEvents,daysActive[],d0,d1,d7}. Instrumented at purchase_stub + odds_view (extensible). 3 E2E (F4 group): session_start fires + queryable; custom event logs + D1/D7 computable + d0 true; store separate from save AND game still boots error-free with analytics wiped — all green."
+    }
   ],
   "summary": {
-    "total": 42,
-    "passing": 42,
+    "total": 46,
+    "passing": 46,
     "active": 0,
     "blocked": 0,
     "not_started": 0,
-    "automated_test_count": "135 Playwright E2E tests across 3 spec files"
+    "automated_test_count": "147 Playwright E2E tests across 4 spec files (12 new in features-10k.spec.js)"
   }
 }

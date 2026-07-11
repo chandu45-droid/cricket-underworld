@@ -1870,6 +1870,69 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .hub-pass-panel{position:relative;cursor:pointer;overflow:hidden;padding:12px 14px;background:linear-gradient(120deg,rgba(240,200,80,0.07),rgba(var(--ov-rgb),0.4) 55%,rgba(220,38,38,0.05));border:1px solid rgba(240,200,80,0.22);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:border-color 0.2s}
 .hub-pass-panel:active{border-color:rgba(240,200,80,0.5)}
 .hub-pass-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--crimson))}
+/* F2 — Empire net-worth + rank line */
+.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;padding:9px 14px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
+.hub-empire-line::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--blue-bright))}
+.hub-empire-line .hel-label{font-family:var(--font-d);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--slip)}
+.hub-empire-line .hel-value{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--gold-bright);line-height:1;letter-spacing:0.5px;margin-top:3px}
+.hub-empire-line .hel-rank{text-align:right}
+.hub-empire-line .hel-rank .helr-num{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--white);line-height:1}
+.hub-empire-line .hel-rank .helr-lbl{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+/* F1 — Daily login streak */
+.hub-login-panel{margin:0 0 18px;padding:12px 14px 14px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
+.hub-login-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green-bright),var(--gold-bright))}
+.hlp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hlp-title{font-family:var(--font-d);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--white)}
+.hlp-streak{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--green-bright);letter-spacing:0.5px}
+.hlp-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.hlp-day{position:relative;text-align:center;padding:7px 2px 6px;border:1px solid rgba(255,255,255,0.08);border-radius:3px;background:rgba(255,255,255,0.02);opacity:0.55}
+.hlp-day.claimed{opacity:0.4;border-color:rgba(34,212,126,0.25);background:rgba(34,212,126,0.06)}
+.hlp-day.today{opacity:1;border-color:var(--gold-bright);background:rgba(240,200,80,0.1);box-shadow:0 0 12px rgba(240,200,80,0.15)}
+.hlp-day .hd-n{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:0.5px}
+.hlp-day .hd-r{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--gold-bright);margin-top:2px;line-height:1.1}
+.hlp-day.today .hd-r{color:var(--white)}
+.hlp-day .hd-g{display:block;font-size:8px;color:var(--blue-bright);margin-top:1px;line-height:1}
+.hlp-day .hd-tick{position:absolute;top:-5px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--green-bright);color:#04140b;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.hlp-claim{margin-top:12px;width:100%;text-align:center;padding:10px;font-family:var(--font-d);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;cursor:pointer;transition:all 0.2s;background:linear-gradient(120deg,var(--green),var(--green-bright));color:#04140b;border:none}
+.hlp-claim:active{transform:scale(0.97)}
+.hlp-claim.done{background:rgba(255,255,255,0.05);color:var(--slip);cursor:default;border:1px solid rgba(255,255,255,0.08)}
+/* ===== F3 — Hub monetization strip ===== */
+.hub-money-strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
+.hms-tile{position:relative;overflow:hidden;cursor:pointer;padding:11px 12px;display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.42) 60%);border:1px solid rgba(240,200,80,0.2);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));transition:border-color 0.2s,transform 0.15s}
+.hms-tile:active{transform:scale(0.97)}
+.hms-tile.hms-vault{background:linear-gradient(120deg,rgba(240,200,80,0.09),rgba(var(--ov-rgb),0.42) 60%);border-color:rgba(240,200,80,0.28)}
+.hms-tile.hms-sponsor{background:linear-gradient(120deg,rgba(59,130,246,0.08),rgba(var(--ov-rgb),0.42) 60%);border-color:rgba(59,130,246,0.24)}
+.hms-tile.used{opacity:0.62;filter:saturate(0.5)}
+.hms-ico{flex-shrink:0;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(240,200,80,0.1);border:1px solid rgba(240,200,80,0.28);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.hms-tile.hms-sponsor .hms-ico{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.35)}
+.hms-ico svg{width:17px;height:17px;stroke:var(--gold-bright);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hms-tile.hms-sponsor .hms-ico svg{stroke:var(--blue-bright)}
+.hms-body{flex:1;min-width:0}
+.hms-title{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-bright);line-height:1.1}
+.hms-tile.hms-sponsor .hms-title{color:var(--blue-bright)}
+.hms-sub{font-size:9.5px;letter-spacing:0.3px;color:var(--slip);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hms-odds-link{display:block;text-align:center;margin:-4px 0 14px;font-family:var(--font-d);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slip);cursor:pointer;padding:6px;transition:color 0.2s}
+.hms-odds-link:active{color:var(--gold-bright)}
+.hms-odds-link u{text-decoration-color:rgba(240,200,80,0.4)}
+/* ===== F3 — Drop-rates (gacha odds) overlay ===== */
+.odds-overlay{position:fixed;inset:0;z-index:216;background:rgba(var(--ov-rgb),0.98);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.32s;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.odds-overlay.show{opacity:1;pointer-events:auto}
+.odds-content{width:100%;max-width:460px;margin:0 auto;padding:16px 16px 40px}
+.odds-hero{text-align:center;margin:10px 0 18px}
+.odds-hero-title{font-family:var(--font-d);font-size:22px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--gold-bright)}
+.odds-hero-sub{font-size:11px;letter-spacing:1px;color:var(--slip);margin-top:5px}
+.odds-pack-block{margin-bottom:16px;padding:13px 14px;background:linear-gradient(120deg,rgba(240,200,80,0.05),rgba(var(--ov-rgb),0.4) 60%);border:1px solid rgba(240,200,80,0.16);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.odds-pack-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.odds-pack-name{font-family:var(--font-d);font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--white)}
+.odds-pack-cost{font-family:var(--font-d);font-size:12px;letter-spacing:1px;color:var(--gold-bright)}
+.odds-pack-note{font-size:10px;color:var(--slip);margin-bottom:10px;line-height:1.4}
+.odds-row{display:flex;align-items:center;gap:9px;margin:7px 0}
+.odds-dot{flex-shrink:0;width:9px;height:9px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.odds-rlabel{flex-shrink:0;width:78px;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:capitalize}
+.odds-bar{flex:1;height:8px;background:rgba(255,255,255,0.06);position:relative;overflow:hidden}
+.odds-bar-fill{position:absolute;inset:0 auto 0 0;height:100%}
+.odds-pct{flex-shrink:0;width:52px;text-align:right;font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--white)}
+.odds-legal{margin-top:8px;font-size:10px;line-height:1.5;color:var(--slip);text-align:center}
 .pass-panel-head{display:flex;align-items:center;gap:10px}
 .pass-tier-chip{flex-shrink:0;width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(240,200,80,0.1);border:1px solid rgba(240,200,80,0.35);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
 .pass-tier-chip .ptc-num{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--gold-bright);line-height:1}
@@ -2099,6 +2162,17 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
+      <div class="hub-empire-line stagger-child" id="hub-empire-line">
+        <div>
+          <div class="hel-label">Your Empire</div>
+          <div class="hel-value" id="empire-value">C 2,000</div>
+        </div>
+        <div class="hel-rank">
+          <div class="helr-num"><span id="empire-rank-num">#10</span> <span id="empire-rank-lbl" class="helr-lbl">of 10</span></div>
+          <div class="helr-lbl">League Rank</div>
+        </div>
+      </div>
+
       <div class="hub-meters stagger-child">
         <div class="hub-meter meter-align">
           <div class="meter-header">
@@ -2137,6 +2211,15 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
+      <div class="hub-login-panel stagger-child" id="hub-login-panel">
+        <div class="hlp-head">
+          <div class="hlp-title">Daily Reward</div>
+          <div class="hlp-streak" id="login-streak-label">🔥 1-day streak</div>
+        </div>
+        <div class="hlp-row" id="login-row"></div>
+        <button class="hlp-claim" id="login-claim-btn" type="button">Claim Day 1 · 200 coins</button>
+      </div>
+
       <div class="quick-tiles stagger-child">
         <div class="quick-tile qt-squad" id="hub-squad-btn">
           <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
@@ -2155,6 +2238,18 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="qt-label">Market</div>
         </div>
       </div>
+
+      <div class="hub-money-strip stagger-child" id="hub-money-strip">
+        <div class="hms-tile hms-vault" id="hub-vault-tile">
+          <div class="hms-ico"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="1"/><path d="M7 8V6a5 5 0 0110 0v2"/><circle cx="12" cy="14" r="2"/></svg></div>
+          <div class="hms-body"><div class="hms-title">The Vault</div><div class="hms-sub">Coins, gems &amp; contract</div></div>
+        </div>
+        <div class="hms-tile hms-sponsor" id="hub-sponsor-tile">
+          <div class="hms-ico"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+          <div class="hms-body"><div class="hms-title">Sponsor Break</div><div class="hms-sub" id="hub-sponsor-sub">Watch a spot — free reward</div></div>
+        </div>
+      </div>
+      <div class="hms-odds-link" id="hub-odds-link"><u>View pack drop rates &#8594;</u></div>
 
       <div class="hub-pass-panel" id="hub-pass-panel">
         <div class="pass-panel-head">
@@ -2754,6 +2849,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div><div class="vpc-title">Premium Contract</div><div class="vpc-sub" id="store-pass-sub">Unlock the Boss Cut reward track this season</div></div>
       <div class="vp-price" id="store-pass-price">&#8377;199</div>
     </div>
+    <div class="hms-odds-link" id="store-odds-link" style="margin-top:16px"><u>View pack drop rates &#8594;</u></div>
   </div>
   <div class="store-confirm" id="store-confirm">
     <div class="sc-text" id="store-confirm-text"></div>
@@ -2762,6 +2858,22 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="btn btn-red" id="store-cancel-btn">Cancel</div>
       <div class="btn btn-gold" id="store-buy-btn">Confirm Purchase</div>
     </div>
+  </div>
+</div>
+
+<!-- ===== F3 — DROP-RATES (GACHA ODDS) OVERLAY ===== -->
+<div class="odds-overlay" id="odds-overlay">
+  <div class="odds-content">
+    <div class="overlay-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div class="back-btn" id="odds-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back</div>
+      <div style="font-family:var(--font-d);font-size:11px;letter-spacing:2px;color:var(--slip);text-transform:uppercase">Published odds</div>
+    </div>
+    <div class="odds-hero">
+      <div class="odds-hero-title">Drop Rates</div>
+      <div class="odds-hero-sub">Real per-rarity pull chances &middot; verified against the live card pool</div>
+    </div>
+    <div id="odds-packs"></div>
+    <div class="odds-legal">Every card is drawn uniformly from the players you don&rsquo;t already own, so your live odds shift as your collection grows &mdash; the rates above reflect the full card pool. No duplicates. Virtual currency only, no cash-out.</div>
   </div>
 </div>
 
@@ -2835,10 +2947,231 @@ var GS = {
   purchases: [],
   ads: { date: '', purse: 0, pack: 0, boost: 0, pendingPurse: false },
   factions: null,
+  lastLogin: null, loginStreak: 0, bestLoginStreak: 0, loginClaimedDate: null,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(GS)); } catch(e){} }
+
+// =============================================
+// ANALYTICS (F4) — anonymous, local-first, offline-safe.
+// Separate localStorage key from the game save; a failure here
+// must NEVER break gameplay or the offline PWA, so every path is
+// wrapped in try/catch and silently degrades to a no-op.
+// =============================================
+var ANALYTICS_KEY = 'cu_analytics_v1';
+var AN_DAY_MS = 86400000;
+function _anLoad() {
+  try {
+    var raw = localStorage.getItem(ANALYTICS_KEY);
+    if (raw) { var d = JSON.parse(raw); if (d && d.uid && Array.isArray(d.events)) return d; }
+  } catch(e) {}
+  return { uid: 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), created: Date.now(), lastDay: null, events: [] };
+}
+function _anSave(d) { try { localStorage.setItem(ANALYTICS_KEY, JSON.stringify(d)); } catch(e) {} }
+function _anDayIndex(d, ts) {
+  var base = new Date(d.created); base.setHours(0, 0, 0, 0);
+  return Math.floor((ts - base.getTime()) / AN_DAY_MS);
+}
+// Generic event logger. name = 'session_start'|'match_completed'|'return_visit'|'tutorial_done'|'purchase_stub'|...
+function trackEvent(name, props) {
+  try {
+    var d = _anLoad();
+    d.events.push({ n: name, t: Date.now(), p: props || null });
+    if (d.events.length > 600) d.events = d.events.slice(d.events.length - 600); // quota guard
+    _anSave(d);
+  } catch(e) {}
+}
+// Boot-time session marker; auto-derives a return_visit when the calendar
+// day advanced since the last session (this is what feeds D1/D7 cohorts).
+function analyticsSessionStart() {
+  try {
+    var d = _anLoad();
+    var today = _anDayIndex(d, Date.now());
+    var isReturn = (d.lastDay != null && today > d.lastDay);
+    d.events.push({ n: 'session_start', t: Date.now(), p: { day: today } });
+    if (isReturn) d.events.push({ n: 'return_visit', t: Date.now(), p: { gap: today - d.lastDay } });
+    d.lastDay = today;
+    if (d.events.length > 600) d.events = d.events.slice(d.events.length - 600);
+    _anSave(d);
+  } catch(e) {}
+}
+function getAnalytics() { return _anLoad(); }
+// On-device retention view. daysActive[] is the raw material a server would
+// aggregate into fleet D1/D7; d1/d7 are THIS user's return flags.
+function computeRetention() {
+  var d = _anLoad();
+  var active = {};
+  for (var i = 0; i < d.events.length; i++) {
+    var day = _anDayIndex(d, d.events[i].t);
+    if (day >= 0) active[day] = true;
+  }
+  var base = new Date(d.created); base.setHours(0, 0, 0, 0);
+  return {
+    uid: d.uid,
+    installDay: base.toISOString().slice(0, 10),
+    totalEvents: d.events.length,
+    daysActive: Object.keys(active).map(Number).sort(function(a, b) { return a - b; }),
+    d0: !!active[0], d1: !!active[1], d7: !!active[7]
+  };
+}
+// Explicit exposure for the test harness (already global in this inline script,
+// but pinned here so E2E can rely on the contract).
+window.trackEvent = trackEvent;
+window.getAnalytics = getAnalytics;
+window.computeRetention = computeRetention;
+window.analyticsSessionStart = analyticsSessionStart;
+
+// =============================================
+// F1 — DAILY LOGIN STREAK
+// 7-day escalating cycle. Streak driven by local date strings
+// (reload-proof: same-day revisits never re-increment or re-grant).
+// =============================================
+var LOGIN_REWARDS = [
+  { coins: 200,  gems: 0,  label: 'Day 1' },
+  { coins: 300,  gems: 0,  label: 'Day 2' },
+  { coins: 500,  gems: 5,  label: 'Day 3' },
+  { coins: 600,  gems: 0,  label: 'Day 4' },
+  { coins: 800,  gems: 10, label: 'Day 5' },
+  { coins: 1000, gems: 0,  label: 'Day 6' },
+  { coins: 1500, gems: 25, label: 'Day 7' }
+];
+function _todayStr() {
+  var d = new Date();
+  var m = d.getMonth() + 1, day = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
+}
+function _dayDiff(a, b) {
+  // whole-day difference between two 'YYYY-MM-DD' strings (b - a)
+  if (!a || !b) return null;
+  var pa = a.split('-'), pb = b.split('-');
+  var da = new Date(+pa[0], +pa[1] - 1, +pa[2]);
+  var db = new Date(+pb[0], +pb[1] - 1, +pb[2]);
+  return Math.round((db - da) / 86400000);
+}
+function _loginCycleIndex() {
+  var s = GS.loginStreak || 0;
+  if (s < 1) s = 1;
+  return (s - 1) % 7;
+}
+function processDailyLogin() {
+  var today = _todayStr();
+  if (GS.lastLogin === today) return; // already counted today
+  var diff = _dayDiff(GS.lastLogin, today);
+  if (GS.lastLogin == null || diff == null || diff > 1 || diff < 0) {
+    GS.loginStreak = 1;          // fresh start or a missed day resets
+  } else if (diff === 1) {
+    GS.loginStreak = (GS.loginStreak || 0) + 1; // consecutive day
+  } else {
+    GS.loginStreak = GS.loginStreak || 1;       // diff 0 guard (shouldn't hit)
+  }
+  if (GS.loginStreak > (GS.bestLoginStreak || 0)) GS.bestLoginStreak = GS.loginStreak;
+  GS.lastLogin = today;
+  save();
+}
+function renderLoginPanel() {
+  var row = $('login-row');
+  if (!row) return;
+  var idx = _loginCycleIndex();
+  var claimedToday = GS.loginClaimedDate === _todayStr();
+  var html = '';
+  for (var i = 0; i < 7; i++) {
+    var r = LOGIN_REWARDS[i];
+    var cls = 'hlp-day';
+    var tick = '';
+    if (i === idx && claimedToday) { cls += ' claimed'; tick = '<span class="hd-tick">✓</span>'; }
+    else if (i === idx) { cls += ' today'; }
+    else if (i < idx) { cls += ' claimed'; tick = '<span class="hd-tick">✓</span>'; }
+    html += '<div class="' + cls + '">' + tick +
+      '<div class="hd-n">Day ' + (i + 1) + '</div>' +
+      '<div class="hd-r">' + r.coins + '</div>' +
+      (r.gems ? '<span class="hd-g">+' + r.gems + '💎</span>' : '<span class="hd-g">&nbsp;</span>') +
+      '</div>';
+  }
+  row.innerHTML = html;
+  var streakEl = $('login-streak-label');
+  if (streakEl) streakEl.textContent = '🔥 ' + (GS.loginStreak || 1) + '-day streak' +
+    (GS.bestLoginStreak > (GS.loginStreak || 1) ? '  ·  best ' + GS.bestLoginStreak : '');
+  var btn = $('login-claim-btn');
+  if (btn) {
+    if (claimedToday) {
+      btn.className = 'hlp-claim done';
+      btn.textContent = 'Claimed ✓  ·  Come back tomorrow';
+    } else {
+      var rew = LOGIN_REWARDS[idx];
+      btn.className = 'hlp-claim';
+      btn.textContent = 'Claim Day ' + (idx + 1) + '  ·  ' + rew.coins + ' coins' + (rew.gems ? ' + ' + rew.gems + ' gems' : '');
+    }
+  }
+}
+function claimDailyLogin() {
+  var today = _todayStr();
+  if (GS.loginClaimedDate === today) { toast('Already claimed today', 'info'); return; }
+  var idx = _loginCycleIndex();
+  var rew = LOGIN_REWARDS[idx];
+  GS.coins += rew.coins;
+  if (rew.gems) GS.gems += rew.gems;
+  GS.loginClaimedDate = today;
+  save();
+  updateCurrency();
+  renderLoginPanel();
+  trackEvent('daily_login_claim', { day: idx + 1, streak: GS.loginStreak, coins: rew.coins, gems: rew.gems });
+  toast('Day ' + (idx + 1) + ' claimed: +' + rew.coins + ' coins' + (rew.gems ? ' +' + rew.gems + ' gems' : ''), 'success');
+}
+window.processDailyLogin = processDailyLogin;
+window.claimDailyLogin = claimDailyLogin;
+window.renderLoginPanel = renderLoginPanel;
+
+// =============================================
+// F2 — EMPIRE NET-WORTH + RANK
+// Net worth = liquid currency + squad market value.
+// Rank = position among the 10 teams (you + 9 rivals) by strength.
+// Rendered in the game's coin currency ("C"), never rupees.
+// =============================================
+var RARITY_VALUE_MULT = { common: 1, uncommon: 1.4, rare: 2, epic: 3, legendary: 4.5 };
+function playerMarketValue(p) {
+  if (!p) return 0;
+  var ovr = getOVR(p);
+  var mult = RARITY_VALUE_MULT[p.rarity] || 1;
+  // quadratic in OVR so elite cards flex hard; ~490c for a 70-OVR common
+  return Math.round((ovr * ovr / 10) * mult);
+}
+function computeNetWorth() {
+  var total = (GS.coins || 0) + (GS.blackMoney || 0) + (GS.gems || 0) * 50;
+  var squad = GS.squad || [];
+  for (var i = 0; i < squad.length; i++) total += playerMarketValue(squad[i]);
+  return total;
+}
+function getEmpireRank() {
+  var mine = getTeamStrength();
+  var rank = 1;
+  for (var i = 0; i < RIVALS.length; i++) {
+    if (RIVALS[i].strength > mine) rank++;
+  }
+  return { rank: rank, total: RIVALS.length + 1 };
+}
+function formatCompactCoins(n) {
+  n = Math.round(n || 0);
+  if (n >= 10000000) return (n / 10000000).toFixed(2).replace(/\.?0+$/, '') + 'Cr';
+  if (n >= 100000) return (n / 100000).toFixed(2).replace(/\.?0+$/, '') + 'L';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return n.toLocaleString();
+}
+function renderEmpireLine() {
+  var valEl = $('empire-value');
+  if (!valEl) return;
+  valEl.textContent = 'C ' + formatCompactCoins(computeNetWorth());
+  var er = getEmpireRank();
+  var numEl = $('empire-rank-num');
+  if (numEl) numEl.textContent = '#' + er.rank;
+  var lblEl = $('empire-rank-lbl');
+  if (lblEl) lblEl.textContent = 'of ' + er.total;
+}
+window.computeNetWorth = computeNetWorth;
+window.getEmpireRank = getEmpireRank;
+window.playerMarketValue = playerMarketValue;
+window.renderEmpireLine = renderEmpireLine;
+
 function applyTheme() {
   var theme = GS.darkTheme ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', theme);
@@ -2894,6 +3227,7 @@ function load() {
       GS.scoutWeakness=v(d.scoutWeakness,null);
       GS.tipsSeen=v(d.tipsSeen,{});
       GS.factions=v(d.factions,null);
+      GS.lastLogin=v(d.lastLogin,null); GS.loginStreak=v(d.loginStreak,0); GS.bestLoginStreak=v(d.bestLoginStreak,0); GS.loginClaimedDate=v(d.loginClaimedDate,null);
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
     }
@@ -5494,6 +5828,9 @@ function updateHub() {
     if (recruitBtn) recruitBtn.onclick = recruitAcademyProspect;
   }, 0);
   $('social-feed-panel').innerHTML = GS.socialFeed.length > 0 ? renderSocialFeed() : '';
+  renderEmpireLine();
+  renderLoginPanel();
+  if (typeof updateHubSponsorTile === 'function') updateHubSponsorTile();
   updateCurrency();
 }
 
@@ -7215,6 +7552,7 @@ function endMatch() {
   var tied = match.runs === match.oppRuns;
   if (tied && !match.superOver) { won = playSuperOver(); tied = false; }
   if (won) { GS.wins++; SFX.win(); flashOutcome('win'); spawnCelebration('win'); } else if (!tied) { GS.losses++; SFX.lose(); }
+  trackEvent('match_completed', { result: won ? 'win' : tied ? 'tie' : 'loss', season: GS.season, matchNum: GS.matchNum });
   var zone = getAlignmentZone(GS.alignment);
   var wasFix = GS.mafiaBonus !== null;
   var fanMod = getFanLoyaltyMod();
@@ -8416,8 +8754,10 @@ function nextTutStep() {
 }
 
 function closeTutorial() {
+  var wasFirst = !GS.tutorialDone;
   GS.tutorialDone = true;
   save();
+  if (wasFirst) trackEvent('tutorial_done', null);
   $('tut-overlay').classList.remove('show');
 }
 
@@ -8468,6 +8808,8 @@ function bindEvents() {
   $('hub-auction-btn').addEventListener('click', function() { goScreen('auction'); if (!auction.active) startAuction(); });
   $('hub-match-btn').addEventListener('click', showSquadSelect);
   $('hub-squad-btn').addEventListener('click', function() { goScreen('squad'); });
+  var loginClaimBtn = $('login-claim-btn');
+  if (loginClaimBtn) loginClaimBtn.addEventListener('click', claimDailyLogin);
   $('hub-league-btn').addEventListener('click', function() { goScreen('league'); });
   $('hub-cards-btn').addEventListener('click', function() { goScreen('cards'); });
   $('mafia-banner').addEventListener('click', showMafiaOffer);
@@ -9074,6 +9416,7 @@ function completePurchase() {
   else if (p.kind === 'gems') GS.gems += p.amt;
   else if (p.kind === 'pass') GS.seasonPass.premium = true;
   GS.purchases.push({ id: p.id, ts: Date.now() });
+  trackEvent('purchase_stub', { id: p.id, kind: p.kind, price: p.price });
   save();
   updateCurrency();
   renderStore();
@@ -9167,12 +9510,76 @@ $('pack-ad-btn').addEventListener('click', function () {
 updateAdSpots();
 
 // =============================================
+// F3 — DROP-RATES (GACHA ODDS) PAGE  — Play policy: rates must be published
+// =============================================
+var ODDS_PACKS = [
+  { name: 'Standard Pack', cost: '500 coins',           cards: 3, floorLbl: 'Final card guaranteed Uncommon or better' },
+  { name: 'Premium Pack',  cost: '15 gems',             cards: 5, floorLbl: 'Final card guaranteed Rare or better' },
+  { name: 'Sponsor Pack',  cost: 'Free · sponsor spot', cards: 2, floorLbl: 'Final card guaranteed Uncommon or better' }
+];
+function poolRarityPct() {
+  var counts = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0 };
+  for (var i = 0; i < ALL_PLAYERS.length; i++) { var r = ALL_PLAYERS[i].rarity; if (counts[r] != null) counts[r]++; }
+  var total = ALL_PLAYERS.length || 1;
+  var out = [];
+  for (var k = 0; k < RARITIES.length; k++) { var rar = RARITIES[k]; out.push({ rarity: rar, count: counts[rar], pct: counts[rar] / total * 100 }); }
+  return out;
+}
+function renderOdds() {
+  var wrap = $('odds-packs'); if (!wrap) return;
+  var pcts = poolRarityPct();
+  var html = '';
+  ODDS_PACKS.forEach(function (pk) {
+    html += '<div class="odds-pack-block"><div class="odds-pack-head"><div class="odds-pack-name">' + pk.name + '</div><div class="odds-pack-cost">' + pk.cost + '</div></div>';
+    html += '<div class="odds-pack-note">' + pk.cards + ' cards &middot; ' + pk.floorLbl + '</div>';
+    pcts.forEach(function (r) {
+      var col = RARITY_COLORS[r.rarity] || '#F0C850';
+      var pctTxt = r.pct >= 10 ? r.pct.toFixed(0) : r.pct.toFixed(1);
+      html += '<div class="odds-row"><span class="odds-dot" style="background:' + col + '"></span>' +
+        '<span class="odds-rlabel" style="color:' + col + '">' + r.rarity + '</span>' +
+        '<span class="odds-bar"><span class="odds-bar-fill" style="width:' + Math.min(100, r.pct) + '%;background:' + col + '"></span></span>' +
+        '<span class="odds-pct">' + pctTxt + '%</span></div>';
+    });
+    html += '</div>';
+  });
+  wrap.innerHTML = html;
+}
+function showOdds() { renderOdds(); $('odds-overlay').classList.add('show'); if (typeof trackEvent === 'function') trackEvent('odds_view', {}); }
+function hideOdds() { $('odds-overlay').classList.remove('show'); }
+window.showOdds = showOdds; window.renderOdds = renderOdds; window.poolRarityPct = poolRarityPct;
+
+// F3 — Hub monetization strip: Vault + Sponsor Break (Syndicate panel already on hub)
+function updateHubSponsorTile() {
+  adReset();
+  var tile = $('hub-sponsor-tile'), sub = $('hub-sponsor-sub');
+  if (!tile || !sub) return;
+  if (!adAvailable('pack')) { tile.classList.add('used'); sub.textContent = 'Free pack claimed — back tomorrow'; }
+  else { tile.classList.remove('used'); sub.textContent = 'Watch a spot — free pack, 2 cards'; }
+}
+window.updateHubSponsorTile = updateHubSponsorTile;
+(function () {
+  var vt = $('hub-vault-tile'); if (vt) vt.addEventListener('click', showStore);
+  var st = $('hub-sponsor-tile');
+  if (st) st.addEventListener('click', function () {
+    if (!adAvailable('pack')) { toast('Sponsor pack claimed — back tomorrow', 'error'); return; }
+    if (GS.squad.length >= GS.maxSquad) { toast('Squad full — release a player first', 'error'); return; }
+    showRewardedAd('pack', 'Free Sponsor Pack — 2 cards', function () { openPack('ad'); updateHubSponsorTile(); });
+  });
+  var hol = $('hub-odds-link'); if (hol) hol.addEventListener('click', showOdds);
+  var sol = $('store-odds-link'); if (sol) sol.addEventListener('click', showOdds);
+  var ob = $('odds-back-btn'); if (ob) ob.addEventListener('click', hideOdds);
+})();
+updateHubSponsorTile();
+
+// =============================================
 // INIT
 // =============================================
 try {
   load();
+  analyticsSessionStart();
   applyTheme();
   initRivalData();
+  processDailyLogin();
   updateCurrency();
   updateHub();
   bindEvents();
