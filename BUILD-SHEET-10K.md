@@ -132,3 +132,28 @@ Run these **first** if the founder wants the number de-risked before the build w
 | **Chanakya** | Sequencing, done-criteria verification, P3 tracking |
 | **in-session build** | P0, F4, P5 (engineering with schema from the design owner) |
 ```
+
+---
+
+## 11. DECISION — Path C (revenue-business build) · locked 2026-07-11
+
+**Pre-commit validation ran (§9). Verdict: Vidura = PIVOT; Sanjaya comps confirmed it.** At ₹0 revenue this asset prices as *code* (~$600–$3k); every route to $10k runs through a documented revenue multiple that ₹0 can't feed. **The founder chose Path C anyway, with full information** — build a real revenue business, then sell at a multiple. Cricket is now **portfolio priority #1** (see CORE-MEMORY §4).
+
+**What the audit changed in this sheet:**
+- ❌ **D7 > 15% gate RETIRED.** Sanjaya: 2025 D7 median ~3.4%, top-quartile 7–8% → 15% was ~2× reality. Use realistic reads, not a fantasy tripwire.
+- ⚠️ **Moat is thematic only.** Hitwicket (Hyderabad) already owns cricket manager+auction+PvP at 18M+ players. Our unoccupied ground = the **underworld/corruption theme** — lean into it hard; it's the whole differentiation.
+- ⚠️ **itch.io is the wrong channel** (Western/PC audience). C1 distribution is India-first, mobile-first, timed to real cricket moments.
+- ✅ **Real billing is now REQUIRED** (the old §8 "don't build billing" applied to the flip path; Path C needs settleable cash flow) — but **only after Gate 1** (below).
+
+**Sequenced & gated (validate acquisition BEFORE building billing — distribution > production):**
+
+| Stage | Work | Time | Gate |
+|---|---|---|---|
+| **C0 — Ship-ready** | P0 blocker fix → LOOK pass (L1–L5) → analytics (real D1/D7 cohorts, F4) → retention hooks (F1 streak, F2 net-worth/rank). Monetization STAYS stubbed. | ~1–2 wks | Installable + measurable |
+| **C1 — Acquisition test** | Distribution waves timed to cricket moments, India-first channels. | ~3–4 wks | **GATE 1:** organic installs clear a real weekly rate **AND** D1 ≥ ~15%. Fail → engine broken; diagnose or abort before billing |
+| **C2 — Real billing** | Replace IAP stubs with real billing; monetize. *Only if Gate 1 passed.* | ~2–3 wks | Real ₹ settling in a statement |
+| **C3 — Revenue proof** | Sustain ~₹20–30k/mo, documented 3–6 months. | 3–6 mo | **GATE 2 (month 3):** MRR on a credible ramp to ₹20k+. Fail → revert to Path A flip |
+
+**Hard review at day 90.** Not on a believable path to ~₹20–30k/mo → stop and flip the polished asset (~$1–3k).
+
+**OPEN DECISION blocking C1 (not C0):** storefront/billing = **Play Store (TWA + Play Billing)** *[Chanakya's rec — Indian gamers + discovery + money live there]* **vs Web PWA + Razorpay**.
