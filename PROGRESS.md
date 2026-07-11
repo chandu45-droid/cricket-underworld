@@ -1,7 +1,34 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-11
-**Last commit:** (this commit) — LOOK pillar **L1** shipped: global `.money` hero currency class routed through the ONE dominant number on hub / auction / match-result; solid `var(--gold-bright)` (fixes the light-theme gradient-washout bug); verified visible gold on both themes; full suite green (150/150, 2 unrelated flakies pass on re-run) (prior: STORE SAFETY PATCH `BILLING_LIVE=false`; balance-tester gate F1+F3; FEATURE pillar F1–F4)
+**Last commit:** (this commit) — LOOK pillar **L2** shipped: gold austerity pass — de-golded 7 hero-duplicating / stand-alone-decorative panels to neutral, reserving gold for one focal hero + CTA per screen; kept hue-coded-parallel golds (semantic) + wayfinding/rarity/atmosphere; verified both themes (evidence in `docs/l2-evidence/`); full suite green (152/152) (prior: LOOK L1 `.money` hero; STORE SAFETY PATCH `BILLING_LIVE=false`; balance-tester gate F1+F3; FEATURE pillar F1–F4)
+
+---
+
+## ✅ DONE (2026-07-11): BUILD-SHEET-10K — LOOK pillar L2 (gold austerity pass)
+
+Founder directive: *"L2 the gold austerity pass."* Built directly (Chanakya, no agent spawned per standing instruction).
+
+**The finding (from `CRICKET-REVIEW-2026-07-09.md`).** Not under-built, **under-differentiated** — every element wore the same dark-glass + 8–15% gold costume, so nothing read premium. Fix is **contrast**, not more screens. "Rich is a contrast phenomenon."
+
+**The audit discipline (the actual work — this was classification, not mechanical stripping).** Found ~50 low-opacity gold instances across two shades (`255,210,63` + `240,200,80`). Rather than strip all ~40–50, classified each:
+- **STRIP** — gold that DUPLICATES an on-screen gold hero, OR stands ALONE as decoration / hover / over-glow. → de-gilded to neutral, theme-aware `rgba(var(--hl-rgb),0.xx)` fills/borders.
+- **KEEP (semantic).** Gold used in a **multi-hue parallel system** (each item = its own category hue; gold is just one color in the rainbow) — stripping it would break the color-coding. Also kept: **monetization wayfinding** (store/vault/pass/sponsor-boost = "gold means money"), **rarity/achievement** semantics, **atmospheric stage-lighting** (ambient mesh, auction spotlight/rays, pack rays), **"your row" wayfinding** (league), and the **one hero + primary `btn-gold` CTA** per screen.
+
+**Stripped (7 panels/states, all in `prototype/index.html`):**
+- **auction-purse-zone** (~622) — bg/border/`::after` glow → neutral; the L1 purse `.money` hero is now the only gold on the live-auction bar.
+- **strategy-opt.selected** (~747) — dropped gold bg + gold box-shadow glow; keeps gold text/border as the selected marker only.
+- **pd-train-opt:hover** (~1204) — gold hover → neutral hover.
+- **hub Season-Progress panel** (~2407) — `glass accent-gold` → `glass` (neutral).
+- **hub-win-streak tile bg** (~2352) — gold-tinted bg → neutral; kept the gold streak NUMBER.
+- **season-complete panel** (~8278) — `glass accent-gold` → `glass`; screen hero stays the 44px PROMOTED/RELEGATED word + `btn-gold` CTA.
+- **card-filter.active** (~1101) — dropped 0.16 gold fill + double glow + text-shadow; keeps gold text/border as the active marker.
+
+**Kept, with reason (representative).** team-stat `.stat-bwl`, quick-tile `.qt-league`, hub-meter `.meter-align` = **hue-coded parallels** (batting=green / bowling=gold / overall=blue / morale=amber, etc.). league-row `.you` = your-row wayfinding. store hero + hms money strip + sponsor-boost = money wayfinding. badge.rarity-epic / syn-tier / pass-tier = rarity/achievement. ambient mesh + auction spotlight/rays + pack rays = atmosphere/celebration. potm / event-rewards / pre-match strategy / player-detail training = each its screen's single hero.
+
+**Verified.** Full Playwright suite **152 passed** (the historically flaky `p15-visual` crests + `smoke` bowler-picker both passed this run; the 7 edits are pure CSS/class changes touching no currency or tested markup). Both-theme screenshots captured via a throwaway spec (mirrors `injectState`/`dismissOverlays`) and eyeballed — hub / auction / squad / league each now carry exactly one focal gold: **hub** = empire value (+ crest identity + hue-coded accents), **auction** = purse hero mid-auction / single money CTA on the landing, **squad** = hue-coded stat tiles + rating hexes, **league** = the gold "your row." Shots saved in `docs/l2-evidence/` (`{hub,auction,squad,league}-{light,dark}.png`); temp spec deleted.
+
+**Roadmap next:** L3 (load Space Grotesk + Cinzel — money/stats currently fall back to Teko; **note:** the v2 depth-recipe port CUT Space Grotesk/Cinzel from the type scale, so L3 needs reconciliation before loading). Then L4 (juice pass), L5 (first-60-seconds reel).
 
 ---
 

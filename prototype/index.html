@@ -618,9 +618,10 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
    AUCTION SCREEN — Premium Bid Arena
    ================================================================ */
 
-/* Purse zone — angular container with gold accent */
-.auction-purse-zone{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;margin-bottom:10px;background:linear-gradient(135deg,rgba(255,210,63,0.06) 0%,rgba(255,210,63,0.02) 50%,rgba(var(--hl-rgb),0.02) 100%);border:1px solid rgba(255,210,63,0.12);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));position:relative}
-.auction-purse-zone::after{content:'';position:absolute;top:0;right:0;width:60px;height:100%;background:linear-gradient(270deg,rgba(255,210,63,0.08),transparent);pointer-events:none}
+/* Purse zone — L2 austerity: neutral angular container; the gold lives ONLY on
+   the purse number (L1 hero), so the container no longer wears a gold costume. */
+.auction-purse-zone{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;margin-bottom:10px;background:linear-gradient(135deg,rgba(var(--hl-rgb),0.05) 0%,rgba(var(--hl-rgb),0.02) 100%);border:1px solid rgba(var(--hl-rgb),0.08);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));position:relative}
+.auction-purse-zone::after{content:'';position:absolute;top:0;right:0;width:60px;height:100%;background:linear-gradient(270deg,rgba(var(--hl-rgb),0.04),transparent);pointer-events:none}
 .auction-purse-zone .purse-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:2.5px;font-weight:700;font-family:var(--font-b)}
 /* L1: purse now inherits the theme-aware .money hero gold (was a hardcoded
    light-gold gradient that washed out on the light default theme). The old
@@ -744,7 +745,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .strategy-options{display:flex;gap:8px}
 .strategy-opt{flex:1;padding:14px 8px;text-align:center;background:rgba(var(--hl-rgb),0.02);border:1.5px solid var(--border);border-radius:3px;font-family:var(--font-d);font-size:14px;font-weight:700;text-transform:uppercase;color:var(--slip);cursor:pointer;transition:all 0.25s var(--spring);letter-spacing:1.5px;position:relative;overflow:hidden}
 .strategy-opt::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:transparent;transition:all 0.25s}
-.strategy-opt.selected{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(255,210,63,0.06);box-shadow:0 0 14px rgba(255,210,63,0.1)}
+.strategy-opt.selected{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(var(--hl-rgb),0.04)}
 .strategy-opt.selected::after{background:var(--gold-bright);box-shadow:0 0 12px rgba(255,210,63,0.3)}
 .strategy-opt:active{transform:scale(0.95)}
 .pm-fix{position:relative;overflow:hidden}
@@ -1098,7 +1099,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .card-filter{position:relative;padding:8px 16px;border:1px solid var(--border);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--slip);cursor:pointer;transition:all 0.25s var(--spring);white-space:nowrap;text-transform:uppercase;letter-spacing:1.2px;background:linear-gradient(160deg,rgba(var(--hl-rgb),0.045),rgba(var(--hl-rgb),0.015))}
 .card-filter:active{transform:scale(0.94)}
 .card-filter .cf-count{margin-left:6px;font-size:11px;color:var(--slip);opacity:0.7}
-.card-filter.active{border-color:rgba(240,200,80,0.55);color:var(--gold-bright);background:linear-gradient(160deg,rgba(240,200,80,0.16),rgba(240,200,80,0.04));box-shadow:0 0 16px rgba(240,200,80,0.18),inset 0 0 12px rgba(240,200,80,0.06);text-shadow:0 0 10px rgba(240,200,80,0.35)}
+.card-filter.active{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(var(--hl-rgb),0.05)}
 .card-filter.active .cf-count{color:var(--gold-bright);opacity:1}
 
 .cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;perspective:900px}
@@ -1201,7 +1202,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .pd-banned .banned-title{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--blood);text-transform:uppercase;letter-spacing:2.5px}
 .pd-banned .banned-sub{font-size:11px;color:var(--slip);margin-top:3px}
 .pd-train-opt{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:3px;margin-bottom:6px;transition:border-color 0.2s,background 0.2s}
-.pd-train-opt:hover{border-color:rgba(255,210,63,0.15);background:rgba(255,210,63,0.02)}
+.pd-train-opt:hover{border-color:rgba(var(--hl-rgb),0.18);background:rgba(var(--hl-rgb),0.03)}
 .pd-train-opt .train-info{flex:1}
 .pd-train-opt .train-name{font-family:var(--font-d);font-size:12px;font-weight:600;letter-spacing:0.5px}
 .pd-train-opt .train-desc{font-size:10px;color:var(--slip);margin-top:1px}
@@ -2349,7 +2350,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="glass accent-blue" id="hub-hooks-panel" style="display:none">
         <div style="display:flex;gap:12px;align-items:stretch">
           <div id="hub-daily-challenge" style="flex:1"></div>
-          <div id="hub-win-streak" style="flex:0 0 auto;min-width:85px;text-align:center;display:flex;flex-direction:column;justify-content:center;padding:10px 14px;border-radius:4px;border:1px solid rgba(240,200,80,0.15);background:linear-gradient(145deg,rgba(240,200,80,0.06),rgba(212,160,23,0.02))">
+          <div id="hub-win-streak" style="flex:0 0 auto;min-width:85px;text-align:center;display:flex;flex-direction:column;justify-content:center;padding:10px 14px;border-radius:4px;border:1px solid rgba(var(--hl-rgb),0.10);background:linear-gradient(145deg,rgba(var(--hl-rgb),0.05),rgba(var(--hl-rgb),0.02))">
             <div class="font-d fw-700" style="font-size:22px;color:var(--gold-bright)" id="hub-streak-num">0</div>
             <div style="font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:1px">Win Streak</div>
             <div style="font-size:9px;color:var(--gold);margin-top:2px" id="hub-streak-best"></div>
@@ -2404,7 +2405,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div id="academy-panel"></div>
       <div id="social-feed-panel"></div>
 
-      <div class="glass accent-gold">
+      <div class="glass">
         <div class="section-title sm">Season Progress<span class="accent-line"></span></div>
         <div class="flex justify-between items-center mb-8">
           <span class="text-sm text-slip">Match <span id="match-num">1</span> of 14</span>
@@ -8275,7 +8276,7 @@ function endSeason() {
     '<div style="width:200px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:12px auto 20px"></div>' +
     '<div class="font-d fw-700 text-center" style="font-size:44px;text-transform:uppercase;letter-spacing:6px;margin-bottom:24px;' +
     (result==='PROMOTED'?'color:var(--gold-bright);text-shadow:0 0 60px rgba(240,200,80,0.4)':result==='RELEGATED'?'color:var(--blood);text-shadow:0 0 60px rgba(220,38,38,0.3)':'color:var(--white)') + '">' + result + '</div>' +
-    '<div class="glass accent-gold" style="max-width:340px;width:100%"><div class="section-title sm">Season ' + GS.season + '<span class="accent-line"></span></div>' +
+    '<div class="glass" style="max-width:340px;width:100%"><div class="section-title sm">Season ' + GS.season + '<span class="accent-line"></span></div>' +
     '<div class="reward-row"><span>League</span><span class="val text-gold">' + (LEAGUE_NAMES[GS.league]) + '</span></div>' +
     '<div class="reward-row"><span>Season Bonus</span><span class="val positive">+' + bonus + ' coins</span></div>' +
     fanVoteHtml + academyHtml + mentorHtml + academyGradHtml +
