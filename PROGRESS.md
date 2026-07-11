@@ -1,7 +1,36 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-11
-**Last commit:** (this commit) — LOOK pillar **L3** DECIDED → **DROP** (font pass): re-add-vs-drop resolved as DROP — Space Grotesk + Cinzel stay cut; instead routed dense stat-grid numbers (`.player-card .stat-val`, `.pd-stat-row .stat-val`) from condensed Teko → already-loaded **Rajdhani tabular**, fixing the "reads cheap" defect at zero network cost; hero money/scores stay Teko by deliberate L1 choice → **two-tier numeric system** ratified in `docs/visual-design-system.md`; both themes eyeballed (`docs/l3-evidence/`); full suite green (152/152) (prior: LOOK L2 gold austerity; L1 `.money` hero; STORE SAFETY PATCH `BILLING_LIVE=false`; balance-tester gate F1+F3; FEATURE pillar F1–F4)
+**Last commit:** (this commit) — **UX DENSITY PASS** (founder interrupt directive): screens too tall / too much info / heavy scroll → progressive-disclosure via collapsible `.hub-drawer` drawers on the two worst offenders. **Hub:** Club Management + Underworld collapsed, alerts + battle card moved up (depth 4.64→2.09 @360w / 1.82 @390w, top blocks 29→20). **Cards:** Packs & Shop collapsed drawer at top, duplicate bottom shop block removed, grid starts high (depth 3.12→2.78 @360w / 2.41 @390w, blocks 9→5). Drawers use `display:none` bodies (Playwright-clickable after expand), static wrapper (`.open` survives re-render), ES5-safe inline toggle w/ ARIA. 6 drawer-gated test assertions coupled to open their drawer first. Full suite **152/152** green; both themes screenshot-verified on both screens. (prior: LOOK L3 font pass DROP → two-tier numeric; L2 gold austerity; L1 `.money` hero; STORE SAFETY `BILLING_LIVE=false`; balance-tester F1+F3; FEATURE F1–F4)
+**Superseded header (kept for trail):** LOOK pillar **L3** DECIDED → **DROP** (font pass): re-add-vs-drop resolved as DROP — Space Grotesk + Cinzel stay cut; instead routed dense stat-grid numbers (`.player-card .stat-val`, `.pd-stat-row .stat-val`) from condensed Teko → already-loaded **Rajdhani tabular**, fixing the "reads cheap" defect at zero network cost; hero money/scores stay Teko by deliberate L1 choice → **two-tier numeric system** ratified in `docs/visual-design-system.md`; both themes eyeballed (`docs/l3-evidence/`); full suite green (152/152) (prior: LOOK L2 gold austerity; L1 `.money` hero; STORE SAFETY PATCH `BILLING_LIVE=false`; balance-tester gate F1+F3; FEATURE pillar F1–F4)
+
+---
+
+## ✅ DONE (2026-07-11): UX DENSITY PASS — progressive-disclosure drawers (founder interrupt)
+
+Founder directive (verbatim, while away): *"almost all screens in game have larger screens. need to scroll down a lot and there is lot of information everywhere. need to show them much better with critical user experience in mind."* Operated fully autonomously; built directly (Chanakya, no agent per standing instruction).
+
+**Evidence first (CORE-MEMORY #8 — measure before restructuring).** Built a throwaway `_density.spec.js` harness: for each screen × 2 mobile viewports (360×740, 390×844), logged `scrollHeight / viewport` (= "screens deep") and count of top-level blocks. Result — only **two** screens were egregious; the rest were already fine, so I restructured *only* the offenders instead of a blind sweep:
+- **hub** 4.64 screens deep (360w), 29 top blocks — WORST
+- **cards** 3.12 screens deep (360w), 9 top blocks
+- auction 0.90, squad 1.61, league 1.37 — already fine, left untouched.
+
+**The lever — progressive disclosure via collapsible `.hub-drawer`, NOT tabs.** Chose drawers over a tab bar to minimize test churn and keep everything one-tap reachable. The `.hub-drawer` class is generic/reusable (not hub-scoped), so it drops onto the cards screen too.
+
+**Shipped (`prototype/index.html`):**
+- **Hub** — Club Management drawer (Facilities · Staff · Scouting · Sponsor · Season) + Underworld drawer both collapsed by default; alerts + the primary battle card promoted to the top. Depth **4.64 → 2.09** (360w) / **1.82** (390w) screens, top blocks **29 → 20**.
+- **Cards** — Packs & Shop drawer (Standard · Premium · Free Sponsor Pack) collapsed at the **top** (after the collection progress bar, before filters), so the shop stays a one-tap CTA without scrolling past the whole grid; removed the duplicate bottom shop block. Depth **3.12 → 2.78** (360w) / **2.41** (390w) screens, top blocks **9 → 5**. Grid is the inherent height driver (a collection is expected to scroll), so decluttering packs was the right lever.
+
+**Mechanics that make drawers robust (case law for reuse):**
+- Collapsed body = **`display:none`** (NOT max-height clip) → an element inside is un-clickable & not `toBeVisible()` until expanded; `.textContent()`/`toHaveText()` still work without visibility.
+- Drawer **wrapper is static HTML** untouched by `renderHub`/`renderCards`, so the `.open` class survives `innerHTML` re-renders of inner panels.
+- Toggle is **ES5-safe inline** (no arrow): `this.parentNode.classList.toggle('open');this.setAttribute('aria-expanded',...)` with `role="button" tabindex="0" aria-expanded`. Angular clipped toggle bar + rotating chevron, consistent both themes.
+
+**Test coupling (6 drawer-gated assertions).** Elements now behind a collapsed drawer needed their drawer opened before assertion: clean-streak-tag (comprehensive — the one suite break, fixed), standard/premium/insufficient-coins packs (comprehensive), 3D-flip pack-open + sponsor-pack visibility (smoke). Proactively grepped every other drawered element (integrity-shield, social-feed, academy, mentorship, scout, staff) for visibility tests → none broken.
+
+**Verified.** Full Playwright suite **152 passed / 0 failed** (temp harnesses deleted). Both themes screenshot-verified via throwaway `_shots.spec.js` (fixed a harness bug: theme is driven by `GS.darkTheme` in `cu_save_v3`, NOT a `cu_theme` key) — hub + cards, collapsed + drawer-open, light + dark all render premium/angular; packs correctly use in-game `C`/`G` (no `₹` misuse). Both temp specs deleted before commit.
+
+**Roadmap next:** L4 (juice pass — includes restoring parked `purseShimmer` gradient-clip text from L1), L5 (first-60-seconds reel). Gate before Pillar 2: balance-tester + player-advocate eyeball the core loop.
 
 ---
 
