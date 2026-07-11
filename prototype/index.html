@@ -287,6 +287,21 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 #top-bar .season-badge{margin-left:auto;font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--align-accent);letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:3px;background:var(--align-accent-dim);border:1px solid rgba(var(--hl-rgb),0.06);transition:all 0.8s;clip-path:var(--clip-btn-sm)}
 
 /* ================================================================
+   L1 — .money hero currency
+   One consistent, theme-aware gold treatment routed through the ONE
+   dominant currency value per screen (hub net-worth, auction purse,
+   match payout). Uses var(--gold-bright) so it reads premium in BOTH
+   themes — the old auction-purse used a hardcoded light-gold gradient
+   that washed out on the light default theme.
+   Markup: <span class="money hero"><span class="m-cur">C</span><span class="m-val">2,000</span></span>
+   ================================================================ */
+.money{font-family:var(--font-d);font-weight:700;color:var(--gold-bright);letter-spacing:0.5px;line-height:1;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;white-space:nowrap;display:inline-flex;align-items:baseline;gap:0.16em}
+.money .m-cur{font-size:0.58em;font-weight:700;opacity:0.72;letter-spacing:1px;align-self:baseline}
+.money .m-val{color:inherit}
+.money.hero{font-size:40px;text-shadow:0 0 20px var(--gold-glow),0 2px 14px rgba(0,0,0,0.28)}
+.money.mid{font-size:20px;text-shadow:0 0 10px var(--gold-glow)}
+
+/* ================================================================
    BOTTOM NAV — Premium with glow indicator
    ================================================================ */
 #bottom-nav{height:calc(var(--nav-h) + var(--safe-b));min-height:calc(var(--nav-h) + var(--safe-b));background:linear-gradient(180deg,rgba(var(--chrome-rgb),0.94) 0%,rgba(var(--abyss-rgb),0.99) 100%);backdrop-filter:blur(32px) saturate(160%);-webkit-backdrop-filter:blur(32px) saturate(160%);border-top:1px solid rgba(var(--hl-rgb),0.06);display:flex;align-items:flex-start;padding-top:4px;padding-bottom:var(--safe-b);z-index:100;position:relative;box-shadow:0 -6px 24px rgba(0,0,0,0.35)}
@@ -607,7 +622,10 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .auction-purse-zone{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;margin-bottom:10px;background:linear-gradient(135deg,rgba(255,210,63,0.06) 0%,rgba(255,210,63,0.02) 50%,rgba(var(--hl-rgb),0.02) 100%);border:1px solid rgba(255,210,63,0.12);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));position:relative}
 .auction-purse-zone::after{content:'';position:absolute;top:0;right:0;width:60px;height:100%;background:linear-gradient(270deg,rgba(255,210,63,0.08),transparent);pointer-events:none}
 .auction-purse-zone .purse-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:2.5px;font-weight:700;font-family:var(--font-b)}
-.auction-purse-zone .purse{font-family:var(--font-d);font-size:36px;font-weight:700;line-height:1;background:linear-gradient(135deg,#FFE082,var(--gold-bright),var(--gold));background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:purseShimmer 4s ease-in-out infinite}
+/* L1: purse now inherits the theme-aware .money hero gold (was a hardcoded
+   light-gold gradient that washed out on the light default theme). The old
+   purseShimmer needs gradient-clip text, so it's parked for the L4 juice pass. */
+.auction-purse-zone .purse{font-size:38px;line-height:1}
 @keyframes purseShimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .auction-purse-zone .purse-col{display:flex;flex-direction:column;align-items:flex-end;gap:0}
 
@@ -1017,6 +1035,11 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .match-result-overlay .reward-row .val{font-family:var(--font-d);font-weight:700;font-size:14px}
 .match-result-overlay .reward-row .val.positive{color:var(--green-bright);text-shadow:0 0 8px rgba(52,211,153,0.2)}
 .match-result-overlay .reward-row .val.negative{color:var(--blood);text-shadow:0 0 8px rgba(220,38,38,0.2)}
+/* L1 — match payout: the one dominant gold number on the result screen */
+.match-result-overlay .match-payout{text-align:center;margin:0 0 18px}
+.match-result-overlay .match-payout .mp-label{font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--slip);font-weight:700;margin-bottom:8px}
+.match-result-overlay .match-payout .money.hero{font-size:52px;justify-content:center}
+.match-result-overlay .match-payout .money.hero .m-cur{opacity:0.65}
 .match-result-overlay .btn{max-width:400px;transition:all 0.2s var(--spring)}
 .match-result-overlay .btn:active{transform:scale(0.97)}
 
@@ -2170,7 +2193,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="hub-empire-line stagger-child" id="hub-empire-line">
         <div>
           <div class="hel-label">Your Empire</div>
-          <div class="hel-value" id="empire-value">C 2,000</div>
+          <div class="hel-value money mid" id="empire-value"><span class="m-cur">C</span><span class="m-val">2,000</span></div>
         </div>
         <div class="hel-rank">
           <div class="helr-num"><span id="empire-rank-num">#10</span> <span id="empire-rank-lbl" class="helr-lbl">of 10</span></div>
@@ -2434,7 +2457,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="auction-purse-zone">
           <div class="purse-label">Purse Remaining</div>
           <div class="purse-col">
-            <div class="purse" id="auction-purse">2,000</div>
+            <div class="purse money hero" id="auction-purse"><span class="m-cur">C</span><span class="m-val">2,000</span></div>
           </div>
         </div>
         <div class="auction-round-chip">
@@ -3165,7 +3188,7 @@ function formatCompactCoins(n) {
 function renderEmpireLine() {
   var valEl = $('empire-value');
   if (!valEl) return;
-  valEl.textContent = 'C ' + formatCompactCoins(computeNetWorth());
+  valEl.innerHTML = '<span class="m-cur">C</span><span class="m-val">' + formatCompactCoins(computeNetWorth()) + '</span>';
   var er = getEmpireRank();
   var numEl = $('empire-rank-num');
   if (numEl) numEl.textContent = '#' + er.rank;
@@ -6007,7 +6030,7 @@ function showNextCard() {
   auction.bid = base; auction.bidder = null;
   auction.step = Math.max(20, Math.round(base * 0.15));
   auction.timer = auction.maxTimer;
-  $('auction-purse').textContent = GS.auctionPurse.toLocaleString();
+  $('auction-purse').innerHTML = '<span class="m-cur">C</span><span class="m-val">' + GS.auctionPurse.toLocaleString() + '</span>';
   $('round-info').textContent = 'Card ' + (auction.idx + 1) + ' of ' + auction.pool.length;
   $('auction-spotlight').innerHTML = renderPlayerCard(p);
   $('bid-log').innerHTML = '';
@@ -7700,6 +7723,7 @@ function endMatch() {
     (unbannedPlayers.length > 0 ? '<div class="text-xs text-green" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(52,211,153,0.2);border-radius:3px;background:rgba(52,211,153,0.04)">Ban served: ' + unbannedPlayers.join(', ') + ' available again</div>' : '') +
     (matchInjuries.length > 0 ? matchInjuries.map(function(inj) { return '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(220,38,38,0.2);border-radius:3px;background:rgba(220,38,38,0.04)">INJURY: ' + inj.name + ' — ' + inj.injury.type + ' (' + inj.injury.matchesOut + ' matches)</div>'; }).join('') : '') +
     (healedPlayers.length > 0 ? '<div class="text-xs text-green" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(52,211,153,0.2);border-radius:3px;background:rgba(52,211,153,0.04)">Recovered: ' + healedPlayers.join(', ') + '</div>' : '') +
+    '<div class="match-payout"><div class="mp-label">Match Payout</div><div class="money hero"><span class="m-cur">C</span><span class="m-val">+' + coinR + '</span></div></div>' +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div id="post-match-events" style="margin-top:12px"></div>' +
     (streakMilestone ? '<div class="streak-milestone"><div class="sm-icon">' + streakMilestone.icon + '</div><div class="sm-title">' + GS.winStreak + ' Win Streak — ' + streakMilestone.label + '</div><div class="sm-reward">+' + streakMilestone.reward + ' coins</div></div>' : (GS.winStreak >= 2 && won ? '<div class="match-hook streak">' + GS.winStreak + ' wins in a row! ' + (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}) ? (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}).at - GS.winStreak) + ' more for bonus' : '') + '</div>' : '')) +

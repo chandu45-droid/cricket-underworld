@@ -1,7 +1,25 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-11
-**Last commit:** (this commit) — STORE SAFETY PATCH: `BILLING_LIVE=false` gate neutralizes the 🔴 F3-1 free-currency leak (both `requestPurchase` + `completePurchase` guarded, banner honest, buy-intent still logged); 2 regression tests locked (features-10k SAFETY + rewritten smoke Vault test) — full suite 149 green (prior: balance-tester gate on F1+F3; BUILD-SHEET-10K FEATURE pillar F1–F4 shipped)
+**Last commit:** (this commit) — LOOK pillar **L1** shipped: global `.money` hero currency class routed through the ONE dominant number on hub / auction / match-result; solid `var(--gold-bright)` (fixes the light-theme gradient-washout bug); verified visible gold on both themes; full suite green (150/150, 2 unrelated flakies pass on re-run) (prior: STORE SAFETY PATCH `BILLING_LIVE=false`; balance-tester gate F1+F3; FEATURE pillar F1–F4)
+
+---
+
+## ✅ DONE (2026-07-11): BUILD-SHEET-10K — LOOK pillar L1 (`.money` hero class)
+
+Founder directive: *"L1 the .money hero pass."* Built directly (Chanakya, no agent spawned per standing instruction).
+
+**The pattern.** One reusable, theme-aware gold currency treatment, routed through the single dominant currency value on each of the three money-bearing screens — so "money looks like money" and each screen has exactly one hero number (leaves room for the L2 austerity pass).
+
+**Shipped (all in `prototype/index.html`):**
+- **`.money` class + parts.** `.money` (base: `var(--font-d)`, weight 700, `color:var(--gold-bright)`, `tabular-nums` + `"tnum"` for even-width digits, inline-flex baseline) · `.m-cur` (the unit glyph, 0.58em, dimmed) · `.m-val` (inherits) · size modifiers `.money.hero` (40px, gold glow) and `.money.mid` (20px). Markup: `<span class="money hero"><span class="m-cur">C</span><span class="m-val">2,000</span></span>`.
+- **Routed through 3 screens:** hub net-worth `#empire-value` (`.money.mid`, HTML + `renderEmpireLine` JS) · auction purse `#auction-purse` (`.money.hero`, HTML + JS + old gradient rule neutralized) · match-result **new `.match-payout` hero** (`.money.hero` 52px, injected into the result template before the rewards panel).
+- **Solid gold, not gradient — on purpose.** The old auction purse used a hardcoded light-gold gradient with `-webkit-text-fill-color:transparent` and **no light-theme override**, so it nearly vanished on the (default) light theme. `var(--gold-bright)` is redefined per theme → visible in both. The lost `purseShimmer` needs gradient-clip text → **parked for the L4 juice pass** (documented in the CSS comment).
+- **Coin unit `C`, never `₹`.** Spec said "₹ symbol", but in-game currency is coins — `₹` stays reserved for the real-money store (compliance boundary). Top-bar coins (`#coins-val`) deliberately **left un-gilded** to keep one dominant gold number per screen (that hierarchy call is L2).
+
+**Verified:** full Playwright suite **150 passed**; the 2 failures (`p15-visual` league-table crests, `smoke` bowler-picker) are **unrelated flakies that both pass on isolated re-run** — neither touches currency markup. `features-10k` F2 empire tests green (`#empire-value` textContent still `.toContain('C')`). Temp both-theme computed-style probe confirmed visible solid gold — light `rgb(176,141,10)` / dark `rgb(218,165,32)`, never transparent — on `#empire-value` and `#auction-purse` (then deleted).
+
+**Roadmap next:** L2 (gold austerity — de-gold ~40 low-opacity panels, one gold hero + one CTA per screen), L3 (load Space Grotesk + Cinzel).
 
 ---
 
