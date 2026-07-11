@@ -807,6 +807,9 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .settings-btn{position:absolute;top:4px;right:4px;width:36px;height:36px;border-radius:50%;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;z-index:5}
 .settings-btn:active{transform:scale(0.9);background:rgba(var(--hl-rgb),0.08)}
 .settings-btn svg{width:18px;height:18px;stroke:var(--slip);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.theme-quick-btn{position:absolute;top:4px;right:46px;width:36px;height:36px;border-radius:50%;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;z-index:5}
+.theme-quick-btn:active{transform:scale(0.9);background:rgba(var(--hl-rgb),0.08)}
+.theme-quick-btn svg{width:18px;height:18px;stroke:var(--gold-bright,#E8B84B);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .custom-overlay{position:fixed;inset:0;z-index:210;background:rgba(var(--ov-rgb),0.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.35s;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .custom-overlay.show{opacity:1;pointer-events:auto}
 .custom-content{padding:20px 16px;max-width:400px;margin:0 auto;width:100%}
@@ -2070,6 +2073,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <div class="screen" id="hub-screen">
       <div id="pull-indicator"><svg viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg></div>
       <div class="settings-btn" id="settings-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+      <div class="theme-quick-btn" id="theme-quick-btn" role="button" tabindex="0" aria-label="Toggle theme"></div>
 
       <div class="hub-stadium-backdrop">
         <div class="floodlight"></div>
@@ -2842,6 +2846,17 @@ function applyTheme() {
   if (m) m.setAttribute('content', theme === 'dark' ? '#060810' : '#F4EFE6');
   var sw = $('theme-switch');
   if (sw) { if (GS.darkTheme) sw.classList.add('on'); else sw.classList.remove('on'); }
+  updateThemeQuickBtn();
+}
+var THEME_ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+var THEME_ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+function updateThemeQuickBtn() {
+  var b = $('theme-quick-btn');
+  if (!b) return;
+  b.innerHTML = GS.darkTheme ? THEME_ICON_SUN : THEME_ICON_MOON;
+  var lbl = GS.darkTheme ? 'Switch to light theme' : 'Switch to dark theme';
+  b.setAttribute('aria-label', lbl);
+  b.setAttribute('title', lbl);
 }
 function load() {
   try {
@@ -8548,6 +8563,12 @@ function bindEvents() {
   $('tut-next-btn').addEventListener('click', nextTutStep);
   $('tut-skip-btn').addEventListener('click', closeTutorial);
   $('settings-btn').addEventListener('click', showCustomise);
+  var _tqb = $('theme-quick-btn');
+  if (_tqb) _tqb.addEventListener('click', function() {
+    GS.darkTheme = !GS.darkTheme;
+    applyTheme(); save(); SFX.tap();
+    toast(GS.darkTheme ? 'Dark theme on' : 'Dark theme off', 'success');
+  });
   $('theme-toggle-row').addEventListener('click', function() {
     GS.darkTheme = !GS.darkTheme;
     applyTheme(); save(); SFX.tap();

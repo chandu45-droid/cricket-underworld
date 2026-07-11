@@ -1123,6 +1123,30 @@ test.describe('Theme', () => {
     theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
     expect(theme).toBe('light');
   });
+
+  test('hub quick-toggle switches theme in one tap and persists', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    // quick toggle is on the hub header, no menus needed
+    await page.click('#theme-quick-btn');
+    await page.waitForTimeout(300);
+    let theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    expect(theme).toBe('dark');
+    // settings switch reflects the same state
+    let switchOn = await page.evaluate(() => window.GS.darkTheme);
+    expect(switchOn).toBe(true);
+    // persists across reload
+    await page.reload();
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+    theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    expect(theme).toBe('dark');
+    // one more tap flips back to light
+    await dismissOverlays(page);
+    await page.click('#theme-quick-btn');
+    await page.waitForTimeout(300);
+    theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+    expect(theme).toBe('light');
+  });
 });
 
 // ============================================================
