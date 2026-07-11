@@ -1,7 +1,7 @@
 # Progress — Cricket Underworld
 
 **Last updated:** 2026-07-11
-**Last commit:** (this commit) — BUILD-SHEET-10K FEATURE pillar F1–F4 shipped (login streak, empire net-worth+rank, monetization surfacing + published drop rates, analytics)
+**Last commit:** (this commit) — Balance-tester gate run on F1+F3 (founder-authorized): sign-off recorded, 2 in-scope F3 polish fixes applied, fix-queue logged (prior: BUILD-SHEET-10K FEATURE pillar F1–F4 shipped)
 
 ---
 
@@ -17,12 +17,24 @@ Founder directive: *"first build the features part, this part [storefront/billin
 
 **Verified:** new `tests/features-10k.spec.js` — **12/12 green** (F1×3, F2×3, F3×3, F4×3). Browser-eyeballed in a real Chromium (412×892): hub empire line "C 14.8K · #1 OF 10", "2-day streak · best 3 / CLAIM DAY 2 · 300 COINS", money strip (Vault gold + Sponsor Break blue), and the full Drop Rates page (3 packs × 5 rarities, Common 26/Uncommon 32/Rare 26/Epic 14/Legendary 2%). Boot error-free with analytics wiped.
 
-**Exploit/fairness self-review (F1+F3), Chanakya inline call (balance-tester NOT spawned — standing "don't spawn agents" instruction):**
-- F1 clock-set replay is bounded by `loginClaimedDate` day-string (one grant per calendar day); rewards live entirely inside the F2P coin/gem curve, no cash-out — no exploit surface.
-- F3 sponsor pack shares the existing `pack` daily ad cap (1/day) and is guarded against squad-full; drop-rates page is honest (computed from the live pool, not hard-coded), so no misrepresentation risk.
-- **Open gate before any Play Store ship:** formal `balance-tester` sign-off on the F1 reward curve + F3 economy — deferred to a founder-initiated run (agent-spawn currently disabled).
+---
 
-**Deferred per founder:** storefront/billing decision (leaning Play Store). Rupee `.money` styling stays with the LOOK pillar (roadmap Phase 1).
+## 🧪 BALANCE-TESTER GATE — F1 + F3 (2026-07-11, founder-authorized "run balance-tester on F1+F3")
+
+Formal exploit/fairness pass run against the balance-tester charter (`.claude/agents/balance-tester.md`), scoped to F1 (Daily Login) + F3 (monetization surfacing + published drop-rates + sponsor rewarded-ad), advise-only.
+
+**VERDICT — F1 + F3 mechanics SIGN OFF.** In the offline / virtual-currency / no-cash-out context there is no launch-blocking exploit in the F1/F3 logic itself. Reward curve is F2P-generous-but-fair (no >20% win gap, no real pay-to-win since billing is a non-charging stub), floor labels match `openPack` code, the odds page is live-computed so it cannot drift from actual pulls, and the daily ad caps hold (no infinite farming). Residual F1 exploits are self-harm-only.
+
+**Fixed this pass (in-scope F3 polish, both low-risk / additive — features-10k still 12/12 green):**
+- **F3-3** — odds legal note now states the shown %'s are *base* pull rates and each pack's guaranteed final-card floor means your actual result *meets or beats* them (Play gacha-disclosure strengthener). `index.html` ~2876.
+- **F3-4** — `adToday()` now uses the local-date boundary (`_todayStr()`), consistent with the daily-login reset; was UTC (05:30 IST rollover mismatch). `index.html` ~9458.
+
+**FIX-QUEUE (deferred, with rationale):**
+- 🔴 **F3-1 — Vault store stub leaks free currency.** `completePurchase()` (F35 store, `index.html` ~9415–9417) grants coins/gems in "(test mode)" with no payment gate, and F3's hub Vault tile now surfaces it one tap away. **This IS the storefront/billing decision the founder reserved** ("mostly will go with playstore model"). Must be gated behind real Play Billing OR the free-grant neutralized/tile hidden **before any Play Store push**. NOT a today-gate (we are pre-launch; monetization stays stubbed through the acquisition-validation phase) — but it is *the* thing the billing decision must resolve. **Founder call.**
+- 🟡 **F3-2 — aborted rewarded-ad burns the daily spot.** Cap is consumed at ad-START (`index.html` ~9466) not at reward-grant, so closing the ad early wastes the day's sponsor spot (feel-bad). Fix = move `GS.ads[placement]++; save()` into the claim handler + track the pending placement. Deferred because it touches the shared purse/pack/boost ad machinery → needs a full-suite regression, and it is a wk-2-retention polish item, not a launch blocker.
+- 🟡 **F1-1 / F1-2 — clock-forward streak farming & concurrent-window multi-claim.** Both self-harm-only on an offline single-player save with no real PvP stakes; cheap guards (persist `maxDateSeen`; re-read save before the claim gate) available if wanted. Deferred as low-value hardening for an offline game.
+
+**Deferred per founder:** storefront/billing decision (leaning Play Store) — now sharpened by 🔴 F3-1 above. Rupee `.money` styling stays with the LOOK pillar (roadmap Phase 1).
 
 ---
 

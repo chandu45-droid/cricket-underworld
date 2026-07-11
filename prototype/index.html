@@ -2873,7 +2873,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="odds-hero-sub">Real per-rarity pull chances &middot; verified against the live card pool</div>
     </div>
     <div id="odds-packs"></div>
-    <div class="odds-legal">Every card is drawn uniformly from the players you don&rsquo;t already own, so your live odds shift as your collection grows &mdash; the rates above reflect the full card pool. No duplicates. Virtual currency only, no cash-out.</div>
+    <div class="odds-legal">Percentages shown are the base pull rate for each card in a pack, drawn uniformly from the players you don&rsquo;t already own &mdash; so your live odds shift as your collection grows. Each pack&rsquo;s guaranteed final-card floor means your actual result meets or beats these rates. No duplicates. Virtual currency only, no cash-out.</div>
   </div>
 </div>
 
@@ -9455,7 +9455,7 @@ var AD_BRANDS = [
   { name: 'Rana Steel & Sons', tag: 'Forged for the long innings' }
 ];
 var AD_CAPS = { purse: 1, pack: 1, boost: 3 };
-function adToday() { return new Date().toISOString().slice(0, 10); }
+function adToday() { return _todayStr(); } // local-date boundary, consistent with daily-login reset (was UTC)
 function adReset() {
   if (GS.ads.date !== adToday()) { GS.ads.date = adToday(); GS.ads.purse = 0; GS.ads.pack = 0; GS.ads.boost = 0; }
 }
