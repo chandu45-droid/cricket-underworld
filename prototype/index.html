@@ -623,10 +623,20 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .auction-purse-zone{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;margin-bottom:10px;background:linear-gradient(135deg,rgba(var(--hl-rgb),0.05) 0%,rgba(var(--hl-rgb),0.02) 100%);border:1px solid rgba(var(--hl-rgb),0.08);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));position:relative}
 .auction-purse-zone::after{content:'';position:absolute;top:0;right:0;width:60px;height:100%;background:linear-gradient(270deg,rgba(var(--hl-rgb),0.04),transparent);pointer-events:none}
 .auction-purse-zone .purse-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:2.5px;font-weight:700;font-family:var(--font-b)}
-/* L1: purse now inherits the theme-aware .money hero gold (was a hardcoded
-   light-gold gradient that washed out on the light default theme). The old
-   purseShimmer needs gradient-clip text, so it's parked for the L4 juice pass. */
-.auction-purse-zone .purse{font-size:38px;line-height:1}
+/* L4 juice: purseShimmer RESTORED as a theme-SAFE gradient-clip sweep. Base
+   (dark) sweeps a near-white shine peak across saturated gold. Light theme
+   overrides the peak to a saturated gold so it can NEVER wash out on ivory
+   (L1 case law: a gradient text-fill must stay visible on BOTH themes). The
+   currency glyph is pinned to solid gold so an opacity-isolated span can't
+   vanish; a solid --gold-bright fallback covers engines without clip:text. */
+.auction-purse-zone .purse{font-size:38px;line-height:1;color:var(--gold-bright);
+  background-image:linear-gradient(105deg,var(--gold) 0%,var(--gold-bright) 36%,#FFF1BE 47%,#FFFDF4 50%,#FFF1BE 53%,var(--gold-bright) 64%,var(--gold) 100%);
+  background-size:250% 100%;background-position:0% 50%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:purseShimmer 3.4s ease-in-out infinite}
+.auction-purse-zone .purse .m-cur{-webkit-text-fill-color:var(--gold-bright);color:var(--gold-bright)}
+html[data-theme="light"] .auction-purse-zone .purse{
+  background-image:linear-gradient(105deg,var(--gold) 0%,var(--gold-bright) 36%,#D9B43A 47%,#E9C651 50%,#D9B43A 53%,var(--gold-bright) 64%,var(--gold) 100%)}
 @keyframes purseShimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .auction-purse-zone .purse-col{display:flex;flex-direction:column;align-items:flex-end;gap:0}
 
@@ -1647,6 +1657,17 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 #outcome-flash.four{background:radial-gradient(circle at 50% 50%,rgba(34,211,153,0.3) 0%,rgba(34,211,153,0.1) 30%,transparent 70%);animation:outcomeBurst 0.5s ease-out forwards}
 #outcome-flash.wicket{background:radial-gradient(circle at 50% 50%,rgba(239,45,45,0.35) 0%,rgba(180,20,20,0.15) 30%,transparent 70%);animation:outcomeBurst 0.6s ease-out forwards}
 #outcome-flash.win{background:radial-gradient(circle at 50% 50%,rgba(255,207,68,0.4) 0%,rgba(255,180,0,0.2) 40%,transparent 75%);animation:outcomeBurst 0.8s ease-out forwards}
+/* L4 juice: loss now gets a designed beat too — a somber blood vignette flash
+   plus a short screen shake (transform-only, GPU-composited for 60fps). */
+#outcome-flash.loss{background:radial-gradient(circle at 50% 46%,rgba(150,26,26,0.30) 0%,rgba(50,12,12,0.14) 42%,transparent 76%);animation:outcomeBurst 0.7s ease-out forwards}
+@keyframes screenShake{0%,100%{transform:translateX(0)}14%{transform:translateX(-7px)}28%{transform:translateX(6px)}42%{transform:translateX(-5px)}58%{transform:translateX(4px)}74%{transform:translateX(-2px)}88%{transform:translateX(1px)}}
+.shake{animation:screenShake 0.5s ease-in-out}
+/* L4 juice: honor the OS "reduce motion" setting — kills decorative animation
+   for users who ask for it, and doubles as a 60fps safety valve on weak Android.
+   Playwright/Chromium defaults to no-preference, so the suite is unaffected. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important}
+}
 @keyframes outcomeBurst{0%{opacity:1;transform:scale(0.8)}30%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.3)}}
 
 /* --- Ball delivery animation --- */
@@ -3525,24 +3546,39 @@ function playNoise(dur, vol, delay) {
     src.start(t); src.stop(t + dur);
   } catch(e){}
 }
+// L4 juice: haptics. navigator.vibrate no-ops on desktop/unsupported, so this
+// is safe everywhere; it's tied to the OS reduce-motion flag so a user who
+// silences motion also silences buzz. A number = one pulse (ms); an array = a
+// pattern [pulse,gap,pulse,...]. Wired into the SFX methods below so every
+// meaningful tap/outcome carries a matching vibration with zero call-site churn.
+var _reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+if (window.matchMedia) {
+  try {
+    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function(e) { _reduceMotion = e.matches; });
+  } catch(e) {
+    try { window.matchMedia('(prefers-reduced-motion: reduce)').addListener(function(e) { _reduceMotion = e.matches; }); } catch(e2) {}
+  }
+}
+function buzz(p) { try { if (!_reduceMotion && navigator.vibrate) navigator.vibrate(p); } catch(e){} }
+
 var SFX = {
-  tap: function() { playTone(600, 0.04, 'sine', 0.04); },
-  bid: function() { playTone(400, 0.08, 'triangle', 0.08); playTone(520, 0.06, 'sine', 0.05, 0.05); },
-  cardWon: function() { playTone(523,0.12,'sine',0.08); playTone(659,0.12,'sine',0.06,0.1); playTone(784,0.15,'sine',0.08,0.2); },
-  wicket: function() { playTone(800,0.08,'sine',0.08); playTone(600,0.15,'sine',0.05,0.06); playNoise(0.15, 0.04, 0.08); },
-  six: function() { playTone(700,0.2,'sine',0.1); playTone(880,0.15,'sine',0.08,0.1); playTone(1047,0.2,'sine',0.06,0.2); playNoise(0.3,0.05,0.15); },
-  four: function() { playTone(600,0.15,'sine',0.08); playTone(800,0.12,'triangle',0.06,0.08); playNoise(0.2,0.03,0.06); },
+  tap: function() { playTone(600, 0.04, 'sine', 0.04); buzz(8); },
+  bid: function() { playTone(400, 0.08, 'triangle', 0.08); playTone(520, 0.06, 'sine', 0.05, 0.05); buzz(14); },
+  cardWon: function() { playTone(523,0.12,'sine',0.08); playTone(659,0.12,'sine',0.06,0.1); playTone(784,0.15,'sine',0.08,0.2); buzz([0,18,30,26]); },
+  wicket: function() { playTone(800,0.08,'sine',0.08); playTone(600,0.15,'sine',0.05,0.06); playNoise(0.15, 0.04, 0.08); buzz([0,38,26,52]); },
+  six: function() { playTone(700,0.2,'sine',0.1); playTone(880,0.15,'sine',0.08,0.1); playTone(1047,0.2,'sine',0.06,0.2); playNoise(0.3,0.05,0.15); buzz([0,26,40,58]); },
+  four: function() { playTone(600,0.15,'sine',0.08); playTone(800,0.12,'triangle',0.06,0.08); playNoise(0.2,0.03,0.06); buzz([0,20,28]); },
   dot: function() { playTone(200,0.06,'triangle',0.03); },
-  run: function() { playTone(440,0.06,'sine',0.04); },
-  win: function() { [0,100,200,300].forEach(function(d,i){ playTone([523,659,784,1047][i],0.4,'sine',0.08,d/1000); }); playNoise(0.5,0.04,0.3); },
-  lose: function() { playTone(300,0.5,'sawtooth',0.04); playTone(200,0.6,'sawtooth',0.03,0.2); },
-  reveal: function() { playTone(300,0.15,'triangle',0.05); },
-  promote: function() { [0,80,160,240,320].forEach(function(d,i){ playTone([523,659,784,988,1047][i],0.35,'sine',0.07,d/1000); }); },
-  relegate: function() { playTone(400,0.4,'sawtooth',0.05); playTone(300,0.5,'sawtooth',0.04,0.15); playTone(200,0.7,'sawtooth',0.03,0.3); },
-  mafia: function() { playTone(150,0.6,'sawtooth',0.04); playTone(200,0.4,'square',0.03,0.2); },
+  run: function() { playTone(440,0.06,'sine',0.04); buzz(10); },
+  win: function() { [0,100,200,300].forEach(function(d,i){ playTone([523,659,784,1047][i],0.4,'sine',0.08,d/1000); }); playNoise(0.5,0.04,0.3); buzz([0,45,55,45,75]); },
+  lose: function() { playTone(300,0.5,'sawtooth',0.04); playTone(200,0.6,'sawtooth',0.03,0.2); buzz([0,130]); },
+  reveal: function() { playTone(300,0.15,'triangle',0.05); buzz(12); },
+  promote: function() { [0,80,160,240,320].forEach(function(d,i){ playTone([523,659,784,988,1047][i],0.35,'sine',0.07,d/1000); }); buzz([0,30,40,50,60]); },
+  relegate: function() { playTone(400,0.4,'sawtooth',0.05); playTone(300,0.5,'sawtooth',0.04,0.15); playTone(200,0.7,'sawtooth',0.03,0.3); buzz([0,90,40,90]); },
+  mafia: function() { playTone(150,0.6,'sawtooth',0.04); playTone(200,0.4,'square',0.03,0.2); buzz([0,60,30,60]); },
   swipe: function() { playTone(800,0.03,'sine',0.03); playTone(1000,0.02,'sine',0.02,0.02); },
-  knockout: function() { playTone(440,0.15,'triangle',0.06); playTone(660,0.15,'triangle',0.06,0.1); playTone(880,0.2,'sine',0.08,0.2); playNoise(0.4,0.05,0.25); },
-  socialPing: function() { playTone(1200,0.05,'sine',0.04); playTone(1500,0.04,'sine',0.03,0.04); },
+  knockout: function() { playTone(440,0.15,'triangle',0.06); playTone(660,0.15,'triangle',0.06,0.1); playTone(880,0.2,'sine',0.08,0.2); playNoise(0.4,0.05,0.25); buzz([0,45,35,70]); },
+  socialPing: function() { playTone(1200,0.05,'sine',0.04); playTone(1500,0.04,'sine',0.03,0.04); buzz(8); },
 };
 
 // =============================================
@@ -3592,6 +3628,7 @@ requestAnimationFrame(particleLoop);
 var celebParticles = [];
 
 function spawnCelebration(type) {
+  if (_reduceMotion) return;
   var cx = window.innerWidth / 2, cy = window.innerHeight / 3;
   if (type === 'six') {
     for (var i = 0; i < 35; i++) {
@@ -3683,6 +3720,17 @@ function flashOutcome(type) {
   el.className = '';
   void el.offsetWidth;
   el.className = type;
+}
+
+// L4 juice: short transform-only shake for hard-hitting beats (e.g. a loss).
+function screenShake() {
+  if (_reduceMotion) return;
+  var app = document.getElementById('app');
+  if (!app) return;
+  app.classList.remove('shake');
+  void app.offsetWidth;
+  app.classList.add('shake');
+  setTimeout(function() { app.classList.remove('shake'); }, 520);
 }
 
 function animateBallDelivery(outcome) {
@@ -7642,7 +7690,7 @@ function endMatch() {
   var won = match.runs > match.oppRuns;
   var tied = match.runs === match.oppRuns;
   if (tied && !match.superOver) { won = playSuperOver(); tied = false; }
-  if (won) { GS.wins++; SFX.win(); flashOutcome('win'); spawnCelebration('win'); } else if (!tied) { GS.losses++; SFX.lose(); }
+  if (won) { GS.wins++; SFX.win(); flashOutcome('win'); spawnCelebration('win'); } else if (!tied) { GS.losses++; SFX.lose(); flashOutcome('loss'); screenShake(); }
   trackEvent('match_completed', { result: won ? 'win' : tied ? 'tie' : 'loss', season: GS.season, matchNum: GS.matchNum });
   var zone = getAlignmentZone(GS.alignment);
   var wasFix = GS.mafiaBonus !== null;
