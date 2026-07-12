@@ -598,14 +598,14 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .action-tile.match .tile-icon{background:linear-gradient(135deg,rgba(52,211,153,0.22),rgba(5,150,105,0.10));border:1px solid rgba(52,211,153,0.25);box-shadow:0 0 24px rgba(52,211,153,0.15),inset 0 0 12px rgba(52,211,153,0.05)}
 .action-tile.match .tile-icon svg{stroke:var(--green-bright);filter:drop-shadow(0 0 6px rgba(52,211,153,0.5))}
 
-.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:9px 6px 8px;text-align:center;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:0 5px;min-height:40px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
 .quick-tile::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;transition:background 0.2s}
 .quick-tile:active{transform:scale(0.90);background:rgba(var(--hl-rgb),0.08);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 .quick-tile:active::after{background:var(--align-accent)}
-.quick-tile svg{width:20px;height:20px;stroke:var(--slip);fill:none;stroke-width:1.6;margin-bottom:5px;display:block;margin-inline:auto;transition:stroke 0.2s}
+.quick-tile svg{width:18px;height:18px;stroke:var(--slip);fill:none;stroke-width:1.6;margin:0;flex-shrink:0;transition:stroke 0.2s}
 .quick-tile:active svg{stroke:var(--align-accent)}
-.quick-tile .qt-label{font-family:var(--font-d);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--white-60)}
+.quick-tile .qt-label{font-family:var(--font-d);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--white-60);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .mafia-banner{background:linear-gradient(145deg,rgba(15,13,26,0.95),rgba(26,26,46,0.85));border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;padding:16px 16px 16px 18px;cursor:pointer;position:relative;overflow:hidden;animation:mafiaGlow 4s ease-in-out infinite;margin-bottom:16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .mafia-banner::before{content:'';position:absolute;top:0;left:3px;right:0;height:1px;background:linear-gradient(90deg,rgba(220,38,38,0.5),transparent 80%)}
@@ -1866,9 +1866,9 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .action-tile .tile-title{font-size:21px;letter-spacing:3px}
 
 /* Quick tiles — color-coded per function */
-.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
 .quick-tile{position:relative;overflow:hidden}
-.quick-tile svg{width:20px;height:20px;transition:all 0.3s var(--spring-bounce)}
+.quick-tile svg{width:18px;height:18px;transition:all 0.3s var(--spring-bounce)}
 .quick-tile:active svg{transform:scale(1.15)}
 .quick-tile.qt-squad{border-bottom:2px solid rgba(59,130,246,0.25)}
 .quick-tile.qt-squad svg{stroke:var(--blue-bright)}
@@ -1928,7 +1928,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .skel-tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
 .skel-tile{height:160px;border-radius:4px}
 .skel-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.skel-quick-tile{height:60px;border-radius:4px}
+.skel-quick-tile{height:40px;border-radius:4px}
 .skel-panel{height:80px;border-radius:4px;margin-bottom:14px}
 /* ================================================================
    SEASON PASS (F34) — Syndicate Contract ledger aesthetic
