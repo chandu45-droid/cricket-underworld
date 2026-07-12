@@ -1945,13 +1945,10 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .hub-empire-line .hel-rank .helr-num{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--white);line-height:1}
 .hub-empire-line .hel-rank .helr-lbl{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
 /* F1 — Daily login streak */
-.hub-login-panel{margin:0 0 9px;padding:8px 13px 8px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
+.hub-login-panel{margin:0 0 9px;padding:7px 13px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
 .hub-login-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green-bright),var(--gold-bright))}
-.hlp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
-.hlp-title{font-family:var(--font-d);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--white)}
-.hlp-streak{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--green-bright);letter-spacing:0.5px}
-.hlp-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.hlp-day{position:relative;text-align:center;padding:7px 2px 6px;border:1px solid rgba(255,255,255,0.08);border-radius:3px;background:rgba(255,255,255,0.02);opacity:0.55}
+.hlp-row{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.hlp-day{position:relative;text-align:center;padding:6px 2px 5px;border:1px solid rgba(255,255,255,0.08);border-radius:3px;background:rgba(255,255,255,0.02);opacity:0.55}
 .hlp-day.claimed{opacity:0.4;border-color:rgba(34,212,126,0.25);background:rgba(34,212,126,0.06)}
 .hlp-day.today{opacity:1;border-color:var(--gold-bright);background:rgba(240,200,80,0.1);box-shadow:0 0 12px rgba(240,200,80,0.15)}
 .hlp-day .hd-n{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:0.5px}
@@ -1959,7 +1956,9 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .hlp-day.today .hd-r{color:var(--white)}
 .hlp-day .hd-g{display:block;font-size:8px;color:var(--blue-bright);margin-top:1px;line-height:1}
 .hlp-day .hd-tick{position:absolute;top:-5px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--green-bright);color:#04140b;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.hlp-claim{margin-top:7px;width:100%;text-align:center;padding:7px;font-family:var(--font-d);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;cursor:pointer;transition:all 0.2s;background:linear-gradient(120deg,var(--green),var(--green-bright));color:#04140b;border:none}
+.hlp-foot{display:flex;align-items:center;gap:10px;margin-top:7px}
+.hlp-streak{flex:1;min-width:0;font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--green-bright);letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hlp-claim{flex:0 0 auto;text-align:center;padding:9px 18px;font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;border-radius:3px;cursor:pointer;transition:all 0.2s;background:linear-gradient(120deg,var(--green),var(--green-bright));color:#04140b;border:none}
 .hlp-claim:active{transform:scale(0.97)}
 .hlp-claim.done{background:rgba(255,255,255,0.05);color:var(--slip);cursor:default;border:1px solid rgba(255,255,255,0.08)}
 /* ===== F3 — Hub monetization strip ===== */
@@ -2329,12 +2328,11 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       </div>
 
       <div class="hub-login-panel stagger-child" id="hub-login-panel">
-        <div class="hlp-head">
-          <div class="hlp-title">Daily Reward</div>
-          <div class="hlp-streak" id="login-streak-label">🔥 1-day streak</div>
-        </div>
         <div class="hlp-row" id="login-row"></div>
-        <button class="hlp-claim" id="login-claim-btn" type="button">Claim Day 1 · 200 coins</button>
+        <div class="hlp-foot">
+          <div class="hlp-streak" id="login-streak-label">🔥 1-day streak</div>
+          <button class="hlp-claim" id="login-claim-btn" type="button">Claim 200</button>
+        </div>
       </div>
 
       <div class="quick-tiles stagger-child">
@@ -3235,11 +3233,11 @@ function renderLoginPanel() {
   if (btn) {
     if (claimedToday) {
       btn.className = 'hlp-claim done';
-      btn.textContent = 'Claimed ✓  ·  Come back tomorrow';
+      btn.textContent = 'Claimed ✓';
     } else {
       var rew = LOGIN_REWARDS[idx];
       btn.className = 'hlp-claim';
-      btn.textContent = 'Claim Day ' + (idx + 1) + '  ·  ' + rew.coins + ' coins' + (rew.gems ? ' + ' + rew.gems + ' gems' : '');
+      btn.textContent = 'Claim ' + rew.coins + (rew.gems ? ' +' + rew.gems + '💎' : '');
     }
   }
 }
