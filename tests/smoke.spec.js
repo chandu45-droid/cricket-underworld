@@ -160,6 +160,9 @@ test('Season Pass: hub panel, tier progression, claim + premium flow', async ({ 
   await setupGameState(page);
   await dismissOverlays(page);
 
+  // Store & Rewards drawer holds the pass panel (monetization demoted into it)
+  await page.click('#drawer-rewards-toggle');
+
   // Hub panel present
   await expect(page.locator('#hub-pass-panel')).toBeVisible();
 

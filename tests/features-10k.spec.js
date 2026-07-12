@@ -187,6 +187,9 @@ test.describe('F3 — Monetization surfaces & drop rates', () => {
     await injectState(page, {});
     await assertNoBootError(page);
 
+    // Store & Rewards drawer holds all monetization surfaces (demoted into it)
+    await page.click('#drawer-rewards-toggle');
+
     // Vault — 1 tap on hub tile opens the store overlay
     await expect(page.locator('#hub-vault-tile')).toBeVisible();
     await page.click('#hub-vault-tile');
@@ -205,6 +208,7 @@ test.describe('F3 — Monetization surfaces & drop rates', () => {
     await page.goto('/');
     await injectState(page, {});
 
+    await page.click('#drawer-rewards-toggle');
     await page.click('#hub-odds-link');
     await expect(page.locator('#odds-overlay')).toHaveClass(/show/);
 
@@ -230,6 +234,7 @@ test.describe('F3 — Monetization surfaces & drop rates', () => {
     await injectState(page, { squad: makeSquad(5), maxSquad: 15 });
     const before = await page.evaluate(() => window.GS.squad.length);
 
+    await page.click('#drawer-rewards-toggle');
     await page.click('#hub-sponsor-tile');
     await expect(page.locator('#ad-overlay')).toHaveClass(/show/);
     await page.waitForSelector('#ad-claim-btn.ready', { timeout: 6000 });
@@ -247,6 +252,7 @@ test.describe('F3 — Monetization surfaces & drop rates', () => {
     const before = await page.evaluate(() => ({ c: window.GS.coins, g: window.GS.gems }));
 
     // Real UI path: open the Vault and tap a real coin pack tile.
+    await page.click('#drawer-rewards-toggle');
     await page.click('#hub-vault-tile');
     await expect(page.locator('#store-overlay')).toHaveClass(/show/);
     await page.locator('#store-coins-grid .vault-pack').first().click();

@@ -2356,6 +2356,18 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
+      <!-- ===== Drawer: Store & Rewards (collapsed by default) ===== -->
+      <div class="hub-drawer" id="drawer-rewards">
+        <div class="hub-drawer__toggle" id="drawer-rewards-toggle" role="button" tabindex="0" aria-expanded="false" onclick="this.parentNode.classList.toggle('open');this.setAttribute('aria-expanded',this.parentNode.classList.contains('open'))">
+          <div class="hd-ico"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="1"/><path d="M7 8V6a5 5 0 0110 0v2"/><circle cx="12" cy="14" r="2"/></svg></div>
+          <div class="hd-text">
+            <div class="hd-title">Store &amp; Rewards</div>
+            <div class="hd-sub">Vault &middot; Sponsor break &middot; Contract &middot; Drop rates</div>
+          </div>
+          <svg class="hd-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="hub-drawer__body">
+
       <div class="hub-money-strip stagger-child" id="hub-money-strip">
         <div class="hms-tile hms-vault" id="hub-vault-tile">
           <div class="hms-ico"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="1"/><path d="M7 8V6a5 5 0 0110 0v2"/><circle cx="12" cy="14" r="2"/></svg></div>
@@ -2378,6 +2390,9 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div style="font-family:var(--font-d);font-size:12px;color:var(--gold);letter-spacing:1px">VIEW &#8594;</div>
         </div>
         <div class="pass-xp-bar"><div class="pass-xp-fill" id="hub-pass-fill" style="width:0%"></div></div>
+      </div>
+
+        </div>
       </div>
 
       <div class="mafia-banner" id="mafia-banner" style="display:none">
