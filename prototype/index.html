@@ -318,7 +318,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
    SCREEN CONTAINER — Living mesh gradient backgrounds
    ================================================================ */
 #screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px 16px calc(var(--nav-h) + var(--safe-b) + 16px);opacity:0;transform:translateX(0) scale(0.96);transition:opacity 0.4s var(--spring),transform 0.5s var(--spring-bounce);pointer-events:none;-webkit-overflow-scrolling:touch;will-change:opacity,transform}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:12px 13px calc(var(--nav-h) + var(--safe-b) + 14px);opacity:0;transform:translateX(0) scale(0.96);transition:opacity 0.4s var(--spring),transform 0.5s var(--spring-bounce);pointer-events:none;-webkit-overflow-scrolling:touch;will-change:opacity,transform}
 .screen.active{opacity:1;transform:translateX(0) scale(1);pointer-events:auto}
 .screen.swipe-exit-left{opacity:0;transform:translateX(-30%) scale(0.94);pointer-events:none}
 .screen.swipe-exit-right{opacity:0;transform:translateX(30%) scale(0.94);pointer-events:none}
@@ -431,7 +431,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 /* ================================================================
    GLASS PANELS — Premium multi-layer frosted glass
    ================================================================ */
-.glass{background:var(--glass-bg);border:var(--glass-border);border-radius:3px;box-shadow:var(--elevation-2),var(--glass-inner);padding:16px;margin-bottom:14px;position:relative;overflow:hidden;transition:box-shadow 0.4s var(--spring),border-color 0.4s var(--spring),transform 0.4s var(--spring-bounce)}
+.glass{background:var(--glass-bg);border:var(--glass-border);border-radius:3px;box-shadow:var(--elevation-2),var(--glass-inner);padding:13px;margin-bottom:10px;position:relative;overflow:hidden;transition:box-shadow 0.4s var(--spring),border-color 0.4s var(--spring),transform 0.4s var(--spring-bounce)}
 .glass::before{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(ellipse at 30% 0%,rgba(var(--hl-rgb),0.05) 0%,transparent 55%),radial-gradient(ellipse at 80% 100%,rgba(var(--hl-rgb),0.02) 0%,transparent 50%);pointer-events:none}
 .glass::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 3%,rgba(var(--hl-rgb),0.12) 25%,rgba(var(--hl-rgb),0.06) 75%,transparent 97%);pointer-events:none}
 .glass.accent-gold{border-top:2px solid var(--gold);background:linear-gradient(150deg,rgba(218,165,32,0.16) 0%,transparent 52%),var(--glass-bg);box-shadow:var(--elevation-2),var(--glass-inner),var(--glow-gold)}
@@ -439,7 +439,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .glass.accent-green{border-top:2px solid var(--green-bright);background:linear-gradient(150deg,rgba(52,211,153,0.13) 0%,transparent 52%),var(--glass-bg);box-shadow:var(--elevation-2),var(--glass-inner),var(--glow-green)}
 .glass.accent-blue{border-top:2px solid var(--blue);background:linear-gradient(150deg,rgba(59,130,246,0.13) 0%,transparent 52%),var(--glass-bg);box-shadow:var(--elevation-2),var(--glass-inner),var(--glow-blue)}
 
-.section-title{font-family:var(--font-d);font-size:22px;font-weight:600;text-transform:uppercase;letter-spacing:2.5px;color:var(--white);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-title{font-family:var(--font-d);font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:2.5px;color:var(--white);margin-bottom:10px;display:flex;align-items:center;gap:10px}
 .section-title .accent-line{flex:1;height:1px;background:linear-gradient(90deg,var(--align-accent-dim),transparent 80%);transition:background 0.8s}
 .section-title.sm{font-size:17px;margin-bottom:10px;letter-spacing:1.5px}
 
@@ -548,10 +548,10 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .player-card.legendary .rarity-strip{background:linear-gradient(90deg,var(--gold-bright),var(--blood),var(--cyan),var(--green-bright),var(--gold-bright));background-size:300%;animation:shimmer 2.5s linear infinite;height:4px}
 
 /* Player card mini — premium compact */
-.player-card-mini{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--glass-bg);border-radius:3px;border:var(--glass-border);transition:all 0.25s var(--spring);cursor:pointer;margin-bottom:8px;box-shadow:var(--elevation-1);position:relative;overflow:hidden}
+.player-card-mini{display:flex;align-items:center;gap:11px;padding:9px 12px;background:var(--glass-bg);border-radius:3px;border:var(--glass-border);transition:all 0.25s var(--spring);cursor:pointer;margin-bottom:6px;box-shadow:var(--elevation-1);position:relative;overflow:hidden}
 .player-card-mini::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--hl-rgb),0.06),transparent);pointer-events:none}
 .player-card-mini:active{background:rgba(var(--hl-rgb),0.08);transform:scale(0.98)}
-.player-card-mini .mini-ovr{width:40px;height:40px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:var(--elevation-2);clip-path:var(--clip-hex)}
+.player-card-mini .mini-ovr{width:36px;height:36px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:16px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:var(--elevation-2);clip-path:var(--clip-hex)}
 .player-card-mini .mini-info{flex:1;min-width:0}
 .player-card-mini .mini-name{font-family:var(--font-d);font-size:16px;font-weight:600;line-height:1.1}
 .player-card-mini .mini-role{font-size:11px;color:var(--slip);text-transform:uppercase;letter-spacing:0.3px}
@@ -563,11 +563,11 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 /* ================================================================
    HUB SCREEN — Stadium backdrop, glass tiles
    ================================================================ */
-.hub-header{display:flex;align-items:center;gap:16px;margin-bottom:22px;padding:10px 0}
-.hub-header .manager-avatar{width:68px;height:68px;border-radius:50%;border:2.5px solid var(--align-accent);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,var(--dugout),var(--pitch));flex-shrink:0;box-shadow:0 0 28px var(--align-accent-dim),inset 0 0 12px rgba(0,0,0,0.3);transition:border-color 0.8s,box-shadow 0.8s}
-.hub-header .manager-avatar svg{width:30px;height:30px;stroke:var(--align-accent);fill:none;stroke-width:1.5;transition:stroke 0.8s}
+.hub-header{display:flex;align-items:center;gap:14px;margin-bottom:12px;padding:6px 0}
+.hub-header .manager-avatar{width:58px;height:58px;border-radius:50%;border:2.5px solid var(--align-accent);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,var(--dugout),var(--pitch));flex-shrink:0;box-shadow:0 0 28px var(--align-accent-dim),inset 0 0 12px rgba(0,0,0,0.3);transition:border-color 0.8s,box-shadow 0.8s}
+.hub-header .manager-avatar svg{width:26px;height:26px;stroke:var(--align-accent);fill:none;stroke-width:1.5;transition:stroke 0.8s}
 .hub-header .manager-info{flex:1}
-.hub-header .manager-name{font-family:var(--font-d);font-size:28px;font-weight:700;line-height:1;letter-spacing:0.5px}
+.hub-header .manager-name{font-family:var(--font-d);font-size:25px;font-weight:700;line-height:1;letter-spacing:0.5px}
 .hub-header .league-name{font-size:12px;color:var(--blue-bright);margin-top:4px;font-weight:600;letter-spacing:0.5px}
 .hub-header .align-zone-tag{display:inline-block;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:3px 12px;border-radius:3px;margin-top:5px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent-dim);transition:all 0.8s}
 .hub-meters{display:flex;gap:12px;margin-top:10px}
@@ -576,13 +576,13 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .hub-meter .meter-bar{height:5px;background:rgba(136,150,176,0.08);border-radius:3px;overflow:hidden}
 .hub-meter .meter-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
 
-.action-tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
-.action-tile{background:var(--glass-bg);border:var(--glass-border);border-radius:4px;clip-path:var(--clip-card-tl);padding:24px 20px 20px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:160px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3)}
+.action-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.action-tile{background:var(--glass-bg);border:var(--glass-border);border-radius:4px;clip-path:var(--clip-card-tl);padding:18px 16px 15px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:132px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3)}
 .action-tile::before{content:'';position:absolute;inset:0;opacity:0.7;transition:opacity 0.3s;pointer-events:none}
 .action-tile::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;pointer-events:none}
 .action-tile:active{transform:scale(0.94) translateY(2px);box-shadow:var(--elevation-1)}
-.action-tile .tile-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
-.action-tile .tile-icon svg{width:28px;height:28px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.action-tile .tile-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.action-tile .tile-icon svg{width:24px;height:24px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .action-tile .tile-title{font-family:var(--font-d);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
 .action-tile .tile-sub{font-size:12px;color:var(--slip);margin-top:4px;font-weight:500}
 .action-tile.auction{border-left:3px solid var(--gold-bright)}
@@ -598,8 +598,8 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .action-tile.match .tile-icon{background:linear-gradient(135deg,rgba(52,211,153,0.22),rgba(5,150,105,0.10));border:1px solid rgba(52,211,153,0.25);box-shadow:0 0 24px rgba(52,211,153,0.15),inset 0 0 12px rgba(52,211,153,0.05)}
 .action-tile.match .tile-icon svg{stroke:var(--green-bright);filter:drop-shadow(0 0 6px rgba(52,211,153,0.5))}
 
-.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:14px 8px 12px;text-align:center;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:9px 6px 8px;text-align:center;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
 .quick-tile::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;transition:background 0.2s}
 .quick-tile:active{transform:scale(0.90);background:rgba(var(--hl-rgb),0.08);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 .quick-tile:active::after{background:var(--align-accent)}
@@ -768,7 +768,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* ================================================================
    MATCH SCREEN — Pitch + momentum
    ================================================================ */
-.match-pitch-bg{position:relative;margin:-16px -16px 0;padding:24px 16px 20px;background:linear-gradient(180deg,rgba(34,212,126,0.03) 0%,transparent 60%);border-bottom:1px solid rgba(34,212,126,0.08);margin-bottom:16px;overflow:hidden;min-height:220px}
+.match-pitch-bg{position:relative;margin:-12px -13px 0;padding:20px 16px 18px;background:linear-gradient(180deg,rgba(34,212,126,0.03) 0%,transparent 60%);border-bottom:1px solid rgba(34,212,126,0.08);margin-bottom:14px;overflow:hidden;min-height:200px}
 .match-pitch-bg::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,212,126,0.15),transparent)}
 #match-canvas{image-rendering:auto}
 #fielder-dots{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;pointer-events:none;z-index:2}
@@ -1057,7 +1057,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* ================================================================
    SQUAD — Premium Roster Management
    ================================================================ */
-.squad-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:6px 0}
+.squad-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:4px 0}
 .squad-header .section-title{margin-bottom:0;display:flex;align-items:center;gap:10px}
 .squad-header .section-title svg{width:22px;height:22px;stroke:var(--blue-bright);fill:none;stroke-width:1.6;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(59,130,246,0.4))}
 .squad-count{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--white);padding:4px 16px;background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(59,130,246,0.05));clip-path:var(--clip-btn-sm);border:1px solid rgba(59,130,246,0.20);letter-spacing:1px;text-align:center}
@@ -1075,7 +1075,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .team-stat.stat-morale::after{background:radial-gradient(circle at 50% 0%,rgba(245,158,11,0.08),transparent 60%)}
 .team-stat .ts-val{font-family:var(--font-d);font-size:28px;font-weight:700;line-height:1}
 .team-stat .ts-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1.2px;margin-top:4px;font-weight:600}
-.squad-morale-bar{margin-bottom:14px;padding:10px 14px;background:var(--glass-bg);border-radius:3px;border:var(--glass-border);box-shadow:var(--elevation-1)}
+.squad-morale-bar{margin-bottom:10px;padding:8px 12px;background:var(--glass-bg);border-radius:3px;border:var(--glass-border);box-shadow:var(--elevation-1)}
 .squad-morale-bar .morale-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .squad-morale-bar .morale-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:2px;font-weight:700}
 .squad-morale-bar .morale-val{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--amber)}
@@ -1112,7 +1112,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .card-filter.active{border-color:var(--gold-bright);color:var(--gold-bright);background:rgba(var(--hl-rgb),0.05)}
 .card-filter.active .cf-count{color:var(--gold-bright);opacity:1}
 
-.cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;perspective:900px}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;perspective:900px}
 .cards-grid .player-card{animation:cardDealIn 0.4s var(--spring-bounce) both}
 .cards-grid .player-card:nth-child(2){animation-delay:0.05s}
 .cards-grid .player-card:nth-child(3){animation-delay:0.1s}
@@ -1121,6 +1121,21 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .cards-grid .player-card:nth-child(6){animation-delay:0.25s}
 .cards-grid .player-card:nth-child(n+7){animation-delay:0.3s}
 @keyframes cardDealIn{0%{opacity:0;transform:translateY(22px) rotateX(7deg) scale(0.95)}100%{opacity:1;transform:translateY(0) rotateX(0) scale(1)}}
+/* Collection thumbnails — dense 3-col grid; tap opens full detail overlay.
+   Scoped to .cards-grid so #auction-spotlight .player-card stays full-size. */
+.cards-grid .player-card .card-body{padding:8px 8px 9px}
+.cards-grid .player-card .portrait-area{height:60px}
+.cards-grid .player-card .ovr-badge{top:6px;left:6px;width:32px;height:32px;font-size:15px}
+.cards-grid .player-card .player-silhouette{width:42px;height:42px}
+.cards-grid .player-card .role-badge{top:6px;right:6px;transform:scale(0.78);transform-origin:top right}
+.cards-grid .player-card .card-info{margin-bottom:2px}
+.cards-grid .player-card .player-name{font-size:13px}
+.cards-grid .player-card .player-role{font-size:8px;margin-bottom:5px}
+.cards-grid .player-card .stats-grid{gap:3px;margin-bottom:0}
+.cards-grid .player-card .stat-item{padding:3px 0}
+.cards-grid .player-card .stat-label{font-size:7px}
+.cards-grid .player-card .stat-val{font-size:12px}
+.cards-grid .player-card .card-footer{display:none}
 
 .shop-item{position:relative;display:flex;align-items:center;gap:14px;padding:16px;background:linear-gradient(160deg,rgba(20,26,40,0.85),rgba(8,10,18,0.92));border:1px solid rgba(var(--hl-rgb),0.08);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));margin-bottom:10px;cursor:pointer;transition:all 0.25s var(--spring);overflow:hidden}
 .shop-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--pk,#3B82F6),transparent);pointer-events:none}
@@ -1789,7 +1804,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
    ================================================================ */
 
 /* Stadium silhouette backdrop */
-.hub-stadium-backdrop{position:relative;margin:-16px -16px 0;padding:24px 16px 20px;overflow:hidden;min-height:180px;display:flex;flex-direction:column;justify-content:flex-end}
+.hub-stadium-backdrop{position:relative;margin:-12px -13px 0;padding:16px 16px 14px;overflow:hidden;min-height:148px;display:flex;flex-direction:column;justify-content:flex-end}
 .hub-stadium-backdrop::before{content:'';position:absolute;inset:0;background:
   radial-gradient(ellipse 140% 50% at 50% 10%,rgba(255,210,63,0.06) 0%,transparent 60%),
   radial-gradient(ellipse 80% 40% at 20% 30%,var(--align-accent-dim) 0%,transparent 50%),
@@ -1825,8 +1840,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .hub-power-ring .power-label{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;font-family:var(--font-b);font-weight:600}
 
 /* Meters — larger with icon labels */
-.hub-meters{display:flex;gap:10px;margin:16px 0;position:relative;z-index:2}
-.hub-meter{flex:1;padding:10px 12px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:6px;transition:border-color 0.3s}
+.hub-meters{display:flex;gap:10px;margin:10px 0;position:relative;z-index:2}
+.hub-meter{flex:1;padding:8px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:4px;transition:border-color 0.3s}
 .hub-meter .meter-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hub-meter .meter-icon svg{width:12px;height:12px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hub-meter .meter-header{display:flex;align-items:center;gap:6px}
@@ -1848,12 +1863,12 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .action-tile.auction::before{background:radial-gradient(ellipse at 20% 20%,rgba(255,207,68,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(212,160,23,0.12) 0%,transparent 45%);animation:tileBreath 4s ease-in-out infinite alternate}
 .action-tile.match::before{background:radial-gradient(ellipse at 20% 20%,rgba(52,211,153,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(5,150,105,0.12) 0%,transparent 45%);animation:tileBreath 4s ease-in-out infinite alternate 1s}
 @keyframes tileBreath{0%{opacity:0.6}100%{opacity:1}}
-.action-tile .tile-title{font-size:24px;letter-spacing:3px}
+.action-tile .tile-title{font-size:21px;letter-spacing:3px}
 
 /* Quick tiles — color-coded per function */
-.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 .quick-tile{position:relative;overflow:hidden}
-.quick-tile svg{width:22px;height:22px;transition:all 0.3s var(--spring-bounce)}
+.quick-tile svg{width:20px;height:20px;transition:all 0.3s var(--spring-bounce)}
 .quick-tile:active svg{transform:scale(1.15)}
 .quick-tile.qt-squad{border-bottom:2px solid rgba(59,130,246,0.25)}
 .quick-tile.qt-squad svg{stroke:var(--blue-bright)}
@@ -1869,15 +1884,16 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .quick-tile.qt-market:active{background:rgba(52,211,153,0.08)}
 
 /* Next rival — battle card — dramatic VS display */
-.hub-battle-card{position:relative;padding:18px;margin-bottom:14px;border-radius:4px;overflow:hidden;background:linear-gradient(145deg,rgba(var(--hl-rgb),0.05),rgba(220,38,38,0.04),rgba(255,210,63,0.02));border:1px solid rgba(220,38,38,0.15);box-shadow:var(--elevation-3);transition:all 0.3s var(--spring)}
+.hub-battle-card{position:relative;padding:11px 12px;margin-bottom:9px;border-radius:4px;overflow:hidden;background:linear-gradient(145deg,rgba(var(--hl-rgb),0.05),rgba(220,38,38,0.04),rgba(255,210,63,0.02));border:1px solid rgba(220,38,38,0.15);box-shadow:var(--elevation-3);transition:all 0.3s var(--spring)}
 .hub-battle-card:active{transform:scale(0.98);box-shadow:var(--elevation-1)}
 .battle-card-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 50%),radial-gradient(circle at 20% 20%,var(--align-accent-dim) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(220,38,38,0.05) 0%,transparent 40%);pointer-events:none;animation:battleBg 6s ease-in-out infinite alternate}
 @keyframes battleBg{0%{opacity:0.6}100%{opacity:1}}
-.battle-label{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--gold-bright);text-align:center;margin-bottom:12px;position:relative;display:flex;align-items:center;gap:10px;justify-content:center}
+.battle-label{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--gold-bright);text-align:center;margin-bottom:5px;position:relative;display:flex;align-items:center;gap:10px;justify-content:center}
 .battle-label::before,.battle-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,210,63,0.2),transparent)}
-.battle-vs-row{display:flex;align-items:center;justify-content:center;gap:16px;position:relative}
+.battle-vs-row{display:flex;align-items:center;justify-content:center;gap:12px;position:relative}
+.hub-battle-card .crest-mini svg{width:30px;height:30px}
 .battle-team{text-align:center;flex:1;display:flex;flex-direction:column;align-items:center}
-.battle-vs{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);padding:8px 16px;background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(255,210,63,0.1));border-radius:4px;border:1px solid rgba(var(--hl-rgb),0.1);letter-spacing:4px;flex-shrink:0;clip-path:var(--clip-diamond);width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.battle-vs{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);padding:8px 16px;background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(255,210,63,0.1));border-radius:4px;border:1px solid rgba(var(--hl-rgb),0.1);letter-spacing:4px;flex-shrink:0;clip-path:var(--clip-diamond);width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:14px}
 
 /* Facility cards — enhanced with elevation + glow on active */
 .facility-card{box-shadow:var(--elevation-1);transition:all 0.3s var(--spring-bounce)}
@@ -1917,11 +1933,11 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* ================================================================
    SEASON PASS (F34) — Syndicate Contract ledger aesthetic
    ================================================================ */
-.hub-pass-panel{position:relative;cursor:pointer;overflow:hidden;padding:12px 14px;background:linear-gradient(120deg,rgba(240,200,80,0.07),rgba(var(--ov-rgb),0.4) 55%,rgba(220,38,38,0.05));border:1px solid rgba(240,200,80,0.22);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:border-color 0.2s}
+.hub-pass-panel{position:relative;cursor:pointer;overflow:hidden;padding:10px 13px;background:linear-gradient(120deg,rgba(240,200,80,0.07),rgba(var(--ov-rgb),0.4) 55%,rgba(220,38,38,0.05));border:1px solid rgba(240,200,80,0.22);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:border-color 0.2s}
 .hub-pass-panel:active{border-color:rgba(240,200,80,0.5)}
 .hub-pass-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--crimson))}
 /* F2 — Empire net-worth + rank line */
-.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;padding:9px 14px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
+.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding:8px 13px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
 .hub-empire-line::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--blue-bright))}
 .hub-empire-line .hel-label{font-family:var(--font-d);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--slip)}
 .hub-empire-line .hel-value{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--gold-bright);line-height:1;letter-spacing:0.5px;margin-top:3px}
@@ -1929,9 +1945,9 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .hub-empire-line .hel-rank .helr-num{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--white);line-height:1}
 .hub-empire-line .hel-rank .helr-lbl{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
 /* F1 — Daily login streak */
-.hub-login-panel{margin:0 0 18px;padding:12px 14px 14px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
+.hub-login-panel{margin:0 0 9px;padding:8px 13px 8px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
 .hub-login-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green-bright),var(--gold-bright))}
-.hlp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hlp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .hlp-title{font-family:var(--font-d);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--white)}
 .hlp-streak{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--green-bright);letter-spacing:0.5px}
 .hlp-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -1943,12 +1959,12 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .hlp-day.today .hd-r{color:var(--white)}
 .hlp-day .hd-g{display:block;font-size:8px;color:var(--blue-bright);margin-top:1px;line-height:1}
 .hlp-day .hd-tick{position:absolute;top:-5px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--green-bright);color:#04140b;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.hlp-claim{margin-top:12px;width:100%;text-align:center;padding:10px;font-family:var(--font-d);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;cursor:pointer;transition:all 0.2s;background:linear-gradient(120deg,var(--green),var(--green-bright));color:#04140b;border:none}
+.hlp-claim{margin-top:7px;width:100%;text-align:center;padding:7px;font-family:var(--font-d);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;cursor:pointer;transition:all 0.2s;background:linear-gradient(120deg,var(--green),var(--green-bright));color:#04140b;border:none}
 .hlp-claim:active{transform:scale(0.97)}
 .hlp-claim.done{background:rgba(255,255,255,0.05);color:var(--slip);cursor:default;border:1px solid rgba(255,255,255,0.08)}
 /* ===== F3 — Hub monetization strip ===== */
-.hub-money-strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 14px}
-.hms-tile{position:relative;overflow:hidden;cursor:pointer;padding:11px 12px;display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.42) 60%);border:1px solid rgba(240,200,80,0.2);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));transition:border-color 0.2s,transform 0.15s}
+.hub-money-strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}
+.hms-tile{position:relative;overflow:hidden;cursor:pointer;padding:10px 11px;display:flex;align-items:center;gap:10px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.42) 60%);border:1px solid rgba(240,200,80,0.2);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));transition:border-color 0.2s,transform 0.15s}
 .hms-tile:active{transform:scale(0.97)}
 .hms-tile.hms-vault{background:linear-gradient(120deg,rgba(240,200,80,0.09),rgba(var(--ov-rgb),0.42) 60%);border-color:rgba(240,200,80,0.28)}
 .hms-tile.hms-sponsor{background:linear-gradient(120deg,rgba(59,130,246,0.08),rgba(var(--ov-rgb),0.42) 60%);border-color:rgba(59,130,246,0.24)}
@@ -1961,7 +1977,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .hms-title{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-bright);line-height:1.1}
 .hms-tile.hms-sponsor .hms-title{color:var(--blue-bright)}
 .hms-sub{font-size:9.5px;letter-spacing:0.3px;color:var(--slip);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hms-odds-link{display:block;text-align:center;margin:-4px 0 14px;font-family:var(--font-d);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slip);cursor:pointer;padding:6px;transition:color 0.2s}
+.hms-odds-link{display:block;text-align:center;margin:-2px 0 10px;font-family:var(--font-d);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--slip);cursor:pointer;padding:4px;transition:color 0.2s}
 .hms-odds-link:active{color:var(--gold-bright)}
 .hms-odds-link u{text-decoration-color:rgba(240,200,80,0.4)}
 /* ===== Density pass (2026-07-11) — hub progressive-disclosure drawers ===== */
@@ -2059,8 +2075,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .store-confirm .sc-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
 /* ===== SPONSOR BREAK — REWARDED AD STUB (F36) ===== */
-.ad-overlay{position:fixed;inset:0;z-index:218;background:rgba(var(--ov-rgb),0.98);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.25s}
-.ad-overlay.show{opacity:1;pointer-events:auto}
+.ad-overlay{position:fixed;inset:0;z-index:218;background:rgba(var(--ov-rgb),0.98);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 0.25s,visibility 0.25s}
+.ad-overlay.show{opacity:1;visibility:visible;pointer-events:auto}
 .ad-billboard{position:relative;width:100%;max-width:340px;padding:22px 18px 18px;background:repeating-linear-gradient(-45deg,rgba(var(--hl-rgb),0.02),rgba(var(--hl-rgb),0.02) 2px,transparent 2px,transparent 6px),linear-gradient(165deg,#12141f 0%,#0a0c14 60%,#141020 100%);border:1px solid rgba(224,120,0,0.35);border-top:3px solid var(--amber);clip-path:polygon(0 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%)}
 .ad-billboard::before{content:'SPONSOR BREAK';position:absolute;top:-1px;left:14px;padding:3px 10px;font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:3px;background:var(--amber);color:#060810;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .ad-brand{font-family:var(--font-d);font-size:30px;font-weight:700;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:14px;background:linear-gradient(135deg,var(--gold-bright),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -2293,8 +2309,8 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
             <div class="font-d fw-700 text-red" id="rival-str">72</div>
           </div>
         </div>
-        <div class="text-xs text-slip" id="rival-align" style="text-align:center;font-style:italic;margin-top:6px"></div>
-        <div style="display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div class="text-xs text-slip" id="rival-align" style="text-align:center;font-style:italic;margin-top:4px"></div>
+        <div style="display:flex;gap:12px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">
           <div class="flex-1" style="text-align:center">
             <div class="text-xs text-slip">Relationship</div>
             <div class="font-d fw-600 text-sm" id="rival-rel-label">Neutral</div>
