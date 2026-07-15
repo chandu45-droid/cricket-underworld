@@ -6232,6 +6232,10 @@ function startAuction() {
   if (avail.length === 0) { toast('No more players available', 'error'); return; }
   avail.sort(function(a, b) { return RARITIES.indexOf(b.rarity) - RARITIES.indexOf(a.rarity); });
   auction.pool = avail.slice(0, 12);
+  // Budget lots open, marquee closes the show. Rarity-first order was a purse
+  // trap: day-1 players drained ~75% of the purse on the first 3-4 star cards
+  // and couldn't field an XI (playtest 2026-07-15).
+  auction.pool.sort(function(a, b) { return getPlayerPrice(a) - getPlayerPrice(b); });
   auction.idx = 0; auction.active = true;
   GS.auctionPurse = GS.coins;
   if (GS.ads && GS.ads.pendingPurse) {
@@ -6242,6 +6246,7 @@ function startAuction() {
     toast('Sponsor Boost active — +300 auction purse', 'success');
   }
   hide('auction-empty-area'); show('auction-active-area');
+  if (GS.squad.length < 4) toast('Budget lots first — the stars close the show. Pace your purse.', 'success');
   showNextCard();
 }
 
@@ -7035,6 +7040,12 @@ function showSquadSelect() {
   SFX.tap();
   var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id && !p.banned && !p.injured;}); });
   if (sel.length > 11) sel = sel.slice(0, 11);
+  if (sel.length === 0) {
+    // First open (or all picks invalidated): pre-select a legal XI so Confirm
+    // is live immediately — new players otherwise face a dead button.
+    var availAuto = GS.squad.filter(function(p){ return !p.banned; });
+    sel = buildPlayingXI(availAuto).map(function(p){ return p.id; });
+  }
   var capValid = sel.indexOf(GS.captainId) >= 0;
   if (!capValid) GS.captainId = null;
   renderSquadSelect(sel);

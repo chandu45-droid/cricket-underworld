@@ -297,6 +297,20 @@ test.describe('Squad', () => {
 // 5. SQUAD SELECTION (XI Picker)
 // ============================================================
 test.describe('Squad Selection', () => {
+  test('XI is auto-preselected on first open so Confirm is live', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { selectedXI: [] }); // fresh player: never picked an XI
+    await page.evaluate(() => window.showSquadSelect());
+    await page.waitForTimeout(500);
+    const xiNum = await page.locator('#ss-xi-num').textContent();
+    expect(parseInt(xiNum, 10)).toBeGreaterThanOrEqual(3);
+    const btnClass = await page.locator('#ss-confirm-btn').getAttribute('class');
+    expect(btnClass).not.toContain('disabled');
+    // overseas cap respected by the preselection
+    const osNum = await page.locator('#ss-os-num').textContent();
+    expect(parseInt(osNum, 10)).toBeLessThanOrEqual(4);
+  });
+
   test('squad selection overlay opens from match', async ({ page }) => {
     await page.goto('/');
     await injectState(page);
@@ -496,6 +510,23 @@ test.describe('Match Engine', () => {
 // 8. AUCTION
 // ============================================================
 test.describe('Auction', () => {
+  test('auction pool presents budget lots before marquee players', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { squad: [] });
+    const prices = await page.evaluate(() => {
+      window.startAuction();
+      const ps = window.auction.pool.map(p => window.getPlayerPrice(p));
+      // stop the live timer so the test leaves no ticking state behind
+      window.auction.active = false; clearInterval(window.auction.interval);
+      return ps;
+    });
+    expect(prices.length).toBeGreaterThan(3);
+    for (let i = 1; i < prices.length; i++) {
+      expect(prices[i]).toBeGreaterThanOrEqual(prices[i - 1]); // non-decreasing
+    }
+    expect(prices[0]).toBeLessThan(prices[prices.length - 1]); // genuinely cheap -> star
+  });
+
   test('auction screen shows start button', async ({ page }) => {
     await page.goto('/');
     await injectState(page);

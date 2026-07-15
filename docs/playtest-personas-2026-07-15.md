@@ -132,8 +132,8 @@ collapse or clearly differentiate the two currencies.
 
 | # | Improvement | Serves | Effort | Fits plan |
 |---|---|---|---|---|
-| 1 | **Auction purse-trap fix** — budget tier first or mixed order (+ a one-line "pace your purse" tip) | Rohan, Priya, every day-1 user | S | Pre-wave polish — day-1 fairness IS the funnel |
-| 2 | **XI auto-preselect when squad ≤ 11** (Confirm live on first open) | Priya, everyone's first match | S | Pre-wave polish |
+| 1 ✅ | **Auction purse-trap fix** — SHIPPED 2026-07-15: pool now sells budget lots first, marquee closes the show + first-auction purse tip. Re-measured: same naive bidding keeps 1,118 of 2,000 purse (was 490). | Rohan, Priya, every day-1 user | S | Pre-wave polish — day-1 fairness IS the funnel |
+| 2 ✅ | **XI auto-preselect** — SHIPPED 2026-07-15: first open pre-selects a legal XI via buildPlayingXI (overseas cap respected), Confirm live immediately. | Priya, everyone's first match | S | Pre-wave polish |
 | 3 | **Quick Match (5-over) mode** | Priya + commute sessions = D1 lever | M | Strong candidate if wave-1 shows short sessions |
 | 4 | **Account/cloud save** | Vikram (blocks any real revenue), all (device loss) | L | **Gate for C2 billing** — schedule before it |
 | 5 | **Progressive system unlock** (underworld reveals at match 3–4) | Priya; tutorial_done→D1 funnel | M | Post-wave-1, if funnel shows early drop |
@@ -142,6 +142,5 @@ collapse or clearly differentiate the two currencies.
 | 8 | **Match difficulty floor** (understaffed XI should struggle) | Rohan; sim credibility | M | Balance pass; June feedback still open |
 | 9 | **Ghost/async leaderboard** | Rohan; long-term retention | L | Post-revenue |
 
-**Do-now recommendation (fits "freeze new systems" since they're funnel polish, not systems):**
-items **1 + 2** before firing distribution wave 1 — both are small, and both sit exactly where
-every new player from the wave will land in their first three minutes.
+**Do-now items 1 + 2: DONE (2026-07-15, same session)** — both shipped with E2E coverage before
+distribution wave 1. Remaining items stay ranked for the post-signal phase.
