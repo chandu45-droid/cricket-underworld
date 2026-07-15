@@ -12,7 +12,11 @@
 <title>Cricket Underworld</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Non-blocking font load: on slow/flaky networks a render-blocking font
+     stylesheet holds the FIRST PAINT white for seconds (media=print loads
+     async, swaps to all onload; noscript keeps the blocking fallback). -->
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 /* ================================================================
    @PROPERTY — Houdini animated gradient positions
@@ -243,6 +247,10 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
    ================================================================ */
 #loading{position:fixed;inset:0;z-index:1000;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 1s ease-out}
 #loading.hide{opacity:0;pointer-events:none}
+/* Hidden splash stays in the DOM (test harness + SW timing races on slow
+   networks depend on #loading.hide being observable); stop its animations
+   so the invisible layer costs nothing. */
+#loading.hide,#loading.hide *{animation:none!important}
 #loading .load-bg{position:absolute;inset:0;background:
   radial-gradient(ellipse at 50% 35%,rgba(255,207,68,0.06) 0%,transparent 50%),
   radial-gradient(ellipse at 25% 80%,rgba(239,45,45,0.05) 0%,transparent 40%),
@@ -9037,7 +9045,8 @@ function initLoading() {
         $('app').style.display = 'flex';
         $('hub-screen').classList.add('active');
         requestAnimationFrame(function() { updateNavIndicator('hub'); });
-        setTimeout(function() { var l = $('loading'); if (l) l.remove(); }, 800);
+        // keep the hidden splash in the DOM: #loading.hide must stay
+        // observable after fast first paints (see .hide CSS note)
         if (!GS.tutorialDone) setTimeout(showTutorial, 600);
       }, 500);
     }

@@ -1,13 +1,13 @@
 # Progress — Cricket Underworld
 
-> ### ⏸️ SESSION PAUSED — RESUME HERE (2026-07-12)
-> **State:** 🏁 **LOOK PILLAR COMPLETE (L1–L5 ✅)** — L4 juice (`02bacfd`) + L5 reel (`a998932`) both shipped & committed in THIS (nested) repo; working tree clean; **152/152 green**.
-> **Note for next session:** a next-step menu offered "L4 — juice pass" but that was a **stale open-loop line in CORE-MEMORY §7** (now corrected) — L4 was already done. Don't rebuild it. Also FEATURE pillar F1–F4 already shipped 2026-07-11.
-> **Real next move (founder's call):**
-> 1. **Pillar 3 — PROOF** (recommended) — distribution + real D1/D7 cohort signal. This is what actually closes the $10k; the game is now LOOK- and FEATURE-complete.
-> 2. **Gate** — balance-tester + player-advocate eyeball the core loop on both themes (agents run only on explicit founder ask).
-> 3. **Team/player name customisation** (queued backlog item).
-> 4. Founder decisions still open: storefront/billing model (**Play Store TWA+Play Billing** vs Web PWA+Razorpay; `BILLING_LIVE=false` until decided) · default theme (light is test-enforced #124 — needs sign-off to change).
+> ### ▶️ PILLAR 3 (PROOF) — BUILD SIDE DONE 2026-07-15; BALL IS WITH THE FOUNDER
+> **Shipped this session (founder: "Implement pillar 3"):**
+> - **P3 pipeline** — remote analytics sink: in-game beacon (`flushAnalytics` — boot flush, 4s debounce, pagehide sendBeacon, sentIdx cursor w/ quota realignment, offline-safe, endpoint-pluggable, empty endpoint = old local-only behavior) + first-touch **UTM/referrer capture** (`captureAcquisition`) + free **Google Apps Script collector** (`analytics/apps-script-sink.gs` → Sheet, GET = fleet D1/D7 JSON) + `analytics/README.md` deploy guide. 3 new E2E green.
+> - **P4 demo reel DONE** — `docs/demo/cricket-underworld-60s-reel.webm` (43s, real gameplay, Victory end-beat; README has beats/regen/convert).
+> - **P2 distribution kit READY** — `distribution/DISTRIBUTION-KIT.md`: India-first waves w/ per-wave UTM tags + paste-ready posts (per §11: itch.io demoted).
+> - **First-paint fix** (real product bug found while recording): Google-Fonts stylesheet was render-blocking → on slow/hanging networks the screen stayed WHITE for ~10s before the splash. Now non-blocking (`media="print"` swap + noscript fallback). Hidden splash now stays in DOM w/ animations stopped (`#loading.hide` observability — tests + timing races).
+> **FOUNDER ACTIONS (in order, ~15 min total):** (1) deploy Apps Script collector + set `ANALYTICS_ENDPOINT` + push (3 min, `analytics/README.md`) → (2) real-device QA of live URL → (3) convert reel to MP4 → (4) fire distribution wave 1 on a match day (kit §channel plan). Then P3 = wait ~2 weeks / ~200 users → P5 wire numbers into pitch.html.
+> **Still open (founder decisions):** billing model (TWA+Play Billing vs PWA+Razorpay; blocks C2 not C1) · default-theme sign-off · optional balance-tester/player-advocate gate.
 
 **Last updated:** 2026-07-12
 **Last commit:** (this commit) — **LOOK L5 FIRST-60-SECONDS REEL** (founder: *"next?"*): audit-first verification of the fresh-install reel end-to-end on BOTH themes — splash → hub → 6-step tutorial → auction → **first-match Victory**. **No fix needed — reel already clean.** The one suspected defect (splash "UNDERWORLD" washout) was a **FALSE ALARM** (captured at 400ms, before `.t2 fadeUp` 0.5s delay had begun; re-shot settled at 1500ms = rich legible gold → per evidence-before-diagnosis #8, NO override applied). Win beat proven by driving the REAL live match chain (CORE-MEMORY #13) to a deterministic "Victory" (god-squad 99 vs seeded trash opponent 1) — Victory overlay screenshot-verified clean on both themes, **0 console/page errors**. **LOOK PILLAR COMPLETE (L1–L5 ✅).** Temp specs removed; suite **152/152** green. (prior: LOOK L4 juice pass — haptics + loss moment + reduced-motion + purseShimmer restore)
