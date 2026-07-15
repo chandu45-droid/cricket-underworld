@@ -1,5 +1,22 @@
 # Progress — Cricket Underworld
 
+> ### ⏸️ HANDOFF TO LAPTOP (2026-07-15) — RESUME HERE
+> **Where everything lives:** branch `claude/current-status-gpzh42` — 5 commits ahead of `master`
+> (`7710c88` analytics sink · `c6066d3` reel + distribution kit + font first-paint fix ·
+> `c46a5b6` 4-persona playtest report · `1bbae8e` funnel fixes · this commit). To resume:
+> `git fetch origin && git checkout claude/current-status-gpzh42`. **NOT yet merged to master**
+> — GitHub Pages still serves the pre-Pillar-3 build until this branch is PR'd + merged.
+> **Test state at handoff:** targeted groups all green (P3 sink 3/3 · Squad Selection+Auction
+> 10/10 incl. 2 new); prior clean full run 155/155; a fresh full-suite run over the final two
+> funnel-fix commits was IN PROGRESS in the cloud session at handoff — re-verify locally with
+> `npx playwright test` (suite is now 157 tests) before merging.
+> **Latest work (2026-07-15):** 4-persona playtest (`docs/playtest-personas-2026-07-15.md`) →
+> shipped its two pre-wave fixes: auction pool budget-first (purse trap: naive day-1 bidder
+> now keeps 1,118/2,000 vs 490) + XI auto-preselect (Confirm live on first open).
+> **Next actions:** (1) merge branch → master via PR · (2) founder Pillar-3 queue below
+> (collector deploy → device QA → reel to MP4 → fire wave 1) · (3) remaining persona-report
+> items stay ranked in its synthesis table (cloud save before C2 billing is the big one).
+
 > ### ▶️ PILLAR 3 (PROOF) — BUILD SIDE DONE 2026-07-15; BALL IS WITH THE FOUNDER
 > **Shipped this session (founder: "Implement pillar 3"):**
 > - **P3 pipeline** — remote analytics sink: in-game beacon (`flushAnalytics` — boot flush, 4s debounce, pagehide sendBeacon, sentIdx cursor w/ quota realignment, offline-safe, endpoint-pluggable, empty endpoint = old local-only behavior) + first-touch **UTM/referrer capture** (`captureAcquisition`) + free **Google Apps Script collector** (`analytics/apps-script-sink.gs` → Sheet, GET = fleet D1/D7 JSON) + `analytics/README.md` deploy guide. 3 new E2E green.
