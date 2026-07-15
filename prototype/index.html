@@ -12,7 +12,11 @@
 <title>Cricket Underworld</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Non-blocking font load: on slow/flaky networks a render-blocking font
+     stylesheet holds the FIRST PAINT white for seconds (media=print loads
+     async, swaps to all onload; noscript keeps the blocking fallback). -->
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 /* ================================================================
    @PROPERTY — Houdini animated gradient positions
@@ -243,6 +247,10 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
    ================================================================ */
 #loading{position:fixed;inset:0;z-index:1000;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 1s ease-out}
 #loading.hide{opacity:0;pointer-events:none}
+/* Hidden splash stays in the DOM (test harness + SW timing races on slow
+   networks depend on #loading.hide being observable); stop its animations
+   so the invisible layer costs nothing. */
+#loading.hide,#loading.hide *{animation:none!important}
 #loading .load-bg{position:absolute;inset:0;background:
   radial-gradient(ellipse at 50% 35%,rgba(255,207,68,0.06) 0%,transparent 50%),
   radial-gradient(ellipse at 25% 80%,rgba(239,45,45,0.05) 0%,transparent 40%),
@@ -3115,8 +3123,15 @@ function trackEvent(name, props) {
   try {
     var d = _anLoad();
     d.events.push({ n: name, t: Date.now(), p: props || null });
-    if (d.events.length > 600) d.events = d.events.slice(d.events.length - 600); // quota guard
+    if (d.events.length > 600) { // quota guard; keep the remote-send cursor aligned
+      var cut = d.events.length - 600;
+      d.events = d.events.slice(cut);
+      if (d.sentIdx) d.sentIdx = Math.max(0, d.sentIdx - cut);
+    }
     _anSave(d);
+    // debounced remote flush (no-op when no endpoint configured)
+    clearTimeout(window._anFlushT);
+    window._anFlushT = setTimeout(function() { flushAnalytics(); }, 4000);
   } catch(e) {}
 }
 // Boot-time session marker; auto-derives a return_visit when the calendar
@@ -3129,11 +3144,82 @@ function analyticsSessionStart() {
     d.events.push({ n: 'session_start', t: Date.now(), p: { day: today } });
     if (isReturn) d.events.push({ n: 'return_visit', t: Date.now(), p: { gap: today - d.lastDay } });
     d.lastDay = today;
-    if (d.events.length > 600) d.events = d.events.slice(d.events.length - 600);
+    if (d.events.length > 600) {
+      var cut = d.events.length - 600;
+      d.events = d.events.slice(cut);
+      if (d.sentIdx) d.sentIdx = Math.max(0, d.sentIdx - cut);
+    }
     _anSave(d);
   } catch(e) {}
 }
 function getAnalytics() { return _anLoad(); }
+// =============================================
+// P3 — REMOTE SINK (fleet D1/D7 needs events OFF the device).
+// Endpoint is pluggable: set ANALYTICS_ENDPOINT below (or the
+// 'cu_analytics_endpoint' localStorage override, handy for tests)
+// to any URL that accepts a JSON POST — see analytics/README.md
+// for a free Google Apps Script collector. Empty endpoint = the
+// exact pre-P3 local-only behavior. Every path no-ops on failure;
+// unsent events stay queued (sentIdx cursor) and retry next flush,
+// so offline PWA play is never affected.
+// =============================================
+var ANALYTICS_ENDPOINT = ''; // e.g. 'https://script.google.com/macros/s/XXXX/exec'
+function _anEndpoint() {
+  try { var o = localStorage.getItem('cu_analytics_endpoint'); if (o) return o; } catch(e) {}
+  return ANALYTICS_ENDPOINT;
+}
+var _anFlushing = false;
+function flushAnalytics(useBeacon) {
+  try {
+    var url = _anEndpoint();
+    if (!url || _anFlushing) return;
+    var d = _anLoad();
+    var from = d.sentIdx || 0;
+    // The 600-event quota guard trims the head of events[]; keep the cursor honest.
+    if (from > d.events.length) { from = 0; }
+    var batch = d.events.slice(from);
+    if (!batch.length) return;
+    var payload = JSON.stringify({ uid: d.uid, created: d.created, firstTouch: d.firstTouch || null, from: from, events: batch });
+    if (useBeacon && navigator.sendBeacon) {
+      // pagehide path: fire-and-forget; cursor advances optimistically
+      if (navigator.sendBeacon(url, payload)) { d.sentIdx = from + batch.length; _anSave(d); }
+      return;
+    }
+    if (typeof fetch !== 'function' || (navigator.onLine === false)) return;
+    _anFlushing = true;
+    fetch(url, { method: 'POST', body: payload, keepalive: true, headers: { 'Content-Type': 'text/plain' } })
+      .then(function(r) {
+        _anFlushing = false;
+        if (r && r.ok) { var d2 = _anLoad(); d2.sentIdx = from + batch.length; _anSave(d2); }
+      })
+      .catch(function() { _anFlushing = false; });
+  } catch(e) { _anFlushing = false; }
+}
+// P2 — acquisition capture: first-touch UTM params + referrer land in the
+// event stream so distribution waves are attributable (BUILD-SHEET P2
+// done-criterion: "UTM/referrer visible in analytics").
+function captureAcquisition() {
+  try {
+    var q = location.search || '';
+    var m = { source: null, medium: null, campaign: null };
+    var keys = ['source', 'medium', 'campaign'];
+    for (var i = 0; i < keys.length; i++) {
+      var mt = q.match(new RegExp('[?&]utm_' + keys[i] + '=([^&]+)'));
+      if (mt) m[keys[i]] = decodeURIComponent(mt[1]).slice(0, 60);
+    }
+    var ref = '';
+    try { ref = (document.referrer || '').slice(0, 120); } catch(e2) {}
+    if (!m.source && !m.medium && !m.campaign && !ref) return;
+    var d = _anLoad();
+    if (!d.firstTouch) {
+      d.firstTouch = { source: m.source, medium: m.medium, campaign: m.campaign, ref: ref, t: Date.now() };
+      _anSave(d);
+    }
+    trackEvent('acquisition', { source: m.source, medium: m.medium, campaign: m.campaign, ref: ref });
+  } catch(e) {}
+}
+window.flushAnalytics = flushAnalytics;
+window.captureAcquisition = captureAcquisition;
 // On-device retention view. daysActive[] is the raw material a server would
 // aggregate into fleet D1/D7; d1/d7 are THIS user's return flags.
 function computeRetention() {
@@ -6146,6 +6232,10 @@ function startAuction() {
   if (avail.length === 0) { toast('No more players available', 'error'); return; }
   avail.sort(function(a, b) { return RARITIES.indexOf(b.rarity) - RARITIES.indexOf(a.rarity); });
   auction.pool = avail.slice(0, 12);
+  // Budget lots open, marquee closes the show. Rarity-first order was a purse
+  // trap: day-1 players drained ~75% of the purse on the first 3-4 star cards
+  // and couldn't field an XI (playtest 2026-07-15).
+  auction.pool.sort(function(a, b) { return getPlayerPrice(a) - getPlayerPrice(b); });
   auction.idx = 0; auction.active = true;
   GS.auctionPurse = GS.coins;
   if (GS.ads && GS.ads.pendingPurse) {
@@ -6156,6 +6246,7 @@ function startAuction() {
     toast('Sponsor Boost active — +300 auction purse', 'success');
   }
   hide('auction-empty-area'); show('auction-active-area');
+  if (GS.squad.length < 4) toast('Budget lots first — the stars close the show. Pace your purse.', 'success');
   showNextCard();
 }
 
@@ -6949,6 +7040,12 @@ function showSquadSelect() {
   SFX.tap();
   var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id && !p.banned && !p.injured;}); });
   if (sel.length > 11) sel = sel.slice(0, 11);
+  if (sel.length === 0) {
+    // First open (or all picks invalidated): pre-select a legal XI so Confirm
+    // is live immediately — new players otherwise face a dead button.
+    var availAuto = GS.squad.filter(function(p){ return !p.banned; });
+    sel = buildPlayingXI(availAuto).map(function(p){ return p.id; });
+  }
   var capValid = sel.indexOf(GS.captainId) >= 0;
   if (!capValid) GS.captainId = null;
   renderSquadSelect(sel);
@@ -8959,7 +9056,8 @@ function initLoading() {
         $('app').style.display = 'flex';
         $('hub-screen').classList.add('active');
         requestAnimationFrame(function() { updateNavIndicator('hub'); });
-        setTimeout(function() { var l = $('loading'); if (l) l.remove(); }, 800);
+        // keep the hidden splash in the DOM: #loading.hide must stay
+        // observable after fast first paints (see .hide CSS note)
         if (!GS.tutorialDone) setTimeout(showTutorial, 600);
       }, 500);
     }
@@ -9764,6 +9862,9 @@ updateHubSponsorTile();
 try {
   load();
   analyticsSessionStart();
+  captureAcquisition();
+  flushAnalytics();
+  window.addEventListener('pagehide', function() { flushAnalytics(true); });
   applyTheme();
   initRivalData();
   processDailyLogin();

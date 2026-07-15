@@ -323,6 +323,72 @@ test.describe('F4 — Analytics', () => {
 });
 
 // ============================================================
+// P3 — REMOTE SINK + ACQUISITION (fleet D1/D7 pipeline)
+// BUILD-SHEET-10K §5. Beacon POSTs the queued events to a pluggable
+// endpoint; UTM/referrer land in the event stream (P2 done-criterion).
+// ============================================================
+test.describe('P3 — Remote analytics sink', () => {
+  test('beacon POSTs queued events to the configured endpoint and advances the cursor', async ({ page }) => {
+    const posts = [];
+    await page.route('**/collect-test**', async route => {
+      posts.push(JSON.parse(route.request().postData()));
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+    });
+    await page.goto('/');
+    await injectState(page, {});
+    await page.evaluate(() => {
+      localStorage.setItem('cu_analytics_endpoint', 'https://sink.example/collect-test');
+    });
+    await page.reload();
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+    await page.waitForTimeout(1500); // boot flush is async
+    expect(posts.length).toBeGreaterThan(0);
+    expect(posts[0].uid).toMatch(/^u_/);
+    expect(Array.isArray(posts[0].events)).toBe(true);
+    expect(posts[0].events.length).toBeGreaterThan(0);
+    // cursor advanced: immediate re-flush has nothing to send
+    const postCount = posts.length;
+    await page.evaluate(() => window.flushAnalytics());
+    await page.waitForTimeout(800);
+    expect(posts.length).toBe(postCount);
+    // a new event flows through the debounced flush
+    await page.evaluate(() => window.trackEvent('purchase_stub', { sku: 'test' }));
+    await page.waitForTimeout(5200);
+    const flat = [].concat(...posts.map(p => p.events.map(e => e.n)));
+    expect(flat).toContain('purchase_stub');
+  });
+
+  test('no endpoint configured -> zero network sends (local-only default)', async ({ page }) => {
+    let outbound = 0;
+    await page.route('**/collect-test**', async route => { outbound++; await route.fulfill({ status: 200, body: '{}' }); });
+    await page.goto('/');
+    await injectState(page, {});
+    await page.evaluate(() => window.flushAnalytics());
+    await page.waitForTimeout(600);
+    expect(outbound).toBe(0);
+    const an = await page.evaluate(() => window.getAnalytics());
+    expect(an.sentIdx || 0).toBe(0);
+  });
+
+  test('UTM params + referrer are captured as acquisition first-touch', async ({ page }) => {
+    await page.goto('/?utm_source=reddit&utm_medium=post&utm_campaign=wave1');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+    const an = await page.evaluate(() => window.getAnalytics());
+    const acq = an.events.find(e => e.n === 'acquisition');
+    expect(acq).toBeTruthy();
+    expect(acq.p.source).toBe('reddit');
+    expect(acq.p.campaign).toBe('wave1');
+    expect(an.firstTouch).toBeTruthy();
+    expect(an.firstTouch.source).toBe('reddit');
+    // first-touch is sticky: a later visit with different UTM must not overwrite it
+    await page.goto('/?utm_source=twitter&utm_campaign=wave2');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+    const an2 = await page.evaluate(() => window.getAnalytics());
+    expect(an2.firstTouch.source).toBe('reddit');
+  });
+});
+
+// ============================================================
 // P0 — DEMO BLOCKER: tutorial-overlay pointer-block
 // BUILD-SHEET-10K §6 P0. Done-criterion: fresh load → tap nav → screen switches.
 // The onboarding scrim (#tut-overlay.show) must NEVER swallow nav taps.
