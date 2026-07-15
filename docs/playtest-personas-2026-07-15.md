@@ -134,7 +134,7 @@ collapse or clearly differentiate the two currencies.
 |---|---|---|---|---|
 | 1 ✅ | **Auction purse-trap fix** — SHIPPED 2026-07-15: pool now sells budget lots first, marquee closes the show + first-auction purse tip. Re-measured: same naive bidding keeps 1,118 of 2,000 purse (was 490). | Rohan, Priya, every day-1 user | S | Pre-wave polish — day-1 fairness IS the funnel |
 | 2 ✅ | **XI auto-preselect** — SHIPPED 2026-07-15: first open pre-selects a legal XI via buildPlayingXI (overseas cap respected), Confirm live immediately. | Priya, everyone's first match | S | Pre-wave polish |
-| 3 | **Quick Match (5-over) mode** | Priya + commute sessions = D1 lever | M | Strong candidate if wave-1 shows short sessions |
+| 3 ✅ | **Quick Match — SHIPPED 2026-07-15:** Blitz 5-over format on the pre-match screen (defaults back to T20 each match day); innings cap 30 balls in live sim + skip path; match payout and Contract XP halved. E2E green. | Priya + commute sessions = D1 lever | M | Shipped pre-wave |
 | 4 | **Account/cloud save** | Vikram (blocks any real revenue), all (device loss) | L | **Gate for C2 billing** — schedule before it |
 | 5 | **Progressive system unlock** (underworld reveals at match 3–4) | Priya; tutorial_done→D1 funnel | M | Post-wave-1, if funnel shows early drop |
 | 6 | **Underworld density/chains + notoriety with teeth** | Arjun — the differentiation audience | M–L | Post-signal; deepens the moat §11 named |
