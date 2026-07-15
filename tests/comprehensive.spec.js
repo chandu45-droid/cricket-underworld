@@ -430,6 +430,39 @@ test.describe('Pre-Match', () => {
 // 7. MATCH ENGINE
 // ============================================================
 test.describe('Match Engine', () => {
+  test('blitz format plays a 5-over match with halved rewards', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    await page.click('#hub-match-btn');
+    await page.waitForTimeout(600);
+    await dismissOverlays(page);
+    const ss = page.locator('.squad-select-overlay.show');
+    if (await ss.count() > 0) { await page.click('#ss-auto-btn'); await page.waitForTimeout(300); await page.click('#ss-confirm-btn'); }
+    await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
+    await expect(page.locator('#format-opts')).toBeVisible();
+    await page.click('#format-opts .strategy-opt[data-format="blitz"]');
+    await page.waitForTimeout(200);
+    const coinsBefore = await page.evaluate(() => window.GS.coins);
+    await page.click('#start-match-btn');
+    await page.waitForSelector('#match-screen.active', { timeout: 5000 });
+    const isBlitz = await page.evaluate(() => window.match.blitz);
+    expect(isBlitz).toBe(true);
+    await page.click('#skip-btn');
+    await page.waitForSelector('.match-result-overlay.show', { timeout: 10000 });
+    const st = await page.evaluate(() => ({
+      lastBall: window.match.ball, target: window.match.target, coins: window.GS.coins
+    }));
+    expect(st.lastBall).toBeLessThanOrEqual(31); // 5-over innings = 30 balls
+    expect(st.target).toBeGreaterThan(0);
+    expect(st.coins).toBeGreaterThan(coinsBefore); // some payout landed
+    // match payout hero shows the HALVED blitz figure (T20 pays 80+ win / 30 loss)
+    const payout = await page.locator('.match-payout').textContent();
+    const amount = parseInt((payout.match(/\+?\s*(\d+)/) || [])[1], 10);
+    expect(amount).toBeLessThanOrEqual(60);
+    const scores = await page.locator('.result-scores').textContent();
+    expect(scores).toMatch(/\d+\/\d+/);
+  });
+
   test('skip produces valid non-zero scores', async ({ page }) => {
     await page.goto('/');
     await injectState(page);

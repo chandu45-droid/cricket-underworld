@@ -2658,6 +2658,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="strategy-opt selected" data-strat="balanced">Balanced</div>
           <div class="strategy-opt" data-strat="defensive">Defense</div>
         </div>
+        <div class="pm-section" style="margin-top:14px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-bright)" stroke-width="2"><polyline points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg><span class="pm-section-label text-gold">Format</span><span class="pm-section-line"></span></div>
+        <div class="strategy-options" id="format-opts">
+          <div class="strategy-opt selected" data-format="t20">T20 · 20 ov</div>
+          <div class="strategy-opt" data-format="blitz">Blitz · 5 ov</div>
+        </div>
+        <div class="text-xs text-slip" style="margin-top:6px">Blitz: a full match in under 2 minutes — rewards are halved.</div>
       </div>
       <div class="glass accent-blue" id="bowler-lineup-panel">
         <div class="pm-section"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue-bright)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span class="pm-section-label text-blue">Bowler Lineup</span><span class="pm-section-line"></span></div>
@@ -6372,7 +6378,7 @@ function endAuction() {
 // =============================================
 // MATCH
 // =============================================
-var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[], lastBowler:null, bowlerLineup:[], drsUsed:false, impactUsed:false, weather:'clear', rainOver:0, superOver:false };
+var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[], lastBowler:null, bowlerLineup:[], drsUsed:false, impactUsed:false, weather:'clear', rainOver:0, superOver:false, blitz:false, blitzNext:false };
 
 function updateMomentum(runs, wkt, isYou) {
   var shift = runs * 2 + (wkt ? -15 : 0);
@@ -7221,9 +7227,13 @@ function startPreMatch() {
   else if (GS.bhaiBonus && GS.bhaiBonus.type === 'pitchtamper') pdesc += ' · the track looks doctored — not in your favour';
   $('pitch-desc').textContent = pdesc;
   match.pitchType = pitch.t;
-  var opts = document.querySelectorAll('.strategy-opt');
+  var opts = document.querySelectorAll('#strategy-opts .strategy-opt');
   for (var i = 0; i < opts.length; i++) { opts[i].className = 'strategy-opt' + (opts[i].getAttribute('data-strat') === 'balanced' ? ' selected' : ''); }
   GS.strategy = 'balanced';
+  // format defaults back to T20 each match day
+  match.blitzNext = false;
+  var fmts = document.querySelectorAll('#format-opts .strategy-opt');
+  for (var fi2 = 0; fi2 < fmts.length; fi2++) { fmts[fi2].className = 'strategy-opt' + (fmts[fi2].getAttribute('data-format') === 't20' ? ' selected' : ''); }
   if (GS.mafiaBonus) {
     show('fix-active-banner');
     var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',matchfixlose:'THROWING MATCH — Earning 300 B$',forcelose:'FORCED LOSS — Mafia debt punishment',auctionleak:'Auction Leak — Intel active',scoutintel:'Scout Intel — Hidden stats revealed',rivalthrow:'RIVAL BRIBED — Opponent Throwing the Match'};
@@ -7237,6 +7247,7 @@ function startPreMatch() {
 function startMatch() {
   SFX.tap();
   match.active = true; match.innings = 1;
+  match.blitz = !!match.blitzNext;
   match.batting = Math.random() < 0.5 ? 'you' : 'opp';
   match.youBatFirst = match.batting === 'you';
   match.runs = 0; match.wkts = 0; match.oppRuns = 0; match.oppWkts = 0;
@@ -7435,7 +7446,7 @@ function simBall() {
     if (match.batting === 'you' && match.runs > match.target) { endMatch(); return; }
     if (match.batting === 'opp' && match.oppRuns > match.target) { endMatch(); return; }
   }
-  if (cWkts >= 10 || (over >= 19 && ballInOver === 5)) {
+  if (cWkts >= 10 || (over >= (match.blitz ? 4 : 19) && ballInOver === 5)) {
     if (match.innings === 1) switchInnings(); else endMatch();
   }
 }
@@ -7773,7 +7784,7 @@ function skipMatch() {
       if (match.batting === 'you' && match.runs > match.target) { endMatch(); return; }
       if (match.batting === 'opp' && match.oppRuns > match.target) { endMatch(); return; }
     }
-    if (cW >= 10 || (ov >= 19 && bIO === 5)) {
+    if (cW >= 10 || (ov >= (match.blitz ? 4 : 19) && bIO === 5)) {
       if (match.innings === 1) {
         match.target = match.batting === 'you' ? match.runs : match.oppRuns;
         match.innings = 2; match.batting = match.batting === 'you' ? 'opp' : 'you'; match.ball = 0;
@@ -7822,6 +7833,7 @@ function endMatch() {
   var wasFix = GS.mafiaBonus !== null;
   var fanMod = getFanLoyaltyMod();
   var coinR = won ? Math.round(80 * zone.coinMult * fanMod) : 30;
+  if (match.blitz) coinR = Math.round(coinR * 0.5); // Blitz: quarter the time, half the pay
   var cleanBonus = 0;
   if (!wasFix) {
     GS.cleanStreak++;
@@ -9096,13 +9108,22 @@ function bindEvents() {
   $('bowler-lock-btn').addEventListener('click', function() {
     lockBowlerLineup();
   });
-  var stratOpts = document.querySelectorAll('.strategy-opt');
+  var stratOpts = document.querySelectorAll('#strategy-opts .strategy-opt');
   for (var s = 0; s < stratOpts.length; s++) {
     stratOpts[s].addEventListener('click', function() {
       SFX.tap();
       for (var j = 0; j < stratOpts.length; j++) stratOpts[j].classList.remove('selected');
       this.classList.add('selected');
       GS.strategy = this.getAttribute('data-strat');
+    });
+  }
+  var fmtOpts = document.querySelectorAll('#format-opts .strategy-opt');
+  for (var f = 0; f < fmtOpts.length; f++) {
+    fmtOpts[f].addEventListener('click', function() {
+      SFX.tap();
+      for (var j = 0; j < fmtOpts.length; j++) fmtOpts[j].classList.remove('selected');
+      this.classList.add('selected');
+      match.blitzNext = this.getAttribute('data-format') === 'blitz';
     });
   }
   $('skip-btn').addEventListener('click', skipMatch);
@@ -9504,6 +9525,7 @@ function passTier() {
 function awardPassXP(won, tied, wasFix, challengeResult) {
   var before = passTier();
   var xp = won ? 50 : 25;
+  if (match.blitz) xp = Math.round(xp * 0.5);
   if (!wasFix) xp += 10;
   if (challengeResult && challengeResult.passed) xp += 30;
   GS.seasonPass.xp = Math.min(PASS_MAX_TIER * PASS_TIER_XP, GS.seasonPass.xp + xp);
