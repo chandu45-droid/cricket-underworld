@@ -441,3 +441,95 @@ test.describe('P0 — Tutorial overlay must not block navigation', () => {
     expect(done).toBe(true);
   });
 });
+
+// ============================================================
+// CLOUD SAVE & BACKUP (playtest #4 — progress survives a new phone /
+// cleared cache; prerequisite for real billing). Backup-code layer works
+// with no infra; cloud layer is endpoint-pluggable like the analytics sink.
+// ============================================================
+test.describe('Cloud Save & Backup', () => {
+  test('backup code round-trips the full save (coins, unicode name, squad)', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 4321, teamName: 'Śívá XI' });
+    const r = await page.evaluate(() => {
+      const code = window.exportSaveString();
+      window.GS.coins = 1; window.GS.teamName = 'Wiped'; window.GS.squad = [];
+      const ok = window.importSaveString(code);
+      return { prefix: code.slice(0, 8), ok, coins: window.GS.coins, name: window.GS.teamName, squad: window.GS.squad.length };
+    });
+    expect(r.prefix).toBe('CUSAVE1:');
+    expect(r.ok).toBe(true);
+    expect(r.coins).toBe(4321);
+    expect(r.name).toBe('Śívá XI');
+    expect(r.squad).toBeGreaterThan(0);
+  });
+
+  test('a corrupt or garbage backup code is rejected, not applied', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 999 });
+    const r = await page.evaluate(() => {
+      const good = window.exportSaveString();
+      return {
+        corrupt: window.importSaveString(good.slice(0, -3) + 'zzz'),
+        garbage: window.importSaveString('totally not a code'),
+        empty: window.importSaveString(''),
+        coinsIntact: window.GS.coins
+      };
+    });
+    expect(r.corrupt).toBe(false);
+    expect(r.garbage).toBe(false);
+    expect(r.empty).toBe(false);
+    expect(r.coinsIntact).toBe(999); // a rejected restore never touches live state
+  });
+
+  test('cloud backup + restore round-trips through a configured endpoint', async ({ page }) => {
+    const store = {};
+    await page.route('**/cloudsave-test**', async route => {
+      const body = JSON.parse(route.request().postData());
+      if (body.op === 'put') { store[body.code] = body.save; await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, code: body.code }) }); }
+      else if (body.op === 'get') { const s = store[body.code]; await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(s ? { ok: true, save: s } : { ok: false, error: 'not-found' }) }); }
+      else await route.fulfill({ status: 400, body: '{}' });
+    });
+    await page.goto('/');
+    await injectState(page, { coins: 5150 });
+    await page.evaluate(() => localStorage.setItem('cu_cloudsave_endpoint', 'https://cloud.example/cloudsave-test'));
+    // back up, capture the code, wipe, restore
+    const code = await page.evaluate(() => new Promise(res => {
+      window.cloudBackup(function(ok) { res(ok ? window.GS.saveCode : null); });
+    }));
+    expect(code).toBeTruthy();
+    await page.evaluate(() => { window.GS.coins = 7; });
+    const restored = await page.evaluate((c) => new Promise(res => {
+      window.cloudRestore(c, function(ok) { res({ ok: ok, coins: window.GS.coins }); });
+    }), code);
+    expect(restored.ok).toBe(true);
+    expect(restored.coins).toBe(5150);
+  });
+
+  test('cloud restore reports not-found for an unknown code', async ({ page }) => {
+    await page.route('**/cloudsave-test**', async route => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: false, error: 'not-found' }) });
+    });
+    await page.goto('/');
+    await injectState(page, {});
+    await page.evaluate(() => localStorage.setItem('cu_cloudsave_endpoint', 'https://cloud.example/cloudsave-test'));
+    const r = await page.evaluate(() => new Promise(res => {
+      window.cloudRestore('ZZZZZZ', function(ok, err) { res({ ok: ok, err: err }); });
+    }));
+    expect(r.ok).toBe(false);
+    expect(r.err).toBe('not-found');
+  });
+
+  test('with no endpoint configured, cloud ops no-op and the backup section still works', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, {});
+    const r = await page.evaluate(() => new Promise(res => {
+      const enabled = window.cloudSaveEnabled();
+      window.cloudBackup(function(ok, err) { res({ enabled: enabled, ok: ok, err: err, canExport: !!window.exportSaveString() }); });
+    }));
+    expect(r.enabled).toBe(false);
+    expect(r.ok).toBe(false);
+    expect(r.err).toBe('no-endpoint');
+    expect(r.canExport).toBe(true); // offline backup code always available
+  });
+});

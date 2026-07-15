@@ -868,6 +868,10 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .nickname-row .nn-input:focus{border-color:var(--gold-bright)}
 .reset-section{margin-top:24px;padding-top:16px;border-top:1px solid rgba(220,38,38,0.15)}
 .reset-section .text-xs{color:var(--slip);margin-bottom:8px}
+.backup-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(var(--hl-rgb),0.03);border:1px solid var(--border)}
+.save-code{font-family:var(--font-d);font-size:20px;font-weight:700;letter-spacing:4px;color:var(--gold-bright)}
+.backup-box{width:100%;min-height:56px;margin-top:6px;padding:8px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid var(--border);border-radius:3px;color:var(--white);font-family:monospace;font-size:11px;line-height:1.4;resize:vertical;word-break:break-all}
+.backup-box:focus{outline:none;border-color:var(--gold-bright)}
 
 /* ================================================================
    TRANSFER MARKET
@@ -2952,6 +2956,26 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="btn btn-gold full" id="install-app-btn">Install App on Device</div>
     </div>
 
+    <div class="custom-section" id="backup-section">
+      <div class="custom-section-title">Cloud Save &amp; Backup</div>
+      <div class="text-xs text-slip mb-8">Your progress lives on this device. Back it up so a new phone or a cleared browser never wipes your empire.</div>
+      <div id="cloud-save-block" style="display:none">
+        <div class="backup-row"><span class="text-xs text-slip">Your Save Code</span><span class="save-code" id="save-code-val">—</span></div>
+        <div class="flex gap-8" style="margin-top:8px">
+          <div class="btn btn-outline flex-1" id="cloud-backup-btn">Back Up to Cloud</div>
+          <div class="btn btn-outline flex-1" id="cloud-restore-btn">Restore by Code</div>
+        </div>
+      </div>
+      <div class="btn btn-outline full" id="backup-export-btn" style="margin-top:8px">Show Backup Code</div>
+      <textarea id="backup-string-box" class="backup-box" readonly placeholder="Your backup code appears here — copy and keep it safe" style="display:none"></textarea>
+      <div class="btn btn-outline full" id="backup-copy-btn" style="display:none;margin-top:6px">Copy Backup Code</div>
+      <div class="backup-restore" style="margin-top:12px">
+        <div class="text-xs text-slip mb-8">Restore from a backup code:</div>
+        <textarea id="backup-restore-box" class="backup-box" placeholder="Paste a backup code here"></textarea>
+        <div class="btn btn-outline full" id="backup-import-btn" style="margin-top:6px">Restore This Save</div>
+      </div>
+    </div>
+
     <div class="reset-section">
       <div class="text-xs">Danger zone</div>
       <div class="btn btn-red full" id="custom-reset-btn">Reset All Progress</div>
@@ -3099,6 +3123,7 @@ var GS = {
   ads: { date: '', purse: 0, pack: 0, boost: 0, pendingPurse: false },
   factions: null,
   lastLogin: null, loginStreak: 0, bestLoginStreak: 0, loginClaimedDate: null,
+  saveCode: null,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -3420,10 +3445,10 @@ function updateThemeQuickBtn() {
   b.setAttribute('aria-label', lbl);
   b.setAttribute('title', lbl);
 }
-function load() {
-  try {
-    var d = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (d && d.coins !== undefined && Array.isArray(d.squad)) {
+// Map a plain save object onto GS. Shared by localStorage load, backup-code
+// import, and cloud restore. Returns true if the object was a valid save.
+function hydrateGS(d) {
+  if (!(d && d.coins !== undefined && Array.isArray(d.squad))) return false;
       function v(val, def) { return val != null ? val : def; }
       GS.coins=v(d.coins,2000); GS.gems=v(d.gems,50); GS.blackMoney=v(d.blackMoney,0);
       GS.alignment=v(d.alignment,0); GS.heat=v(d.heat,0); GS.fans=v(d.fans,50);
@@ -3457,11 +3482,128 @@ function load() {
       GS.tipsSeen=v(d.tipsSeen,{});
       GS.factions=v(d.factions,null);
       GS.lastLogin=v(d.lastLogin,null); GS.loginStreak=v(d.loginStreak,0); GS.bestLoginStreak=v(d.bestLoginStreak,0); GS.loginClaimedDate=v(d.loginClaimedDate,null);
+      GS.saveCode=v(d.saveCode,null);
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
-    }
+  return true;
+}
+function load() {
+  try {
+    hydrateGS(JSON.parse(localStorage.getItem(SAVE_KEY)));
   } catch(e) { localStorage.removeItem(SAVE_KEY); }
 }
+
+// =============================================
+// CLOUD SAVE & BACKUP (playtest #4 — progress must survive a new phone
+// or a cleared cache; prerequisite for real-money billing). Two layers,
+// both billing-model-agnostic and requiring NO auth server:
+//   1. Backup string — a portable, copy-paste code of the whole save
+//      (works offline, zero infrastructure).
+//   2. Cloud sync — optional push/pull keyed by a short Save Code, over
+//      the same free Google Apps Script pattern the analytics sink uses.
+// =============================================
+var SAVE_STR_PREFIX = 'CUSAVE1:';
+function _b64Encode(str) {
+  // encodeURIComponent handles unicode team/manager names before btoa
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function _b64Decode(b64) {
+  return decodeURIComponent(escape(atob(b64)));
+}
+function _saveChecksum(str) {
+  // small non-cryptographic checksum so a mistyped/truncated code fails cleanly
+  var h = 5381;
+  for (var i = 0; i < str.length; i++) { h = ((h << 5) + h + str.charCodeAt(i)) & 0xffffffff; }
+  return (h >>> 0).toString(36);
+}
+function exportSaveString() {
+  try {
+    var json = JSON.stringify(GS);
+    var body = _b64Encode(json);
+    return SAVE_STR_PREFIX + _saveChecksum(body) + '.' + body;
+  } catch (e) { return ''; }
+}
+// Parse+validate a backup string into a save object (does NOT apply it).
+function parseSaveString(str) {
+  try {
+    str = (str || '').trim();
+    if (str.indexOf(SAVE_STR_PREFIX) !== 0) return null;
+    var rest = str.slice(SAVE_STR_PREFIX.length);
+    var dot = rest.indexOf('.');
+    if (dot < 0) return null;
+    var sum = rest.slice(0, dot), body = rest.slice(dot + 1);
+    if (_saveChecksum(body) !== sum) return null; // corrupt / mistyped
+    var obj = JSON.parse(_b64Decode(body));
+    if (!(obj && obj.coins !== undefined && Array.isArray(obj.squad))) return null;
+    return obj;
+  } catch (e) { return null; }
+}
+// Apply a backup string. Returns true on success.
+function importSaveString(str) {
+  var obj = parseSaveString(str);
+  if (!obj) return false;
+  if (!hydrateGS(obj)) return false;
+  save();
+  return true;
+}
+// --- Cloud layer (optional; no-op with no endpoint configured) ---
+var CLOUDSAVE_ENDPOINT = ''; // e.g. 'https://script.google.com/macros/s/XXXX/exec'
+function _csEndpoint() {
+  try { var o = localStorage.getItem('cu_cloudsave_endpoint'); if (o) return o; } catch (e) {}
+  return CLOUDSAVE_ENDPOINT;
+}
+function cloudSaveEnabled() { return !!_csEndpoint(); }
+// Short, human-typeable code that keys this player's cloud slot.
+function ensureSaveCode() {
+  if (!GS.saveCode) {
+    var c = '';
+    var alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no I/O/0/1 ambiguity
+    for (var i = 0; i < 6; i++) c += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+    GS.saveCode = c;
+    save();
+  }
+  return GS.saveCode;
+}
+// POST the current save to the cloud slot. cb(ok, err).
+function cloudBackup(cb) {
+  var url = _csEndpoint();
+  if (!url) { if (cb) cb(false, 'no-endpoint'); return; }
+  var code = ensureSaveCode();
+  try {
+    var payload = JSON.stringify({ op: 'put', code: code, save: exportSaveString(), t: Date.now() });
+    if (typeof fetch !== 'function') { if (cb) cb(false, 'no-fetch'); return; }
+    fetch(url, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain' } })
+      .then(function (r) { return r.json().catch(function () { return { ok: r.ok }; }); })
+      .then(function (j) { if (cb) cb(!!(j && j.ok), j && j.error); })
+      .catch(function (e) { if (cb) cb(false, String(e)); });
+  } catch (e) { if (cb) cb(false, String(e)); }
+}
+// Pull a save from the cloud slot by code and apply it. cb(ok, err).
+function cloudRestore(code, cb) {
+  var url = _csEndpoint();
+  if (!url) { if (cb) cb(false, 'no-endpoint'); return; }
+  code = (code || '').trim().toUpperCase();
+  if (!code) { if (cb) cb(false, 'no-code'); return; }
+  try {
+    var payload = JSON.stringify({ op: 'get', code: code });
+    if (typeof fetch !== 'function') { if (cb) cb(false, 'no-fetch'); return; }
+    fetch(url, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain' } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.ok || !j.save) { if (cb) cb(false, (j && j.error) || 'not-found'); return; }
+        var applied = importSaveString(j.save);
+        if (cb) cb(applied, applied ? null : 'bad-save');
+      })
+      .catch(function (e) { if (cb) cb(false, String(e)); });
+  } catch (e) { if (cb) cb(false, String(e)); }
+}
+window.exportSaveString = exportSaveString;
+window.importSaveString = importSaveString;
+window.parseSaveString = parseSaveString;
+window.cloudBackup = cloudBackup;
+window.cloudRestore = cloudRestore;
+window.ensureSaveCode = ensureSaveCode;
+window.cloudSaveEnabled = cloudSaveEnabled;
 function initRivalData() {
   for (var i = 0; i < RIVALS.length; i++) {
     var n = RIVALS[i].name;
@@ -8868,6 +9010,17 @@ function showCustomise() {
   });
   if (GS.squad.length === 0) nnHtml = '<div class="text-xs text-slip">No players in squad yet</div>';
   $('nickname-list').innerHTML = nnHtml;
+  // Cloud-save block only appears when a cloud endpoint is configured;
+  // the backup-code layer always works (no infra).
+  if (cloudSaveEnabled()) {
+    $('cloud-save-block').style.display = '';
+    $('save-code-val').textContent = ensureSaveCode();
+  } else {
+    $('cloud-save-block').style.display = 'none';
+  }
+  $('backup-string-box').style.display = 'none';
+  $('backup-copy-btn').style.display = 'none';
+  $('backup-restore-box').value = '';
   $('custom-overlay').classList.add('show');
 }
 
@@ -9250,6 +9403,49 @@ function bindEvents() {
     if (confirm('Reset ALL progress? This cannot be undone.')) {
       localStorage.removeItem(SAVE_KEY); location.reload();
     }
+  });
+  $('backup-export-btn').addEventListener('click', function() {
+    SFX.tap();
+    var box = $('backup-string-box');
+    box.value = exportSaveString();
+    box.style.display = ''; $('backup-copy-btn').style.display = '';
+    box.focus(); box.select();
+  });
+  $('backup-copy-btn').addEventListener('click', function() {
+    SFX.tap();
+    var box = $('backup-string-box');
+    box.focus(); box.select();
+    var done = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(box.value).then(function(){ toast('Backup code copied', 'success'); }).catch(function(){});
+      done = true;
+    }
+    if (!done) { try { document.execCommand('copy'); toast('Backup code copied', 'success'); } catch(e) { toast('Select the code and copy it', 'error'); } }
+  });
+  $('backup-import-btn').addEventListener('click', function() {
+    var str = $('backup-restore-box').value;
+    if (!str.trim()) { toast('Paste a backup code first', 'error'); return; }
+    if (!confirm('Restore this save? Your current progress on this device will be replaced.')) return;
+    if (importSaveString(str)) { toast('Save restored!', 'success'); setTimeout(function(){ location.reload(); }, 700); }
+    else { toast('That backup code is invalid or corrupt', 'error'); }
+  });
+  $('cloud-backup-btn').addEventListener('click', function() {
+    SFX.tap();
+    toast('Backing up…', 'success');
+    cloudBackup(function(ok) {
+      if (ok) toast('Backed up! Code: ' + GS.saveCode, 'success');
+      else toast('Cloud backup failed — try the backup code instead', 'error');
+    });
+  });
+  $('cloud-restore-btn').addEventListener('click', function() {
+    var code = prompt('Enter the Save Code from your other device:');
+    if (!code) return;
+    if (!confirm('Restore from cloud? Current progress on this device will be replaced.')) return;
+    toast('Restoring…', 'success');
+    cloudRestore(code, function(ok, err) {
+      if (ok) { toast('Restored from cloud!', 'success'); setTimeout(function(){ location.reload(); }, 700); }
+      else toast(err === 'not-found' ? 'No save found for that code' : 'Cloud restore failed', 'error');
+    });
   });
   $('color-picker').addEventListener('click', function(e) {
     var swatch = e.target.closest('.color-swatch');
