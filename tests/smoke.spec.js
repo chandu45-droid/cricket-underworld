@@ -303,6 +303,15 @@ test('Sponsor Break: rewarded ads — free pack, purse boost, post-match doubler
   await page.waitForSelector('#cards-screen.active', { timeout: 5000 });
   await page.click('#drawer-packs-toggle');
   await expect(page.locator('#pack-ad-btn')).toBeVisible();
+
+  // --- F3-2: aborting the ad (backdrop tap) must NOT burn the daily spot ---
+  await page.click('#pack-ad-btn');
+  await expect(page.locator('#ad-overlay')).toHaveClass(/show/);
+  await page.click('#ad-overlay', { position: { x: 8, y: 8 } }); // backdrop, outside the billboard
+  await expect(page.locator('#ad-overlay')).not.toHaveClass(/show/);
+  expect(await page.evaluate(() => GS.ads.pack)).toBe(0);
+  await expect(page.locator('#pack-ad-btn')).not.toHaveClass(/used/);
+
   const before = await page.evaluate(() => ({ coins: GS.coins, gems: GS.gems, squad: GS.squad.length }));
   await page.click('#pack-ad-btn');
   await watchAd();

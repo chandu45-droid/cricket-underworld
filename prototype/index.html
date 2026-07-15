@@ -9964,9 +9964,9 @@ function adReset() {
 }
 function adAvailable(p) { adReset(); return GS.ads[p] < AD_CAPS[p]; }
 var adOnReward = null;
+var adPlacement = null; // spot is consumed on CLAIM, not ad start — aborting the ad costs nothing
 function showRewardedAd(placement, rewardLbl, onReward) {
   if (!adAvailable(placement)) { toast('Sponsor spots done for today — back tomorrow', 'error'); return; }
-  GS.ads[placement]++; save();
   var b = AD_BRANDS[Math.floor(Math.random() * AD_BRANDS.length)];
   $('ad-brand').textContent = b.name;
   $('ad-tagline').textContent = '"' + b.tag + '"';
@@ -9975,15 +9975,22 @@ function showRewardedAd(placement, rewardLbl, onReward) {
   var fill = $('ad-timer-fill');
   fill.style.transition = 'none'; fill.style.width = '0%';
   adOnReward = onReward;
+  adPlacement = placement;
   $('ad-overlay').classList.add('show');
   setTimeout(function () { fill.style.transition = 'width 3s linear'; fill.style.width = '100%'; }, 60);
   setTimeout(function () { claim.classList.add('ready'); }, 3100);
 }
 $('ad-claim-btn').addEventListener('click', function () {
   $('ad-overlay').classList.remove('show');
-  var cb = adOnReward; adOnReward = null;
+  var cb = adOnReward, pl = adPlacement;
+  adOnReward = null; adPlacement = null;
+  if (pl) { GS.ads[pl]++; save(); }
   if (cb) cb();
   updateAdSpots();
+});
+// Backdrop-dismiss abort: close the ad without claiming — costs nothing, drops the pending reward
+$('ad-overlay').addEventListener('click', function (e) {
+  if (e.target === this) { this.classList.remove('show'); adOnReward = null; adPlacement = null; }
 });
 function updateAdSpots() {
   adReset();
