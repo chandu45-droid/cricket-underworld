@@ -3104,6 +3104,7 @@ var GS = {
   pepTalkUsed: false,
   winStreak: 0,
   bestStreak: 0,
+  streakShield: false,
   dailyChallenge: null,
   lastChallengeDate: null,
   mentorship: null,
@@ -3466,7 +3467,7 @@ function hydrateGS(d) {
       GS.purchases=v(d.purchases,[]);
       GS.ads=v(d.ads,{date:'',purse:0,pack:0,boost:0,pendingPurse:false});
       GS.rivalWins=v(d.rivalWins,{}); GS.pepTalkUsed=v(d.pepTalkUsed,false);
-      GS.winStreak=v(d.winStreak,0); GS.bestStreak=v(d.bestStreak,0);
+      GS.winStreak=v(d.winStreak,0); GS.bestStreak=v(d.bestStreak,0); GS.streakShield=v(d.streakShield,false);
       GS.dailyChallenge=v(d.dailyChallenge,null); GS.lastChallengeDate=v(d.lastChallengeDate,null);
       GS.mentorship=v(d.mentorship,null);
       GS.knockout=v(d.knockout,null);
@@ -6047,6 +6048,11 @@ function goScreen(name) {
   var next = $(name + '-screen');
   if (old) { old.classList.remove('active','swipe-exit-left','swipe-exit-right','swiping'); old.style.transform = ''; old.style.opacity = ''; }
   if (next) next.classList.add('active');
+  setNavState(name);
+}
+
+// Shared nav-state sync — used by goScreen (taps) and the swipe gesture engine
+function setNavState(name) {
   currentScreen = name;
   var navItems = document.querySelectorAll('.nav-item');
   for (var i = 0; i < navItems.length; i++) {
@@ -7810,7 +7816,13 @@ function processWinStreak(won) {
   if (won) {
     GS.winStreak++;
     if (GS.winStreak > GS.bestStreak) GS.bestStreak = GS.winStreak;
-  } else { GS.winStreak = 0; }
+    if (GS.winStreak === 3) GS.streakShield = true; // one shield per streak run, armed at 3
+  } else if (GS.winStreak >= 3 && GS.streakShield) {
+    // Streak Shield: the first loss in a 3+ run is forgiven — streak survives
+    GS.streakShield = false; save();
+    return { shield: true, streak: GS.winStreak };
+  } else { GS.winStreak = 0; GS.streakShield = false; }
+  if (!won) return null;
   var milestone = null;
   for (var i = STREAK_MILESTONES.length - 1; i >= 0; i--) {
     if (GS.winStreak === STREAK_MILESTONES[i].at) { milestone = STREAK_MILESTONES[i]; break; }
@@ -8076,7 +8088,7 @@ function endMatch() {
   rewardsHtml += '<div class="reward-row"><span>Morale</span><span class="val ' + (won ? 'positive' : 'negative') + '">' + (won ? '+5' : '-3') + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>League Points</span><span class="val positive">+' + (won ? 3 : tied ? 1 : 0) + '</span></div>';
   if (wasFix) rewardsHtml += '<div class="reward-row"><span>Fix Heat</span><span class="val negative">+5</span></div>';
-  if (streakMilestone) rewardsHtml += '<div class="reward-row"><span>Streak Bonus (' + streakMilestone.label + ')</span><span class="val" style="color:var(--gold-bright)">+' + streakMilestone.reward + '</span></div>';
+  if (streakMilestone && !streakMilestone.shield) rewardsHtml += '<div class="reward-row"><span>Streak Bonus (' + streakMilestone.label + ')</span><span class="val" style="color:var(--gold-bright)">+' + streakMilestone.reward + '</span></div>';
   if (challengeResult && challengeResult.passed) rewardsHtml += '<div class="reward-row"><span>Daily Challenge</span><span class="val" style="color:var(--blue-bright)">+' + challengeResult.reward + (challengeResult.currency === 'coins' ? '' : ' B$') + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>Contract XP</span><span class="val" style="color:var(--gold-bright)">+' + passResult.xp + '</span></div>';
   if (passResult.tiersGained > 0) rewardsHtml += '<div class="reward-row"><span>Syndicate Contract</span><span class="val" style="color:var(--gold-bright)">Tier ' + passResult.newTier + ' unlocked</span></div>';
@@ -8113,7 +8125,8 @@ function endMatch() {
     '<div class="match-payout"><div class="mp-label">Match Payout</div><div class="money hero"><span class="m-cur">C</span><span class="m-val">+' + coinR + '</span></div></div>' +
     '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
     '<div id="post-match-events" style="margin-top:12px"></div>' +
-    (streakMilestone ? '<div class="streak-milestone"><div class="sm-icon">' + streakMilestone.icon + '</div><div class="sm-title">' + GS.winStreak + ' Win Streak — ' + streakMilestone.label + '</div><div class="sm-reward">+' + streakMilestone.reward + ' coins</div></div>' : (GS.winStreak >= 2 && won ? '<div class="match-hook streak">' + GS.winStreak + ' wins in a row! ' + (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}) ? (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}).at - GS.winStreak) + ' more for bonus' : '') + '</div>' : '')) +
+    (streakMilestone && streakMilestone.shield ? '<div class="streak-milestone"><div class="sm-icon">\u{1F6E1}️</div><div class="sm-title">Streak Shield used — ' + streakMilestone.streak + '-win streak survives</div><div class="sm-reward">One loss forgiven per run. Win to keep it alive.</div></div>' :
+    streakMilestone ? '<div class="streak-milestone"><div class="sm-icon">' + streakMilestone.icon + '</div><div class="sm-title">' + GS.winStreak + ' Win Streak — ' + streakMilestone.label + '</div><div class="sm-reward">+' + streakMilestone.reward + ' coins</div></div>' : (GS.winStreak >= 2 && won ? '<div class="match-hook streak">' + GS.winStreak + ' wins in a row! ' + (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}) ? (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}).at - GS.winStreak) + ' more for bonus' : '') + '</div>' : '')) +
     (challengeResult ? '<div class="daily-challenge"><div class="dc-header"><span class="dc-tag">Daily</span><span class="dc-title">' + challengeResult.name + '</span></div><div class="dc-desc">' + challengeResult.desc + '</div><div class="dc-result ' + (challengeResult.passed ? 'pass' : 'fail') + '">' + (challengeResult.passed ? 'Completed! +' + challengeResult.reward + (challengeResult.currency === 'coins' ? ' coins' : ' B$') : 'Not completed — try again') + '</div></div>' : '') +
     getMatchHook(won, tied, match.opponent, GS.wins, GS.matchNum) +
     getNextOpponentTease() +
@@ -8611,7 +8624,7 @@ function endSeason() {
   } else if (relegated) {
     GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
   } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
-  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0;
+  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0; GS.streakShield = false;
   GS.seasonPass = { xp: 0, premium: false, claimedFree: [], claimedPremium: [] };
   GS.morale = Math.min(100, GS.morale + 10);
   var basePurse = 2000 + idx * 500;
@@ -9552,18 +9565,7 @@ function bindEvents() {
         void nextScreen.offsetWidth;
         nextScreen.classList.remove(enterClass);
         nextScreen.classList.add('active');
-        currentScreen = nextName;
-        var navItems = document.querySelectorAll('.nav-item');
-        for (var i = 0; i < navItems.length; i++) {
-          var isAct = navItems[i].getAttribute('data-screen') === nextName;
-          if (isAct) navItems[i].classList.add('active');
-          else navItems[i].classList.remove('active');
-        }
-        updateNavIndicator(nextName);
-        if (nextName === 'hub') updateHub();
-        if (nextName === 'squad') updateSquadScreen();
-        if (nextName === 'cards') updateCardsScreen();
-        if (nextName === 'league') updateLeagueTable();
+        setNavState(nextName);
         SFX.tap();
         (function(oldEl, cls) { setTimeout(function() { oldEl.classList.remove(cls); }, 500); })(activeScreen, exitClass);
       }

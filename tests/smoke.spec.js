@@ -410,3 +410,43 @@ test('field placement setting appears in bowler picker', async ({ page }) => {
   }
   test.skip();
 });
+
+test('Streak Shield: first loss in a 3+ run is forgiven once, second loss resets', async ({ page }) => {
+  await page.goto('/');
+  await setupGameState(page);
+  await dismissOverlays(page);
+
+  const r = await page.evaluate(() => {
+    GS.winStreak = 0; GS.bestStreak = 0; GS.streakShield = false;
+    const coinsBefore = GS.coins;
+    processWinStreak(true);
+    processWinStreak(true);
+    const m3 = processWinStreak(true); // streak 3 → milestone + shield armed
+    const armed = GS.streakShield;
+    const shieldRes = processWinStreak(false); // first loss forgiven
+    const afterFirstLoss = { streak: GS.winStreak, shield: GS.streakShield };
+    const secondLoss = processWinStreak(false); // no shield left → reset
+    return {
+      m3reward: m3 ? m3.reward : null,
+      milestoneCoins: GS.coins - coinsBefore,
+      armed,
+      shieldRes,
+      afterFirstLoss,
+      secondLoss,
+      afterSecondLoss: { streak: GS.winStreak, shield: GS.streakShield },
+      best: GS.bestStreak
+    };
+  });
+
+  expect(r.m3reward).toBe(50);          // 3-win milestone paid
+  expect(r.armed).toBe(true);           // shield armed at 3
+  expect(r.shieldRes.shield).toBe(true);
+  expect(r.shieldRes.streak).toBe(3);   // shield reports the surviving streak
+  expect(r.afterFirstLoss.streak).toBe(3);   // streak preserved
+  expect(r.afterFirstLoss.shield).toBe(false); // shield consumed
+  expect(r.milestoneCoins).toBe(50);    // no milestone re-award on the forgiven loss
+  expect(r.secondLoss).toBe(null);
+  expect(r.afterSecondLoss.streak).toBe(0);  // second loss resets
+  expect(r.afterSecondLoss.shield).toBe(false);
+  expect(r.best).toBe(3);
+});
