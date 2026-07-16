@@ -694,6 +694,11 @@ html[data-theme="light"] .auction-purse-zone .purse{
 
 /* Bid action buttons */
 .bid-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+/* Overspend armed-confirm warning (bid > 50% of remaining purse) */
+.overspend-warn{display:none;margin:0 0 8px;padding:8px 12px;font-family:var(--font-d);font-size:11px;font-weight:600;letter-spacing:0.5px;color:var(--amber);background:rgba(245,158,11,0.12);border:1px solid var(--amber);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.overspend-warn.show{display:block;animation:overspendIn 0.25s var(--spring)}
+@keyframes overspendIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+#bid-btn.armed{background:linear-gradient(135deg,#B45309,var(--amber));box-shadow:0 0 16px rgba(245,158,11,0.35)}
 #bid-btn{position:relative;overflow:hidden}
 #bid-btn.urgency{animation:bidUrgency 0.8s ease-in-out infinite}
 #bid-btn.urgency::after{content:'';position:absolute;inset:-2px;border:2px solid var(--gold-bright);clip-path:var(--clip-btn);animation:urgencyGlow 0.8s ease-in-out infinite;pointer-events:none}
@@ -1031,6 +1036,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .social-post:active{transform:scale(0.98)}
 .play-again-row{display:flex;gap:10px;margin-top:10px}
 .play-again-row .btn{flex:1}
+/* Sticky dismiss bar on match result — CTA always reachable without scrolling */
+.result-actions{position:sticky;bottom:0;z-index:5;width:100%;margin-top:10px;padding:12px 0 16px;background:linear-gradient(180deg,rgba(var(--ov-rgb),0) 0%,rgba(var(--ov-rgb),0.92) 30%,rgba(var(--ov-rgb),0.98) 100%)}
 .next-opponent-tease{text-align:center;padding:10px;margin:8px 0;border-radius:3px;border:1px dashed rgba(var(--hl-rgb),0.08);font-size:12px;color:var(--slip)}
 .next-opponent-tease strong{color:var(--white)}
 .ss-player.banned{opacity:0.4;pointer-events:none;position:relative}
@@ -1065,6 +1072,11 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .match-result-overlay .match-payout .money.hero .m-cur{opacity:0.65}
 .match-result-overlay .btn{max-width:400px;transition:all 0.2s var(--spring)}
 .match-result-overlay .btn:active{transform:scale(0.97)}
+/* Pack overlay — own class (was sharing .match-result-overlay with #match-result) */
+.pack-open-overlay{position:fixed;inset:0;z-index:200;background:rgba(var(--ov-rgb),0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;padding:0;opacity:0;pointer-events:none;transition:opacity 0.5s var(--spring);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pack-open-overlay.show{opacity:1;pointer-events:auto}
+.pack-open-overlay .btn{max-width:400px;transition:all 0.2s var(--spring)}
+.pack-open-overlay .btn:active{transform:scale(0.97)}
 
 /* ================================================================
    SQUAD — Premium Roster Management
@@ -2600,6 +2612,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
         <div class="bid-timer-bar"><div class="timer-bar-fill" id="timer-bar-fill"></div></div>
         <div style="display:none"><div id="timer-fill"></div><div id="timer-text"></div></div>
+        <div id="overspend-warn" class="overspend-warn"></div>
         <div class="bid-actions">
           <div class="btn btn-hero full" id="bid-btn">Bid <span id="bid-amount">120</span></div>
           <div class="btn btn-outline full" id="pass-btn">Pass</div>
@@ -2862,7 +2875,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 <div class="match-result-overlay" id="match-result"></div>
 <div class="overlay" id="mafia-overlay"><div class="modal" style="background:linear-gradient(180deg,rgba(15,13,26,0.98) 0%,rgba(8,6,16,0.98) 100%);border-color:rgba(220,38,38,0.12)"><div class="modal-handle" style="background:rgba(220,38,38,0.3)"></div><div id="mafia-offer-content"></div></div></div>
 <div class="overlay" id="player-detail-overlay"><div class="modal"><div class="modal-handle"></div><div id="player-detail-content"></div></div></div>
-<div class="match-result-overlay" id="pack-overlay"><div id="pack-opening-content" style="width:100%;max-width:400px"></div></div>
+<div class="pack-open-overlay" id="pack-overlay"><div id="pack-opening-content" style="width:100%;max-width:400px"></div></div>
 <div class="scorecard-overlay" id="scorecard-overlay"><div id="scorecard-content" style="width:100%;max-width:400px;margin:auto"></div></div>
 
 <!-- SQUAD SELECTION -->
@@ -3705,15 +3718,15 @@ var ALL_PLAYERS = [
 ];
 
 var RIVALS = [
-  {name:'Rajan Mehra',short:'RM',alignment:-58,strength:72,color:'crimson',personality:'shark',tendency:-0.7,bidMult:2.5,trait:'Aggressive — doubles down when cornered',heat:35,debts:2,banned:false},
-  {name:'Arvind Patil',short:'AP',alignment:65,strength:68,color:'green',personality:'purist',tendency:0.8,bidMult:1.5,trait:'Clean — will expose corruption',heat:0,debts:0,banned:false},
-  {name:'Siddharth Rao',short:'SR',alignment:10,strength:70,color:'blue',personality:'pragmatist',tendency:0.1,bidMult:2.0,trait:'Calculated — adapts to the situation',heat:12,debts:1,banned:false},
-  {name:'Balraj Khanna',short:'BK',alignment:-20,strength:65,color:'crimson',personality:'politician',tendency:0.0,bidMult:1.8,trait:'Two-faced — plays both sides',heat:18,debts:1,banned:false},
-  {name:'Manoj Desai',short:'MD',alignment:5,strength:60,color:'blue',personality:'coward',tendency:-0.3,bidMult:1.3,trait:'Nervous — panics under pressure',heat:8,debts:0,banned:false},
-  {name:'Priya Sundaram',short:'PS',alignment:-40,strength:74,color:'crimson',personality:'shark',tendency:-0.7,bidMult:2.3,trait:'Ruthless — will sabotage rivals to win',heat:28,debts:2,banned:false},
-  {name:'Gopal Reddy',short:'GR',alignment:48,strength:66,color:'green',personality:'purist',tendency:0.8,bidMult:1.4,trait:'Principled — refuses dirty money',heat:0,debts:0,banned:false},
-  {name:'Faizal Mirza',short:'FM',alignment:-10,strength:71,color:'blue',personality:'politician',tendency:0.0,bidMult:1.9,trait:'Smooth talker — colludes then betrays',heat:15,debts:1,banned:false},
-  {name:'Dilip Chadha',short:'DC',alignment:20,strength:63,color:'blue',personality:'coward',tendency:-0.3,bidMult:1.2,trait:'Easily intimidated — caves under threats',heat:5,debts:0,banned:false},
+  {name:'Rajan Mehra',short:'RM',alignment:-58,strength:72,color:'crimson',personality:'shark',tendency:-0.7,bidMult:1.8,trait:'Aggressive — doubles down when cornered',heat:35,debts:2,banned:false},
+  {name:'Arvind Patil',short:'AP',alignment:65,strength:68,color:'green',personality:'purist',tendency:0.8,bidMult:1.25,trait:'Clean — will expose corruption',heat:0,debts:0,banned:false},
+  {name:'Siddharth Rao',short:'SR',alignment:10,strength:70,color:'blue',personality:'pragmatist',tendency:0.1,bidMult:1.5,trait:'Calculated — adapts to the situation',heat:12,debts:1,banned:false},
+  {name:'Balraj Khanna',short:'BK',alignment:-20,strength:65,color:'crimson',personality:'politician',tendency:0.0,bidMult:1.4,trait:'Two-faced — plays both sides',heat:18,debts:1,banned:false},
+  {name:'Manoj Desai',short:'MD',alignment:5,strength:60,color:'blue',personality:'coward',tendency:-0.3,bidMult:1.1,trait:'Nervous — panics under pressure',heat:8,debts:0,banned:false},
+  {name:'Priya Sundaram',short:'PS',alignment:-40,strength:74,color:'crimson',personality:'shark',tendency:-0.7,bidMult:1.7,trait:'Ruthless — will sabotage rivals to win',heat:28,debts:2,banned:false},
+  {name:'Gopal Reddy',short:'GR',alignment:48,strength:66,color:'green',personality:'purist',tendency:0.8,bidMult:1.2,trait:'Principled — refuses dirty money',heat:0,debts:0,banned:false},
+  {name:'Faizal Mirza',short:'FM',alignment:-10,strength:71,color:'blue',personality:'politician',tendency:0.0,bidMult:1.45,trait:'Smooth talker — colludes then betrays',heat:15,debts:1,banned:false},
+  {name:'Dilip Chadha',short:'DC',alignment:20,strength:63,color:'blue',personality:'coward',tendency:-0.3,bidMult:1.05,trait:'Easily intimidated — caves under threats',heat:5,debts:0,banned:false},
 ];
 
 // =============================================
@@ -6407,7 +6420,7 @@ function startAuction() {
 function showNextCard() {
   if (auction.idx >= auction.pool.length) { endAuction(); return; }
   var p = auction.pool[auction.idx];
-  var base = { common:80, uncommon:120, rare:180, epic:280, legendary:400 }[p.rarity] || 80;
+  var base = { common:80, uncommon:120, rare:180, epic:200, legendary:400 }[p.rarity] || 80;
   auction.bid = base; auction.bidder = null;
   auction.step = Math.max(20, Math.round(base * 0.15));
   auction.timer = auction.maxTimer;
@@ -6415,6 +6428,7 @@ function showNextCard() {
   $('round-info').textContent = 'Card ' + (auction.idx + 1) + ' of ' + auction.pool.length;
   $('auction-spotlight').innerHTML = renderPlayerCard(p);
   $('bid-log').innerHTML = '';
+  clearOverspendWarn();
   updateBidUI();
   resetTimerVisual(1);
   $('timer-sec').textContent = auction.maxTimer.toFixed(1);
@@ -6453,7 +6467,7 @@ function auctionTick() {
   resetTimerVisual(pct);
   $('timer-sec').textContent = Math.max(0, auction.timer).toFixed(1);
   if (auction.timer <= 0) { clearInterval(auction.interval); resolveCard(); return; }
-  if (auction.timer > 2 && auction.bidder !== 'you' && Math.random() < 0.025) aiBid();
+  if (auction.timer > 2 && auction.bidder !== 'you' && Math.random() < 0.018) aiBid();
   if (auction.timer > 3 && !auction.bidder && Math.random() < 0.04) aiBid();
 }
 
@@ -6469,6 +6483,7 @@ function aiBid() {
   auction.bid = newB; auction.bidder = rival.name;
   auction.timer = Math.min(auction.timer + 2, auction.maxTimer);
   addBidLog(rival.name, newB);
+  clearOverspendWarn();
   updateBidUI(); SFX.bid();
 }
 
@@ -6476,10 +6491,40 @@ function placeBid() {
   if (!auction.active) return;
   var newB = auction.bid + auction.step;
   if (newB > GS.auctionPurse || GS.squad.length >= GS.maxSquad) return;
+  // Overspend guard: a bid above 50% of the remaining purse needs a second tap to confirm
+  if (newB > GS.auctionPurse * 0.5 && auction.confirmArmed !== newB) {
+    auction.confirmArmed = newB;
+    showOverspendWarn(newB);
+    return;
+  }
+  clearOverspendWarn();
   auction.bid = newB; auction.bidder = 'you';
   auction.timer = Math.min(auction.timer + 2, auction.maxTimer);
   addBidLog('You', newB);
   updateBidUI(); SFX.bid();
+}
+
+function showOverspendWarn(amt) {
+  var pct = Math.round(amt / GS.auctionPurse * 100);
+  var w = $('overspend-warn');
+  w.innerHTML = '⚠ ' + amt + ' is ' + pct + '% of your purse — tap again to confirm';
+  w.classList.add('show');
+  $('bid-btn').classList.add('armed');
+  $('bid-btn').innerHTML = 'Confirm <span id="bid-amount">' + amt + '</span>';
+  clearTimeout(auction.confirmTimer);
+  auction.confirmTimer = setTimeout(clearOverspendWarn, 3000);
+}
+
+function clearOverspendWarn() {
+  auction.confirmArmed = null;
+  clearTimeout(auction.confirmTimer);
+  var w = $('overspend-warn');
+  if (w) w.classList.remove('show');
+  var b = $('bid-btn');
+  if (b && b.classList.contains('armed')) {
+    b.classList.remove('armed');
+    b.innerHTML = 'Bid <span id="bid-amount">' + (auction.bid + auction.step) + '</span>';
+  }
 }
 
 function passBid() {
@@ -6514,7 +6559,13 @@ function resolveCard() {
 function endAuction() {
   auction.active = false; clearInterval(auction.interval);
   hide('auction-active-area'); show('auction-empty-area');
-  toast('Auction complete! Squad: ' + GS.squad.length + ' players', 'success');
+  var sqN = GS.squad.length;
+  var plural = sqN === 1 ? ' player' : ' players';
+  if (sqN < 3) {
+    toast('Auction over — only ' + sqN + plural + '. Need 3 to play: claim daily coins & open a pack', 'error');
+  } else {
+    toast('Auction complete! Squad: ' + sqN + plural, 'success');
+  }
   save();
   if (GS.squad.length >= 3 && GS.matchNum === 1 && GS.tutorialDone) {
     setTimeout(function() {
@@ -7518,7 +7569,7 @@ function simBall() {
   if (!match.curBatter) match.curBatter = match.batXI[0];
   if (!match.curBatter) { endMatch(); return; }
   if (ballInOver === 0) {
-    if (match.batting !== 'you' && !match.skipMode && !match.bowlerSelected && match.bowlerLineup.length === 0 && over > 0) {
+    if (match.batting !== 'you' && !match.skipMode && !match.blitz && !match.bowlerSelected && match.bowlerLineup.length === 0 && over > 0) {
       match.ball--;
       clearInterval(match.interval);
       showBowlerPicker(match.bowlers, phase, over);
@@ -8132,7 +8183,7 @@ function endMatch() {
     getNextOpponentTease() +
     renderSocialFeed() +
     '<div class="btn btn-outline full" id="view-scorecard-btn" style="margin-top:16px">View Scorecard</div>' +
-    (GS.matchNum <= 14 && !isKnockout ? '<div class="play-again-row"><div class="btn btn-gold lg" id="match-play-again-btn">Play Again</div><div class="btn btn-outline lg" id="match-continue-btn">Hub</div></div>' : '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:10px">' + (isKnockout ? 'Knockout' : 'Continue') + '</div>') +
+    '<div class="result-actions">' + (GS.matchNum <= 14 && !isKnockout ? '<div class="play-again-row"><div class="btn btn-gold lg" id="match-play-again-btn">Play Again</div><div class="btn btn-outline lg" id="match-continue-btn">Hub</div></div>' : '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:10px">' + (isKnockout ? 'Knockout' : 'Continue') + '</div>') + '</div>' +
     '</div>';
   var postEventsHtml = '';
   if (uw.event) {
