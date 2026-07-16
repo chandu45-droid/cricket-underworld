@@ -106,3 +106,38 @@ Founder asked for UI scrutiny; Sana's full pass is below.
 
 ---
 *Harness: _playtest5.cjs (temp, not committed). Runs: 2026-07-15 23:16 and 23:26 IST.*
+
+---
+
+## ADDENDUM -- Run 3 corrections (2026-07-16, capped-bidder run, deeper state dumps)
+
+A third fresh-install run (budget-capped bidding, per-block overlay/toast dumps) overturns two claims above. Per case law #8 (evidence before diagnosis), corrections:
+
+### Correction 1: MATCH tap is NOT silent -- a guard exists
+- Code: `showSquadSelect()` (L7193) and `startPreMatch()` (L7341) both gate on `GS.squad.length < 3` and fire toast **"Need at least 3 players"** (error style). Screenshot 04 confirms it renders.
+- Run A/B missed it: toast auto-dismisses in 2.5s; our screenshot came after an 8s wait.
+- **Min squad is 3, not 11.** A 3-player squad plays full matches (verified: XI overlay opened, match ran, DEFEAT result with rewards).
+- Downgrade: "day-1 hard softlock" -> **slow-lock**: overspend to 1 player + 11 coins = blocked from matches until squad >= 3; recovery = daily CLAIM 200 grind toward a pack. Still bad day-1, no longer a hard-lock.
+
+### Correction 2: the "invisible click blocker" is identified -- undismissed overlays
+- State dumps at every blocked click: `openOverlays: ["match-result"]` (and later `["store-overlay","odds-overlay"]`). Shot 12 shows the DEFEAT overlay still covering the screen when hub taps were "intercepted".
+- The result overlay's dismiss CTAs (`Play Again` / `Hub`, L8135) render **below the fold** after rewards panel + sponsor bonus + daily challenge on 390x844. Player must scroll to escape. Harness never scrolled -> 30s timeouts.
+- Reclassify: not a hard input lock. **UX finding: primary dismiss action not visible without scrolling** on the result screen.
+
+### New findings from run 3
+| # | Finding | Evidence | Sev |
+|---|---|---|---|
+| A | `#pack-overlay` (L2865) shares class `.match-result-overlay` with `#match-result` (L2862) | Playwright strict-mode violation: locator resolved to 2 elements | P2 (test-brittle, code smell) |
+| B | Blitz (5-over) live phase ran **224.6s**, then no result overlay within 30s | run3 log `m2blitz live duration ms :: 224601` + timeout | P1 -- investigate (harness vs game stall) |
+| C | Sane capped bidder won only **3/12 lots** (purse 1,352/2,000 left) -- bots outbid aggressively | run3 auction outcome dump | P1 design: normal day-1 squad = 3, not 11+ |
+| D | Toast element retains last message text in DOM all session ("Auction complete! Squad: 3 players" reported in every later dump) | run3 state dumps | P3 (verify no stale re-show) |
+| E | Store copy verified compliant: "NO CASH-OUT / VIRTUAL ONLY", "PAYMENTS NOT LIVE YET", coin/gem packs listed | run3 store text capture | PASS |
+| F | Pack purchase works: coins 1502 -> pack -> +3 bowlers, XI 3->6 | run3 log | PASS |
+
+### Revised priority order (supersedes "What to fix first" above)
+1. **P0 -> P1 downgraded**: overspend guardrail in auction (confirm dialog when single bid > ~50% purse) -- slow-lock still reproduces.
+2. **P1**: match-result overlay -- make dismiss CTA visible without scroll (sticky footer button or move above rewards).
+3. **P1**: Blitz duration/result investigation (224s for the "quick" format breaks the 3-5 min loop promise).
+4. **P1**: auction bot tuning -- day-1 human should land 5-7 players, not 3.
+5. **P1**: auction-end toast grammar/tone ("1 players", green on failure) -- unchanged.
+6. **P2**: pack-overlay class collision; angular polish batch; hub number honesty; card art. **P3**: star aria-labels, stale toast check.
