@@ -76,3 +76,7 @@ npx playwright test --grep "Match Engine"
 **Skills:**
 - `/resume` — loads all progress, memory, and test status at session start
 - `/design-review` — runs a design through all review agents in parallel
+
+## Codebase map (MANDATORY for all agents)
+`prototype/index.html` is ~10,150 lines. **Read `docs/CODEBASE-MAP.md` first, grep the anchor function, read only that region. Never read the file end-to-end.**
+Testing is founder-gated: do NOT run Playwright/browser verification unless the founder explicitly asks. Implement, commit, report "needs testing".
