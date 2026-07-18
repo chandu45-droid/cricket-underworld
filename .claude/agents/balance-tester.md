@@ -1,5 +1,6 @@
 ---
 name: balance-tester
+model: sonnet
 description: Game balance & QA specialist. Simulates play sessions mentally, stress-tests economy for exploits, checks difficulty curves, flags pay-to-win risks, and validates that the game feels fair at every player stage. The last gate before a design ships.
 tools: Read, Glob, Grep
 ---

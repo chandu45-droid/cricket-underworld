@@ -1,5 +1,6 @@
 ---
 name: cricket-consultant
+model: sonnet
 description: Cricket domain expert. Ensures game mechanics authentically capture cricket's feel — player archetypes, auction dynamics, match situations, format differences, and the emotional beats of the sport. Flags anything that would make a cricket fan cringe.
 tools: Read, Glob, Grep, WebSearch
 ---

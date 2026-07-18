@@ -1,5 +1,6 @@
 ---
 name: player-experience
+model: sonnet
 description: Mobile game UX & product advisor. Evaluates onboarding flows, session design, UI patterns, tutorial pacing, retention hooks, notification strategy, and the moment-to-moment player feel. Reviews from the player's seat, not the designer's whiteboard.
 tools: Read, Glob, Grep, WebSearch
 ---

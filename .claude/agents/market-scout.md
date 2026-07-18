@@ -1,5 +1,6 @@
 ---
 name: market-scout
+model: sonnet
 description: Competitive intelligence & market positioning analyst. Researches competing cricket/card/strategy games, analyzes their monetization, identifies gaps, and recommends positioning. Use before major design decisions to ground them in market reality.
 tools: Read, Glob, Grep, WebSearch, WebFetch
 ---
