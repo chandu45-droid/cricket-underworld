@@ -2282,12 +2282,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
       <div class="hub-empire-line stagger-child" id="hub-empire-line">
         <div>
-          <div class="hel-label">Your Empire</div>
+          <div class="hel-label" id="empire-label">Your Empire</div>
           <div class="hel-value money mid" id="empire-value"><span class="m-cur">C</span><span class="m-val">2,000</span></div>
         </div>
         <div class="hel-rank">
           <div class="helr-num"><span id="empire-rank-num">#10</span> <span id="empire-rank-lbl" class="helr-lbl">of 10</span></div>
-          <div class="helr-lbl">League Rank</div>
+          <div class="helr-lbl" id="empire-rank-caption">League Rank</div>
         </div>
       </div>
 
@@ -3447,6 +3447,16 @@ function renderEmpireLine() {
   if (numEl) numEl.textContent = '#' + er.rank;
   var lblEl = $('empire-rank-lbl');
   if (lblEl) lblEl.textContent = 'of ' + er.total;
+  // Number honesty: rank + net-worth are both computed from squad strength/value,
+  // not from anything the player has actually done yet. Before match 1 that reads
+  // as fake ("#2 of 10" / "Your Empire 3.6K" with 0 matches played and 11 coins --
+  // playtest 2026-07-15, item 10). Label both as projections until match 1 completes;
+  // once a result exists, show them as the real standing/value they are.
+  var playedAny = (GS.wins + GS.losses) > 0;
+  var empireLabelEl = $('empire-label');
+  if (empireLabelEl) empireLabelEl.textContent = playedAny ? 'Your Empire' : 'Your Empire (Est.)';
+  var rankCaptionEl = $('empire-rank-caption');
+  if (rankCaptionEl) rankCaptionEl.textContent = playedAny ? 'League Rank' : 'Projected Rank';
 }
 window.computeNetWorth = computeNetWorth;
 window.getEmpireRank = getEmpireRank;
