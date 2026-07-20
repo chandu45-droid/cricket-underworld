@@ -5905,7 +5905,7 @@ function renderPlayerCard(p) {
   var rg = RARITY_GLOW[p.rarity] || 'rgba(74,85,104,0.1)';
   var roleShort = ROLE_SHORT[p.role] || 'AR';
   var starsHtml = '';
-  for (var i = 0; i < 5; i++) starsHtml += i < p.stars ? '&#9733;' : '<span class="dim">&#9733;</span>';
+  for (var i = 0; i < 5; i++) starsHtml += '<span class="' + (i < p.stars ? 'filled' : 'dim') + '" aria-hidden="true">&#9733;</span>';
   var rarityClass = p.rarity === 'legendary' ? ' legendary' : p.rarity === 'epic' ? ' epic' : '';
 
   return '<div class="player-card' + rarityClass + '" style="--rarity-color:' + rc + ';--rarity-glow:' + rg + '" data-pid="' + p.id + '">' +
@@ -5916,7 +5916,7 @@ function renderPlayerCard(p) {
       '<div class="role-badge"><span class="badge rarity-' + p.rarity + '">' + roleShort + (p.overseas ? ' · OS' : '') + '</span></div>' +
     '</div>' +
     '<div class="card-body">' +
-      '<div class="card-info"><div class="player-name">' + p.name + '</div><div class="star">' + starsHtml + '</div></div>' +
+      '<div class="card-info"><div class="player-name">' + p.name + '</div><div class="star" role="img" aria-label="' + p.stars + ' out of 5 stars">' + starsHtml + '</div></div>' +
       '<div class="player-role">' + p.role + '</div>' +
       '<div class="stats-grid">' +
         '<div class="stat-item"><div class="stat-label">BAT</div><div class="stat-val ' + getStatClass(p.bat) + '">' + p.bat + '</div></div>' +
@@ -5959,7 +5959,7 @@ function showPlayerDetail(id) {
   var rc = RARITY_COLORS[p.rarity] || '#4A5568';
   var isSquad = GS.squad.some(function(s){return s.id===p.id;});
   var starsHtml = '';
-  for (var i = 0; i < 5; i++) starsHtml += '<span class="' + (i < p.stars ? 'filled' : 'empty') + '">&#9733;</span>';
+  for (var i = 0; i < 5; i++) starsHtml += '<span class="' + (i < p.stars ? 'filled' : 'empty') + '" aria-hidden="true">&#9733;</span>';
   var statsHtml = '';
   var statDefs = [['Batting','bat'],['Bowling','bwl'],['Fielding','fld'],['Fitness','fit'],['Form','form']];
   for (var s = 0; s < statDefs.length; s++) {
@@ -5975,7 +5975,7 @@ function showPlayerDetail(id) {
       '<div class="pd-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.5))">' + ovr + '</div>' +
       '<div class="pd-name">' + p.name + '</div>' +
       '<div class="pd-role">' + p.role + (p.overseas ? ' · <span class="text-amber">Overseas</span>' : '') + '</div>' +
-      '<div class="pd-stars">' + starsHtml + '</div>' +
+      '<div class="pd-stars" role="img" aria-label="' + p.stars + ' out of 5 stars">' + starsHtml + '</div>' +
       '<div><span class="pd-rarity" style="background:linear-gradient(135deg,' + rc + '33,' + rc + '11);border:1px solid ' + rc + '44;color:' + rc + '">' + p.rarity.toUpperCase() + '</span></div>' +
     '</div>' +
     '<div class="glass">' +
