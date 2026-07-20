@@ -1273,7 +1273,11 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* ================================================================
    TOAST
    ================================================================ */
-.toast{position:fixed;top:calc(var(--top-h) + 12px);left:50%;transform:translateX(-50%) translateY(-120%);background:var(--dugout);border:1px solid var(--border);border-radius:3px;padding:12px 24px;font-size:13px;z-index:400;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:90%;text-align:center;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-weight:600;letter-spacing:0.3px}
+/* Top offset cleared to sit below the standard .back-btn row (~46px: 15px
+   font line-box + 12px v-padding + 2px border + 14px margin-bottom), so the
+   global toast no longer visually overlaps a screen's back button, e.g. the
+   "< HUB" back-btn on the auction screen (playtest 2026-07-15, item 2/shot 04). */
+.toast{position:fixed;top:calc(var(--top-h) + 60px);left:50%;transform:translateX(-50%) translateY(-120%);background:var(--dugout);border:1px solid var(--border);border-radius:3px;padding:12px 24px;font-size:13px;z-index:400;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:90%;text-align:center;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-weight:600;letter-spacing:0.3px}
 .toast{opacity:0;pointer-events:none;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1),opacity 0.25s ease}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
 .toast.success{border-color:rgba(34,212,126,0.3);color:var(--green-bright);background:linear-gradient(135deg,rgba(34,212,126,0.1),var(--dugout))}
