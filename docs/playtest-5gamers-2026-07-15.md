@@ -141,3 +141,5 @@ A third fresh-install run (budget-capped bidding, per-block overlay/toast dumps)
 4. **P1**: auction bot tuning -- day-1 human should land 5-7 players, not 3.
 5. **P1**: auction-end toast grammar/tone ("1 players", green on failure) -- unchanged.
 6. **P2**: pack-overlay class collision; angular polish batch; hub number honesty; card art. **P3**: star aria-labels, stale toast check.
+
+> **Update 2026-07-16:** hub number honesty SHIPPED — Empire line relabelled "Net Worth · total assets" (no longer reads as a second wallet), and the strength rank is now labelled "Squad Power" and shows "— / Unranked" until a squad exists (no fake "#N of 10" with 0 matches). E2E added. Remaining P2/P3: pack-overlay collision (done in batch 5b), angular polish, card art, star aria-labels, stale-toast check.
