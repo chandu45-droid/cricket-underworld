@@ -694,6 +694,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 
 /* Bid action buttons */
 .bid-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+/* PASS: restore the base .btn chamfer that .btn-outline strips, so it pairs visually with BID's angular cut (keeps btn-outline's grey/glass color as the "different color" secondary treatment) */
+#pass-btn{clip-path:var(--clip-btn);border-radius:0}
 /* Overspend armed-confirm warning (bid > 50% of remaining purse) */
 .overspend-warn{display:none;margin:0 0 8px;padding:8px 12px;font-family:var(--font-d);font-size:11px;font-weight:600;letter-spacing:0.5px;color:var(--amber);background:rgba(245,158,11,0.12);border:1px solid var(--amber);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
 .overspend-warn.show{display:block;animation:overspendIn 0.25s var(--spring)}
