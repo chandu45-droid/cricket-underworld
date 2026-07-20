@@ -871,7 +871,11 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .custom-section-title{font-family:var(--font-d);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold-bright);margin-bottom:12px}
 .nickname-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .nickname-row .nn-name{flex:1;font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--white)}
-.nickname-row .nn-input{width:120px;padding:6px 10px;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.1);border-radius:3px;color:var(--white);font-family:var(--font-b);font-size:13px;font-weight:600;outline:none}
+/* Widened from 120px: a maxlength=16 value at 13px font + 10px h-padding needs
+   ~150px to display in full without the native input clipping/scrolling its own
+   text (playtest 2026-07-15, item 7 -- "Devraj Padmanabt"). text-overflow added
+   as a safety net for any value that still overflows on very narrow viewports. */
+.nickname-row .nn-input{width:150px;padding:6px 10px;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.1);border-radius:3px;color:var(--white);font-family:var(--font-b);font-size:13px;font-weight:600;outline:none;text-overflow:ellipsis}
 .nickname-row .nn-input:focus{border-color:var(--gold-bright)}
 .reset-section{margin-top:24px;padding-top:16px;border-top:1px solid rgba(220,38,38,0.15)}
 .reset-section .text-xs{color:var(--slip);margin-bottom:8px}
