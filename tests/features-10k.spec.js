@@ -176,6 +176,29 @@ test.describe('F2 — Empire Net-Worth + Rank', () => {
     expect(after - before).toBe(delta);
     expect(delta).toBeGreaterThan(0);
   });
+
+  test('hub numbers are honest: Net Worth label + no fake rank before a squad exists', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { squad: [] }); // brand-new player, nothing owned
+    // net-worth block is labelled a valuation, not a second wallet
+    const label = await page.textContent('.hel-label');
+    expect(label.toLowerCase()).toContain('net worth');
+    // no fake standing: rank shows a dash + "Unranked", never "#N of 10"
+    const num = await page.textContent('#empire-rank-num');
+    const cap = await page.textContent('#empire-rank-caption');
+    expect(num).toBe('—');
+    expect(cap.toLowerCase()).toContain('unranked');
+
+    // once a squad exists the rank is shown and honestly labelled a power rank
+    await page.evaluate(() => {
+      window.GS.squad = [{ id: 1, name: 'X', role: 'All-Rounder', bat: 80, bwl: 80, fld: 70, fit: 70, form: 70, loyalty: 50, greed: 50, rarity: 'legendary', overseas: false, stars: 5 }];
+      window.renderEmpireLine();
+    });
+    const num2 = await page.textContent('#empire-rank-num');
+    const cap2 = await page.textContent('#empire-rank-caption');
+    expect(num2).toMatch(/^#\d+$/);
+    expect(cap2.toLowerCase()).toContain('power'); // "Squad Power", not "League Rank"
+  });
 });
 
 // ============================================================

@@ -2269,12 +2269,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
       <div class="hub-empire-line stagger-child" id="hub-empire-line">
         <div>
-          <div class="hel-label">Your Empire</div>
+          <div class="hel-label">Net Worth · total assets</div>
           <div class="hel-value money mid" id="empire-value"><span class="m-cur">C</span><span class="m-val">2,000</span></div>
         </div>
         <div class="hel-rank">
           <div class="helr-num"><span id="empire-rank-num">#10</span> <span id="empire-rank-lbl" class="helr-lbl">of 10</span></div>
-          <div class="helr-lbl">League Rank</div>
+          <div class="helr-lbl" id="empire-rank-caption">Squad Power</div>
         </div>
       </div>
 
@@ -3429,11 +3429,22 @@ function renderEmpireLine() {
   var valEl = $('empire-value');
   if (!valEl) return;
   valEl.innerHTML = '<span class="m-cur">C</span><span class="m-val">' + formatCompactCoins(computeNetWorth()) + '</span>';
-  var er = getEmpireRank();
   var numEl = $('empire-rank-num');
-  if (numEl) numEl.textContent = '#' + er.rank;
   var lblEl = $('empire-rank-lbl');
+  var capEl = $('empire-rank-caption');
+  // Squad Power is a strength rank — meaningless with no squad. Show
+  // "Unranked" until the player owns players, so a fresh hub never
+  // claims a fake standing (playtest #5: "#2 of 10 with 0 matches feels fake").
+  if (!GS.squad || GS.squad.length === 0) {
+    if (numEl) numEl.textContent = '—';
+    if (lblEl) lblEl.textContent = '';
+    if (capEl) capEl.textContent = 'Unranked';
+    return;
+  }
+  var er = getEmpireRank();
+  if (numEl) numEl.textContent = '#' + er.rank;
   if (lblEl) lblEl.textContent = 'of ' + er.total;
+  if (capEl) capEl.textContent = 'Squad Power';
 }
 window.computeNetWorth = computeNetWorth;
 window.getEmpireRank = getEmpireRank;
