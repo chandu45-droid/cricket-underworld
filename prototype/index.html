@@ -861,10 +861,10 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .custom-input:focus{border-color:var(--gold-bright)}
 .custom-input::placeholder{color:var(--white-20)}
 .color-picker{display:flex;gap:10px;flex-wrap:wrap}
-.color-swatch{width:44px;height:44px;border-radius:4px;cursor:pointer;border:2.5px solid transparent;transition:all 0.2s;position:relative}
+.color-swatch{width:44px;height:44px;clip-path:var(--clip-6);cursor:pointer;border:2.5px solid transparent;transition:all 0.2s;position:relative}
 .color-swatch:active{transform:scale(0.9)}
 .color-swatch.selected{border-color:var(--white);box-shadow:0 0 16px rgba(var(--hl-rgb),0.2)}
-.color-swatch.selected::after{content:'';position:absolute;inset:3px;border-radius:2px;border:1px solid rgba(var(--hl-rgb),0.3)}
+.color-swatch.selected::after{content:'';position:absolute;inset:3px;clip-path:var(--clip-6);border:1px solid rgba(var(--hl-rgb),0.3)}
 .custom-section{padding:14px;background:rgba(var(--hl-rgb),0.02);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;margin-bottom:14px}
 .custom-section-title{font-family:var(--font-d);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold-bright);margin-bottom:12px}
 .nickname-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
