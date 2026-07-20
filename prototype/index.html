@@ -1131,7 +1131,10 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .coll-progress .cp-r{display:flex;align-items:center;gap:5px;font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--slip)}
 .coll-progress .cp-r i{width:7px;height:7px;transform:rotate(45deg);background:var(--rc);box-shadow:0 0 8px var(--rc);display:inline-block}
 
-.card-filters{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+/* Edge fade = scroll affordance: the row already scrolls (overflow-x:auto)
+   but nothing signaled that to players, so the last tab (e.g. "All-Round")
+   just read as clipped/broken at the screen edge (playtest 2026-07-15, item 4). */
+.card-filters{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(to right,transparent 0,black 12px,black calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 12px,black calc(100% - 20px),transparent 100%)}
 .card-filter{position:relative;padding:8px 16px;border:1px solid var(--border);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--slip);cursor:pointer;transition:all 0.25s var(--spring);white-space:nowrap;text-transform:uppercase;letter-spacing:1.2px;background:linear-gradient(160deg,rgba(var(--hl-rgb),0.045),rgba(var(--hl-rgb),0.015))}
 .card-filter:active{transform:scale(0.94)}
 .card-filter .cf-count{margin-left:6px;font-size:11px;color:var(--slip);opacity:0.7}
