@@ -604,6 +604,27 @@ test.describe('Auction', () => {
     const round2 = await page.locator('#round-info').textContent();
     expect(round2).toContain('2');
   });
+
+  // Regression (9832b9b): the "budget lots first" purse-pacing toast (fires when
+  // GS.squad.length < 4, see startAuction()) must not overlap the screen's own
+  // back-btn -- it used to sit right on top of it before the toast's top offset
+  // was increased to clear the back-btn row.
+  test('low-squad purse-pacing toast does not overlap auction back-btn', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { squad: makeSquad().slice(0, 3) }); // length 3 < 4 -> toast fires
+    await navigateTo(page, 'auction');
+    await page.click('#start-auction-btn');
+    await page.waitForSelector('#toast.show', { timeout: 3000 });
+    const toastBox = await page.locator('#toast').boundingBox();
+    const backBtnBox = await page.locator('#auction-back-btn').boundingBox();
+    expect(toastBox).toBeTruthy();
+    expect(backBtnBox).toBeTruthy();
+    const overlaps = toastBox.x < backBtnBox.x + backBtnBox.width &&
+                      toastBox.x + toastBox.width > backBtnBox.x &&
+                      toastBox.y < backBtnBox.y + backBtnBox.height &&
+                      toastBox.y + toastBox.height > backBtnBox.y;
+    expect(overlaps).toBe(false);
+  });
 });
 
 // ============================================================
@@ -1158,6 +1179,21 @@ test.describe('Customisation', () => {
     const name = await page.evaluate(() => window.GS.teamName);
     expect(name).toBe('Champions XI');
   });
+
+  // Regression (56a87a7): color swatches must stay angular (clip-path chamfer),
+  // never fall back to rounded border-radius corners (hard constraint #8).
+  test('color swatches use angular clip-path chamfer, not rounded corners', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    await page.click('#settings-btn');
+    await page.waitForTimeout(500);
+    await expect(page.locator('.color-swatch').first()).toBeVisible();
+    const clipPath = await page.locator('.color-swatch').first().evaluate(
+      (el) => getComputedStyle(el).clipPath
+    );
+    expect(clipPath).not.toBe('none');
+    expect(clipPath).toContain('polygon');
+  });
 });
 
 // ============================================================
@@ -1288,10 +1324,13 @@ test.describe('Match Interactivity', () => {
     await page.click('#start-match-btn');
     await page.waitForSelector('#match-screen.active', { timeout: 5000 });
     await page.click('#boost-btn');
-    await page.waitForTimeout(300);
-    await expect(page.locator('#boost-btn.used')).toBeVisible();
+    // Deterministic: wait for the UI flag instead of an arbitrary timeout, then
+    // read boostBalls immediately, before any further waits let a match tick
+    // (which decrements boostBalls during ball resolution) land.
+    await page.waitForSelector('#boost-btn.used', { timeout: 2000 });
     const boostBalls = await page.evaluate(() => window.match.boostBalls);
     expect(boostBalls).toBe(6);
+    await expect(page.locator('#boost-btn.used')).toBeVisible();
   });
 });
 

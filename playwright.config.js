@@ -15,4 +15,10 @@ module.exports = defineConfig({
       ? { launchOptions: { executablePath: containerChromium } }
       : {}),
   },
+  webServer: {
+    command: 'npx serve prototype -l 8080',
+    url: 'http://localhost:8080',
+    reuseExistingServer: true,
+    timeout: 30000,
+  },
 });
