@@ -583,7 +583,8 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .hub-header .manager-info{flex:1}
 .hub-header .manager-name{font-family:var(--font-d);font-size:25px;font-weight:700;line-height:1;letter-spacing:0.5px}
 .hub-header .league-name{font-size:12px;color:var(--blue-bright);margin-top:4px;font-weight:600;letter-spacing:0.5px}
-.hub-header .align-zone-tag{display:inline-block;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:3px 12px;border-radius:3px;margin-top:5px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent-dim);transition:all 0.8s}
+/* v3 kit: faction chip — reuses .cu-chip's angular clip-path pill shape, alignment-accent-driven color stays */
+.hub-header .align-zone-tag{display:inline-flex;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:3px 12px;clip-path:var(--clip-6);margin-top:5px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent);transition:all 0.8s}
 .hub-meters{display:flex;gap:12px;margin-top:10px}
 .hub-meter{flex:1;display:flex;flex-direction:column;gap:4px}
 .hub-meter .meter-label{font-size:10px;color:var(--slip);text-transform:uppercase;display:flex;justify-content:space-between;font-weight:600;letter-spacing:0.5px}
@@ -595,7 +596,8 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .action-tile::before{content:'';position:absolute;inset:0;opacity:0.7;transition:opacity 0.3s;pointer-events:none}
 .action-tile::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;pointer-events:none}
 .action-tile:active{transform:scale(0.94) translateY(2px);box-shadow:var(--elevation-1)}
-.action-tile .tile-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.action-tile .tile-icon{position:relative;z-index:1;width:46px;height:46px;clip-path:var(--clip-hex);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.action-tile .tile-body{position:relative;z-index:1}
 .action-tile .tile-icon svg{width:24px;height:24px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .action-tile .tile-title{font-family:var(--font-d);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
 .action-tile .tile-sub{font-size:12px;color:var(--slip);margin-top:4px;font-weight:500}
@@ -1882,8 +1884,10 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .hub-power-ring .power-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);text-shadow:0 0 16px rgba(var(--hl-rgb),0.1);line-height:1}
 .hub-power-ring .power-label{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;font-family:var(--font-b);font-weight:600}
 
-/* Meters — larger with icon labels */
-.hub-meters{display:flex;gap:10px;margin:10px 0;position:relative;z-index:2}
+/* Meters — larger with icon labels. v3 kit: .cu-card on this element supplies the chamfered
+   frame + gold spotlight sheen (surface-only, additive — see markup); padding added here since
+   .cu-card intentionally never sets layout properties. */
+.hub-meters{display:flex;gap:10px;margin:10px 0;padding:9px 6px;position:relative;z-index:2}
 .hub-meter{flex:1;padding:8px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:4px;transition:border-color 0.3s}
 .hub-meter .meter-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hub-meter .meter-icon svg{width:12px;height:12px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -1902,14 +1906,15 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .hub-meter.meter-fans .meter-icon{background:rgba(59,130,246,0.12)}
 .hub-meter.meter-fans .meter-icon svg{stroke:var(--blue-bright)}
 
-/* Action tiles — breathing glow + enhanced feel */
-.action-tile.auction::before{background:radial-gradient(ellipse at 20% 20%,rgba(255,207,68,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(212,160,23,0.12) 0%,transparent 45%);animation:tileBreath 4s ease-in-out infinite alternate}
-.action-tile.match::before{background:radial-gradient(ellipse at 20% 20%,rgba(52,211,153,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(5,150,105,0.12) 0%,transparent 45%);animation:tileBreath 4s ease-in-out infinite alternate 1s}
-@keyframes tileBreath{0%{opacity:0.6}100%{opacity:1}}
+/* Action tiles — v3 kit shine sweep replaces the old always-on "breathing" glow loop
+   (perf gate: net-zero infinite-animation swap, not a stack — see hub-v3 port notes) */
+.action-tile.auction::before{background:radial-gradient(ellipse at 20% 20%,rgba(255,207,68,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(212,160,23,0.12) 0%,transparent 45%)}
+.action-tile.match::before{background:radial-gradient(ellipse at 20% 20%,rgba(52,211,153,0.18) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(5,150,105,0.12) 0%,transparent 45%)}
 .action-tile .tile-title{font-size:21px;letter-spacing:3px}
 
-/* Quick tiles — color-coded per function */
-.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+/* Quick tiles — color-coded per function. v3 kit: .cu-card on the row supplies the chamfered
+   frame + spotlight sheen (surface-only) — padding added here since .cu-card sets no layout. */
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;padding:7px}
 .quick-tile{position:relative;overflow:hidden}
 .quick-tile svg{width:18px;height:18px;transition:all 0.3s var(--spring-bounce)}
 .quick-tile:active svg{transform:scale(1.15)}
@@ -1927,7 +1932,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .quick-tile.qt-market:active{background:rgba(52,211,153,0.08)}
 
 /* Next rival — battle card — dramatic VS display */
-.hub-battle-card{position:relative;padding:11px 12px;margin-bottom:9px;border-radius:4px;overflow:hidden;background:linear-gradient(145deg,rgba(var(--hl-rgb),0.05),rgba(220,38,38,0.04),rgba(255,210,63,0.02));border:1px solid rgba(220,38,38,0.15);box-shadow:var(--elevation-3);transition:all 0.3s var(--spring)}
+/* v3 kit: surface (bg/border/shadow/clip-path) now comes from .cu-card.cu-red on the element (see markup) */
+.hub-battle-card{position:relative;padding:11px 12px;margin-bottom:9px;overflow:hidden;transition:all 0.3s var(--spring)}
 .hub-battle-card:active{transform:scale(0.98);box-shadow:var(--elevation-1)}
 .battle-card-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 50%),radial-gradient(circle at 20% 20%,var(--align-accent-dim) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(220,38,38,0.05) 0%,transparent 40%);pointer-events:none;animation:battleBg 6s ease-in-out infinite alternate}
 @keyframes battleBg{0%{opacity:0.6}100%{opacity:1}}
@@ -2138,6 +2144,58 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .ad-spot-btn .asb-sub{font-size:9px;color:var(--slip);letter-spacing:0.5px}
 
 /* ================================================================
+   V3 KIT — reusable premium primitives ported from the approved Hub
+   redesign (prototype/_scratch/hub-v3.html, founder-reviewed). These
+   classes are SURFACE-ONLY (no padding/margin/display) so they compose
+   safely alongside a component's existing layout class instead of
+   replacing it, e.g. class="hub-battle-card cu-card cu-red". Built
+   entirely on tokens already defined above (§ palette) — no new
+   variables introduced. Reuse target for the B2-B6 screen rollout.
+   ================================================================ */
+/* v3 kit: .cu-card — chamfered glass-panel frame + top-down gold spotlight sheen + hairline */
+.cu-card{position:relative;background:var(--glass-bg);border:var(--glass-border);box-shadow:var(--glass-shadow);clip-path:var(--clip-14)}
+.cu-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 28% -30%,var(--gold-glow),transparent 62%);pointer-events:none;opacity:.9}
+.cu-card::after{content:'';position:absolute;top:0;left:9%;right:9%;height:1px;background:linear-gradient(90deg,transparent,var(--gold-bright),transparent);opacity:.5;pointer-events:none}
+.cu-card.cu-red::before{background:radial-gradient(ellipse at 28% -30%,var(--blood-glow),transparent 62%)}
+.cu-card.cu-red::after{background:linear-gradient(90deg,transparent,var(--blood),transparent)}
+.cu-card.cu-green::before{background:radial-gradient(ellipse at 28% -30%,var(--green-glow),transparent 62%)}
+.cu-card.cu-green::after{background:linear-gradient(90deg,transparent,var(--green-bright),transparent)}
+
+/* v3 kit: .cu-ribbon — diagonal angular section-header banner */
+.cu-ribbon-wrap{display:flex;padding-left:1px;margin:2px 0}
+.cu-ribbon{position:relative;padding:6px 22px 6px 13px;background:var(--gold-grad);clip-path:polygon(0 0,100% 0,86% 100%,0 100%);box-shadow:var(--elevation-1)}
+.cu-ribbon span{display:block;font-family:var(--font-d);font-size:12.5px;font-weight:700;letter-spacing:2.5px;color:var(--gold-ink);text-transform:uppercase;white-space:nowrap}
+.cu-ribbon.cu-red{background:linear-gradient(160deg,#E4523A,var(--blood))}
+.cu-ribbon.cu-red span{color:#fff}
+
+/* v3 kit: .cu-herocard — tappable hero-tile shine sweep (pair with .cu-hc-art + .cu-hc-shine children).
+   PERF GATE: cap 2 live instances screen-wide (one per hero tile) — use .cu-hc-delay to offset the
+   2nd instance's phase, never add a 3rd running shine on the same screen. */
+.cu-herocard{position:relative;overflow:hidden}
+.cu-herocard .cu-hc-art{position:absolute;inset:0;opacity:.5;pointer-events:none;background-image:repeating-linear-gradient(128deg,rgba(var(--hl-rgb),.05) 0 2px,transparent 2px 15px)}
+.cu-herocard .cu-hc-shine{position:absolute;top:0;bottom:0;left:0;width:38%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.30),transparent);transform:translateX(-140%) skewX(-20deg);animation:cuShineSweep 4.6s ease-in-out infinite;pointer-events:none}
+.cu-herocard.cu-hc-delay .cu-hc-shine{animation-delay:1.3s}
+@keyframes cuShineSweep{0%{transform:translateX(-140%) skewX(-20deg)}16%{transform:translateX(260%) skewX(-20deg)}100%{transform:translateX(260%) skewX(-20deg)}}
+
+/* v3 kit: .cu-delta — color-as-status trend deltas (▲ up / ▼ down) for meters + stat rows */
+.cu-delta{font-size:9.5px;font-weight:700;display:inline-flex;align-items:center;gap:1px;line-height:1;margin-left:4px}
+.cu-delta-up{color:var(--green-bright)}
+.cu-delta-down{color:var(--blood)}
+
+/* v3 kit: .cu-avatar — faceted procedural portrait frame (see generateFacetedAvatar()); angular, no border-radius */
+.cu-avatar{position:relative;background:var(--dugout);border:1.5px solid var(--gold-bright);clip-path:var(--clip-10);box-shadow:var(--glow-gold);overflow:hidden}
+.cu-avatar svg{width:100%;height:100%;display:block}
+
+/* v3 kit: .cu-star-pips — 5-star rating row */
+.cu-star-pips{display:flex;gap:3px;margin-top:6px}
+.cu-star-pips svg{width:12px;height:12px}
+.cu-star-pips svg.filled{fill:var(--gold-bright);stroke:var(--gold-bright);stroke-width:1}
+.cu-star-pips svg.empty{fill:none;stroke:var(--border-strong);stroke-width:1.5}
+
+/* v3 kit: .cu-chip — angular faction/status pill (chamfered, not rounded) */
+.cu-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;clip-path:var(--clip-6);font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;font-weight:700}
+
+/* ================================================================
    THEME TOGGLE (Settings → Appearance)
    ================================================================ */
 .theme-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.08);clip-path:var(--clip-card-tl);cursor:pointer}
@@ -2270,11 +2328,13 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="hub-stadium-skyline"><svg viewBox="0 0 390 120" preserveAspectRatio="none"><path d="M0,120 L0,80 L15,80 L15,40 L18,40 L18,80 L40,80 L40,70 L60,70 L60,60 L80,55 L100,52 L120,50 L140,48 L160,47 L180,46 L195,46 L210,46 L230,47 L250,48 L270,50 L290,52 L310,55 L330,60 L350,70 L370,80 L372,80 L372,40 L375,40 L375,80 L390,80 L390,120Z" fill="currentColor"/></svg></div>
 
         <div class="hub-header stagger-child">
-          <div class="team-crest" id="hub-crest"><div class="team-crest-glow"></div></div>
+          <div class="team-crest cu-avatar" id="hub-crest"><div class="team-crest-glow"></div></div>
           <div class="manager-info">
             <div class="manager-name" id="manager-name">Manager</div>
             <div class="league-name" id="league-label">Gully Cricket League</div>
             <div class="align-zone-tag" id="align-zone-tag">Grey Zone</div>
+            <!-- v3 kit: 5-star pips, JS-populated in updateHub() from team strength -->
+            <div class="cu-star-pips" id="hub-star-pips"></div>
           </div>
           <div class="hub-power-ring" id="hub-power-ring">
             <svg viewBox="0 0 76 76">
@@ -2297,12 +2357,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
-      <div class="hub-meters stagger-child">
+      <div class="hub-meters cu-card stagger-child">
         <div class="hub-meter meter-align">
           <div class="meter-header">
             <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
             <div class="meter-label">Align</div>
-            <div class="meter-value" id="align-val" style="color:var(--gold-bright)">+0</div>
+            <div class="meter-value" id="align-val" style="color:var(--gold-bright)">+0</div><span class="cu-delta" id="align-trend"></span>
           </div>
           <div class="meter-bar"><div class="meter-fill" id="align-fill" style="width:50%;background:linear-gradient(90deg,var(--gold),var(--gold-bright))"></div></div>
         </div>
@@ -2310,7 +2370,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="meter-header">
             <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg></div>
             <div class="meter-label">Heat</div>
-            <div class="meter-value" id="heat-val" style="color:var(--slip)">0</div>
+            <div class="meter-value" id="heat-val" style="color:var(--slip)">0</div><span class="cu-delta" id="heat-trend"></span>
           </div>
           <div class="meter-bar"><div class="meter-fill" id="heat-fill" style="width:0%"></div></div>
         </div>
@@ -2318,24 +2378,28 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="meter-header">
             <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
             <div class="meter-label">Fans</div>
-            <div class="meter-value" id="fan-val" style="color:var(--blue-bright)">50</div>
+            <div class="meter-value" id="fan-val" style="color:var(--blue-bright)">50</div><span class="cu-delta" id="fan-trend"></span>
           </div>
           <div class="meter-bar"><div class="meter-fill" id="fan-fill" style="width:50%;background:linear-gradient(90deg,var(--blue),#60A5FA)"></div></div>
         </div>
       </div>
 
+      <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon"><span>Primary Loop</span></div></div>
       <div class="action-tiles stagger-child">
-        <div class="action-tile auction" id="hub-auction-btn">
+        <div class="action-tile auction cu-herocard" id="hub-auction-btn">
+          <div class="cu-hc-art"></div><div class="cu-hc-shine"></div>
           <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M16.5 3.5l4 4"/><path d="M14 2l7 7-3 3-7-7 3-3z"/><path d="M7 9l5 5"/><path d="M4 20h16"/><path d="M10 16h4v4h-4z"/></svg></div>
-          <div><div class="tile-title">Auction</div><div class="tile-sub" id="auction-sub">Build your squad</div></div>
+          <div class="tile-body"><div class="tile-title">Auction</div><div class="tile-sub" id="auction-sub">Build your squad</div></div>
         </div>
-        <div class="action-tile match" id="hub-match-btn">
+        <div class="action-tile match cu-herocard cu-hc-delay" id="hub-match-btn">
+          <div class="cu-hc-art"></div><div class="cu-hc-shine"></div>
           <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M6 3l3 1 3 12-1.5 1.5L6 16z"/><path d="M5.5 17.5L3 21"/><circle cx="18" cy="6" r="2.5"/><path d="M16.2 4.2l3.6 3.6"/></svg></div>
-          <div><div class="tile-title">Match</div><div class="tile-sub" id="match-sub">Play next game</div></div>
+          <div class="tile-body"><div class="tile-title">Match</div><div class="tile-sub" id="match-sub">Play next game</div></div>
         </div>
       </div>
 
-      <div class="hub-battle-card stagger-child" id="hub-next-rival" style="display:none">
+      <div class="cu-ribbon-wrap stagger-child" id="hub-next-rival-ribbon" style="display:none"><div class="cu-ribbon cu-red"><span>Next Match</span></div></div>
+      <div class="hub-battle-card cu-card cu-red stagger-child" id="hub-next-rival" style="display:none">
         <div class="battle-card-bg"></div>
         <div class="battle-label">NEXT MATCH</div>
         <div class="battle-vs-row">
@@ -2370,6 +2434,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
+      <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon"><span>Daily Bonus</span></div></div>
       <div class="hub-login-panel stagger-child" id="hub-login-panel">
         <div class="hlp-row" id="login-row"></div>
         <div class="hlp-foot">
@@ -2378,7 +2443,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
-      <div class="quick-tiles stagger-child">
+      <div class="quick-tiles cu-card stagger-child">
         <div class="quick-tile qt-squad" id="hub-squad-btn">
           <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
           <div class="qt-label">Squad</div>
@@ -4589,6 +4654,44 @@ function generateRivalCrest(rival, size) {
 }
 
 // =============================================
+// v3 kit: FACETED MANAGER AVATAR GENERATOR
+// Ported from prototype/_scratch/hub-v3.html's inline hero-avatar SVG,
+// parameterized by seed (hash -> skin-facet variant) + team colorKey
+// (reuses CREST_COLORS — same palette the team crest already uses).
+// Low-poly procedural portrait only — no real player/person likeness.
+// =============================================
+var AVATAR_SKIN_FACETS = [
+  { l1: '#C6905F', l2: '#96613A', r1: '#EFC496', r2: '#CE9A66' },
+  { l1: '#8A5A3A', l2: '#5C3A22', r1: '#B87F52', r2: '#8A5A3A' },
+  { l1: '#E0AC80', l2: '#B8815A', r1: '#F5D2A8', r2: '#D8AA7C' }
+];
+function generateFacetedAvatar(seed, colorKey, size) {
+  size = size || 78;
+  var c = CREST_COLORS[colorKey] || CREST_COLORS.gold;
+  var h = hashStr(String(seed || 'Manager'));
+  var sk = AVATAR_SKIN_FACETS[h % AVATAR_SKIN_FACETS.length];
+  var id = 'fa' + h;
+  return '<svg viewBox="0 0 78 78" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs>' +
+      '<linearGradient id="' + id + 'sl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + sk.l1 + '"/><stop offset="1" stop-color="' + sk.l2 + '"/></linearGradient>' +
+      '<linearGradient id="' + id + 'sr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + sk.r1 + '"/><stop offset="1" stop-color="' + sk.r2 + '"/></linearGradient>' +
+      '<linearGradient id="' + id + 'tm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c.accent + '"/><stop offset="1" stop-color="' + c.secondary + '"/></linearGradient>' +
+      '<linearGradient id="' + id + 'td" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c.secondary + '"/><stop offset="1" stop-color="' + c.dark + '"/></linearGradient>' +
+    '</defs>' +
+    '<rect width="78" height="78" fill="var(--dugout)"/>' +
+    '<polygon points="8,84 26,66 58,66 76,84" fill="url(#' + id + 'td)"/>' +
+    '<polygon points="36,60 48,60 48,68 36,68" fill="url(#' + id + 'sr)" opacity=".9"/>' +
+    '<polygon points="42,6 24,18 24,44 42,60" fill="url(#' + id + 'sl)"/>' +
+    '<polygon points="42,6 60,18 60,44 42,60" fill="url(#' + id + 'sr)"/>' +
+    '<polygon points="42,6 50,11 42,18 34,11" fill="#FFE7C2" opacity=".85"/>' +
+    '<polygon points="34,50 42,60 50,50 42,56" fill="#6B4526" opacity=".85"/>' +
+    '<polygon points="20,20 42,4 64,20 64,27 42,11 20,27" fill="url(#' + id + 'tm)"/>' +
+    '<polygon points="20,24 64,24 64,27 20,27" fill="rgba(0,0,0,.22)"/>' +
+    '<path d="M60,18 L60,44 L42,60" fill="none" stroke="#FFEFC2" stroke-width="1.6" opacity=".55"/>' +
+  '</svg>';
+}
+
+// =============================================
 // PROCEDURAL PLAYER SILHOUETTES
 // =============================================
 function generatePlayerSilhouette(role, rarity, size) {
@@ -6158,13 +6261,55 @@ function setNavState(name) {
 // =============================================
 // HUB
 // =============================================
+// v3 kit: session-local "since last hub render" trend cache for the meter deltas.
+// Deliberately NOT persisted to GS/save — this is a lightweight visual affordance
+// (which way did it just move), not a historical stat, so it never touches the
+// save schema. Resets to "no arrow" on reload, which is the correct behavior.
+var _hubMeterPrev = { align: null, heat: null, fans: null };
+// higherIsBetter: align/fans rising = good (green); heat rising = bad (red) even though
+// the arrow still points up — the task spec calls this out explicitly ("rising heat = red").
+// So color encodes STATUS, the ▲/▼ glyph encodes raw DIRECTION — they can disagree on heat.
+var HUB_METER_HIGHER_IS_BETTER = { align: true, heat: false, fans: true };
+function renderHubMeterTrend(elId, val) {
+  var key = elId === 'align-trend' ? 'align' : elId === 'heat-trend' ? 'heat' : 'fans';
+  var el = $(elId);
+  if (!el) return;
+  var prev = _hubMeterPrev[key];
+  if (prev === null || val === prev) {
+    el.textContent = '';
+    el.className = 'cu-delta';
+  } else {
+    var rose = val > prev;
+    var isGood = rose === HUB_METER_HIGHER_IS_BETTER[key];
+    el.textContent = (rose ? '▲' : '▼') + Math.abs(val - prev);
+    el.className = 'cu-delta ' + (isGood ? 'cu-delta-up' : 'cu-delta-down');
+  }
+  _hubMeterPrev[key] = val;
+}
+
+// v3 kit: 5-star pips derived from existing team-strength (OVR) data — no new save field.
+var HUB_STAR_SVG = '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>';
+function renderHubStarPips(teamOvr) {
+  var el = $('hub-star-pips');
+  if (!el) return;
+  var filled = Math.max(0, Math.min(5, Math.round(teamOvr / 20)));
+  var html = '';
+  for (var i = 0; i < 5; i++) {
+    html += '<svg class="' + (i < filled ? 'filled' : 'empty') + '" viewBox="0 0 24 24">' + HUB_STAR_SVG + '</svg>';
+  }
+  el.innerHTML = html;
+}
+
 function updateHub() {
   updateAlignTheme();
   $('manager-name').textContent = GS.managerName;
   var tc = getTeamColor();
   var crestEl = $('hub-crest');
   if (crestEl) {
-    var crestSvg = generateCrest(GS.teamName, GS.teamColor, 72);
+    // v3 kit: manager hero portrait — faceted procedural avatar, not the team-crest shield
+    // (generateCrest/#hub-crest's old occupant is still used everywhere else: league table,
+    // battle-your-crest, rival-avatar — only this Hub header slot switched to the portrait).
+    var crestSvg = generateFacetedAvatar(GS.managerName || GS.teamName, GS.teamColor, 72);
     var glowEl = crestEl.querySelector('.team-crest-glow');
     crestEl.innerHTML = crestSvg;
     if (glowEl) crestEl.appendChild(glowEl);
@@ -6191,6 +6336,11 @@ function updateHub() {
   $('heat-val').className = GS.heat >= 76 ? 'text-red fw-700' : GS.heat >= 51 ? 'text-red' : GS.heat >= 26 ? 'text-amber' : 'text-slip';
   $('fan-fill').style.width = GS.fanLoyalty + '%';
   $('fan-val').textContent = GS.fanLoyalty;
+  // v3 kit: ▲/▼ trend deltas, colored green (up)/red (down) regardless of which meter —
+  // "heat rising" reads red because that IS the up-arrow, matching the v3 status-aware spec.
+  renderHubMeterTrend('align-trend', GS.alignment);
+  renderHubMeterTrend('heat-trend', GS.heat);
+  renderHubMeterTrend('fan-trend', GS.fanLoyalty);
   if (typeof updatePassPanel === 'function') updatePassPanel();
   var teamOvr = getTeamStrength();
   var circumference = 2 * Math.PI * 32;
@@ -6199,6 +6349,7 @@ function updateHub() {
   $('power-ring-fill').style.strokeDasharray = circumference;
   $('power-ring-fill').style.strokeDashoffset = offset;
   $('power-val').textContent = teamOvr;
+  renderHubStarPips(teamOvr);
   var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
   GS.sponsor = sp;
   $('sponsor-name').textContent = sp.name;
@@ -6211,7 +6362,7 @@ function updateHub() {
   } else { hide('clean-streak-tag'); }
   if (hasIntegrityShield()) { show('integrity-shield-tag'); } else { hide('integrity-shield-tag'); }
   if (GS.squad.length > 0) {
-    show('hub-next-rival');
+    show('hub-next-rival'); show('hub-next-rival-ribbon');
     var r = getNextRival();
     $('rival-name').textContent = r.name;
     var rivalAvatarEl = $('rival-avatar');
@@ -6236,7 +6387,7 @@ function updateHub() {
     }
     $('hub-next-rival').onclick = function() { showRivalProfile(r.name); };
     $('hub-next-rival').style.cursor = 'pointer';
-  } else { hide('hub-next-rival'); }
+  } else { hide('hub-next-rival'); hide('hub-next-rival-ribbon'); }
   if (GS.investigation) {
     show('investigation-panel');
     if (!GS.investigation.inspector) GS.investigation.inspector = pickInspector();
