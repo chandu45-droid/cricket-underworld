@@ -774,6 +774,12 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .prematch-team .team-label{font-family:var(--font-d);font-size:18px;font-weight:700;letter-spacing:1px;line-height:1.1}
 .prematch-team .team-strength{font-family:var(--font-d);font-size:13px;font-weight:600;margin-top:5px;color:var(--slip)}
 .prematch-team .pm-meta{font-size:10px;color:var(--slip);margin-top:3px;font-weight:600;letter-spacing:0.5px}
+/* v3 kit: strength bars under the STR text — reuses the battle-card's crest+VS
+   language; populated additively in startPreMatch() from the same strength
+   values already read for the textContent lines just above it. */
+.pm-str-bar{width:74%;max-width:88px;height:4px;margin:6px auto 0;background:rgba(136,150,176,0.1);overflow:hidden;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+.pm-str-fill{height:100%;width:0%;background:var(--gold-bright);transition:width 0.7s var(--spring)}
+.prematch-team.opp .pm-str-fill{background:var(--blood)}
 .prematch-vs-divider{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--slip);letter-spacing:2px;background:var(--dugout);border:1.5px solid rgba(136,150,176,0.12);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0}
 .pm-rivalry{display:flex;justify-content:center;gap:20px;padding:0 0 14px}
 .pm-rivalry .pm-riv-item{font-size:10px;color:var(--slip);font-weight:600;letter-spacing:0.5px}
@@ -793,9 +799,12 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .pm-fix{position:relative;overflow:hidden}
 .pm-fix::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 60%);pointer-events:none;animation:pmFixPulse 2s ease-in-out infinite}
 @keyframes pmFixPulse{0%,100%{opacity:0.3}50%{opacity:1}}
-.pm-start{width:100%;padding:16px;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;background:var(--cta-red);color:#fff;border:none;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);cursor:pointer;margin-top:18px;box-shadow:var(--cta-red-shadow);text-shadow:0 1px 2px rgba(0,0,0,0.35);transition:all 0.2s}
+.pm-start{width:100%;padding:16px;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;background:var(--cta-red);color:#fff;border:none;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);cursor:pointer;margin-top:18px;box-shadow:var(--cta-red-shadow);text-shadow:0 1px 2px rgba(0,0,0,0.35);transition:all 0.2s;position:relative;overflow:hidden}
 .pm-start:hover{box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.35),0 8px 26px rgba(204,17,0,0.55)}
 .pm-start:active{transform:scale(0.97)}
+/* v3 kit: hero shine sweep, same treatment as #bid-btn — a ::before pseudo (not
+   a real child) since it must survive any future innerHTML rewrites of this btn. */
+#start-match-btn::before{content:'';position:absolute;top:0;bottom:0;left:0;width:38%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.30),transparent);transform:translateX(-140%) skewX(-20deg);animation:cuShineSweep 4.6s ease-in-out infinite;pointer-events:none}
 
 /* ================================================================
    MATCH SCREEN — Pitch + momentum
@@ -2804,21 +2813,24 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <div class="screen" id="prematch-screen">
       <div class="back-btn" id="prematch-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Hub</div>
       <div class="pm-header">
-        <div class="pm-title">Match Day</div>
+        <div class="cu-ribbon-wrap" style="justify-content:center;margin:0 0 8px"><div class="cu-ribbon"><span>Match Day</span></div></div>
         <div class="pm-season" id="pm-season">Season 1 — Match 1</div>
       </div>
-      <div class="prematch-vs">
-        <div class="prematch-team">
-          <div id="your-badge" style="margin:0 auto 10px;width:76px;height:76px"></div>
+      <div class="prematch-vs cu-card cu-red" style="padding:16px 14px 14px">
+        <div class="battle-card-bg"></div>
+        <div class="prematch-team you">
+          <div id="your-badge" class="cu-avatar" style="margin:0 auto 10px;width:76px;height:76px"></div>
           <div class="team-label" id="your-team-label">Your Team</div>
           <div class="team-strength" id="your-strength">STR: 70</div>
+          <div class="pm-str-bar"><div class="pm-str-fill" id="your-str-fill" style="width:0%"></div></div>
           <div class="pm-meta text-gold" id="pm-captain"></div>
         </div>
-        <div class="prematch-vs-divider">VS</div>
-        <div class="prematch-team">
-          <div id="opp-badge" style="margin:0 auto 10px;width:76px;height:76px"></div>
+        <div class="prematch-vs-divider battle-vs">VS</div>
+        <div class="prematch-team opp">
+          <div id="opp-badge" class="cu-avatar" style="margin:0 auto 10px;width:76px;height:76px"></div>
           <div class="team-label" id="opp-name-pm">The Shark</div>
           <div class="team-strength" id="opp-strength">STR: 72</div>
+          <div class="pm-str-bar"><div class="pm-str-fill" id="opp-str-fill" style="width:0%"></div></div>
           <div class="pm-meta text-slip" id="pm-rival-trait" style="font-style:italic"></div>
         </div>
       </div>
@@ -2826,11 +2838,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="pm-riv-item">Relationship: <span id="pm-rel-label" class="fw-600">Neutral</span></div>
         <div class="pm-riv-item">H2H: <span id="pm-h2h" class="fw-600">0-0</span></div>
       </div>
-      <div class="pitch-info">
-        <div class="pitch-type" id="pitch-type">SEAMING</div>
+      <div class="pitch-info cu-card cu-green" style="padding:16px;text-align:center">
+        <div class="pitch-type cu-chip" id="pitch-type" style="font-size:22px;padding:5px 16px;background:rgba(34,212,126,0.1);color:var(--green-bright);border:1px solid rgba(34,212,126,0.3);letter-spacing:3px">SEAMING</div>
         <div class="pitch-desc" id="pitch-desc">Pace bowlers get extra help</div>
       </div>
-      <div class="glass accent-gold">
+      <div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>Decisions</span></div></div>
+      <div class="cu-card" style="padding:14px 16px 16px">
         <div class="pm-section"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-bright)" stroke-width="2"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg><span class="pm-section-label text-gold">Strategy</span><span class="pm-section-line"></span></div>
         <div class="strategy-options" id="strategy-opts">
           <div class="strategy-opt" data-strat="aggressive">Aggro</div>
@@ -2844,7 +2857,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
         <div class="text-xs text-slip" style="margin-top:6px">Blitz: a full match in under 2 minutes — rewards are halved.</div>
       </div>
-      <div class="glass accent-blue" id="bowler-lineup-panel">
+      <div class="cu-card" id="bowler-lineup-panel" style="padding:14px 16px 16px">
         <div class="pm-section"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue-bright)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span class="pm-section-label text-blue">Bowler Lineup</span><span class="pm-section-line"></span></div>
         <div class="text-xs text-slip mb-8">Set preferred bowling order. You can change mid-match.</div>
         <div id="bowler-lineup-list"></div>
@@ -2853,7 +2866,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="btn btn-outline flex-1 text-xs" id="bowler-lock-btn" style="padding:6px">Lock Lineup</div>
         </div>
       </div>
-      <div class="glass accent-red pm-fix" id="fix-active-banner" style="display:none;text-align:center">
+      <div class="cu-card cu-red" id="fix-active-banner" style="display:none;text-align:center;padding:14px">
         <div style="display:flex;align-items:center;justify-content:center;gap:8px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blood)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <div class="font-d fw-600 text-red text-sm" style="text-transform:uppercase;letter-spacing:1.5px" id="fix-active-text">FIX ACTIVE</div>
@@ -2883,7 +2896,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
       <div class="field-restriction" id="field-restriction" style="text-align:center;margin-bottom:10px;padding:6px 12px;border-radius:3px;font-family:var(--font-d);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;display:none"></div>
 
-      <div class="match-phases">
+      <div class="match-phases cu-card" style="padding:8px 6px">
         <div class="match-phase active" id="phase-pp"><div class="phase-name">Power</div><div class="phase-score" id="pp-score">-</div><div class="phase-bar"><div class="phase-fill" id="pp-fill" style="width:0%"></div></div></div>
         <div class="match-phase" id="phase-mid"><div class="phase-name">Middle</div><div class="phase-score" id="mid-score">-</div><div class="phase-bar"><div class="phase-fill" id="mid-fill" style="width:0%"></div></div></div>
         <div class="match-phase" id="phase-death"><div class="phase-name">Death</div><div class="phase-score" id="death-score">-</div><div class="phase-bar"><div class="phase-fill" id="death-fill" style="width:0%"></div></div></div>
@@ -2913,7 +2926,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="tactic-btn drs" id="drs-btn">DRS</div>
         <div class="tactic-btn impact" id="impact-btn" style="display:none">IMPACT</div>
       </div>
-      <div class="bowler-picker glass accent-blue" id="bowler-picker" style="display:none">
+      <div class="bowler-picker cu-card" id="bowler-picker" style="display:none;padding:14px">
         <div class="bp-title">Choose Bowler<span class="accent-line"></span></div>
         <div id="bowler-options"></div>
         <div class="field-setting">
@@ -2937,7 +2950,8 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           </div>
         </div>
       </div>
-      <div class="glass"><div class="section-title sm">Commentary<span class="accent-line"></span></div><div id="match-moments" class="match-moments"></div></div>
+      <div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>Key Moments</span></div></div>
+      <div class="cu-card" style="padding:13px"><div id="match-moments" class="match-moments"></div></div>
       <div class="btn btn-outline full mt-12" id="skip-btn">Skip to Result</div>
     </div>
 
@@ -7714,11 +7728,14 @@ function startPreMatch() {
   $('your-badge').innerHTML = generateCrest(GS.teamName, GS.teamColor, 76);
   $('your-badge').style.background = 'none';
   $('your-team-label').textContent = GS.teamName;
-  $('your-strength').textContent = 'STR: ' + getTeamStrength();
+  var yourStr = getTeamStrength();
+  $('your-strength').textContent = 'STR: ' + yourStr;
+  if ($('your-str-fill')) $('your-str-fill').style.width = Math.min(100, yourStr) + '%'; // v3 kit: additive-only, reuses value already computed above
   if ($('pm-season')) $('pm-season').textContent = 'Season ' + GS.season + ' — Match ' + (GS.matchesPlayed + 1);
   var capP = GS.captainId ? GS.squad.find(function(p){return p.id===GS.captainId;}) : null;
   if ($('pm-captain')) $('pm-captain').textContent = capP ? 'Captain: ' + capP.name : '';
   $('opp-strength').textContent = 'STR: ' + rival.strength;
+  if ($('opp-str-fill')) $('opp-str-fill').style.width = Math.min(100, rival.strength) + '%'; // v3 kit: additive-only
   var prd = GS.rivalData[rival.name];
   if (prd) {
     var prl = getRelLabel(prd.rel);
@@ -8449,9 +8466,9 @@ function endMatch() {
   if (cleanBonus > 0) rewardsHtml += '<div class="reward-row"><span>Clean Streak Bonus</span><span class="val" style="color:var(--green-bright)">+' + cleanBonus + ' (×' + GS.cleanStreak + ')</span></div>';
   if (bmR > 0) rewardsHtml += '<div class="reward-row"><span>Black Money</span><span class="val" style="color:var(--purple)">+' + bmR + '</span></div>';
   var inertiaNote = (alignC !== rawAlignC) ? ' (inertia: ' + rawAlignC + '→' + alignC + ')' : '';
-  rewardsHtml += '<div class="reward-row"><span>Alignment</span><span class="val ' + (alignC >= 0 ? 'positive' : 'negative') + '">' + (alignC >= 0 ? '+' : '') + alignC + inertiaNote + '</span></div>';
-  rewardsHtml += '<div class="reward-row"><span>Fan Loyalty</span><span class="val ' + (fanC >= 0 ? 'positive' : 'negative') + '">' + (fanC >= 0 ? '+' : '') + fanC + '</span></div>';
-  rewardsHtml += '<div class="reward-row"><span>Morale</span><span class="val ' + (won ? 'positive' : 'negative') + '">' + (won ? '+5' : '-3') + '</span></div>';
+  rewardsHtml += '<div class="reward-row"><span>Alignment</span><span class="val cu-delta ' + (alignC >= 0 ? 'positive cu-delta-up' : 'negative cu-delta-down') + '">' + (alignC >= 0 ? '▲+' : '▼') + alignC + inertiaNote + '</span></div>';
+  rewardsHtml += '<div class="reward-row"><span>Fan Loyalty</span><span class="val cu-delta ' + (fanC >= 0 ? 'positive cu-delta-up' : 'negative cu-delta-down') + '">' + (fanC >= 0 ? '▲+' : '▼') + fanC + '</span></div>';
+  rewardsHtml += '<div class="reward-row"><span>Morale</span><span class="val cu-delta ' + (won ? 'positive cu-delta-up' : 'negative cu-delta-down') + '">' + (won ? '▲+5' : '▼-3') + '</span></div>';
   rewardsHtml += '<div class="reward-row"><span>League Points</span><span class="val positive">+' + (won ? 3 : tied ? 1 : 0) + '</span></div>';
   if (wasFix) rewardsHtml += '<div class="reward-row"><span>Fix Heat</span><span class="val negative">+5</span></div>';
   if (streakMilestone && !streakMilestone.shield) rewardsHtml += '<div class="reward-row"><span>Streak Bonus (' + streakMilestone.label + ')</span><span class="val" style="color:var(--gold-bright)">+' + streakMilestone.reward + '</span></div>';
@@ -8489,7 +8506,8 @@ function endMatch() {
     (matchInjuries.length > 0 ? matchInjuries.map(function(inj) { return '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(220,38,38,0.2);border-radius:3px;background:rgba(220,38,38,0.04)">INJURY: ' + inj.name + ' — ' + inj.injury.type + ' (' + inj.injury.matchesOut + ' matches)</div>'; }).join('') : '') +
     (healedPlayers.length > 0 ? '<div class="text-xs text-green" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(52,211,153,0.2);border-radius:3px;background:rgba(52,211,153,0.04)">Recovered: ' + healedPlayers.join(', ') + '</div>' : '') +
     '<div class="match-payout"><div class="mp-label">Match Payout</div><div class="money hero"><span class="m-cur">C</span><span class="m-val">+' + coinR + '</span></div></div>' +
-    '<div class="rewards-panel glass accent-gold"><div class="section-title sm">Rewards · ' + zone.name + '<span class="accent-line"></span></div>' + rewardsHtml + sponsorTag + '</div>' +
+    '<div class="cu-ribbon-wrap" style="justify-content:center"><div class="cu-ribbon"><span>Rewards · ' + zone.name + '</span></div></div>' +
+    '<div class="rewards-panel cu-card">' + rewardsHtml + sponsorTag + '</div>' +
     '<div id="post-match-events" style="margin-top:12px"></div>' +
     (streakMilestone && streakMilestone.shield ? '<div class="streak-milestone"><div class="sm-icon">\u{1F6E1}️</div><div class="sm-title">Streak Shield used — ' + streakMilestone.streak + '-win streak survives</div><div class="sm-reward">One loss forgiven per run. Win to keep it alive.</div></div>' :
     streakMilestone ? '<div class="streak-milestone"><div class="sm-icon">' + streakMilestone.icon + '</div><div class="sm-title">' + GS.winStreak + ' Win Streak — ' + streakMilestone.label + '</div><div class="sm-reward">+' + streakMilestone.reward + ' coins</div></div>' : (GS.winStreak >= 2 && won ? '<div class="match-hook streak">' + GS.winStreak + ' wins in a row! ' + (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}) ? (STREAK_MILESTONES.find(function(m){return m.at>GS.winStreak}).at - GS.winStreak) + ' more for bonus' : '') + '</div>' : '')) +
@@ -8498,7 +8516,7 @@ function endMatch() {
     getNextOpponentTease() +
     renderSocialFeed() +
     '<div class="btn btn-outline full" id="view-scorecard-btn" style="margin-top:16px">View Scorecard</div>' +
-    '<div class="result-actions">' + (GS.matchNum <= 14 && !isKnockout ? '<div class="play-again-row"><div class="btn btn-gold lg" id="match-play-again-btn">Play Again</div><div class="btn btn-outline lg" id="match-continue-btn">Hub</div></div>' : '<div class="btn btn-gold lg" id="match-continue-btn" style="margin-top:10px">' + (isKnockout ? 'Knockout' : 'Continue') + '</div>') + '</div>' +
+    '<div class="result-actions">' + (GS.matchNum <= 14 && !isKnockout ? '<div class="play-again-row"><div class="btn btn-hero lg" id="match-play-again-btn">Play Again</div><div class="btn btn-outline lg" id="match-continue-btn">Hub</div></div>' : '<div class="btn btn-hero lg" id="match-continue-btn" style="margin-top:10px">' + (isKnockout ? 'Knockout' : 'Continue') + '</div>') + '</div>' +
     '</div>';
   var postEventsHtml = '';
   if (uw.event) {
