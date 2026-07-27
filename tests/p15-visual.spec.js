@@ -60,28 +60,47 @@ async function injectState(page, overrides = {}) {
 // ============================================================
 
 test.describe('P1.5 — Procedural Team Crests', () => {
-  test('hub shows SVG team crest instead of letter avatar', async ({ page }) => {
+  test('hub shows a faceted procedural portrait, not a letter crest', async ({ page }) => {
     await page.goto('/');
     await injectState(page);
     const crest = page.locator('#hub-crest svg');
     await expect(crest).toBeVisible();
     const svgHtml = await crest.innerHTML();
+    // generateFacetedAvatar() builds the portrait from gradient-filled <polygon>
+    // facets and never emits a <text> initial (that's the old generateCrest()).
     expect(svgHtml).toContain('linearGradient');
-    expect(svgHtml).toContain('<text');
+    expect(svgHtml).toContain('polygon');
+    expect(svgHtml).not.toContain('<text');
   });
 
-  test('crest uses team initial from team name', async ({ page }) => {
+  test('hub avatar is deterministically seeded by manager/team identity', async ({ page }) => {
     await page.goto('/');
-    await injectState(page, { teamName: 'Mumbai Legends' });
-    const text = await page.locator('#hub-crest svg text').textContent();
-    expect(text).toBe('M');
+    // generateFacetedAvatar(seed,...) is seeded by GS.managerName || GS.teamName (hub.js
+    // updateHub()). Clear managerName so the seed falls through to teamName, then confirm
+    // two different identities render two different portraits (proving identity still
+    // drives the visual, even though the letter initial is gone by design).
+    await injectState(page, { managerName: '', teamName: 'Mumbai Legends' });
+    const svgA = await page.locator('#hub-crest svg').innerHTML();
+    expect(svgA).toContain('polygon');
+
+    await injectState(page, { managerName: '', teamName: 'Chennai Titans' });
+    const svgB = await page.locator('#hub-crest svg').innerHTML();
+    expect(svgB).toContain('polygon');
+
+    expect(svgB).not.toBe(svgA);
   });
 
-  test('crest color changes with team color setting', async ({ page }) => {
+  test('hub avatar reflects team color setting', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { teamColor: 'crimson' });
     const svg = await page.locator('#hub-crest svg').innerHTML();
-    expect(svg).toContain('#EF2D2D');
+    // generateFacetedAvatar draws its turban/main gradient from CREST_COLORS[colorKey]
+    // (.accent/.secondary/.dark) — the old .primary ('#EF2D2D') isn't used by this shape,
+    // but crimson's .accent ('#FF6B6B') is, so that's the color that proves the team
+    // color setting reaches the hub avatar.
+    expect(svg).toContain('#FF6B6B');
+    // default teamColor is 'gold' (accent '#FFE082') — must not leak through once crimson is set.
+    expect(svg).not.toContain('#FFE082');
   });
 
   test('crest glow element exists', async ({ page }) => {
@@ -153,7 +172,10 @@ test.describe('P1.5 — Battle Card', () => {
   test('battle card has VS between crests', async ({ page }) => {
     await page.goto('/');
     await injectState(page);
-    await expect(page.locator('.battle-vs')).toHaveText('VS');
+    // .battle-vs is shared with the (always-in-DOM) prematch VS divider, so a bare
+    // '.battle-vs' locator now hits Playwright's strict-mode "resolved to 2 elements"
+    // error. Scope to the hub next-match card to target the right one.
+    await expect(page.locator('#hub-next-rival .battle-vs')).toHaveText('VS');
     await expect(page.locator('#battle-your-crest svg')).toBeVisible();
     await expect(page.locator('#rival-avatar svg')).toBeVisible();
   });
