@@ -1565,6 +1565,10 @@ html[data-theme="light"] .auction-purse-zone .purse{
 #league-screen #season-stats-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green-bright)}
 #league-screen #season-stats-btn:active{background:rgba(52,211,153,0.08)}
 #league-screen .league-row .form-dot.w{box-shadow:0 0 7px rgba(52,211,153,0.55)}
+/* v3 kit B4: position-movement indicator on Pts — cu-delta's color-as-status language
+   (--green-bright up / --blood down) applied via CSS only, updateLeagueTable() JS untouched */
+#league-screen .league-row.promotion .pts::after{content:'\25B2';display:inline-block;margin-left:3px;font-size:9px;color:var(--green-bright);vertical-align:2px}
+#league-screen .league-row.relegation .pts::after{content:'\25BC';display:inline-block;margin-left:3px;font-size:9px;color:var(--blood);vertical-align:2px}
 
 /* Playing XI selector — Cricket zone (team-sheet green) */
 .squad-select-overlay .ss-title{color:var(--green-bright);text-shadow:0 0 18px rgba(52,211,153,0.3)}
@@ -2968,9 +2972,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
     <!-- LEAGUE -->
     <div class="screen" id="league-screen">
-      <div class="section-title">League Table<span class="accent-line"></span></div>
+      <!-- v3 kit B4: section header banner (was .section-title) -->
+      <div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>League Table</span></div></div>
       <div class="btn btn-outline full mb-16" id="season-stats-btn" style="padding:10px">Season Stats & Leaderboard</div>
-      <div class="glass">
+      <!-- v3 kit B4: cu-card adds the chamfered frame + gold spotlight sheen; .glass stays so the
+           #league-screen>.glass zone-reskin (green top border) keeps applying underneath it -->
+      <div class="glass cu-card">
         <div class="league-header-row">
           <span class="lh-pos">#</span>
           <span class="lh-team">Team</span>
@@ -5232,21 +5239,29 @@ function showRivalProfile(rivalName) {
   var rl = getRelLabel(rd.rel);
   var hasIntel = !!GS.rivalIntel[rivalName];
   var isColluding = GS.collusionPacts.some(function(p) { return p.rival === rivalName; });
-  var crestHtml = generateRivalCrest(rival, 64);
-  var html = '<div style="text-align:center;margin-bottom:16px">' + crestHtml +
-    '<div class="font-d fw-700" style="font-size:22px;margin-top:8px">' + rival.name + '</div>' +
-    '<div class="text-xs text-slip" style="font-style:italic;margin-top:4px">' + rival.trait + '</div>' +
-    '<div class="text-xs ' + rl.cls + '" style="margin-top:6px">' + rl.text + ' (rel: ' + rd.rel + ')</div>' +
+  // v3 kit B4: faceted manager portrait (additive generateFacetedAvatar call) replaces the
+  // plain crest ONLY in this profile header slot. generateRivalCrest()/.crest-xs stays exactly
+  // as-is everywhere else (league table rows, hub battle card) — not touched.
+  var portraitHtml = generateFacetedAvatar(rival.name, rival.color, 64);
+  var relChipStyle = rl.cls === 'text-green' ? 'background:rgba(34,212,126,0.14);color:var(--green-bright);border:1px solid rgba(34,212,126,0.3)' :
+    rl.cls === 'text-amber' ? 'background:rgba(245,158,11,0.14);color:var(--amber);border:1px solid rgba(245,158,11,0.3)' :
+    rl.cls === 'text-red' ? 'background:rgba(220,38,38,0.14);color:var(--blood);border:1px solid rgba(220,38,38,0.3)' :
+    'background:rgba(var(--hl-rgb),0.06);color:var(--slip);border:1px solid rgba(var(--hl-rgb),0.12)';
+  var html = '<div style="text-align:center;margin-bottom:14px">' +
+    '<div class="cu-avatar" style="width:64px;height:64px;margin:0 auto">' + portraitHtml + '</div>' +
+    '<div class="cu-ribbon-wrap" style="justify-content:center;margin:10px 0 0"><div class="cu-ribbon' + (rival.banned ? ' cu-red' : '') + '"><span>' + rival.name + '</span></div></div>' +
+    '<div class="text-xs text-slip" style="font-style:italic;margin-top:6px">' + rival.trait + '</div>' +
+    '<div class="cu-chip" style="margin-top:8px;' + relChipStyle + '">' + rl.text + ' (rel: ' + rd.rel + ')</div>' +
     (isColluding ? '<div class="text-xs text-purple" style="margin-top:4px">Collusion pact active</div>' : '') +
     (rival.banned ? '<div class="text-xs text-red" style="margin-top:4px">SUSPENDED</div>' : '') +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">' +
-    '<div class="glass" style="padding:10px;text-align:center"><div class="text-xs text-slip">Personality</div><div class="font-d fw-600 text-sm">' + rival.personality.charAt(0).toUpperCase() + rival.personality.slice(1) + '</div></div>' +
-    '<div class="glass" style="padding:10px;text-align:center"><div class="text-xs text-slip">Strength</div><div class="font-d fw-600 text-sm">' + rival.strength + '</div></div>' +
-    '<div class="glass" style="padding:10px;text-align:center"><div class="text-xs text-slip">H2H</div><div class="font-d fw-600 text-sm">' + rd.winsVs + 'W - ' + rd.lossesVs + 'L</div></div>' +
-    '<div class="glass" style="padding:10px;text-align:center"><div class="text-xs text-slip">Fixed Against</div><div class="font-d fw-600 text-sm text-red">' + rd.fixedAgainst + '</div></div></div>';
+    '<div class="cu-card" style="display:grid;grid-template-columns:1fr 1fr;padding:8px 4px;margin-bottom:14px">' +
+    '<div style="padding:8px;text-align:center;border-bottom:1px solid var(--border);border-right:1px solid var(--border)"><div class="text-xs text-slip">Personality</div><div class="cu-chip" style="margin-top:4px;background:var(--gold-dim);color:var(--gold-bright);border:1px solid rgba(255,210,63,0.25)">' + rival.personality.charAt(0).toUpperCase() + rival.personality.slice(1) + '</div></div>' +
+    '<div style="padding:8px;text-align:center;border-bottom:1px solid var(--border)"><div class="text-xs text-slip">Strength</div><div class="font-d fw-600 text-sm" style="margin-top:4px">' + rival.strength + '</div></div>' +
+    '<div style="padding:8px;text-align:center;border-right:1px solid var(--border)"><div class="text-xs text-slip">H2H</div><div class="font-d fw-600 text-sm" style="margin-top:4px">' + rd.winsVs + 'W - ' + rd.lossesVs + 'L</div></div>' +
+    '<div style="padding:8px;text-align:center"><div class="text-xs text-slip">Fixed Against</div><div class="font-d fw-600 text-sm text-red" style="margin-top:4px">' + rd.fixedAgainst + '</div></div></div>';
   if (hasIntel) {
-    html += '<div class="glass accent-purple" style="padding:10px;margin-bottom:12px;text-align:center"><div class="text-xs text-slip">Intel (Dossier)</div>' +
+    html += '<div class="cu-card cu-red" style="padding:10px;margin-bottom:12px;text-align:center"><div class="cu-chip" style="background:rgba(220,38,38,0.14);color:var(--blood);border:1px solid rgba(220,38,38,0.3);margin-bottom:6px">Intel Dossier</div>' +
       '<div class="text-sm">Alignment: <span class="fw-600">' + rival.alignment + '</span> · Heat: <span class="fw-600">' + rival.heat + '</span> · Debts: <span class="fw-600">' + rival.debts + '</span></div></div>';
   }
   var nextR = getNextRival();
