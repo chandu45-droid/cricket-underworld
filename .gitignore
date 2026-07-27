@@ -28,3 +28,4 @@ npm-debug.log*
 # Local Claude overrides
 .claude/settings.local.json
 *.backup
+.claude/worktrees/
