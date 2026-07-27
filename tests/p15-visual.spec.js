@@ -187,15 +187,17 @@ test.describe('P1.5 — Player Card Silhouettes', () => {
     expect(await silhouettes.count()).toBeGreaterThan(0);
   });
 
-  test('batter cards have bat-stance silhouette', async ({ page }) => {
+  test('batter cards have a faceted portrait silhouette', async ({ page }) => {
     await page.goto('/');
     await injectState(page);
     await page.click('#hub-cards-btn');
     await page.waitForSelector('#cards-screen.active', { timeout: 5000 });
     const firstCard = page.locator('.player-card').first();
     const svg = await firstCard.locator('.player-silhouette svg').innerHTML();
-    expect(svg).toContain('circle');
-    expect(svg).toContain('line');
+    // v3 faceted portrait: low-poly face polygons with a skin gradient,
+    // replacing the old dot-head + stick-limb circle/line art.
+    expect(svg).toContain('polygon');
+    expect(svg).toContain('linearGradient');
   });
 
   test('OVR badge has angular clip-path', async ({ page }) => {
