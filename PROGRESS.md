@@ -9,9 +9,8 @@
 >
 > **TEST STATE — ✅ CONFIRMED GREEN (2026-07-27):** the final full Playwright suite on integrated master ran **167 passed / 0 failed** (real exit 0, verified via PIPESTATUS; bg id `b8wj25lxz`, 10.6m). The prior 163/4 failures were only the `p15-visual` crest tests pinning the OLD letter-crest Hub — fixed in `9028186`. **Test gate CLEARED.** (Optional sanity re-run: `npx playwright test`. Known flakes that pass on isolated re-run: `p15-visual` crests, `smoke` bowler-picker.)
 >
-> **BLOCKING GATES before any gh-pages deploy (both required):**
-> 1. ✅ Final Playwright suite green — DONE (167/167).
-> 2. 🌡️ **S24 heating device retest** — founder physical test: idle at Hub (clean alignment) a few minutes on the S24, confirm it stays cool + battery ok, AND smoke still shows on corrupt alignment + celebrations still fire.
+> **✅ DEPLOYED — the redesign is LIVE (2026-07-27).** DEPLOY MODEL CLARIFIED: cricket-underworld's GitHub Pages serves DIRECTLY FROM `master` root (root `index.html` = meta-refresh redirect → `prototype/index.html`); there is NO `gh-pages` branch and NO Pages Actions workflow. Therefore **every push to master auto-deploys** — the whole rollout went live as it was pushed. Verified: live `https://chandu45-droid.github.io/cricket-underworld/prototype/index.html` is HTTP 200 and **byte-identical to master HEAD** (695,896 bytes; 93 cu-card, 15 faceted-avatar, 3 startParticles markers present).
+> **GATES:** 1. ✅ Playwright 167/167. 2. 🌡️ **S24 heating check is now a POST-deploy verification** (it went live before the on-device test — fix is code-verified + suite green, low risk, instantly revertible via `git revert`): on the S24, idle at Hub a few min → stays cool + battery ok, smoke still shows on corrupt alignment, celebrations still fire. If it regresses, revert the relevant commit and re-push (auto-redeploys).
 >
 > **Behavior change for founder awareness (easy revert):** the Hub HEADER avatar now shows a faceted cricketer PORTRAIT instead of the team-initial letter crest. Team COLOR is still reflected (avatar seeded by `GS.teamColor`), team NAME still shows as text, and letter-crests still appear in the league table + battle card + prematch badges. If you want the initial letter back in the hub too, it's a small add.
 >
