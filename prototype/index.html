@@ -4834,41 +4834,68 @@ function generateFacetedAvatar(seed, colorKey, size) {
 }
 
 // =============================================
-// PROCEDURAL PLAYER SILHOUETTES
+// PROCEDURAL PLAYER PORTRAITS (faceted, v3 kit)
+// Low-poly illustrated cricketer bust -- same visual family as
+// generateFacetedAvatar (skin-faceted face via AVATAR_SKIN_FACETS),
+// composed for the card's .player-silhouette slot. Role-aware headwear
+// (helmet+grille for batters/keepers, cap+peak for bowlers, headband for
+// all-rounders) and rarity-aware jersey trim + glow + legendary/epic aura
+// ring. Fictional archetypes only, no real player likeness. Pure inline
+// SVG, single cheap drop-shadow filter (no rAF/canvas) -- same perf
+// budget as the old silhouette.
 // =============================================
+var _psSeq = 0;
 function generatePlayerSilhouette(role, rarity, size) {
   size = size || 60;
-  var h = size, w = size;
-  var mid = w / 2;
+  role = role || '';
   var rc = RARITY_COLORS[rarity] || '#4A5568';
-  var glowO = rarity === 'legendary' ? 0.3 : rarity === 'epic' ? 0.2 : 0.12;
-  var body = '';
-  if (role.indexOf('Batter') >= 0 || role === 'Wicket-Keeper') {
-    body =
-      '<circle cx="' + mid + '" cy="' + (h*0.2) + '" r="' + (h*0.1) + '" fill="' + rc + '" opacity="0.8"/>' +
-      '<line x1="' + mid + '" y1="' + (h*0.3) + '" x2="' + mid + '" y2="' + (h*0.6) + '" stroke="' + rc + '" stroke-width="2" opacity="0.6" stroke-linecap="round"/>' +
-      '<line x1="' + (mid-h*0.12) + '" y1="' + (h*0.65) + '" x2="' + mid + '" y2="' + (h*0.6) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>' +
-      '<line x1="' + (mid+h*0.12) + '" y1="' + (h*0.65) + '" x2="' + mid + '" y2="' + (h*0.6) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>' +
-      '<line x1="' + (mid-h*0.08) + '" y1="' + (h*0.35) + '" x2="' + (mid+h*0.25) + '" y2="' + (h*0.15) + '" stroke="' + rc + '" stroke-width="2" opacity="0.7" stroke-linecap="round"/>' +
-      '<line x1="' + (mid+h*0.08) + '" y1="' + (h*0.35) + '" x2="' + (mid+h*0.15) + '" y2="' + (h*0.5) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>';
-  } else if (role.indexOf('Bowler') >= 0) {
-    body =
-      '<circle cx="' + mid + '" cy="' + (h*0.18) + '" r="' + (h*0.1) + '" fill="' + rc + '" opacity="0.8"/>' +
-      '<line x1="' + mid + '" y1="' + (h*0.28) + '" x2="' + (mid-h*0.04) + '" y2="' + (h*0.55) + '" stroke="' + rc + '" stroke-width="2" opacity="0.6" stroke-linecap="round"/>' +
-      '<line x1="' + (mid-h*0.1) + '" y1="' + (h*0.6) + '" x2="' + (mid-h*0.04) + '" y2="' + (h*0.55) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>' +
-      '<line x1="' + (mid+h*0.1) + '" y1="' + (h*0.65) + '" x2="' + (mid-h*0.04) + '" y2="' + (h*0.55) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>' +
-      '<path d="M' + (mid+h*0.06) + ' ' + (h*0.32) + ' Q' + (mid+h*0.3) + ' ' + (h*0.1) + ' ' + (mid+h*0.2) + ' ' + (h*0.05) + '" stroke="' + rc + '" stroke-width="2" fill="none" opacity="0.7" stroke-linecap="round"/>' +
-      '<circle cx="' + (mid+h*0.22) + '" cy="' + (h*0.04) + '" r="' + (h*0.035) + '" fill="' + rc + '" opacity="0.6"/>';
+  var h = hashStr(role + '|' + (rarity || ''));
+  var sk = AVATAR_SKIN_FACETS[h % AVATAR_SKIN_FACETS.length];
+  var id = 'ps' + (_psSeq++);
+  var isKeeper = role === 'Wicket-Keeper';
+  var isBatter = role.indexOf('Batter') >= 0 || isKeeper;
+  var isBowler = !isBatter && role.indexOf('Bowler') >= 0;
+  var glowO = rarity === 'legendary' ? 0.4 : rarity === 'epic' ? 0.26 : rarity === 'rare' ? 0.16 : rarity === 'uncommon' ? 0.12 : 0.08;
+  var hasRing = rarity === 'legendary' || rarity === 'epic';
+
+  var head = '';
+  if (isBatter) {
+    // helmet dome + peak + grille bars; keeper adds a chest guard chevron
+    head =
+      '<polygon points="16,17 30,4 44,17 44,23 16,23" fill="url(#' + id + 'tm)"/>' +
+      '<polygon points="16,21 7,25 16,27" fill="url(#' + id + 'td)"/>' +
+      '<line x1="22" y1="25" x2="38" y2="25" stroke="#241608" stroke-width="1.1" opacity="0.5"/>' +
+      '<line x1="21" y1="29" x2="39" y2="29" stroke="#241608" stroke-width="1.1" opacity="0.5"/>' +
+      '<line x1="22" y1="33" x2="38" y2="33" stroke="#241608" stroke-width="1.1" opacity="0.5"/>';
+    if (isKeeper) head += '<polygon points="23,47 37,47 34,51 26,51" fill="' + rc + '" opacity="0.65"/>';
+  } else if (isBowler) {
+    head =
+      '<polygon points="18,15 30,4 42,15 42,20 18,20" fill="url(#' + id + 'tm)"/>' +
+      '<polygon points="41,16 53,14 42,21" fill="url(#' + id + 'td)"/>';
   } else {
-    body =
-      '<circle cx="' + mid + '" cy="' + (h*0.2) + '" r="' + (h*0.1) + '" fill="' + rc + '" opacity="0.8"/>' +
-      '<line x1="' + mid + '" y1="' + (h*0.3) + '" x2="' + mid + '" y2="' + (h*0.58) + '" stroke="' + rc + '" stroke-width="2" opacity="0.6" stroke-linecap="round"/>' +
-      '<line x1="' + (mid-h*0.12) + '" y1="' + (h*0.63) + '" x2="' + mid + '" y2="' + (h*0.58) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>' +
-      '<line x1="' + (mid+h*0.12) + '" y1="' + (h*0.63) + '" x2="' + mid + '" y2="' + (h*0.58) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>' +
-      '<line x1="' + (mid-h*0.1) + '" y1="' + (h*0.35) + '" x2="' + (mid-h*0.22) + '" y2="' + (h*0.45) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>' +
-      '<line x1="' + (mid+h*0.1) + '" y1="' + (h*0.35) + '" x2="' + (mid+h*0.22) + '" y2="' + (h*0.45) + '" stroke="' + rc + '" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>';
+    head = '<polygon points="17,18 43,18 43,21 17,21" fill="url(#' + id + 'tm)" opacity="0.9"/>';
   }
-  return '<svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" style="width:' + w + 'px;height:' + h + 'px;filter:drop-shadow(0 0 ' + (glowO * 40) + 'px ' + rc + ')">' + body + '</svg>';
+
+  var ring = hasRing ? '<polygon points="30,2 55,30 30,58 5,30" fill="none" stroke="' + rc + '" stroke-width="1.4" opacity="' + (rarity === 'legendary' ? 0.4 : 0.24) + '"/>' : '';
+
+  return '<svg viewBox="0 0 60 60" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" ' +
+    'style="filter:drop-shadow(0 0 ' + (glowO * 30) + 'px ' + rc + ')">' +
+    '<defs>' +
+      '<linearGradient id="' + id + 'sl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + sk.l1 + '"/><stop offset="1" stop-color="' + sk.l2 + '"/></linearGradient>' +
+      '<linearGradient id="' + id + 'sr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + sk.r1 + '"/><stop offset="1" stop-color="' + sk.r2 + '"/></linearGradient>' +
+      '<linearGradient id="' + id + 'tm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + rc + '" stop-opacity="0.95"/><stop offset="1" stop-color="' + rc + '" stop-opacity="0.55"/></linearGradient>' +
+      '<linearGradient id="' + id + 'td" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + rc + '" stop-opacity="0.7"/><stop offset="1" stop-color="' + rc + '" stop-opacity="0.3"/></linearGradient>' +
+      '<linearGradient id="' + id + 'jg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + rc + '" stop-opacity="0.85"/><stop offset="1" stop-color="' + rc + '" stop-opacity="0.4"/></linearGradient>' +
+    '</defs>' +
+    ring +
+    '<polygon points="10,60 18,42 42,42 50,60" fill="url(#' + id + 'jg)"/>' +
+    '<polygon points="26,44 34,44 33,37 27,37" fill="' + sk.l2 + '"/>' +
+    '<polygon points="30,9 20,15 20,34 30,40" fill="url(#' + id + 'sl)"/>' +
+    '<polygon points="30,9 40,15 40,34 30,40" fill="url(#' + id + 'sr)"/>' +
+    '<polygon points="21,31 30,40 39,31 30,35" fill="' + sk.l2 + '" opacity="0.45"/>' +
+    head +
+    '<path d="M40,15 L40,34 L30,40" fill="none" stroke="#FFEFC2" stroke-width="1.1" opacity="0.4"/>' +
+    '</svg>';
 }
 
 // =============================================
