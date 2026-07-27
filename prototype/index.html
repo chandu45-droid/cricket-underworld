@@ -714,12 +714,21 @@ html[data-theme="light"] .auction-purse-zone .purse{
 #bid-btn.urgency::after{content:'';position:absolute;inset:-2px;border:2px solid var(--gold-bright);clip-path:var(--clip-btn);animation:urgencyGlow 0.8s ease-in-out infinite;pointer-events:none}
 @keyframes bidUrgency{0%{box-shadow:0 0 0 rgba(255,210,63,0)}50%{box-shadow:0 0 20px rgba(255,210,63,0.3)}100%{box-shadow:0 0 0 rgba(255,210,63,0)}}
 @keyframes urgencyGlow{0%{opacity:0.3}50%{opacity:1}100%{opacity:0.3}}
+/* v3 kit: single shine-sweep on the BID hero CTA (kit's .cu-hc-shine treatment,
+   reimplemented as a ::before pseudo instead of a real DOM child — placeBid()/
+   showOverspendWarn()/clearOverspendWarn() overwrite #bid-btn's innerHTML on
+   every tap, which would wipe out a literal child node; a pseudo-element
+   survives those rewrites untouched. Reuses the kit's own cuShineSweep
+   keyframes (defined once, below) — one loop, not a new animation family. */
+#bid-btn::before{content:'';position:absolute;top:0;bottom:0;left:0;width:38%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.30),transparent);transform:translateX(-140%) skewX(-20deg);animation:cuShineSweep 4.6s ease-in-out infinite;pointer-events:none}
 
-/* Mafia intel panel — hidden by default, red-tinted */
-.auction-intel-panel{padding:10px 14px;margin-bottom:12px;background:linear-gradient(135deg,rgba(220,38,38,0.06),rgba(220,38,38,0.02));border:1px solid rgba(220,38,38,0.15);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%);position:relative}
-.auction-intel-panel::before{content:'';position:absolute;top:10px;left:10px;width:6px;height:6px;background:var(--blood);clip-path:var(--clip-diamond);opacity:0.6}
-.auction-intel-panel .intel-title{font-family:var(--font-d);font-size:11px;font-weight:600;color:var(--blood);text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;padding-left:14px}
-.auction-intel-panel .intel-text{font-size:13px;color:var(--slip);font-style:italic;padding-left:14px;line-height:1.4}
+/* Mafia intel panel — hidden by default, red-tinted. v3 kit: surface now comes
+   from .cu-card.cu-red on the element (see markup); the old diamond ::before
+   marker is retired here because .cu-card.cu-red's own ::before (higher
+   specificity, sets `inset`) would otherwise collide with its top/left
+   longhands and drag the marker into the panel's chamfered corner. */
+.auction-intel-panel{padding:10px 14px;margin-bottom:12px}
+.auction-intel-panel .intel-text{font-size:13px;color:var(--slip);font-style:italic;line-height:1.4}
 
 /* Bid log — premium glass panel */
 .auction-log-panel{background:var(--glass-bg);border:var(--glass-border);box-shadow:var(--elevation-1);clip-path:polygon(6px 0,100% 0,100% 100%,0 100%,0 6px);padding:12px 14px}
@@ -2224,6 +2233,44 @@ html[data-theme="light"] .auction-purse-zone .purse{
 #player-detail-overlay .pd-rarity.cu-chip{margin-top:8px}
 
 /* ================================================================
+   V3 KIT APPLICATION — B2: Auction Lobby + Live Auction
+   LOOK ONLY, scoped to #auction-screen's own selectors/generated markup.
+   Every wired hook (auction-purse, round-info, auction-spotlight,
+   current-bid, bidder-name, timer-circle, timer-bar-fill, timer-sec,
+   bid-btn, pass-btn, bid-log, auction-intel-panel/-text, rtm-banner,
+   start-auction-btn, auction-empty-area, ad-purse-btn/-sub) keeps its id —
+   only the surfaces/frames around them pick up kit classes. B2 stays B2.
+   ================================================================ */
+/* Empty/lobby: shared .empty-state/.es-tile pattern (already used by the
+   Cards screen's own empty states) replaces the old bespoke faint-icon look */
+#auction-screen .auction-empty.empty-state{min-height:60vh}
+#auction-screen .auction-empty .cu-ribbon-wrap{margin-bottom:18px}
+
+/* Round/pool title as a cu-ribbon banner — cu-ribbon-wrap's own margin:2px 0
+   would collapse the old 8px gap before the stage, so restore it here */
+#auction-screen .auction-round-chip.cu-ribbon-wrap{justify-content:center;margin:2px 0 10px}
+
+/* "On The Block" ribbon above the stage — new, purely additive section header */
+#auction-screen .auction-block-ribbon{justify-content:center;margin:0 0 6px}
+
+/* Player-on-block spotlight badge: faceted avatar keyed to the card's rarity,
+   JS-populated additively in showNextCard() (generateFacetedAvatar reuse) —
+   renderPlayerCard() itself is untouched (shared with the Cards screen +
+   pack opening, both covered by other Playwright specs that assert its
+   silhouette/star markup, so it stays out of scope for this batch) */
+#auction-block-avatar{position:absolute;top:6px;left:6px;width:38px;height:38px;z-index:3}
+
+/* Bid arena / bidding log take the chamfered cu-card frame + gold spotlight sheen */
+#auction-screen .bid-arena.cu-card{padding:14px 16px 10px}
+#auction-screen .auction-log-panel.cu-card{padding:12px 14px}
+
+/* Mafia intel: cu-card.cu-red supplies the frame + red spotlight sheen; title
+   becomes a cu-chip tag (cu-chip carries no default color — every use pairs
+   it with a color modifier, same convention as the Hub/Squad rollout) */
+#auction-screen .auction-intel-panel.cu-card{padding:12px 14px}
+#auction-screen .intel-title.cu-chip{background:rgba(220,38,38,0.14);color:var(--blood);border:1px solid rgba(220,38,38,0.3);margin-bottom:6px}
+
+/* ================================================================
    THEME TOGGLE (Settings → Appearance)
    ================================================================ */
 .theme-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.08);clip-path:var(--clip-card-tl);cursor:pointer}
@@ -2695,15 +2742,17 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
             <div class="purse money hero" id="auction-purse"><span class="m-cur">C</span><span class="m-val">2,000</span></div>
           </div>
         </div>
-        <div class="auction-round-chip">
+        <div class="auction-round-chip cu-ribbon-wrap">
           <span class="live-dot"></span>
-          <div class="round-info" id="round-info">Round 1</div>
+          <div class="cu-ribbon"><span id="round-info">Round 1</span></div>
         </div>
+        <div class="cu-ribbon-wrap auction-block-ribbon"><div class="cu-ribbon cu-red"><span>On The Block</span></div></div>
         <div class="auction-stage">
           <div class="spotlight-rays"></div>
+          <div class="cu-avatar" id="auction-block-avatar"></div>
           <div class="auction-card-spotlight" id="auction-spotlight"></div>
         </div>
-        <div class="bid-arena">
+        <div class="bid-arena cu-card">
           <div class="bid-area">
             <div class="bid-timer-circle">
               <svg viewBox="0 0 100 100">
@@ -2729,19 +2778,20 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="btn btn-hero full" id="bid-btn">Bid <span id="bid-amount">120</span></div>
           <div class="btn btn-outline full" id="pass-btn">Pass</div>
         </div>
-        <div class="auction-intel-panel" id="auction-intel-panel" style="display:none">
-          <div class="intel-title">Mafia Intel</div>
+        <div class="auction-intel-panel cu-card cu-red" id="auction-intel-panel" style="display:none">
+          <span class="intel-title cu-chip">Mafia Intel</span>
           <div class="intel-text" id="auction-intel-text"></div>
         </div>
-        <div class="auction-log-panel glass" id="bid-log-panel">
+        <div class="auction-log-panel glass cu-card" id="bid-log-panel">
           <div class="section-title sm">Bid History<span class="accent-line"></span></div>
           <div class="bid-log" id="bid-log"></div>
         </div>
       </div>
-      <div class="auction-empty" id="auction-empty-area">
-        <div class="ae-icon"><svg viewBox="0 0 80 80"><rect x="25" y="12" width="30" height="14" rx="2" transform="rotate(-40 40 19)"/><line x1="40" y1="32" x2="40" y2="54"/><rect x="22" y="58" width="36" height="8" rx="2"/><line x1="16" y1="70" x2="64" y2="70"/></svg></div>
-        <div class="ae-title">Player Auction</div>
-        <div class="ae-sub">Bid on players to build your squad through the auction block</div>
+      <div class="auction-empty empty-state" id="auction-empty-area">
+        <div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>Auction Lobby</span></div></div>
+        <div class="es-tile"><svg viewBox="0 0 80 80"><rect x="25" y="12" width="30" height="14" rx="2" transform="rotate(-40 40 19)"/><line x1="40" y1="32" x2="40" y2="54"/><rect x="22" y="58" width="36" height="8" rx="2"/><line x1="16" y1="70" x2="64" y2="70"/></svg></div>
+        <div class="es-title">Player Auction</div>
+        <div class="es-sub">Bid on players to build your squad through the auction block</div>
         <div class="btn btn-hero lg" id="start-auction-btn">Start Auction</div>
         <div class="ad-spot-btn" id="ad-purse-btn" style="margin-top:16px">
           <div class="asb-icon"></div>
@@ -6687,6 +6737,11 @@ function showNextCard() {
   $('auction-purse').innerHTML = '<span class="m-cur">C</span><span class="m-val">' + GS.auctionPurse.toLocaleString() + '</span>';
   $('round-info').textContent = 'Card ' + (auction.idx + 1) + ' of ' + auction.pool.length;
   $('auction-spotlight').innerHTML = renderPlayerCard(p);
+  // v3 kit B2: faceted spotlight badge for the player currently on the block —
+  // additive only, renderPlayerCard() above is untouched (shared with Cards
+  // screen + pack opening, both covered by other Playwright specs).
+  var _blockAv = $('auction-block-avatar');
+  if (_blockAv) _blockAv.innerHTML = generateFacetedAvatar(p.name, RARITY_TO_CREST_KEY[p.rarity] || 'gold', 38);
   $('bid-log').innerHTML = '';
   clearOverspendWarn();
   updateBidUI();
