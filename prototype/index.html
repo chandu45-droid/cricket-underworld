@@ -2196,6 +2196,34 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .cu-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;clip-path:var(--clip-6);font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;font-weight:700}
 
 /* ================================================================
+   V3 KIT APPLICATION — B1: Squad Overview + Player Detail
+   LOOK ONLY, scoped to these two screens' own selectors/generated markup
+   so the shared .glass/.player-card-mini/.cu-chip primitives don't bleed
+   into other screens/overlays that reuse those same base classes
+   (Cards grid, super-sub swap, mentorship list, etc.) — B1 stays B1.
+   ================================================================ */
+/* Squad: team-stats-row becomes one cu-card panel (mirrors hub-meters —
+   the row gets the chamfered frame + spotlight, individual tiles drop
+   their own background/border so they read as compartments of one panel) */
+#squad-screen .team-stats-row.cu-card{padding:12px 4px 10px}
+#squad-screen .team-stats-row .team-stat{background:transparent;border:none;box-shadow:none;border-radius:0}
+#squad-screen .squad-morale-bar.cu-card{padding:10px 14px}
+#squad-screen .squad-role-group .cu-ribbon-wrap{margin:8px 0 4px}
+/* Squad list rows: chamfer via clip-path (kit standard) instead of the legacy
+   3px border-radius; role chip gets a warm gold treatment (cu-chip carries no
+   default color — every use pairs it with a color modifier, same as the Hub) */
+#squad-screen .player-card-mini.cu-card{border-radius:0}
+#squad-screen .player-card-mini .mini-role-chip{background:var(--gold-dim);color:var(--gold-bright);border:1px solid rgba(255,210,63,0.25);margin-left:2px;flex-shrink:0}
+
+/* Player Detail: hero + info panels take the chamfered cu-card frame;
+   avatar sits above the existing OVR badge (additive, doesn't replace it) */
+#player-detail-overlay .pd-hero.cu-card{padding:18px 14px 20px;margin-bottom:10px}
+#player-detail-overlay .pd-avatar{width:88px;height:88px;margin:0 auto 12px}
+#player-detail-overlay .cu-star-pips{justify-content:center}
+#player-detail-overlay .cu-star-pips svg{width:14px;height:14px}
+#player-detail-overlay .pd-rarity.cu-chip{margin-top:8px}
+
+/* ================================================================
    THEME TOGGLE (Settings → Appearance)
    ================================================================ */
 .theme-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.08);clip-path:var(--clip-card-tl);cursor:pointer}
@@ -2866,16 +2894,16 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <!-- SQUAD -->
     <div class="screen" id="squad-screen">
       <div class="squad-header">
-        <div class="section-title" style="margin-bottom:0"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Your Squad</div>
+        <div class="cu-ribbon-wrap" style="margin:0"><div class="cu-ribbon"><span>Your Squad</span></div></div>
         <div class="squad-count" id="squad-count">0/15</div>
       </div>
-      <div class="team-stats-row">
+      <div class="team-stats-row cu-card">
         <div class="team-stat stat-bat"><div class="ts-val text-green" id="ts-bat">-</div><div class="ts-label">Batting</div></div>
         <div class="team-stat stat-bwl"><div class="ts-val text-gold" id="ts-bwl">-</div><div class="ts-label">Bowling</div></div>
         <div class="team-stat stat-ovr"><div class="ts-val text-blue" id="ts-ovr">-</div><div class="ts-label">Overall</div></div>
         <div class="team-stat stat-morale"><div class="ts-val text-amber" id="ts-morale">75</div><div class="ts-label">Morale</div></div>
       </div>
-      <div class="squad-morale-bar" id="squad-morale-bar">
+      <div class="squad-morale-bar cu-card" id="squad-morale-bar">
         <div class="morale-row"><span class="morale-label">Team Morale</span><span class="morale-val" id="morale-bar-val">75</span></div>
         <div class="morale-track"><div class="morale-fill" id="morale-bar-fill" style="width:75%"></div></div>
       </div>
@@ -3752,6 +3780,9 @@ var ROLE_FILTER = {'Top-Order Batter':'batter','Middle-Order Batter':'batter','W
 var RARITIES = ['common','uncommon','rare','epic','legendary'];
 var RARITY_COLORS = { common:'#4A5568', uncommon:'#3B82F6', rare:'#0E9B52', epic:'#C49B1A', legendary:'#DC2626' };
 var RARITY_GLOW = { common:'rgba(74,85,104,0.1)', uncommon:'rgba(59,130,246,0.12)', rare:'rgba(14,155,82,0.15)', epic:'rgba(196,155,26,0.2)', legendary:'rgba(220,38,38,0.25)' };
+// v3 kit: maps rarity -> CREST_COLORS key so generateFacetedAvatar() (built for the Hub's
+// team-color manager portrait) can be reused for player portraits, colored by rarity instead.
+var RARITY_TO_CREST_KEY = { common:'dark', uncommon:'blue', rare:'green', epic:'amber', legendary:'crimson' };
 
 var ALL_PLAYERS = [
   // Top-Order Batters (10)
@@ -6094,10 +6125,10 @@ function renderPlayerMini(p) {
   var rc = RARITY_COLORS[p.rarity] || '#4A5568';
   var roleShort = ROLE_SHORT[p.role] || 'AR';
   var banTag = p.banned ? '<span style="color:var(--blood);font-size:10px;font-weight:700;margin-left:6px">BANNED ' + p.banned.matchesLeft + 'M</span>' : p.injured ? '<span class="injury-tag">INJ ' + p.injured.matchesLeft + 'M</span>' : '';
-  return '<div class="player-card-mini" data-pid="' + p.id + '"' + (p.banned || p.injured ? ' style="opacity:0.5"' : '') + '>' +
+  return '<div class="player-card-mini cu-card" data-pid="' + p.id + '"' + (p.banned || p.injured ? ' style="opacity:0.5"' : '') + '>' +
     '<div class="mini-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.4))">' + ovr + '</div>' +
     '<div class="mini-info"><div class="mini-name">' + p.name + banTag + '</div><div class="mini-role">' + p.role + (p.overseas ? ' · OS' : '') + '</div></div>' +
-    '<div class="mini-stats"><span>' + (p.role.indexOf('Bowler') >= 0 ? p.bwl : p.bat) + '</span> ' + roleShort + '</div>' +
+    '<div class="mini-stats"><span>' + (p.role.indexOf('Bowler') >= 0 ? p.bwl : p.bat) + '</span><span class="cu-chip mini-role-chip">' + roleShort + '</span></div>' +
     '<div class="status-dot playing"></div></div>';
 }
 
@@ -6113,8 +6144,9 @@ function showPlayerDetail(id) {
   var ovr = getOVR(p);
   var rc = RARITY_COLORS[p.rarity] || '#4A5568';
   var isSquad = GS.squad.some(function(s){return s.id===p.id;});
+  // v3 kit: SVG star pips (same component as the Hub's manager rating), replacing the old ★ glyphs
   var starsHtml = '';
-  for (var i = 0; i < 5; i++) starsHtml += '<span class="' + (i < p.stars ? 'filled' : 'empty') + '" aria-hidden="true">&#9733;</span>';
+  for (var i = 0; i < 5; i++) starsHtml += '<svg class="' + (i < p.stars ? 'filled' : 'empty') + '" viewBox="0 0 24 24">' + HUB_STAR_SVG + '</svg>';
   var statsHtml = '';
   var statDefs = [['Batting','bat'],['Bowling','bwl'],['Fielding','fld'],['Fitness','fit'],['Form','form']];
   for (var s = 0; s < statDefs.length; s++) {
@@ -6124,20 +6156,22 @@ function showPlayerDetail(id) {
   }
   var fixChance = Math.round(100 - (p.loyalty * 0.8) + (p.greed * 0.3));
   fixChance = Math.max(5, Math.min(95, fixChance));
+  var avatarKey = RARITY_TO_CREST_KEY[p.rarity] || 'gold';
   var html =
-    '<div class="pd-hero" style="--pd-glow:' + rc + '">' +
+    '<div class="pd-hero cu-card" style="--pd-glow:' + rc + '">' +
       '<div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:180px;height:180px;border-radius:50%;background:' + rc + ';filter:blur(60px);opacity:0.12;pointer-events:none"></div>' +
+      '<div class="cu-avatar pd-avatar">' + generateFacetedAvatar(p.name, avatarKey, 88) + '</div>' +
       '<div class="pd-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.5))">' + ovr + '</div>' +
       '<div class="pd-name">' + p.name + '</div>' +
       '<div class="pd-role">' + p.role + (p.overseas ? ' · <span class="text-amber">Overseas</span>' : '') + '</div>' +
-      '<div class="pd-stars" role="img" aria-label="' + p.stars + ' out of 5 stars">' + starsHtml + '</div>' +
-      '<div><span class="pd-rarity" style="background:linear-gradient(135deg,' + rc + '33,' + rc + '11);border:1px solid ' + rc + '44;color:' + rc + '">' + p.rarity.toUpperCase() + '</span></div>' +
+      '<div class="pd-stars cu-star-pips" role="img" aria-label="' + p.stars + ' out of 5 stars">' + starsHtml + '</div>' +
+      '<div><span class="pd-rarity cu-chip" style="background:linear-gradient(135deg,' + rc + '33,' + rc + '11);border:1px solid ' + rc + '44;color:' + rc + '">' + p.rarity.toUpperCase() + '</span></div>' +
     '</div>' +
-    '<div class="glass">' +
+    '<div class="glass cu-card">' +
       '<div class="pd-section"><svg viewBox="0 0 24 24" style="stroke:var(--blue-bright);color:var(--blue-bright)"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg><span class="label">Stats</span></div>' +
       statsHtml +
     '</div>' +
-    '<div class="glass">' +
+    '<div class="glass cu-card">' +
       '<div class="pd-section"><svg viewBox="0 0 24 24" style="stroke:var(--amber);color:var(--amber)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="label">Character</span></div>' +
       '<div class="pd-char-grid">' +
         '<div class="pd-char-item loyalty"><div class="char-val text-green">' + p.loyalty + '</div><div class="char-label">Loyalty</div></div>' +
@@ -6148,7 +6182,7 @@ function showPlayerDetail(id) {
     '</div>';
   if (isSquad) {
     var opts = getTrainingOptions(p);
-    html += '<div class="glass accent-gold">' +
+    html += '<div class="glass accent-gold cu-card">' +
       '<div class="pd-section"><svg viewBox="0 0 24 24" style="stroke:var(--gold-bright);color:var(--gold-bright)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span class="label">Training</span></div>' +
       '<div style="font-size:10px;color:var(--slip);margin-bottom:8px">Role-specific training. Staff bonuses apply.</div>';
     for (var ti = 0; ti < opts.length; ti++) {
@@ -6513,7 +6547,7 @@ function updateSquadScreen() {
     var group = roleGroups[g];
     var players = sorted.filter(function(p) { return group.roles.indexOf(p.role) >= 0; });
     if (players.length === 0) continue;
-    html += '<div class="squad-role-group"><div class="squad-role-label">' + group.label + '</div>';
+    html += '<div class="squad-role-group"><div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>' + group.label + '</span></div></div>';
     html += players.map(renderPlayerMini).join('');
     html += '</div>';
   }
