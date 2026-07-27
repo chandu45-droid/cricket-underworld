@@ -2321,6 +2321,42 @@ html[data-theme="light"] .auction-purse-zone .purse{
 #custom-avatar{width:76px;height:76px;margin:0 auto 14px}
 
 /* ================================================================
+   V3 KIT APPLICATION — B7: Syndicate (Don/lieutenants) + Politics (Neta)
+   LOOK ONLY, scoped to #mafia-overlay .modal[data-zone="underworld"/"politics"].
+   cu-card/cu-ribbon/cu-chip/cu-avatar compose over each screen's own bespoke
+   surface (background/border/clip-path) the same way the B1-B6 rollout
+   already does elsewhere — kit rule defined later wins the cascade for
+   shared props, higher-specificity bespoke accents (tier badges, poster
+   color bars, in-power ribbons) sit untouched on top. Every wired id/hook
+   (syn-*, pol-*, showSyndicateScreen/showNetaScreen bindings) keeps its id.
+   ================================================================ */
+/* Underworld is a forced-dark noir set-piece regardless of site theme (see
+   .modal[data-zone="underworld"] background above), but light theme's :root
+   vars flip --glass-bg/--dugout/--glow-gold to light values — which would
+   put a pale cu-card/cu-avatar inside the dark-red modal. Pin these tokens
+   back to their dark defaults here, same fix already applied to this zone's
+   --white/--gold/--blood tokens above. */
+html[data-theme="light"] #mafia-overlay .modal[data-zone="underworld"] {
+  --glass-bg: linear-gradient(160deg,#232B40 0%,#141926 100%);
+  --glass-border: 1px solid rgba(232,224,212,0.08);
+  --glass-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 10px 34px rgba(0,0,0,0.28), inset 0 1px 0 rgba(232,224,212,0.12), inset 0 -1px 0 rgba(0,0,0,0.28);
+  --dugout: #161B26;
+  --glow-gold: 0 0 16px rgba(218,165,32,0.45), 0 0 4px rgba(218,165,32,0.6);
+}
+#mafia-overlay .modal[data-zone="underworld"] .syn-debts.cu-card{border-radius:0}
+#mafia-overlay .modal[data-zone="underworld"] .syn-offer-locked.cu-card{border-radius:0}
+/* Politics modal is forced ivory in BOTH themes (see .modal[data-zone="politics"]
+   background above) — pin cu-card's glass surface to a matching ivory tone so
+   it doesn't render dark-navy under the site's dark theme. */
+#mafia-overlay .modal[data-zone="politics"] .cu-card{
+  --glass-bg: linear-gradient(160deg,#FBF6E9 0%,#F4EEDA 100%);
+  --glass-border: 1px solid rgba(146,64,14,0.22);
+  --glass-shadow: 0 4px 14px rgba(146,64,14,0.10), 0 8px 26px rgba(146,64,14,0.06);
+}
+#mafia-overlay .modal[data-zone="politics"] .pol-power.cu-card{border-left:3px solid #B45309}
+#mafia-overlay .modal[data-zone="politics"] .pol-demand.cu-card{border-top:3px solid #B45309}
+
+/* ================================================================
    THEME TOGGLE (Settings → Appearance)
    ================================================================ */
 .theme-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.08);clip-path:var(--clip-card-tl);cursor:pointer}
@@ -5777,7 +5813,7 @@ function showSyndicateScreen() {
   h += '<div class="syn-title-band"><div class="syn-title">THE SYNDICATE</div><div class="syn-sub">Underworld · off the books</div></div>';
   // Don hero
   h += '<div class="syn-don">';
-  h += '<div class="syn-monogram">' + monogram + '</div>';
+  h += '<div class="cu-avatar" style="width:60px;height:60px;flex-shrink:0">' + generateFacetedAvatar(SYNDICATE_DON, 'crimson', 60) + '</div>';
   h += '<div class="syn-don-info"><div class="syn-don-name">' + SYNDICATE_DON + '</div>' +
        '<div class="syn-don-role">The Don</div>' +
        '<div class="syn-tier syn-tier-' + tier.cls + '">' + tier.name + '</div></div>';
@@ -5788,30 +5824,30 @@ function showSyndicateScreen() {
        '<div class="syn-rel-bar"><div class="syn-rel-fill" style="width:' + pct + '%"></div><div class="syn-rel-zero"></div></div>' +
        '<div class="syn-tier-desc">' + tier.desc + '</div></div>';
   // Betrayal memory strip
-  h += '<div class="syn-memory"><div class="syn-memory-title">The Syndicate remembers</div>' +
+  h += '<div class="syn-memory cu-card cu-red"><div class="syn-memory-title">The Syndicate remembers</div>' +
        '<div class="syn-memory-row"><span>Favors done for them</span><span class="syn-mem-good">' + (f.favorsDone || 0) + '</span></div>' +
        '<div class="syn-memory-row"><span>Debts you let turn</span><span class="' + ((f.betrayed || 0) > 0 ? 'syn-mem-bad' : 'syn-mem-neutral') + '">' + (f.betrayed || 0) + '</span></div>' +
        ((f.betrayed || 0) > 0 ? '<div class="syn-memory-note">Every broken deal makes the next one costlier.</div>' : '') +
        '</div>';
   // Lieutenants
-  h += '<div class="syn-lieut-title">His Lieutenants</div><div class="syn-lieuts">';
+  h += '<div class="cu-ribbon-wrap" style="margin-bottom:10px"><div class="cu-ribbon cu-red"><span>His Lieutenants</span></div></div><div class="syn-lieuts">';
   for (var li = 0; li < SYNDICATE_LIEUTENANTS.length; li++) {
     var L = SYNDICATE_LIEUTENANTS[li];
     var lm = L.name.split(' ').map(function(w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
-    h += '<div class="syn-lieut"><div class="syn-lieut-mono">' + lm + '</div>' +
+    h += '<div class="syn-lieut cu-card cu-red"><div class="cu-avatar" style="width:38px;height:38px;margin:0 auto 8px">' + generateFacetedAvatar(L.name, 'crimson', 38) + '</div>' +
          '<div class="syn-lieut-name">' + L.name + '</div>' +
-         '<div class="syn-lieut-role">' + L.role + '</div>' +
+         '<div class="syn-lieut-role cu-chip" style="margin:3px 0 6px;background:rgba(239,45,45,0.12);color:var(--blood);border:1px solid rgba(239,45,45,0.3)">' + L.role + '</div>' +
          '<div class="syn-lieut-desc">' + L.desc + '</div></div>';
   }
   h += '</div>';
   // Active debts summary
   if (GS.debts.length > 0) {
-    h += '<div class="syn-debts"><div class="syn-debts-head"><span>Open debts</span><span class="syn-debts-total">' + totalOwed + ' B$ owed</span></div>' +
+    h += '<div class="syn-debts cu-card cu-red"><div class="syn-debts-head"><span>Open debts</span><span class="syn-debts-total">' + totalOwed + ' B$ owed</span></div>' +
          '<div class="syn-debts-sub">' + GS.debts.length + '/5 slots used · manage them from the hub</div></div>';
   }
   // Offer action
   if (offerLocked) {
-    h += '<div class="syn-offer-locked">' + offerLocked + '</div>';
+    h += '<div class="syn-offer-locked cu-card">' + offerLocked + '</div>';
   } else {
     h += '<div class="btn btn-red pulse" id="syn-hear-offer-btn" style="width:100%;margin-top:14px">Hear an Offer</div>';
   }
@@ -5923,9 +5959,9 @@ function showNetaScreen() {
     var isBacked = (f.backed === c.name);
     h += '<div class="pol-poster' + (isBacked ? ' backed' : '') + (inPower ? ' inpower' : '') + '" style="--poster:' + c.color + '">';
     h += '<div class="pol-poster-bar"></div>';
-    h += '<div class="pol-poster-mono" style="background:' + c.color + '">' + mono + '</div>';
+    h += '<div class="cu-avatar" style="width:44px;height:44px;margin:0 auto 8px">' + generateFacetedAvatar(c.name, 'amber', 44) + '</div>';
     h += '<div class="pol-poster-name">' + c.name + '</div>';
-    h += '<div class="pol-poster-party">' + c.party + '</div>';
+    h += '<div class="pol-poster-party cu-chip" style="margin-top:4px;background:rgba(0,0,0,0.05);color:#5C4A2A;border:1px solid rgba(146,64,14,0.25)">' + c.party + '</div>';
     h += '<div class="pol-poster-style">' + c.style + '</div>';
     if (inPower) h += '<div class="pol-ribbon">IN POWER</div>';
     else if (isBacked) h += '<div class="pol-ribbon">YOUR HORSE</div>';
@@ -5936,7 +5972,7 @@ function showNetaScreen() {
 
   // In-power / patronage block
   if (f.power) {
-    h += '<div class="pol-power">';
+    h += '<div class="pol-power cu-card">';
     h += '<div class="pol-power-head"><span class="pol-power-name">' + f.power + '</span>' +
          (f.ally ? '<span class="pol-badge-ally">YOUR MLA</span>' : '<span class="pol-badge-opp">OPPOSITION</span>') + '</div>';
     h += '<div class="pol-rel-wrap"><div class="pol-rel-head"><span>Goodwill</span><span class="pol-rel-val">' + (f.rel > 0 ? '+' : '') + f.rel + '</span></div>' +
@@ -5954,14 +5990,14 @@ function showNetaScreen() {
 
   // Pending demand
   if (demandData) {
-    h += '<div class="pol-demand"><div class="pol-demand-title">' + f.power + ' asks: ' + demandData.title + '</div>' +
+    h += '<div class="pol-demand cu-card"><div class="pol-demand-title">' + f.power + ' asks: ' + demandData.title + '</div>' +
          '<div class="pol-demand-desc">' + demandData.desc + '</div>' +
          '<div class="flex gap-10" style="margin-top:10px"><div class="btn btn-gold text-xs flex-1" style="padding:8px 12px" id="pol-demand-yes">' + demandData.label + '</div>' +
          '<div class="btn btn-outline text-xs flex-1" style="padding:8px 12px" id="pol-demand-no">Refuse</div></div></div>';
   }
 
   // Loyalty memory
-  h += '<div class="pol-memory"><div class="pol-memory-title">The party keeps a ledger</div>' +
+  h += '<div class="pol-memory cu-card"><div class="cu-ribbon-wrap" style="margin-bottom:8px"><div class="cu-ribbon"><span>The Party Keeps a Ledger</span></div></div>' +
        '<div class="pol-memory-row"><span>Favours done</span><span class="pol-mem-good">' + (f.favorsDone || 0) + '</span></div>' +
        '<div class="pol-memory-row"><span>Times you refused</span><span class="' + ((f.demandsRefused || 0) > 0 ? 'pol-mem-bad' : 'pol-mem-neutral') + '">' + (f.demandsRefused || 0) + '</span></div></div>';
 
