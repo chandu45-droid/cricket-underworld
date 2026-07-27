@@ -2284,6 +2284,27 @@ html[data-theme="light"] .auction-purse-zone .purse{
 #auction-screen .intel-title.cu-chip{background:rgba(220,38,38,0.14);color:var(--blood);border:1px solid rgba(220,38,38,0.3);margin-bottom:6px}
 
 /* ================================================================
+   V3 KIT APPLICATION — B5: Deals/Favor Board + Debt Ledger, Collection,
+   Pack Opening. LOOK ONLY, scoped to each surface's own selector — no
+   wired id/class/data-* renamed. Mafia-panel danger aesthetic (crimson)
+   preserved on the debt ledger + deal-offer card; Streets favor board
+   keeps its own orange identity (default cu-ribbon/cu-chip, no cu-red).
+   ================================================================ */
+/* Hub debt ledger: .glass supplies padding/margin, cu-card.cu-red supplies
+   the chamfered frame + red spotlight sheen — zero the legacy 3px radius
+   for full angular compliance (hard-constraint-8) */
+#debt-panel.cu-card{border-radius:0}
+/* Each debt row: cu-card frame (no padding/margin of its own — set inline
+   per-row since debt-list is fully JS-rendered) + urgency border-left kept
+   as a quick-scan accent alongside the new WARNING/PRESSURE cu-chip badge */
+#debt-list .cu-card{border-radius:0}
+
+/* Streets favor board (showBhaiScreen): each str-favor keeps its own
+   padding/margin/locked-opacity rule, cu-card only swaps the surface
+   (background/border/clip-path) for the kit's chamfered frame */
+#mafia-overlay .modal[data-zone="streets"] .str-favor.cu-card{border-radius:0}
+
+/* ================================================================
    THEME TOGGLE (Settings → Appearance)
    ================================================================ */
 .theme-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.08);clip-path:var(--clip-card-tl);cursor:pointer}
@@ -2611,8 +2632,8 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div id="case-actions"></div>
       </div>
 
-      <div class="glass accent-red" id="debt-panel" style="display:none">
-        <div class="section-title sm">Active Debts<span class="accent-line"></span></div>
+      <div class="glass cu-card cu-red" id="debt-panel" style="display:none">
+        <div class="cu-ribbon-wrap" style="margin-bottom:8px"><div class="cu-ribbon cu-red"><span>Active Debts</span></div></div>
         <div id="debt-list"></div>
       </div>
 
@@ -3005,8 +3026,8 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
     <!-- CARDS -->
     <div class="screen" id="cards-screen">
-      <div class="section-title">Collection<span class="accent-line"></span></div>
-      <div class="coll-progress" id="coll-progress"></div>
+      <div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>Collection</span></div></div>
+      <div class="coll-progress cu-card" id="coll-progress"></div>
       <div class="hub-drawer" id="drawer-packs">
         <div class="hub-drawer__toggle" id="drawer-packs-toggle" role="button" tabindex="0" aria-expanded="false" onclick="this.parentNode.classList.toggle('open');this.setAttribute('aria-expanded',this.parentNode.classList.contains('open'))">
           <div class="hd-ico"><svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M12 21V3"/></svg></div>
@@ -6038,14 +6059,15 @@ function showBhaiScreen() {
   // Court button
   h += '<div class="str-court-btn" id="str-court-btn">Pay Your Respects · 130</div>';
   // Favours
-  h += '<div class="str-favors-title">Ask a favour · next home match</div>';
+  h += '<div class="cu-ribbon-wrap" style="margin:14px 0 4px"><div class="cu-ribbon"><span>Available Favors</span></div></div>' +
+       '<div class="str-favors-title" style="text-transform:none;letter-spacing:0.3px;font-size:10px">Next home match</div>';
   for (var vi = 0; vi < BHAI_FAVORS.length; vi++) {
     var fav = BHAI_FAVORS[vi];
     var unlocked = f.rel >= fav.need;
     var costLabel = fav.cost + (fav.cur === 'coins' ? '' : ' B$');
     var canBuy = unlocked && !lineup;
-    h += '<div class="str-favor' + (canBuy ? '' : ' locked') + '">' +
-         '<div class="str-favor-head"><span class="str-favor-name">' + fav.title + '</span><span class="str-favor-cost">' + costLabel + '</span></div>' +
+    h += '<div class="str-favor cu-card' + (canBuy ? '' : ' locked') + '">' +
+         '<div class="str-favor-head"><span class="str-favor-name">' + fav.title + '</span><span class="cu-chip" style="background:rgba(251,146,60,.14);color:#FB923C;border:1px solid rgba(251,146,60,.3)">' + costLabel + '</span></div>' +
          '<div class="str-favor-desc">' + fav.desc + '</div>';
     if (lineup) h += '<div class="str-favor-lock">Something is already lined up for next match</div>';
     else if (!unlocked) h += '<div class="str-favor-lock">Needs +' + fav.need + ' respect — court him first</div>';
@@ -6514,11 +6536,11 @@ function updateHub() {
     var dHtml = '';
     for (var di = 0; di < GS.debts.length; di++) {
       var db = GS.debts[di];
-      var urgCls = getDebtUrgencyClass(db);
-      var stageLabel = db.stage === 0 ? '' : db.stage === 1 ? ' · WARNING' : db.stage === 2 ? ' · PRESSURE' : '';
+      var stageText = db.stage === 1 ? 'WARNING' : db.stage === 2 ? 'PRESSURE' : '';
+      var stageChip = stageText ? ' <span class="cu-chip" style="' + (db.stage >= 2 ? 'background:rgba(220,38,38,.16);color:var(--blood);border:1px solid rgba(220,38,38,.3)' : 'background:rgba(245,158,11,.14);color:var(--amber);border:1px solid rgba(245,158,11,.3)') + '">' + stageText + '</span>' : '';
       var heldTag = db.heldPlayer ? '<div class="text-xs text-red">' + db.heldPlayer + ' held</div>' : '';
-      dHtml += '<div class="flex items-center gap-10 mb-8" style="padding:8px;border:1px solid var(--border);border-radius:3px">' +
-        '<div class="flex-1"><div class="font-d fw-600 text-sm">' + db.source + '<span class="' + urgCls + '">' + stageLabel + '</span></div>' +
+      dHtml += '<div class="cu-card flex items-center gap-10 mb-8" style="padding:9px 10px 9px 12px;border-left:3px solid ' + (db.stage >= 2 ? 'var(--blood)' : db.stage === 1 ? 'var(--amber)' : 'rgba(var(--hl-rgb),0.12)') + '">' +
+        '<div class="flex-1"><div class="font-d fw-600 text-sm">' + db.source + stageChip + '</div>' +
         '<div class="text-xs text-slip">' + db.principal + ' B$ · ' + (db.matchesLeft >= 0 ? db.matchesLeft + ' matches left' : Math.abs(db.matchesLeft) + ' overdue') + '</div>' + heldTag + '</div>' +
         '<div class="btn btn-outline text-xs" style="padding:4px 10px;font-size:11px" onclick="if(payDebt(' + di + ')){updateHub();toast(\'Debt paid\',\'success\')}else{toast(\'Not enough B$\',\'error\')}" data-debt="' + di + '">Pay</div></div>';
     }
@@ -9116,8 +9138,10 @@ function openPack(type) {
     avail = avail.filter(function(p) { return p.id !== card.id; });
   }
   save();
-  var html = '<div class="pack-title">' + (type === 'premium' ? 'Premium' : type === 'ad' ? 'Sponsor' : 'Standard') + ' Pack</div>' +
-    '<div class="pack-sub">Tap to reveal</div>' +
+  var packLabel = (type === 'premium' ? 'Premium' : type === 'ad' ? 'Sponsor' : 'Standard') + ' Pack';
+  var html = '<div class="cu-card" style="text-align:center;padding:14px 18px 10px;margin:36px auto 6px;max-width:300px">' +
+    '<div class="cu-ribbon-wrap" style="justify-content:center"><div class="cu-ribbon"><span>' + packLabel + '</span></div></div>' +
+    '<div class="pack-sub" style="margin:8px 0 0">Tap to reveal</div></div>' +
     '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:16px 0" id="pack-cards">';
   for (var c = 0; c < cards.length; c++) {
     var rc = RARITY_COLORS[cards[c].rarity] || '#F0C850';
@@ -9194,15 +9218,16 @@ function showMafiaOffer() {
   offer.cost = Math.round(offer.cost * priceMod);
   offer.deadline = Math.max(1, offer.deadline + deadlineMod);
   $('mafia-offer-content').innerHTML =
-    '<div style="text-align:center;margin-bottom:16px"><div style="width:48px;height:48px;margin:0 auto 12px;border-radius:4px;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.2);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blood)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>' +
-    '<div class="font-d fw-700 text-red" style="font-size:24px;text-transform:uppercase;letter-spacing:3px">' + offer.name + '</div></div>' +
+    '<div style="text-align:center;margin-bottom:14px"><div style="width:48px;height:48px;margin:0 auto 12px;border-radius:4px;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.2);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blood)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>' +
+    '<div class="cu-ribbon-wrap" style="justify-content:center"><div class="cu-ribbon cu-red"><span>' + offer.name + '</span></div></div></div>' +
     '<div class="text-slip text-sm mb-16" style="line-height:1.6;text-align:center;font-style:italic">"' + offer.desc + '"</div>' +
-    '<div style="padding:14px;background:rgba(15,13,26,0.9);border:1px solid rgba(220,38,38,0.15);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:12px">' +
-    (offer.cost > 0 ? '<div class="flex justify-between mb-8"><span class="text-sm text-slip">Upfront Cost</span><span class="font-d fw-700" style="color:var(--purple)">' + offer.cost + ' B$</span></div>' : '') +
+    '<div class="cu-card cu-red" style="padding:14px;margin-bottom:12px">' +
+    '<div class="flex" style="flex-wrap:wrap;gap:6px;margin-bottom:10px">' +
+    (offer.cost > 0 ? '<span class="cu-chip" style="background:rgba(167,139,250,.14);color:var(--purple);border:1px solid rgba(167,139,250,.3)">Cost ' + offer.cost + ' B$</span>' : '') +
+    '<span class="cu-chip" style="background:rgba(245,158,11,.14);color:var(--amber);border:1px solid rgba(245,158,11,.3)">Heat +' + offer.heat + '</span>' +
+    '<span class="cu-chip" style="background:rgba(220,38,38,.14);color:var(--blood);border:1px solid rgba(220,38,38,.3)">Alignment ' + offer.align + '</span></div>' +
     '<div class="flex justify-between mb-8"><span class="text-sm text-slip">Debt Created</span><span class="font-d fw-700 text-red">' + offer.debt + ' B$</span></div>' +
-    '<div class="flex justify-between mb-8"><span class="text-sm text-slip">Deadline</span><span class="font-d fw-700 text-amber">' + offer.deadline + ' matches</span></div>' +
-    '<div class="flex justify-between mb-8"><span class="text-sm text-slip">Heat</span><span class="font-d fw-700 text-amber">+' + offer.heat + '</span></div>' +
-    '<div class="flex justify-between"><span class="text-sm text-slip">Alignment</span><span class="font-d fw-700 text-red">' + offer.align + '</span></div></div>' +
+    '<div class="flex justify-between"><span class="text-sm text-slip">Deadline</span><span class="font-d fw-700 text-amber">' + offer.deadline + ' matches</span></div></div>' +
     (GS.debts.length >= 4 ? '<div class="text-xs text-amber text-center" style="margin-top:8px;padding:6px;border:1px solid rgba(245,158,11,0.2);border-radius:3px;background:rgba(245,158,11,0.04)">Warning: ' + GS.debts.length + '/5 debt slots used</div>' : '') +
     (GS.blackMoney < offer.cost ? '<div class="text-xs text-red text-center" style="margin-top:8px;padding:6px;border:1px solid rgba(220,38,38,0.2);border-radius:3px;background:rgba(220,38,38,0.04)">Not enough Black Money (need ' + offer.cost + ' B$)</div>' : '') +
     '<div class="flex gap-10 mt-16"><div class="btn btn-red pulse flex-1' + (GS.blackMoney < offer.cost ? ' disabled' : '') + '" id="accept-mafia-btn">Accept Favor</div><div class="btn btn-outline flex-1" id="decline-mafia-btn">Decline</div></div>';
