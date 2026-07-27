@@ -7,10 +7,10 @@
 >   Hub (`90492f1`) · Squad+PlayerDetail B1 (`96c22dc`) · Auction B2 (`2d89dbd`) · Match trilogy B3 (`3e984d4`) · League+Rival B4 (`ec29ddb`) · Deals+Collection+Pack B5 (`2e85f19`) · Shop+Pass+Profile+overlays B6 (`dc718ef`) · Syndicate+Neta B7 (`1666991`) · faceted player-card art B-CARD (`ca162b6`) · merge-comment fix (`878487c`) · crest-test update (`9028186`) · design artifacts (`docs/look-direction-v2.md` + `prototype/_scratch/` hub-v2/v3 + avatar explorations).
 > - Faceted player-card art now replaces the old stick-figure silhouette game-wide (shared `generatePlayerSilhouette`, ~2KB/card).
 >
-> **TEST STATE — the one thing to confirm on resume:** a FULL Playwright suite was running in the background at handoff (id `b8wj25lxz`) on the integrated master. The PREVIOUS full run was **163 passed / 4 failed**, and those exact 4 were the `p15-visual` crest tests that pinned the OLD letter-crest Hub — now updated (`9028186`) to the faceted-avatar design with grounded assertions. **Expected: 167/167.** RESUME: re-run `npx playwright test` (config auto-starts the server) and confirm green. Known flakes (pass on isolated re-run): `p15-visual` crests, `smoke` bowler-picker — don't treat as regressions until they fail in isolation.
+> **TEST STATE — ✅ CONFIRMED GREEN (2026-07-27):** the final full Playwright suite on integrated master ran **167 passed / 0 failed** (real exit 0, verified via PIPESTATUS; bg id `b8wj25lxz`, 10.6m). The prior 163/4 failures were only the `p15-visual` crest tests pinning the OLD letter-crest Hub — fixed in `9028186`. **Test gate CLEARED.** (Optional sanity re-run: `npx playwright test`. Known flakes that pass on isolated re-run: `p15-visual` crests, `smoke` bowler-picker.)
 >
 > **BLOCKING GATES before any gh-pages deploy (both required):**
-> 1. Final Playwright suite green (see above).
+> 1. ✅ Final Playwright suite green — DONE (167/167).
 > 2. 🌡️ **S24 heating device retest** — founder physical test: idle at Hub (clean alignment) a few minutes on the S24, confirm it stays cool + battery ok, AND smoke still shows on corrupt alignment + celebrations still fire.
 >
 > **Behavior change for founder awareness (easy revert):** the Hub HEADER avatar now shows a faceted cricketer PORTRAIT instead of the team-initial letter crest. Team COLOR is still reflected (avatar seeded by `GS.teamColor`), team NAME still shows as text, and letter-crests still appear in the league table + battle card + prematch badges. If you want the initial letter back in the hub too, it's a small add.
