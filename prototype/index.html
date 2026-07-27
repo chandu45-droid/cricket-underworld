@@ -2303,6 +2303,22 @@ html[data-theme="light"] .auction-purse-zone .purse{
    padding/margin/locked-opacity rule, cu-card only swaps the surface
    (background/border/clip-path) for the kit's chamfered frame */
 #mafia-overlay .modal[data-zone="streets"] .str-favor.cu-card{border-radius:0}
+   V3 KIT APPLICATION — B6: Shop + Season Pass + Profile + Tribunal/Season overlays
+   LOOK ONLY, scoped to these screens' own selectors/generated markup.
+   cu-card composes over the existing bespoke background/border/clip-path
+   on .vault-pack/.vault-pass-card/.custom-section the same way it already
+   does on .glass and .hub-battle-card elsewhere in this file: the kit rule
+   is defined later in the cascade, so at equal specificity it wins for the
+   shared surface props, while higher-specificity compound selectors
+   (.gems-pack tint, .vault-pack:active, .pass-cell track colors) still sit
+   on top untouched. Every wired id/hook (store-*, pass-*, custom-*,
+   tribunal-verdict-text, season-continue-btn, match-continue-btn, BILLING_LIVE
+   gate) keeps its id — only surfaces/frames around them pick up kit classes.
+   B6 stays B6.
+   ================================================================ */
+#store-overlay .store-section-ribbon{margin:16px 0 8px}
+#pass-overlay .pass-tier-row.cu-card{padding:5px}
+#custom-avatar{width:76px;height:76px;margin:0 auto 14px}
 
 /* ================================================================
    THEME TOGGLE (Settings → Appearance)
@@ -3131,9 +3147,10 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 <div class="custom-overlay" id="custom-overlay">
   <div class="custom-content">
     <div class="back-btn" id="custom-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back</div>
-    <div class="section-title" style="justify-content:center">Customise<span class="accent-line"></span></div>
+    <div class="cu-ribbon-wrap" style="justify-content:center;margin-bottom:14px"><div class="cu-ribbon"><span>Profile</span></div></div>
 
-    <div class="custom-section">
+    <div class="custom-section cu-card">
+      <div id="custom-avatar" class="cu-avatar"></div>
       <div class="custom-section-title">Identity</div>
       <div class="custom-field">
         <div class="custom-label">Team Name</div>
@@ -3145,12 +3162,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       </div>
     </div>
 
-    <div class="custom-section">
+    <div class="custom-section cu-card">
       <div class="custom-section-title">Team Color</div>
       <div class="color-picker" id="color-picker"></div>
     </div>
 
-    <div class="custom-section">
+    <div class="custom-section cu-card">
       <div class="custom-section-title">Appearance</div>
       <div class="theme-row" id="theme-toggle-row">
         <div>
@@ -3161,19 +3178,19 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       </div>
     </div>
 
-    <div class="custom-section">
+    <div class="custom-section cu-card">
       <div class="custom-section-title">Player Nicknames</div>
       <div id="nickname-list"></div>
     </div>
 
     <div class="btn btn-gold full lg" id="custom-save-btn">Save Changes</div>
 
-    <div class="custom-section" id="install-section" style="display:none">
+    <div class="custom-section cu-card" id="install-section" style="display:none">
       <div class="custom-section-title">Install</div>
       <div class="btn btn-gold full" id="install-app-btn">Install App on Device</div>
     </div>
 
-    <div class="custom-section" id="backup-section">
+    <div class="custom-section cu-card" id="backup-section">
       <div class="custom-section-title">Cloud Save &amp; Backup</div>
       <div class="text-xs text-slip mb-8">Your progress lives on this device. Back it up so a new phone or a cleared browser never wipes your empire.</div>
       <div id="cloud-save-block" style="display:none">
@@ -3207,6 +3224,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="back-btn" id="pass-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back</div>
       <div style="font-family:var(--font-d);font-size:12px;letter-spacing:2px;color:var(--slip);text-transform:uppercase">The Ledger</div>
     </div>
+    <div class="cu-ribbon-wrap" style="justify-content:center;margin-bottom:10px"><div class="cu-ribbon"><span>Season Pass</span></div></div>
     <div class="pass-hero">
       <div class="pass-hero-title">Syndicate Contract</div>
       <div class="pass-hero-season" id="pass-season-lbl">Season 1</div>
@@ -3227,17 +3245,18 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="back-btn" id="store-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back</div>
       <div style="font-family:var(--font-d);font-size:12px;letter-spacing:2px;color:var(--slip);text-transform:uppercase">No cash-out &middot; Virtual only</div>
     </div>
+    <div class="cu-ribbon-wrap" style="justify-content:center;margin-bottom:10px"><div class="cu-ribbon"><span>Gem Store</span></div></div>
     <div class="store-hero">
       <div class="store-hero-title">The Vault</div>
       <div class="store-hero-sub">Syndicate supply line</div>
       <div class="store-testmode">Opens at launch &mdash; payments not live yet, nothing charged</div>
     </div>
-    <div class="store-section-title">Coins</div>
+    <div class="cu-ribbon-wrap store-section-ribbon"><div class="cu-ribbon"><span>Coins</span></div></div>
     <div class="store-grid" id="store-coins-grid"></div>
-    <div class="store-section-title">Gems</div>
+    <div class="cu-ribbon-wrap store-section-ribbon"><div class="cu-ribbon"><span>Gems</span></div></div>
     <div class="store-grid" id="store-gems-grid"></div>
-    <div class="store-section-title">Contract</div>
-    <div class="vault-pass-card" id="store-pass-card">
+    <div class="cu-ribbon-wrap store-section-ribbon"><div class="cu-ribbon"><span>Contract</span></div></div>
+    <div class="vault-pass-card cu-card" id="store-pass-card">
       <div><div class="vpc-title">Premium Contract</div><div class="vpc-sub" id="store-pass-sub">Unlock the Boss Cut reward track this season</div></div>
       <div class="vp-price" id="store-pass-price">&#8377;199</div>
     </div>
@@ -3247,8 +3266,8 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <div class="sc-text" id="store-confirm-text"></div>
     <div class="sc-note">Simulated payment &mdash; test mode, no real money charged</div>
     <div class="sc-btns">
-      <div class="btn btn-red" id="store-cancel-btn">Cancel</div>
-      <div class="btn btn-gold" id="store-buy-btn">Confirm Purchase</div>
+      <div class="btn btn-outline" id="store-cancel-btn">Cancel</div>
+      <div class="btn btn-red" id="store-buy-btn">Confirm Purchase</div>
     </div>
   </div>
 </div>
@@ -8533,7 +8552,8 @@ function endMatch() {
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:3px;border-left:3px solid var(--amber)">' + heatEvent + '</div>' : '') +
     (invStatus === 'started' ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:10px;border:2px dashed var(--amber);border-radius:3px;background:rgba(245,158,11,0.04)"><strong>FORMAL INVESTIGATION OPENED</strong><br>The board is reviewing your conduct. Tribunal in 5 matches. No favors allowed.</div>' : '') +
     (invStatus === 'ongoing' ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:2px dashed var(--amber);border-radius:3px">Investigation ongoing — ' + (GS.investigation ? GS.investigation.matchesLeft : 0) + ' matches until tribunal</div>' : '') +
-    (tribunalResult ? '<div style="margin:8px 0;padding:14px;border:2px solid ' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.4)' : 'rgba(220,38,38,0.4)') + ';border-radius:3px;background:' + (tribunalResult.gap < 0 ? 'rgba(34,212,126,0.05)' : 'rgba(220,38,38,0.05)') + ';text-align:center"><div class="font-d fw-700 ' + tribunalResult.cls + '" style="font-size:24px;text-transform:uppercase;letter-spacing:4px" id="tribunal-verdict-text"></div><div class="text-xs text-slip" style="margin:6px 0">Prosecution: ' + tribunalResult.prosecution + ' · Defense: ' + tribunalResult.defense + '</div><div class="text-xs" style="margin-top:4px">' + tribunalResult.desc + '</div></div>' : '') +
+    (tribunalResult ? '<div class="cu-ribbon-wrap" style="justify-content:center;margin:10px 0 0"><div class="cu-ribbon"><span>Tribunal</span></div></div>' +
+      '<div class="cu-card ' + (tribunalResult.gap < 0 ? 'cu-green' : 'cu-red') + '" style="margin:8px 0;padding:14px;text-align:center"><div class="font-d fw-700 ' + tribunalResult.cls + '" style="font-size:24px;text-transform:uppercase;letter-spacing:4px" id="tribunal-verdict-text"></div><div class="text-xs text-slip" style="margin:6px 0">Prosecution: ' + tribunalResult.prosecution + ' · Defense: ' + tribunalResult.defense + '</div><div class="text-xs" style="margin-top:4px">' + tribunalResult.desc + '</div></div>' : '') +
     (rivalEvent ? '<div class="text-xs ' + rivalEvent.cls + '" style="text-align:center;margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:3px">' + rivalEvent.text + '</div>' : '') +
     (rivalScandals.length > 0 ? rivalScandals.map(function(s) { return '<div class="text-xs text-amber" style="text-align:center;margin:4px 0;padding:8px;border:1px solid rgba(245,158,11,0.2);border-left:3px solid var(--amber);border-radius:3px;background:rgba(245,158,11,0.04)">' + s + '</div>'; }).join('') : '') +
     (debtWarnings.length > 0 ? '<div style="margin:6px 0">' + debtWarnings.map(function(w) { return '<div class="text-xs text-red" style="text-align:center;padding:6px 8px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;margin-bottom:4px">' + w + '</div>'; }).join('') + '</div>' : '') +
@@ -9091,12 +9111,11 @@ function endSeason() {
   var romanNums = ['','I','II','III','IV','V','VI','VII','VIII','IX','X'];
   var seasonRoman = romanNums[seasonNum] || seasonNum;
   $('match-result').innerHTML =
-    '<div class="font-d fw-600 text-center text-slip" style="font-size:14px;text-transform:uppercase;letter-spacing:6px;margin-bottom:4px">Season ' + seasonRoman + '</div>' +
-    '<div class="font-d fw-700 text-center" style="font-size:28px;text-transform:uppercase;letter-spacing:4px;margin-bottom:4px;color:var(--slip)">Complete</div>' +
+    '<div class="cu-ribbon-wrap" style="justify-content:center;margin:0 0 10px"><div class="cu-ribbon"><span>Season ' + seasonRoman + ' Complete</span></div></div>' +
     '<div style="width:200px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:12px auto 20px"></div>' +
     '<div class="font-d fw-700 text-center" style="font-size:44px;text-transform:uppercase;letter-spacing:6px;margin-bottom:24px;' +
     (result==='PROMOTED'?'color:var(--gold-bright);text-shadow:0 0 60px rgba(240,200,80,0.4)':result==='RELEGATED'?'color:var(--blood);text-shadow:0 0 60px rgba(220,38,38,0.3)':'color:var(--white)') + '">' + result + '</div>' +
-    '<div class="glass" style="max-width:340px;width:100%"><div class="section-title sm">Season ' + GS.season + '<span class="accent-line"></span></div>' +
+    '<div class="glass cu-card" style="max-width:340px;width:100%"><div class="section-title sm">Season ' + GS.season + '<span class="accent-line"></span></div>' +
     '<div class="reward-row"><span>League</span><span class="val text-gold">' + (LEAGUE_NAMES[GS.league]) + '</span></div>' +
     '<div class="reward-row"><span>Season Bonus</span><span class="val positive">+' + bonus + ' coins</span></div>' +
     fanVoteHtml + academyHtml + mentorHtml + academyGradHtml +
@@ -9432,6 +9451,10 @@ function getTeamInitial() {
 
 function showCustomise() {
   SFX.tap();
+  // v3 kit: manager portrait — additive faceted avatar (generateFacetedAvatar, same
+  // procedural generator the Hub header uses), not a replacement for any existing field
+  var _ca = $('custom-avatar');
+  if (_ca) _ca.innerHTML = generateFacetedAvatar(GS.managerName || GS.teamName, GS.teamColor, 76);
   $('custom-team-name').value = GS.teamName === 'Your Team' ? '' : GS.teamName;
   $('custom-team-name').placeholder = 'Your Team';
   $('custom-manager-name').value = GS.managerName === 'Manager' ? '' : GS.managerName;
@@ -10190,7 +10213,7 @@ function renderPass() {
     var t = PASS_TIERS[i];
     var tierNum = i + 1;
     var reached = tier >= tierNum;
-    html += '<div class="pass-tier-row' + (reached ? ' reached' : '') + '">';
+    html += '<div class="pass-tier-row cu-card' + (reached ? ' reached' : '') + '">';
     html += '<div class="pass-tier-num">' + tierNum + '</div>';
     // Free cell
     var freeClaimed = GS.seasonPass.claimedFree.indexOf(i) !== -1;
@@ -10283,7 +10306,7 @@ function renderStore() {
   var coinsHtml = '', gemsHtml = '';
   IAP_PACKS.forEach(function (p) {
     if (p.kind === 'pass') return;
-    var html = '<div class="vault-pack' + (p.kind === 'gems' ? ' gems-pack' : '') + '" data-pack="' + p.id + '">' +
+    var html = '<div class="vault-pack cu-card' + (p.kind === 'gems' ? ' gems-pack' : '') + '" data-pack="' + p.id + '">' +
       (p.tag ? '<div class="vp-tag">' + p.tag + '</div>' : '') +
       '<div class="vp-amt">' + p.amt.toLocaleString() + '</div>' +
       '<div class="vp-name">' + p.name + '</div>' +
