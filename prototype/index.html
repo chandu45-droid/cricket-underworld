@@ -1924,7 +1924,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* Meters — larger with icon labels. v3 kit: .cu-card on this element supplies the chamfered
    frame + gold spotlight sheen (surface-only, additive — see markup); padding added here since
    .cu-card intentionally never sets layout properties. */
-.hub-meters{display:flex;gap:10px;margin:10px 0;padding:9px 6px;position:relative;z-index:2}
+.hub-meters{display:flex;gap:10px;margin:10px 0 0;padding:9px 6px;position:relative;z-index:2}
 .hub-meter{flex:1;min-width:0;padding:8px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:4px;transition:border-color 0.3s}
 .hub-meter .meter-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hub-meter .meter-header{min-width:0}
@@ -2205,6 +2205,11 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .cu-ribbon span{display:block;font-family:var(--font-d);font-size:12.5px;font-weight:700;letter-spacing:2.5px;color:var(--gold-ink);text-transform:uppercase;white-space:nowrap}
 .cu-ribbon.cu-red{background:linear-gradient(160deg,#E4523A,var(--blood))}
 .cu-ribbon.cu-red span{color:#fff}
+/* v3 kit: .cu-ribbon-sub -- quieter divider variant. Same angular ribbon language, smaller
+   footprint, no elevation shadow -- used where the ribbon should read as a visual section
+   break rather than a competing header (Hub: Primary Loop / Daily Bonus). */
+.cu-ribbon.cu-ribbon-sub{padding:3px 16px 3px 9px;box-shadow:none}
+.cu-ribbon.cu-ribbon-sub span{font-size:10px;letter-spacing:1.5px}
 
 /* v3 kit: .cu-herocard — tappable hero-tile shine sweep (pair with .cu-hc-art + .cu-hc-shine children).
    PERF GATE: cap 2 live instances screen-wide (one per hero tile) — use .cu-hc-delay to offset the
@@ -2531,6 +2536,33 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
             <div class="power-val"><span id="power-val">50</span><span class="power-label">OVR</span></div>
           </div>
         </div>
+
+        <div class="hub-meters stagger-child">
+          <div class="hub-meter meter-align">
+            <div class="meter-header">
+              <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+              <div class="meter-label">Align</div>
+              <div class="meter-value" id="align-val" style="color:var(--gold-bright)">+0</div><span class="cu-delta" id="align-trend"></span>
+            </div>
+            <div class="meter-bar"><div class="meter-fill" id="align-fill" style="width:50%;background:linear-gradient(90deg,var(--gold),var(--gold-bright))"></div></div>
+          </div>
+          <div class="hub-meter meter-heat">
+            <div class="meter-header">
+              <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg></div>
+              <div class="meter-label">Heat</div>
+              <div class="meter-value" id="heat-val" style="color:var(--slip)">0</div><span class="cu-delta" id="heat-trend"></span>
+            </div>
+            <div class="meter-bar"><div class="meter-fill" id="heat-fill" style="width:0%"></div></div>
+          </div>
+          <div class="hub-meter meter-fans">
+            <div class="meter-header">
+              <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+              <div class="meter-label">Fans</div>
+              <div class="meter-value" id="fan-val" style="color:var(--blue-bright)">50</div><span class="cu-delta" id="fan-trend"></span>
+            </div>
+            <div class="meter-bar"><div class="meter-fill" id="fan-fill" style="width:50%;background:linear-gradient(90deg,var(--blue),#60A5FA)"></div></div>
+          </div>
+        </div>
       </div>
 
       <div class="hub-empire-line stagger-child" id="hub-empire-line">
@@ -2544,34 +2576,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
-      <div class="hub-meters cu-card stagger-child">
-        <div class="hub-meter meter-align">
-          <div class="meter-header">
-            <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-            <div class="meter-label">Align</div>
-            <div class="meter-value" id="align-val" style="color:var(--gold-bright)">+0</div><span class="cu-delta" id="align-trend"></span>
-          </div>
-          <div class="meter-bar"><div class="meter-fill" id="align-fill" style="width:50%;background:linear-gradient(90deg,var(--gold),var(--gold-bright))"></div></div>
-        </div>
-        <div class="hub-meter meter-heat">
-          <div class="meter-header">
-            <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg></div>
-            <div class="meter-label">Heat</div>
-            <div class="meter-value" id="heat-val" style="color:var(--slip)">0</div><span class="cu-delta" id="heat-trend"></span>
-          </div>
-          <div class="meter-bar"><div class="meter-fill" id="heat-fill" style="width:0%"></div></div>
-        </div>
-        <div class="hub-meter meter-fans">
-          <div class="meter-header">
-            <div class="meter-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
-            <div class="meter-label">Fans</div>
-            <div class="meter-value" id="fan-val" style="color:var(--blue-bright)">50</div><span class="cu-delta" id="fan-trend"></span>
-          </div>
-          <div class="meter-bar"><div class="meter-fill" id="fan-fill" style="width:50%;background:linear-gradient(90deg,var(--blue),#60A5FA)"></div></div>
-        </div>
-      </div>
-
-      <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon"><span>Primary Loop</span></div></div>
+      <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon cu-ribbon-sub"><span>Primary Loop</span></div></div>
       <div class="action-tiles stagger-child">
         <div class="action-tile auction cu-herocard" id="hub-auction-btn">
           <div class="cu-hc-art"></div><div class="cu-hc-shine"></div>
@@ -2621,7 +2626,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
-      <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon"><span>Daily Bonus</span></div></div>
+      <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon cu-ribbon-sub"><span>Daily Bonus</span></div></div>
       <div class="hub-login-panel stagger-child" id="hub-login-panel">
         <div class="hlp-row" id="login-row"></div>
         <div class="hlp-foot">
