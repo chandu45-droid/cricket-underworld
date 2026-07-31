@@ -1,5 +1,10 @@
 # Progress — Cricket Underworld
 
+> ### 🏷️ FOUNDER OVERRIDE (2026-07-31) — PIVOTING TO SELL NOW (Path C superseded)
+> Founder asked to prep a sell-ready package and shop it to buyers (cold marketplace channel — Flippa/Acquire.com-style). This **supersedes Path C** ("build traction, sell at a multiple for ~$10k", locked 2026-07-11) before any of its 3 gates were reached (~20 days into the 90-day window). Full reasoning + tradeoff logged in root `CORE-MEMORY.md` §4 (Cricket Path-C kill-gates, superseded note) and §8 (2026-07-31 entry, "FOUNDER OVERRIDE #4").
+> **What this means for the record:** honest valuation is the **$600–$3k pre-revenue code-asset band** (priced 2026-07-11 by Vidura+Sanjaya at ₹0 revenue) — NOT $10k, which assumed real traction this pivot skips. No install/D1/MRR numbers exist (analytics collector was built but never confirmed deployed; no distribution wave was confirmed fired) — `pitch.html` already correctly says "Working prototype, pre-revenue" and must stay honest, not be inflated for the sale.
+> **In progress:** reframing `pitch.html` from an "Investor Brief" (implies growth-stage investment) to a straight asset-for-sale listing (finished build, live demo, source handover, honest pre-revenue status) + a buyer due-diligence doc. Outreach itself stays founder-led (distribution/posting is never delegated to an agent — premium-templates precedent).
+
 > ### ⏸️ HANDOFF (2026-07-27) — GAME-WIDE v3-KIT REDESIGN + THERMAL FIX — RESUME HERE
 > **What shipped this session (all on `master`, pushed; NOT deployed to gh-pages/players):**
 > - **S24 heating fix** (`f55db55`): idle the always-on particle rAF loop (pause on invisible/hidden-tab, 30fps cap), strip `backdrop-filter` from always-visible surfaces (kept on true overlays ≤12px), freeze off-screen animations. A founder's friend's Samsung S24 (flagship) was heating up; root cause = app never let the GPU idle.
