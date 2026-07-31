@@ -242,8 +242,12 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
 #app:has(#auction-screen.active){background:radial-gradient(circle at 50% 15%, #241318 0%, var(--pitch) 60%)}
 #app:has(#match-screen.active),#app:has(#prematch-screen.active){background:radial-gradient(circle at 50% 20%, #12251A 0%, var(--pitch) 62%)}
 #app:has(#cards-screen.active){background:radial-gradient(circle at 50% 8%, #1C1A2E 0%, var(--pitch) 62%)}
-/* Light theme keeps a clean flat surface — dark spotlight tints must not smear over ivory */
-html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.active),html[data-theme="light"] #app:has(#match-screen.active),html[data-theme="light"] #app:has(#prematch-screen.active),html[data-theme="light"] #app:has(#cards-screen.active){background:var(--void)}
+/* Light theme gets its own warm per-screen radial spotlight (depth recipe #1) — not a flat surface.
+   Tints stay pale/ivory so they read as warm glow, not the dark-theme tints smeared over ivory. */
+html[data-theme="light"] #app{background:radial-gradient(circle at 50% 0%, #FBF7EE 0%, var(--pitch) 70%)}
+html[data-theme="light"] #app:has(#auction-screen.active){background:radial-gradient(circle at 50% 0%, #F7E9DD 0%, var(--pitch) 70%)}
+html[data-theme="light"] #app:has(#match-screen.active),html[data-theme="light"] #app:has(#prematch-screen.active){background:radial-gradient(circle at 50% 0%, #E9F3EA 0%, var(--pitch) 70%)}
+html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradient(circle at 50% 0%, #EFEAF7 0%, var(--pitch) 70%)}
 #app::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");background-repeat:repeat;background-size:200px 200px}
 *::-webkit-scrollbar{width:3px}
 *::-webkit-scrollbar-track{background:transparent}
