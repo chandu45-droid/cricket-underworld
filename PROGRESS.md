@@ -1,5 +1,24 @@
 # Progress — Cricket Underworld
 
+> ### ✅ RICHNESS PASS COMPLETE (2026-07-31) — all 6 fixes merged to master, LIVE
+> Founder-authorized richness pass (ported dark-theme depth into the enforced light default) shipped as
+> 6 parallel single-fix branches across isolated worktrees, then merged to `master`:
+> `rich-bevel` (`ffa157e`) · `rich-panel-lift` (`0cf84e1`) · `rich-spotlight` (`2714627`) ·
+> `rich-texture` (`2f57f21`) merged earlier; **`rich-chrome-bar`** (true-white top-bar/bottom-nav chrome +
+> visible `--border` divider) and **`rich-chrome-ratio`** (fold Hub ALIGN/HEAT/FANS pills into one manager
+> card, demote Primary Loop/Daily Bonus to `.cu-ribbon-sub` dividers) merged this session. Master pushed
+> (`92b3476..768fca0`) -> **auto-deployed live** (Pages serves from master root). All 6 rich-* branches +
+> their worktrees + 2 stale `.claude/worktrees/agent-*` torn down; repo back to `master` + `fix/investor-claims`.
+> - **NOT committed:** 34 audit-mode PNGs (`audit-2026-07-31*/`) left untracked on disk as reference -- binary
+>   artifacts don't belong in the game repo.
+> - **Test posture (founder-gated):** full Playwright suite NOT run this session. Merges were conflict-free
+>   (`merge-tree` = 0 markers) and each branch self-reported targeted tests green; `--chrome-rgb 255,255,255`
+>   and `.cu-ribbon-sub` confirmed present, test #124 (`light theme is the default`) untouched.
+> - **WARNING - ONE THING TO EYEBALL:** `rich-chrome-ratio` is a real Hub *layout* change (pill regrouping)
+>   that never got a full-suite run (Playwright wasn't resolvable in its worktree -- 18 assertions were manually
+>   replicated instead). This is the buyer-facing sell-now demo, so glance at the live Hub at 390x844 + 320x568;
+>   revert that merge if the manager card reads wrong.
+
 > ### 🔧 UI polish batch (2026-07-31, same day as the sell-now override below) — 6 fixes shipped, LIVE
 > Founder ran a `ui-designer` audit (Audit Mode) then explicitly asked for the trivial/small findings in
 > Build Mode, one subagent per fix, parallelized across isolated git worktrees. Shipped to `master` and
