@@ -2278,8 +2278,16 @@ html[data-theme="light"] .auction-purse-zone .purse{
    JS-populated additively in showNextCard() (generateFacetedAvatar reuse) —
    renderPlayerCard() itself is untouched (shared with the Cards screen +
    pack opening, both covered by other Playwright specs that assert its
-   silhouette/star markup, so it stays out of scope for this batch) */
-#auction-block-avatar{position:absolute;top:6px;left:6px;width:38px;height:38px;z-index:3}
+   silhouette/star markup, so it stays out of scope for this batch).
+   FIX (floating-chip): the badge used to be position:absolute against the
+   full-width .auction-stage with a hardcoded top:6/left:6 -- that put it in
+   dead margin space to the card's left, contained by neither the purse zone
+   above nor the card it's meant to represent. It now lives inside
+   .auction-block-frame, a shrink-wrapped flex row that hugs the card
+   exactly, so the badge sits as a real flow item pinned to the card's top
+   edge -- clearly anchored, not floating. */
+.auction-block-frame{position:relative;display:flex;align-items:flex-start;justify-content:center;gap:8px}
+#auction-block-avatar{position:relative;width:38px;height:38px;margin-top:4px;flex-shrink:0;z-index:3}
 
 /* Bid arena / bidding log take the chamfered cu-card frame + gold spotlight sheen */
 #auction-screen .bid-arena.cu-card{padding:14px 16px 10px}
@@ -2844,8 +2852,10 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="cu-ribbon-wrap auction-block-ribbon"><div class="cu-ribbon cu-red"><span>On The Block</span></div></div>
         <div class="auction-stage">
           <div class="spotlight-rays"></div>
-          <div class="cu-avatar" id="auction-block-avatar"></div>
-          <div class="auction-card-spotlight" id="auction-spotlight"></div>
+          <div class="auction-block-frame">
+            <div class="cu-avatar" id="auction-block-avatar"></div>
+            <div class="auction-card-spotlight" id="auction-spotlight"></div>
+          </div>
         </div>
         <div class="bid-arena cu-card">
           <div class="bid-area">
