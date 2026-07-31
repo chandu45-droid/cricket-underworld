@@ -211,7 +211,7 @@ html[data-theme="light"] {
   --glow-blue: 0 0 20px rgba(37,99,235,0.16), 0 0 40px rgba(37,99,235,0.06);
   /* Flipped channels */
   --hl-rgb: 26,35,51;
-  --chrome-rgb: 250,247,240;
+  --chrome-rgb: 255,255,255;
   --abyss-rgb: 236,230,219;
   --ov-rgb: 244,239,230;
 }
@@ -289,7 +289,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 /* ================================================================
    TOP BAR — Premium Glass with depth
    ================================================================ */
-#top-bar{height:var(--top-h);min-height:var(--top-h);background:linear-gradient(180deg,rgba(var(--chrome-rgb),0.97) 0%,rgba(var(--chrome-rgb),0.92) 100%);/* perf: dropped backdrop-filter -- bg is already 92-97% opaque, always-visible chrome, not a floating overlay */display:flex;align-items:center;padding:0 14px;gap:6px;z-index:100;border-bottom:1px solid rgba(var(--hl-rgb),0.07);box-shadow:0 4px 24px rgba(0,0,0,0.4),0 1px 0 rgba(var(--hl-rgb),0.03) inset;position:relative}
+#top-bar{height:var(--top-h);min-height:var(--top-h);background:linear-gradient(180deg,rgba(var(--chrome-rgb),0.97) 0%,rgba(var(--chrome-rgb),0.92) 100%);/* perf: dropped backdrop-filter -- bg is already 92-97% opaque, always-visible chrome, not a floating overlay */display:flex;align-items:center;padding:0 14px;gap:6px;z-index:100;border-bottom:1px solid var(--border);box-shadow:0 4px 24px rgba(0,0,0,0.4),0 1px 0 rgba(var(--hl-rgb),0.03) inset;position:relative}
 #top-bar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--align-accent-dim) 20%,var(--align-accent-dim) 80%,transparent 100%);opacity:0.5}
 .currency{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:3px;background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.06);font-family:var(--font-b);font-weight:600;font-size:13px;transition:transform 0.15s,box-shadow 0.3s;clip-path:var(--clip-btn-sm)}
 .currency:active{transform:scale(0.95)}
@@ -319,7 +319,7 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 /* ================================================================
    BOTTOM NAV — Premium with glow indicator
    ================================================================ */
-#bottom-nav{height:calc(var(--nav-h) + var(--safe-b));min-height:calc(var(--nav-h) + var(--safe-b));background:linear-gradient(180deg,rgba(var(--chrome-rgb),0.94) 0%,rgba(var(--abyss-rgb),0.99) 100%);/* perf: dropped backdrop-filter -- bg is already 94-99% opaque, always-visible chrome, not a floating overlay */border-top:1px solid rgba(var(--hl-rgb),0.06);display:flex;align-items:flex-start;padding-top:4px;padding-bottom:var(--safe-b);z-index:100;position:relative;box-shadow:0 -6px 24px rgba(0,0,0,0.35)}
+#bottom-nav{height:calc(var(--nav-h) + var(--safe-b));min-height:calc(var(--nav-h) + var(--safe-b));background:linear-gradient(180deg,rgba(var(--chrome-rgb),0.94) 0%,rgba(var(--abyss-rgb),0.99) 100%);/* perf: dropped backdrop-filter -- bg is already 94-99% opaque, always-visible chrome, not a floating overlay */border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:4px;padding-bottom:var(--safe-b);z-index:100;position:relative;box-shadow:0 -6px 24px rgba(0,0,0,0.35)}
 #bottom-nav::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--align-accent-dim) 30%,var(--align-accent-dim) 70%,transparent 100%);opacity:0.4}
 #nav-indicator{position:absolute;top:-1px;height:3px;background:var(--align-accent);border-radius:0 0 3px 3px;transition:left 0.4s var(--spring),width 0.4s var(--spring),background 0.8s;box-shadow:0 0 16px var(--align-accent-dim),0 4px 12px var(--align-accent-dim);pointer-events:none}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer;transition:all 0.25s var(--spring);position:relative}
