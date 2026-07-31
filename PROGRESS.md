@@ -17,12 +17,11 @@
 > Full suite re-run on merged master: **167/167 green** (10.6m), including `light theme is the default`
 > (test #124, untouched). Merge commits `a0f9198`..`28d575a`.
 >
-> **⚠️ SCOPE FLAG, not yet resolved:** the 2026-07-31 sell-now override immediately below explicitly
-> scoped today's work as **"no code/game changes"** (pitch.html reframe + due-diligence doc only). This
-> polish batch — and a founder-requested "palette feels basic" richness pass queued to follow it — both
-> break that scope. Flagged to founder in-session; not blocking (work already shipped, cheap/reversible),
-> but the bigger richness/palette pass should get an explicit go/no-go against the sell-now plan before
-> starting, not be assumed as approved by extension.
+> **✅ SCOPE FLAG RESOLVED (2026-07-31, same session):** founder explicitly chose "proceed with the
+> richness pass anyway" over holding to the sell-now "no code changes" scope, reasoning a more premium
+> product may sell better / support a higher ask even at the $600-3k pre-revenue banding. The richness
+> pass below is founder-authorized, not an agent assumption. Audit Mode runs first (concrete before/after
+> direction) before any Build Mode work, same discipline as the polish batch above.
 >
 > **Root-finding from the same audit, not yet built:** overall UI "feels basic" traces to the enforced
 > default (light) theme shipping a stripped-down version of the documented noir/stadium design system —
