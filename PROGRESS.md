@@ -1,5 +1,35 @@
 # Progress — Cricket Underworld
 
+> ### 🔧 UI polish batch (2026-07-31, same day as the sell-now override below) — 6 fixes shipped, LIVE
+> Founder ran a `ui-designer` audit (Audit Mode) then explicitly asked for the trivial/small findings in
+> Build Mode, one subagent per fix, parallelized across isolated git worktrees. Shipped to `master` and
+> **auto-deployed live** (this repo's Pages serves directly from master root, no separate deploy step —
+> confirmed live at `chandu45-droid.github.io/cricket-underworld/prototype/index.html`):
+> 1. Hub OVR label contrast (`e95e0c9`) — also fixed a root-cause bug where `renderHub()` was silently
+>    wiping the label from the DOM every render; a CSS-only fix would not have worked.
+> 2. Angular hairline crispness on hero cards (`e880512`) — surfaced that the "lit border"/bevel tokens
+>    are defined ONLY in dark `:root`, never overridden for light theme (the enforced default).
+> 3. Toast/tooltip collisions, Hub + Auction (`9330c1d`).
+> 4. Floating avatar chip in live auction (`5072873`).
+> 5. Three 320×568 breakpoint bugs — season badge wrap, FANS pill clip, Sponsor Boost/nav overlap (`5121296`).
+> 6. Desktop 1280px unstyled stretch — max-width cap (`33201ec`).
+>
+> Full suite re-run on merged master: **167/167 green** (10.6m), including `light theme is the default`
+> (test #124, untouched). Merge commits `a0f9198`..`28d575a`.
+>
+> **⚠️ SCOPE FLAG, not yet resolved:** the 2026-07-31 sell-now override immediately below explicitly
+> scoped today's work as **"no code/game changes"** (pitch.html reframe + due-diligence doc only). This
+> polish batch — and a founder-requested "palette feels basic" richness pass queued to follow it — both
+> break that scope. Flagged to founder in-session; not blocking (work already shipped, cheap/reversible),
+> but the bigger richness/palette pass should get an explicit go/no-go against the sell-now plan before
+> starting, not be assumed as approved by extension.
+>
+> **Root-finding from the same audit, not yet built:** overall UI "feels basic" traces to the enforced
+> default (light) theme shipping a stripped-down version of the documented noir/stadium design system —
+> texture layer barely implemented (9 grain/texture refs total in the whole file vs. a spec promising
+> texture on every surface), premium tokens dark-theme-only. Founder's direction if it proceeds: port
+> dark theme's richness into light, keep light as default (no test #124 change).
+
 > ### 🏷️ FOUNDER OVERRIDE (2026-07-31) — PIVOTING TO SELL NOW (Path C superseded)
 > Founder asked to prep a sell-ready package and shop it to buyers (cold marketplace channel — Flippa/Acquire.com-style). This **supersedes Path C** ("build traction, sell at a multiple for ~$10k", locked 2026-07-11) before any of its 3 gates were reached (~20 days into the 90-day window). Full reasoning + tradeoff logged in root `CORE-MEMORY.md` §4 (Cricket Path-C kill-gates, superseded note) and §8 (2026-07-31 entry, "FOUNDER OVERRIDE #4").
 > **What this means for the record:** honest valuation is the **$600–$3k pre-revenue code-asset band** (priced 2026-07-11 by Vidura+Sanjaya at ₹0 revenue) — NOT $10k, which assumed real traction this pivot skips. No install/D1/MRR numbers exist (analytics collector was built but never confirmed deployed; no distribution wave was confirmed fired) — `pitch.html` already correctly says "Working prototype, pre-revenue" and must stay honest, not be inflated for the sale.
