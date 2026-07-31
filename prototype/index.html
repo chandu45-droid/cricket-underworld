@@ -1316,6 +1316,14 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .toast.success{border-color:rgba(34,212,126,0.3);color:var(--green-bright);background:linear-gradient(135deg,rgba(34,212,126,0.1),var(--dugout))}
 .toast.error{border-color:rgba(220,38,38,0.3);color:var(--blood);background:linear-gradient(135deg,rgba(220,38,38,0.1),var(--dugout))}
 .toast.info{border-color:rgba(240,200,80,0.3);color:var(--gold-bright);background:linear-gradient(135deg,rgba(240,200,80,0.1),var(--dugout))}
+/* Per-screen collision fixes (audit 2026-07-31): the shared +60px offset above only
+   clears a .back-btn row. Hub's header stack (crest/name/league/align-tag/star-pips)
+   sits right under the top-bar with no such gap, so the toast landed on the subtitle
+   row -- pulled it up into the small decorative gap above the header instead. Auction's
+   purse zone + round chip fill that same space, so the toast is pushed down to clear
+   both. toast() tags the element with data-screen (see JS ~L4963). */
+.toast[data-screen="hub"]{top:calc(var(--top-h) + 4px)}
+.toast[data-screen="auction"]{top:calc(var(--top-h) + 166px)}
 
 /* ================================================================
    EFFECTS
@@ -4964,6 +4972,11 @@ function toast(msg, type) {
   var t = $('toast');
   t.textContent = msg;
   t.className = 'toast ' + (type || 'info') + ' show';
+  // Screen-aware vertical offset: the global top offset (see TOAST CSS block) only
+  // clears a .back-btn row. Hub (dense header stack) and Auction (purse zone) have
+  // taller top content, so the toast reads its data-screen to pick a CSS override
+  // that clears each — collision fix, playtest audit 2026-07-31.
+  t.setAttribute('data-screen', typeof currentScreen !== 'undefined' ? currentScreen : '');
   setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
 
