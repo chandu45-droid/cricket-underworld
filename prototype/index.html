@@ -292,7 +292,8 @@ html[data-theme="light"] #app,html[data-theme="light"] #app:has(#auction-screen.
 .currency.gems .icon{background:linear-gradient(135deg,#60A5FA,var(--blue));border-radius:4px;transform:rotate(45deg);box-shadow:0 0 10px rgba(59,130,246,0.35),0 0 20px rgba(59,130,246,0.1)}
 .currency.gems .icon span{transform:rotate(-45deg);display:block}
 .currency.bmoney .icon{background:linear-gradient(135deg,var(--blood),var(--crimson));box-shadow:0 0 10px rgba(220,38,38,0.35),0 0 20px rgba(220,38,38,0.1)}
-#top-bar .season-badge{margin-left:auto;font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--align-accent);letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:3px;background:var(--align-accent-dim);border:1px solid rgba(var(--hl-rgb),0.06);transition:all 0.8s;clip-path:var(--clip-btn-sm)}
+#top-bar .season-badge{margin-left:auto;flex-shrink:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--align-accent);letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:3px;background:var(--align-accent-dim);border:1px solid rgba(var(--hl-rgb),0.06);transition:all 0.8s;clip-path:var(--clip-btn-sm)}
+@media (max-width:340px){#top-bar{padding:0 8px;gap:4px}.currency{padding:4px 8px;gap:4px;font-size:11px}.currency .icon{width:16px;height:16px;font-size:8px}#top-bar .season-badge{font-size:10px;letter-spacing:0.5px;padding:3px 6px;max-width:96px}.hub-meters{gap:6px}.hub-meter{padding:8px 6px}.hub-meter .meter-header{gap:3px}.hub-meter .meter-icon{display:none}.hub-meter .meter-value{font-size:13px}.hub-meter .meter-label{font-size:8px;letter-spacing:0.3px}.hub-meter .cu-delta{margin-left:2px}}
 
 /* ================================================================
    L1 — .money hero currency
@@ -1910,12 +1911,13 @@ html[data-theme="light"] .auction-purse-zone .purse{
    frame + gold spotlight sheen (surface-only, additive — see markup); padding added here since
    .cu-card intentionally never sets layout properties. */
 .hub-meters{display:flex;gap:10px;margin:10px 0;padding:9px 6px;position:relative;z-index:2}
-.hub-meter{flex:1;padding:8px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:4px;transition:border-color 0.3s}
+.hub-meter{flex:1;min-width:0;padding:8px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:4px;transition:border-color 0.3s}
 .hub-meter .meter-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hub-meter .meter-header{min-width:0}
 .hub-meter .meter-icon svg{width:12px;height:12px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hub-meter .meter-header{display:flex;align-items:center;gap:6px}
-.hub-meter .meter-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;font-weight:700;flex:1}
-.hub-meter .meter-value{font-family:var(--font-d);font-size:16px;font-weight:700;line-height:1}
+.hub-meter .meter-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hub-meter .meter-value{font-family:var(--font-d);font-size:16px;font-weight:700;line-height:1;flex-shrink:0}
 .hub-meter .meter-bar{height:4px;background:rgba(136,150,176,0.08);border-radius:3px;overflow:hidden}
 .hub-meter .meter-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
 .hub-meter.meter-align{border-color:rgba(255,210,63,0.08)}
@@ -2257,6 +2259,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* Empty/lobby: shared .empty-state/.es-tile pattern (already used by the
    Cards screen's own empty states) replaces the old bespoke faint-icon look */
 #auction-screen .auction-empty.empty-state{min-height:60vh}
+@media (max-height:600px){#auction-screen .auction-empty.empty-state{min-height:0;justify-content:flex-start;padding-top:8px;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 24px)}#auction-screen .auction-empty .es-tile{margin-bottom:12px}#auction-screen .auction-empty .es-sub{margin-bottom:14px}}
 #auction-screen .auction-empty .cu-ribbon-wrap{margin-bottom:18px}
 
 /* Round/pool title as a cu-ribbon banner — cu-ribbon-wrap's own margin:2px 0
