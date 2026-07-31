@@ -231,6 +231,12 @@ html[data-theme="light"] {
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);font-family:var(--font-b);font-weight:500;font-size:14px;-webkit-font-smoothing:antialiased;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;background:radial-gradient(circle at 50% 0%, #1A2130 0%, var(--pitch) 65%);transition:background 0.5s var(--spring)}
+/* === DESKTOP/TABLET BREAKPOINT (lower priority per docs/visual-design-system.md §7.1: "Nice to have,
+   scale up panels, don't redesign") — cap the mobile column instead of letting it stretch. No-op at
+   and below mobile widths (max content width in the wild is 430px "must work"). === */
+@media (min-width:481px){
+  #app{left:50%;right:auto;width:100%;max-width:480px;transform:translateX(-50%);box-shadow:0 0 60px rgba(0,0,0,0.5)}
+}
 /* === PER-SCREEN COLOR GRADING (v2 port) — spotlight tint keyed to active screen === */
 #app:has(#auction-screen.active){background:radial-gradient(circle at 50% 15%, #241318 0%, var(--pitch) 60%)}
 #app:has(#match-screen.active),#app:has(#prematch-screen.active){background:radial-gradient(circle at 50% 20%, #12251A 0%, var(--pitch) 62%)}
