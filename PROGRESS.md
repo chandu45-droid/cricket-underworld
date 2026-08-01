@@ -1,5 +1,26 @@
 # Progress — Cricket Underworld
 
+> ### ✅ HUB PREMIUM PORT — verified + shipped LIVE (2026-08-01, commit `18ff9c9`)
+> Founder: *"verify and commit the hub port."* Landed the dangling uncommitted Hub premium-port
+> (an earlier same-day session ported `_scratch/hub-premium.html` into `prototype/index.html` but
+> left it uncommitted — 87+/22-, CSS + one `.hub-meters.cu-card` markup add). Serves the **sell-now**
+> goal (the live demo is the asset — must look premium).
+> - **Fixed real light-theme bugs:** `--border-lit` was UNDEFINED in light → killed every
+>   border+bevel; meter tracks were ~2% contrast on ivory (new `--track-bg`/`--track-shadow`);
+>   `--dugout`/`--pavilion` swapped so 160deg gradients are top-lit not inverted.
+> - **Premium upgrades:** Match tile → the one red hero CTA (vs gold Auction secondary); mafia-banner
+>   → Teko; hub-meters → chamfered `.cu-card` plaque; lacquered glass + 3-tier elevation; gold today cell.
+> - **Verified (founder-authorized) both themes @390×844 + 320×568** via throwaway Playwright capture
+>   (deleted): light reads premium with real depth, dark at parity, **0 console errors**. No
+>   test-protected selector touched; test #124 (light default) untouched. Full suite NOT run
+>   (founder-gated) — diff is CSS-only + 1 class-add, low risk.
+> - **Pushed to master → auto-deployed live** (Pages serves from master root).
+> - **Untracked, left on disk (binary/scratch, not committed):** `design-lab/bolt-round2/` (bolt React
+>   mockup — reference only, violated the plain-HTML/CSS brief), `_scratch/*.png` + `hub-premium.html`.
+> - **NEXT (per the mockup's own plan):** roll the SAME treatment to other screens, Auction → Squad
+>   first (ui-designer direction → shilpi port, one screen/commit, tests green).
+> - **Pre-existing nit (not this port):** 320px truncates Hub meter labels ("HE 15"/"Fi 50").
+
 > ### ✅ RICHNESS PASS COMPLETE (2026-07-31) — all 6 fixes merged to master, LIVE
 > Founder-authorized richness pass (ported dark-theme depth into the enforced light default) shipped as
 > 6 parallel single-fix branches across isolated worktrees, then merged to `master`:
