@@ -9224,6 +9224,39 @@ function recruitAcademyProspect(){
   toast('Recruited '+prospect.name+' (POT '+prospect.potential+')','success');
 }
 
+// Act II ("The Web") promotion beat: Anna Seth speaks for himself for the first time, on
+// gully -> sma. Alignment-branched per docs/underworld-plot-spine.md Section 7. No new state.
+function uwActIIPromoCard() {
+  var high = GS.alignment > 0;
+  var desc;
+  if (high) {
+    desc = 'For the first time, the voice on the call isn\'t Ruby\'s — it\'s his. "SMA League. Congratulations." ' + SYNDICATE_DON + ' does not waste words. "Clean hands make for cleaner books. I respect that." A pause, level and unhurried. "Doesn\'t mean I stop watching. It means I watch closer." The club is worth watching more closely now.';
+  } else {
+    desc = 'For the first time, the voice on the call isn\'t Ruby\'s — it\'s his. "SMA League. Congratulations." ' + SYNDICATE_DON + ' does not waste words. "You\'ve been useful. Useful clubs get noticed." A pause, level and unhurried. "The club is worth watching more closely now." It doesn\'t sound like a compliment. It isn\'t only one.';
+  }
+  return { title: SYNDICATE_DON + ' — SMA League', desc: desc, accent: '#EF2D2D' };
+}
+
+// Act III ("The Ledger") promotion beat: it's public now — rivals and the case pipeline
+// sharpen, sma -> challenger. Alignment-branched per Section 7. No new state.
+function uwActIIIPromoCard() {
+  var high = GS.alignment > 0;
+  var invInspector = (GS.investigation && GS.investigation.inspector) ? GS.investigation.inspector : null;
+  var desc;
+  if (high) {
+    desc = 'IPL Challenger means cameras, and cameras mean everybody is suddenly interested. Rajan Mehra clocks the promotion before the ink is dry — a rival playing clean makes his own arrangement look worse by comparison, and he does not forgive that quietly. ' + (invInspector ? invInspector + ' already has a file open' : 'Somewhere in Thana, a file is already open') + ' — not because you have given anyone reason to, but because a club this visible always gets one. Every faction in the Power Web is watching. None of them blink first.';
+  } else {
+    desc = 'IPL Challenger means cameras, and cameras mean everybody is suddenly interested. Rajan Mehra sends word within the week: "Now we talk business, not favours." ' + (invInspector ? invInspector + ' has your club\'s name circled in a file' : 'Somewhere in Thana, your club\'s name is already circled in a file') + ' — and this time it will not sit in a drawer. Every faction in the Power Web has a hand out. All of them know exactly where to find you now.';
+  }
+  return { title: 'The Ledger — IPL Challenger', desc: desc, accent: '#DC2626' };
+}
+
+// Renders a promotion beat-card reusing the existing themed .glass/uw-event-card pattern —
+// additive, dismissible, never blocks the season-continue flow.
+function uwPromoBeatHtml(card) {
+  return '<div class="glass" id="uw-promo-beat-card" style="padding:12px;margin-top:16px;text-align:left;border-left:3px solid ' + card.accent + '"><div class="font-d fw-600 text-sm" style="color:' + card.accent + '">' + card.title + '</div><div class="text-xs text-slip" style="margin-top:6px;line-height:1.5">' + card.desc + '</div><div class="btn btn-outline text-xs" style="padding:6px 14px;margin-top:10px" id="uw-promo-beat-dismiss-btn">Dismiss</div></div>';
+}
+
 function endSeason() {
   var leagueOrder = ['gully','sma','challenger','champions'];
   var idx = leagueOrder.indexOf(GS.league);
@@ -9236,6 +9269,11 @@ function endSeason() {
   } else if (relegated) {
     GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
   } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
+  var promoBeat = null;
+  if (result === 'PROMOTED') {
+    if (leagueOrder[idx] === 'gully' && GS.league === 'sma') promoBeat = uwActIIPromoCard();
+    else if (leagueOrder[idx] === 'sma' && GS.league === 'challenger') promoBeat = uwActIIIPromoCard();
+  }
   GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0; GS.streakShield = false;
   GS.seasonPass = { xp: 0, premium: false, claimedFree: [], claimedPremium: [] };
   GS.morale = Math.min(100, GS.morale + 10);
@@ -9292,8 +9330,16 @@ function endSeason() {
     fanVoteHtml + academyHtml + mentorHtml + academyGradHtml +
     '<div class="reward-row"><span>Sponsor</span><span class="val">' + sp.name + '</span></div>' +
     '<div class="reward-row"><span>Auction Purse</span><span class="val positive">' + GS.auctionPurse + '</span></div></div>' +
+    (promoBeat ? uwPromoBeatHtml(promoBeat) : '') +
     '<div class="btn btn-gold lg" id="season-continue-btn" style="margin-top:24px">Start Season ' + GS.season + '</div>';
   $('match-result').classList.add('show');
+  if (promoBeat) {
+    var promoBeatDismissBtn = $('uw-promo-beat-dismiss-btn');
+    if (promoBeatDismissBtn) promoBeatDismissBtn.onclick = function() {
+      var pbc = $('uw-promo-beat-card');
+      if (pbc) pbc.style.display = 'none';
+    };
+  }
   $('season-continue-btn').onclick = function() {
     $('match-result').classList.remove('show');
     setTimeout(function() { goScreen('hub'); }, 300);
