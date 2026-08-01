@@ -9251,6 +9251,35 @@ function uwActIIIPromoCard() {
   return { title: 'The Ledger — IPL Challenger', desc: desc, accent: '#DC2626' };
 }
 
+// Act IV climax ("The Reckoning"): challenger -> champions, the plot spine's final branch.
+// Reads GS.alignment (and, for the corrupt path, GS.rivalData['Rajan Mehra'].rel as the read
+// of "Mehra's own standing") at the one promotion event that closes the story. Pure copy
+// routing — no new state, per docs/underworld-plot-spine.md Section 6.
+function uwClimaxCard() {
+  var a = GS.alignment;
+  var title, desc, accent;
+  if (a >= 40) {
+    title = 'Burn the Ledger — Champions League';
+    accent = 'var(--green-bright)';
+    desc = 'Champions League. The name finally means something — and so does yours. Ruby delivers the old line anyway, flat, like she already knows how this ends: "' + SYNDICATE_DON + ' still expects the book settled." But DSP Arjun Sherawat is on the other line, and for once neither of them is bluffing. He does not ask if you have evidence — he already knows you do, three seasons of it, sitting untouched. Hand it over and the club walks out from under the ledger for good, clean, on the record. It costs everything left with the Syndicate — whatever still stands with ' + SYNDICATE_DON + ' evaporates the moment the file moves. No slow fade, no goodbye call. Just silence where his number used to be.';
+  } else if (a <= -40) {
+    title = 'Take the Chair — Champions League';
+    accent = 'var(--blood)';
+    var mehraRel = GS.rivalData && GS.rivalData['Rajan Mehra'] ? GS.rivalData['Rajan Mehra'].rel : 0;
+    desc = 'Champions League, and the call finally comes from the top. ' + SYNDICATE_DON + ' sounds tired in a way he never has before — an old man doing the arithmetic on how many seasons he has left to run this. "The chair is yours, if you want it." Not a job offer. A succession. The club stops owing the Syndicate and becomes it — every debt on the books gets rewritten as an asset instead. It costs the name over the door: whatever goodwill was left with the clean owners, the purist press, the sponsors who never asked questions, spends itself the moment the announcement goes out.';
+    if (mehraRel >= 20) {
+      desc += ' Rajan Mehra hears about the offer before you have said yes. He has spent three seasons building the exact same case for himself, and he is not stepping aside quietly — this is a succession fight, not a coronation, and ' + SYNDICATE_DON + ' is old enough to enjoy watching two dogs settle it between them.';
+    } else {
+      desc += ' No one else in the room has the standing to argue. Rajan Mehra will grumble from the sidelines, same as always — but the chair, when it is offered, is offered to you alone.';
+    }
+  } else {
+    title = 'Pick, Now — Champions League';
+    accent = 'var(--gold-bright)';
+    desc = 'Champions League, and this time nobody waits for you to decide on your own schedule. Ruby\'s message and DSP Arjun Sherawat\'s arrive the same week, almost the same hour — the Syndicate\'s offer and the clean way out, laid side by side, like they finally compared notes. Neither one trusts a club that has spent three seasons sitting exactly in the middle. Nothing here is new — the ledger, the debts, the standing with ' + SYNDICATE_DON + ', the evidence sitting with Sherawat, all of it has been here the whole time. What is new is that the spectrum cannot hold the fence any longer. Every offer still on the table, every debt still unpaid, every case still open — one of them is about to matter more than the others. Only you decide which.';
+  }
+  return { title: title, desc: desc, accent: accent };
+}
+
 // Renders a promotion beat-card reusing the existing themed .glass/uw-event-card pattern —
 // additive, dismissible, never blocks the season-continue flow.
 function uwPromoBeatHtml(card) {
@@ -9273,6 +9302,7 @@ function endSeason() {
   if (result === 'PROMOTED') {
     if (leagueOrder[idx] === 'gully' && GS.league === 'sma') promoBeat = uwActIIPromoCard();
     else if (leagueOrder[idx] === 'sma' && GS.league === 'challenger') promoBeat = uwActIIIPromoCard();
+    else if (leagueOrder[idx] === 'challenger' && GS.league === 'champions') promoBeat = uwClimaxCard();
   }
   GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0; GS.streakShield = false;
   GS.seasonPass = { xp: 0, premium: false, claimedFree: [], claimedPremium: [] };
