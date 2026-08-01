@@ -1,5 +1,27 @@
 # Progress — Cricket Underworld
 
+> ### ✅ UNDERWORLD PLOT SPINE SHIPPED + suite-verified (2026-08-02) — 3 surfaces live, 167/167 green
+> Founder: *"i feel the main plotpoint of underworld is missing."* Bhairava confirmed by audit — rich
+> systems layer (5-faction Power Web, alignment, cases, debt) but ZERO narrative spine; the tutorial was
+> a mechanics briefing. game-designer drafted the spine (`docs/underworld-plot-spine.md`, `786b5ec`):
+> drama wrapped on EXISTING state, **no new mechanics**. shilpi built it in 3 gated surfaces (Bhairava
+> eyeballed each diff before commit); cricket-underworld auto-deploys master→live, so all shipped live:
+> - **Surface a+c — inciting incident** (`41f252f`): 6 `TUT_STEPS` bodies rewritten — you INHERITED a
+>   club already 30 black money deep from the previous owner's arrangement with Anna Seth; Ruby Mirza
+>   makes first contact; Sikandar Bhai named. Every player gets the plot in the first 60s.
+> - **Surface b — chapter beats** (`a77bc84`): fire-once, alignment-branched cards hooked into the
+>   `endSeason` PROMOTED branch — Act II "The Web" (gully→sma), Act III "The Ledger" (sma→challenger).
+>   Additive/non-blocking, reuses `.glass`/`uw-event-card` classes.
+> - **Climax — the reckoning** (`3915f76`): 3-way branch at challenger→champions on `GS.alignment` —
+>   Burn the Ledger (≥+40), Take the Chair (≤−40, Mehra-contested when `rivalData` rel≥20), Pick, Now
+>   (undecided middle). Narrative payoff card, NOT interactive choice-with-consequences (deliberate thin
+>   build — flagged as a future upgrade).
+> - **Hub premium port** (`18ff9c9`) eyeballed both themes this session → PASS (light-depth bugs fixed,
+>   red-hero Match composition, 0 console errors) → **KEPT**.
+> - **TEST GATE CLEARED:** full Playwright suite **167/167 green** (9.6m, exit 0). Tutorial tests pass
+>   despite the copy rewrite (nothing asserts tutorial copy/count); Theme #124 light-default untouched.
+> - Untracked reference artifacts (`design-lab/`, `_scratch/*.png`) left out of the repo by design.
+
 > ### ✅ HUB PREMIUM PORT — verified + shipped LIVE (2026-08-01, commit `18ff9c9`)
 > Founder: *"verify and commit the hub port."* Landed the dangling uncommitted Hub premium-port
 > (an earlier same-day session ported `_scratch/hub-premium.html` into `prototype/index.html` but
