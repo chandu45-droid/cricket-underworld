@@ -1,5 +1,69 @@
 # Progress — Cricket Underworld
 
+> ### 🎴 PLAYER DETAIL WIDER-SCOPE PASS (2026-08-02d) — 8th/FINAL screen in this session's series
+> Closes out the wider-scope pass series that covered Hub/Squad/Match/Pack/Auction/Post-Match/
+> Hub-badge-reorder this session. Player Detail (`showPlayerDetail()`, ~L7313) was already ahead
+> of the reference mockup (`design-lab/bolt-round4/project/public/mockups/player.html`) on most
+> fronts — faceted avatar, full stat bars, and a genuine `fixChance` corruption mechanic the
+> mockup doesn't even have — so the real opportunity here was two small, verified, real-data-only
+> fixes, not a rebuild.
+>
+> **1. `--pd-glow` dead CSS variable, wired in — plus a real cascade bug found along the way.**
+> The hero card set `--pd-glow:<RARITY_COLORS[p.rarity]>` inline but `.pd-hero::before` never
+> consumed it (no `background` declared at all — the rule was a no-op). Investigation surfaced a
+> second, un-briefed bug: even after adding `background:var(--pd-glow)`, the shared
+> `.cu-card::before` rule (~L2568, the generic gold-sheen texture every `.cu-card` gets) has equal
+> selector specificity and sits later in source, so it fully overrode the new background (and would
+> have shifted the glow off-center via its `inset:0` clobbering `left:50%`). Fixed by rescoping to
+> `.pd-hero.cu-card::before` (2-class selector beats `.cu-card::before`'s 1-class one regardless of
+> source order) — verified via computed-style checks that `background-color` now resolves to the
+> real per-player rarity hex (e.g. legendary → `#DC2626`) and the circle stays centered
+> (`left:190px` + `translateX(-100px)` on a 420px-wide test viewport, not clipped/shifted).
+> Removed the old JS-injected duplicate glow `<div>` (was doing the same 180px-blur job inline on
+> every render) now that the CSS pseudo-element does it — same "CSS handles the look, JS only sets
+> the data-driven var" technique `renderPlayerMini`/`#squad-screen .player-card-mini` already
+> established for its `--rarity-color`/`--rarity-glow` pair (cross-checked against that code,
+> ~L7290-7307 and its CSS at ~L2658-2667, commit history back to this session's Squad pass).
+> Rarity tiering matches that same precedent exactly: common/uncommon/rare get the plain
+> `--pd-glow` wash at 0.15 opacity; **epic** gets a static stronger wash (0.24, no animation);
+> **legendary** is the only tier that pulses (`pdHeroGlowPulse`, opacity 0.16↔0.32, 3s ease-in-out
+> infinite, one shared keyframe) — same "rarest tier only" rule Squad's `sqMiniRarityPulse` used,
+> so the effect stays earned/rare rather than applied to every card.
+>
+> **2. Fix Success Rate got a bar.** `.pd-fix-rate` was label+value text only despite sitting one
+> section below a full stat-bar block using the same `.stat-bar`/`.fill` component. Added a
+> `.stat-bar.flex-1` + `.fill` row using the SAME markup convention as `.pd-stat-row` above it, and
+> reused the color thresholds `fixChance` already had (`>=70` / `>=40` / else) rather than
+> inventing new ones — mapped straight onto the existing `.fill.green`/`.fill.amber`/`.fill.red`
+> CSS variants (all three already existed pre-this-pass). The real `fixChance` computation
+> (`Math.round(100 - loyalty*0.8 + greed*0.3)`, clamped 5-95) is untouched — purely visual.
+>
+> **Explicitly excluded (verified NOT real, would require inventing new state/mechanics/fields —
+> not built):** a "Recent Matches" history section (no per-player match log exists anywhere,
+> `GS.matchesPlayed` is team-level only); an Age/City/Nationality line (no such fields on
+> `ALL_PLAYERS` objects); a "Pressure" attribute (only bat/bwl/fld/fit/form exist); a reserve-price/
+> market-value/"Send to Auction" CTA (no resale-a-squad-player mechanic exists in the auction
+> system at all). Training section, Loyalty/Greed numbers, banned callout, and Close/Release button
+> logic were also explicitly out of scope for this pass and were not touched.
+>
+> **Protected selectors confirmed untouched:** grepped `tests/*.spec.js` for
+> `player-detail|release-detail-btn` — only `#player-detail-overlay.show` and `#release-detail-btn`
+> are pinned (`tests/comprehensive.spec.js` lines 243-287), both still present, neither renamed nor
+> restructured; `#close-detail-btn` and the training/release JS logic are unmodified.
+>
+> **Verified** with a throwaway Playwright script (deleted after use, per protocol) against
+> `npx serve`: forced each rarity tier onto a squad player and confirmed via computed styles that
+> the glow color/opacity/animation-name vary correctly per tier (common/uncommon/rare: opacity
+> 0.15, `animation-name:none`; epic: 0.24, none; legendary: 0.16 base + `pdHeroGlowPulse`), that the
+> fix-rate bar's `.fill` class and width track `fixChance` (e.g. 95% → `fill green`, 43% → `fill
+> amber`), and visually screenshotted both light and dark theme — glow and bar render cleanly in
+> both, no clipping, no layout shift in the Character/Training/Actions sections below. Thermal gate:
+> `infinite` 62→63 (one new keyframe, `pdHeroGlowPulse`, GPU-cheap opacity-only, legendary tier
+> only), `backdrop-filter` 22→22 (unchanged), `requestAnimationFrame`/`<canvas>` 8→8 (unchanged).
+>
+> This closes the wider-scope pass series for this session — all 8 planned screens (Hub, Squad,
+> Match, Pack, Auction, Post-Match, Hub-badge-reorder, Player Detail) are now done.
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — Hub badge + reorder pass included
 > `_deploy-anon/index.html` refreshed to pick up the Hub badge+reorder pass (6516b95): the
 > `#hub-nav-dot` notification dot and the investigation-panel/debt-panel reorder that replaced

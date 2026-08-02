@@ -1394,7 +1394,12 @@ html[data-theme="light"] .auction-purse-zone .purse{
    PLAYER DETAIL — Premium Profile Card
    ================================================================ */
 .pd-hero{text-align:center;padding:8px 0 20px;position:relative}
-.pd-hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;filter:blur(60px);opacity:0.15;pointer-events:none}
+/* WIDER SCOPE (2026-08-02): must be .pd-hero.cu-card::before (not bare .pd-hero::before) --
+   .cu-card::before (~line 2568) already claims this pseudo-element for the shared gold-sheen
+   card texture at equal specificity + later source order, so a bare .pd-hero::before never
+   painted (background stayed unset, the --pd-glow var was fully dead). The 2-class selector
+   below wins per-property regardless of source order, so the rarity glow actually renders. */
+.pd-hero.cu-card::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;background:var(--pd-glow,transparent);filter:blur(60px);opacity:0.15;pointer-events:none}
 .pd-ovr{width:72px;height:72px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:32px;font-weight:700;color:#fff;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);margin-bottom:14px;position:relative;box-shadow:0 4px 30px rgba(0,0,0,0.4)}
 .pd-ovr::after{content:'';position:absolute;inset:2px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);background:rgba(0,0,0,0.25);pointer-events:none}
 .pd-name{font-family:var(--font-d);font-size:30px;font-weight:700;letter-spacing:1.5px;line-height:1.1;color:var(--white)}
@@ -1418,9 +1423,10 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .pd-char-item.greed::before{background:linear-gradient(90deg,transparent,var(--blood),transparent)}
 .pd-char-item .char-val{font-family:var(--font-d);font-size:26px;font-weight:700;line-height:1}
 .pd-char-item .char-label{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1.2px;margin-top:3px;font-weight:600}
-.pd-fix-rate{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(15,13,26,0.5);border:1px solid rgba(136,150,176,0.06);border-radius:3px}
-.pd-fix-rate .fix-label{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;font-weight:600}
-.pd-fix-rate .fix-val{font-family:var(--font-d);font-size:22px;font-weight:700}
+.pd-fix-rate{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:rgba(15,13,26,0.5);border:1px solid rgba(136,150,176,0.06);border-radius:3px}
+.pd-fix-rate .fix-label{font-size:10px;color:var(--slip);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;white-space:nowrap}
+.pd-fix-rate .fix-val{font-family:var(--font-d);font-size:22px;font-weight:700;white-space:nowrap}
+.pd-fix-rate .stat-bar{height:5px}
 .pd-banned{padding:12px;background:rgba(220,38,38,0.04);border:1.5px solid rgba(220,38,38,0.15);border-radius:3px;text-align:center;margin-top:8px}
 .pd-banned .banned-title{font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--blood);text-transform:uppercase;letter-spacing:2.5px}
 .pd-banned .banned-sub{font-size:11px;color:var(--slip);margin-top:3px}
@@ -2680,6 +2686,13 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 #player-detail-overlay .cu-star-pips{justify-content:center}
 #player-detail-overlay .cu-star-pips svg{width:14px;height:14px}
 #player-detail-overlay .pd-rarity.cu-chip{margin-top:8px}
+/* WIDER SCOPE (2026-08-02): --pd-glow was set on .pd-hero but never consumed --
+   .pd-hero::before now reads it (see base rule ~line 1397). Same rarest-tier-only
+   thermal budget as #squad-screen .player-card-mini (epic = static stronger glow,
+   legendary = the only tier that pulses, one shared keyframe). */
+#player-detail-overlay .pd-hero.rarity-epic::before{opacity:0.24}
+#player-detail-overlay .pd-hero.rarity-legendary::before{opacity:0.2;animation:pdHeroGlowPulse 3s ease-in-out infinite}
+@keyframes pdHeroGlowPulse{0%,100%{opacity:0.16}50%{opacity:0.32}}
 
 /* ================================================================
    V3 KIT APPLICATION — B2: Auction Lobby + Live Auction
@@ -7331,10 +7344,14 @@ function showPlayerDetail(id) {
   }
   var fixChance = Math.round(100 - (p.loyalty * 0.8) + (p.greed * 0.3));
   fixChance = Math.max(5, Math.min(95, fixChance));
+  var fixColor = fixChance >= 70 ? 'green' : fixChance >= 40 ? 'amber' : 'red';
   var avatarKey = RARITY_TO_CREST_KEY[p.rarity] || 'gold';
+  // WIDER SCOPE (2026-08-02): same rarity-tiered accent as #squad-screen .player-card-mini
+  // (renderPlayerMini) -- epic/legendary only, see .pd-hero.rarity-* CSS. --pd-glow was
+  // already computed above (rc); it now actually gets consumed by .pd-hero::before.
+  var pdRarityClass = p.rarity === 'legendary' ? ' rarity-legendary' : p.rarity === 'epic' ? ' rarity-epic' : '';
   var html =
-    '<div class="pd-hero cu-card" style="--pd-glow:' + rc + '">' +
-      '<div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:180px;height:180px;border-radius:50%;background:' + rc + ';filter:blur(60px);opacity:0.12;pointer-events:none"></div>' +
+    '<div class="pd-hero cu-card' + pdRarityClass + '" style="--pd-glow:' + rc + '">' +
       '<div class="cu-avatar pd-avatar">' + generateFacetedAvatar(p.name, avatarKey, 88) + '</div>' +
       '<div class="pd-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.5))">' + ovr + '</div>' +
       '<div class="pd-name">' + p.name + '</div>' +
@@ -7352,7 +7369,7 @@ function showPlayerDetail(id) {
         '<div class="pd-char-item loyalty"><div class="char-val text-green">' + p.loyalty + '</div><div class="char-label">Loyalty</div></div>' +
         '<div class="pd-char-item greed"><div class="char-val text-red">' + p.greed + '</div><div class="char-label">Greed</div></div>' +
       '</div>' +
-      '<div class="pd-fix-rate"><span class="fix-label">Fix Success Rate</span><span class="fix-val ' + (fixChance >= 70 ? 'text-green' : fixChance >= 40 ? 'text-amber' : 'text-red') + '">' + fixChance + '%</span></div>' +
+      '<div class="pd-fix-rate"><span class="fix-label">Fix Success Rate</span><div class="stat-bar flex-1"><div class="fill ' + fixColor + '" style="width:' + fixChance + '%"></div></div><span class="fix-val text-' + fixColor + '">' + fixChance + '%</span></div>' +
       (p.banned ? '<div class="pd-banned"><div class="banned-title">BANNED</div><div class="banned-sub">' + (BAN_REASONS[p.banned.reason] ? BAN_REASONS[p.banned.reason].label : 'Banned') + ' · ' + p.banned.matchesLeft + ' match' + (p.banned.matchesLeft > 1 ? 'es' : '') + ' remaining</div></div>' : '') +
     '</div>';
   if (isSquad) {
