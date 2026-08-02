@@ -1,5 +1,12 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — Post-Match wider-scope pass included
+> `_deploy-anon/index.html` refreshed to pick up the Post-Match wider-scope pass (458f553):
+> Standout Performer card wired from real scorecard data, hero verdict card, real Contract-XP
+> progress bar. Diffed against `prototype/index.html`, byte-copied, re-verified zero personal-
+> identity strings (`chandu`/`yeswanth`/`@gmail`/`chandu45-droid`) via grep — 0 matches. Founder
+> still needs to manually re-drag `_deploy-anon/` onto Netlify Drop.
+
 > ### 🏆 WIDER-SCOPE COMPOSITION PASS — Post-Match Result (2026-08-02, needs testing)
 > Sixth screen under the wider-scope label (Hub/Squad/Match/Pack/Auction shipped earlier). Re-inventoried
 > `design-lab/bolt-round4/project/public/mockups/postmatch.html` against the real `endMatch()` result
