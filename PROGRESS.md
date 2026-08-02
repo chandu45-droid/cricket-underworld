@@ -1,5 +1,16 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — now carries the WIDER-SCOPE passes
+> Founder asked whether the wider-composition work is live on Netlify too — it was not; GitHub Pages
+> auto-deploys on every push, but `_deploy-anon/` only updates when manually re-synced + re-dropped.
+> - Refreshed `index.html` (775,665 → 798,772 bytes) to pick up the three wider-scope passes landed so
+>   far: Hub (`0622743`), Squad (`1bad30e`), Match (`4031f6a`/`3cc402c`). Other staged assets confirmed
+>   byte-identical.
+> - Re-verified zero personal-identity strings in the copy.
+> - **Auction and Pack wider-scope passes are still running** (separate worktrees) — this snapshot does
+>   NOT yet include them. Another re-sync will be needed once they land.
+> - **NOT done (founder step, ~2 min):** re-drag `_deploy-anon/` onto Netlify Drop.
+
 > ### 🖼️ WIDER-SCOPE COMPOSITION PASS — Match (2026-08-02, third pass under this label, needs testing)
 > Third of the widened-scope cinematic passes (after Hub and Squad, run concurrently in separate
 > worktrees) — founder confirmed his mockup zip is byte-identical to `design-lab/bolt-round4/` and
