@@ -46,17 +46,28 @@
 > login system, so no names/emails/IPs, by design and by law. Retroactive data is impossible; collection starts
 > only once the endpoint is switched on.
 >
-> **3. Underworld sequence beats — WIP, NOT merged, parked in a worktree.**
-> Section 7 of the plot spine ("The Alignment-Branched Telling") was specced but never built: the spine only
-> exists at 4 bookend moments (tutorial + 2 promo cards + climax), while the **recurring** events a player sees
-> dozens of times (hafta, election, rival offer, neta demand, case stages) are static generic copy. Verified
-> before briefing: hafta copy is one static string (L5686), `CASE_STAGES` is 4 bare labels (L4167), and
-> `Arvind Patil` appears exactly ONCE in the whole file (L4100, the data array — zero reactive flavour).
-> A builder got ~106 insertions in before dying mid-verification (API ENOTFOUND); work was **recovered from disk**
-> (ground-truth-is-git case law) and committed on branch `worktree-cu-wt-uw-sequences` (`174ce45`).
-> Orchestrator pre-checks passed (syntax clean; no protected climax/promo function touched; no consequence logic
-> deleted) but **the builder's own final review never completed — this has NOT had a real review pass and is
-> deliberately NOT on master.** Resume by reviewing that diff properly before merging.
+> **3. Underworld sequence beats — REVIEWED + MERGED + LIVE (`552120a`).**
+> Section 7 of the plot spine ("The Alignment-Branched Telling") was specced but never built: the spine
+> only existed at 4 bookend moments (tutorial + 2 promo cards + climax), while the **recurring** events a
+> player sees dozens of times were static generic copy. Verified before briefing: hafta was one static
+> string (L5686), `CASE_STAGES` 4 bare labels (L4167), `Arvind Patil` appeared exactly ONCE in the file
+> (L4100, the data array — zero reactive flavour).
+> **Built (all 6 briefed items):** hafta branched on `GS.alignment` + `f.bhai.rel` respect tail · election
+> reframed as the first *public* commitment, alignment-branched · rival offer with Rajan-Mehra-specific
+> dark-mirror escalation keyed off `GS.league` + alignment (sizing-you-up → "a working arrangement" →
+> openly hostile if you are clean) · neta demand branched per demand type · new `caseStageNarration()`
+> giving every case stage two alignment-gated framings, narrated with the actually-assigned inspector
+> (Sherawat gets his own incorruptible variant) · Patil/Mehra reactive flavour on the existing rival profile.
+> **The original builder died mid-verification (API ENOTFOUND) — work was recovered from disk (ground-truth-is-git
+> case law) and I completed its unfinished review pass myself before merging**, specifically the reachability
+> checks it never reached: `caseStageNarration` confirmed called in 2 real render paths (not dead code);
+> `getInspector()` proven null-safe (falls back to `INSPECTORS[0]`, so the new `insp.trait`/`insp.name`
+> dereferences cannot throw); `demandDesc` confirmed initialized to `dpick.desc` so the third demand type
+> (`fundraiser`) cannot render `undefined`; all 4 event `type:` strings intact so the one coupled test
+> (`comprehensive.spec.js:965`, asserts `ev.type==='hafta'` only, never copy) still passes; zero consequence/
+> payout logic touched; syntax clean post-merge. Merged with 0 conflict markers, pushed, auto-deployed.
+> **NOT done:** no browser/Playwright pass on any of this copy (founder-gated) — it is copy-only over
+> unchanged mechanics, but nobody has *seen* these variants render yet.
 
 > ### ✅ RECKONING CLIMAX UPGRADED — real branched choice, not a Dismiss card (2026-08-02, commits `4ee6e8c`+`ceddc85`)
 > Founder: *"Upgrade the plot-spine climax"* — the shipped climax (below) was a deliberate thin build,
