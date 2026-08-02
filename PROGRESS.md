@@ -1,5 +1,18 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED AGAIN (2026-08-02, no game code changed)
+> Founder: "resync the anon demo too" — closes the gap opened by the Squad cinematic pass (`062d38c`:
+> header-zone light beams + ambient motes).
+> - Diffed each staged asset against the live source: only `index.html` had drifted (771,196 → 773,696
+>   bytes, the Squad pass's +2,500 bytes); `manifest.json`/`sw.js`/`icon.svg`/`icon-192.png`/
+>   `icon-512.png`/`pitch.html` all still byte-identical, untouched.
+> - Re-verified the anonymity invariant on the copy: grep -i "chandu|yeswanth|@gmail|chandu45-droid" —
+>   zero matches.
+> - **NOT done (founder step, ~2 min):** re-drag `_deploy-anon/` onto Netlify Drop. Until then
+>   `cricket-underworld.netlify.app` still serves the pre-Squad-pass snapshot.
+> - Same as every prior re-sync: none of the four cinematic passes (auction, pack, hub, squad) have been
+>   seen in a real browser yet — founder-gated testing still owed on all four.
+
 > ### 🎬 CINEMATIC DIRECTION PASS — Squad shipped (2026-08-02, needs testing)
 > Fourth screen in the direction pass, after Auction (`0d03562`), Pack (`0480e43`), Hub (`3528e59`) — same
 > hard rules: **no logic changes, no removed features, no rewritten systems, no navigation changes, no
