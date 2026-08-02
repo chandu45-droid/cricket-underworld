@@ -1,5 +1,21 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED AGAIN (2026-08-02, no game code changed)
+> Founder: "resync the anon demo too" — closes the gap opened by the Hub cinematic pass (`3528e59`:
+> floodlight flicker, crowd band, embers, LED ticker).
+> - Diffed each staged asset against the live source: only `index.html` had drifted (766,900 → 771,196
+>   bytes, the Hub pass's +4,296 bytes); `manifest.json`/`sw.js`/`icon.svg`/`icon-192.png`/`icon-512.png`/
+>   `pitch.html` all still byte-identical, untouched.
+> - Re-verified the anonymity invariant on the copy: grep -i "chandu|yeswanth|@gmail|chandu45-droid" —
+>   zero matches. (A broader sanity grep for the bare word "github" turned up one hit — a code COMMENT in
+>   the analytics-setup instructions, "GitHub Pages redeploys..." — a generic platform-name reference, not
+>   a personal identifier; confirmed not a leak, left as-is.)
+> - **NOT done (founder step, ~2 min, cannot be done by an agent):** re-drag `_deploy-anon/` onto Netlify
+>   Drop. Until then `cricket-underworld.netlify.app` still serves the pre-Hub-pass snapshot — the crowd
+>   band / ticker / floodlight flicker are not visible there yet.
+> - Same as every prior re-sync: neither this pass nor the two before it (auction, pack) have been seen in
+>   a real browser — founder-gated testing still owed on all three.
+
 > ### 🎬 CINEMATIC DIRECTION PASS — Hub shipped LIVE (2026-08-02)
 > Third screen in the direction pass, after Auction (`0d03562`) and Pack (`0480e43`) — same hard rules:
 > **no logic changes, no removed features, no rewritten systems, no navigation changes, no regressions**,
