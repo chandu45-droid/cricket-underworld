@@ -2496,6 +2496,49 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 #squad-screen .player-card-mini.cu-card{border-radius:0}
 #squad-screen .player-card-mini .mini-role-chip{background:var(--gold-dim);color:var(--gold-bright);border:1px solid rgba(255,210,63,0.25);margin-left:2px;flex-shrink:0}
 
+/* ================================================================
+   WIDER SCOPE PASS 2 (2026-08-02) — Squad, second wider-composition pass
+   (after Hub). Restyles/densifies EXISTING GS-backed data to close the gap
+   with mockups/squad.html's composition. No new GS state, no new nav.
+   ================================================================ */
+/* 1. team-stats-row: hero-number weight to match the mockup's big Teko
+   summary numbers, reusing the SAME per-stat rgba tokens already used by
+   the tiles' own ::after radial glow (lines above) -- just applied as a
+   text-shadow on the number instead of a background wash. */
+#squad-screen .team-stats-row .ts-val{font-size:32px;letter-spacing:0.5px}
+#squad-screen .team-stat.stat-bat .ts-val{text-shadow:0 0 14px rgba(52,211,153,0.35)}
+#squad-screen .team-stat.stat-bwl .ts-val{text-shadow:0 0 14px rgba(255,210,63,0.3)}
+#squad-screen .team-stat.stat-ovr .ts-val{text-shadow:0 0 14px rgba(59,130,246,0.3)}
+#squad-screen .team-stat.stat-morale .ts-val{text-shadow:0 0 14px rgba(245,158,11,0.3)}
+/* 2. squad-morale-bar: more visual presence (mirrors mockup's .chem-bar role,
+   using REAL morale data -- not a renamed/invented "chemistry" stat) */
+#squad-screen .squad-morale-bar .morale-val{font-size:22px;text-shadow:0 0 12px rgba(245,158,11,0.4)}
+#squad-screen .squad-morale-bar .morale-track{height:7px}
+#squad-screen .squad-morale-bar .morale-fill{position:relative;overflow:hidden}
+#squad-screen .squad-morale-bar .morale-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);background-size:200% 100%;animation:shimmer 3s linear infinite}
+/* 3. squad-role-group headers: static count chip (real players.length for that
+   group) so the section header reads closer to the mockup's filter row --
+   deliberately NOT a clickable filter tab, see PROGRESS.md decision log */
+#squad-screen .squad-role-group .cu-ribbon-wrap{align-items:center;gap:8px}
+#squad-screen .sq-role-count{font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--slip);padding:2px 11px;background:rgba(var(--hl-rgb),0.04);border:1px solid var(--border);clip-path:var(--clip-6)}
+/* 4. player-card-mini rarity accent -- reuses the SAME RARITY_COLORS/RARITY_GLOW
+   tokens the big .player-card (Cards screen) uses for its ovr-badge/rarity-strip
+   (renderPlayerMini sets --rarity-color/--rarity-glow inline, same as renderPlayerCard).
+   Thermal budget: ONE shared keyframe (sqMiniRarityPulse), applied only to the
+   rarest tier so concurrent animations stay low even with ~15-16 mini-cards
+   rendered at once; epic gets a static (non-animated) stronger glow instead. */
+#squad-screen .player-card-mini::before{content:'';position:absolute;top:0;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,var(--rarity-color,transparent),transparent);opacity:0.55;pointer-events:none}
+#squad-screen .player-card-mini.rarity-epic{box-shadow:var(--elevation-1),0 0 14px var(--rarity-glow)}
+#squad-screen .player-card-mini.rarity-legendary{box-shadow:var(--elevation-1),0 0 10px var(--rarity-glow);animation:sqMiniRarityPulse 3s ease-in-out infinite}
+@keyframes sqMiniRarityPulse{0%,100%{box-shadow:var(--elevation-1),0 0 10px var(--rarity-glow)}50%{box-shadow:var(--elevation-1),0 0 20px var(--rarity-glow)}}
+/* 5. Persistent "fill the squad" CTA -- appears once GS.squad.length is between
+   1 and GS.maxSquad-1 (real data, see updateSquadScreen()). Reuses .btn/.btn-hero/
+   .full as-is (angular clip-path, cta-red gradient already come for free), just
+   stacks a two-line label like the mockup's title+sub via flex-direction override. */
+.squad-fill-cta{margin-top:12px;flex-direction:column;gap:2px;padding:14px 20px}
+.squad-fill-cta .sfc-main{display:block;font-size:16px}
+.squad-fill-cta .sfc-sub{display:block;font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;opacity:0.85}
+
 /* Player Detail: hero + info panels take the chamfered cu-card frame;
    avatar sits above the existing OVR badge (additive, doesn't replace it) */
 #player-detail-overlay .pd-hero.cu-card{padding:18px 14px 20px;margin-bottom:10px}
@@ -3414,6 +3457,13 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="morale-track"><div class="morale-fill" id="morale-bar-fill" style="width:75%"></div></div>
       </div>
       <div id="squad-list"></div>
+      <!-- WIDER SCOPE (2026-08-02): persistent bottom CTA, real GS.squad.length/GS.maxSquad data --
+           only shown once the squad has 1+ players AND slots remain open; empty-state keeps its own
+           existing CTA below untouched. Reuses the exact same goScreen('auction')+startAuction() action
+           as #squad-go-auction, not a new nav target. -->
+      <div class="btn btn-hero full squad-fill-cta" id="squad-fill-cta" style="display:none">
+        <span class="sfc-main">Go to Auction</span><span class="sfc-sub" id="squad-fill-cta-sub"></span>
+      </div>
       <div id="squad-empty" class="text-center text-slip">
         <div class="empty-icon"><svg viewBox="0 0 64 64"><path d="M32 6L32 42" stroke-linecap="round"/><path d="M24 6C24 6 28 2 32 6C36 2 40 6 40 6" stroke-linecap="round"/><ellipse cx="32" cy="50" rx="10" ry="10"/><path d="M26 47L38 53M38 47L26 53" stroke-linecap="round"/></svg></div>
         <div class="font-d fw-600 text-lg">No players yet</div>
@@ -7046,9 +7096,17 @@ function renderPlayerCard(p) {
 function renderPlayerMini(p) {
   var ovr = getOVR(p);
   var rc = RARITY_COLORS[p.rarity] || '#4A5568';
+  var rg = RARITY_GLOW[p.rarity] || 'rgba(74,85,104,0.1)';
   var roleShort = ROLE_SHORT[p.role] || 'AR';
+  // WIDER SCOPE (2026-08-02): rarity-tiered accent, same RARITY_COLORS/RARITY_GLOW tokens
+  // renderPlayerCard() uses for the big Cards-screen card (ovr-badge/rarity-strip) -- see
+  // #squad-screen .player-card-mini.rarity-* CSS. Only epic/legendary get extra treatment,
+  // matching how the big card only special-cases those two tiers.
+  var rarityClass = p.rarity === 'legendary' ? ' rarity-legendary' : p.rarity === 'epic' ? ' rarity-epic' : '';
   var banTag = p.banned ? '<span style="color:var(--blood);font-size:10px;font-weight:700;margin-left:6px">BANNED ' + p.banned.matchesLeft + 'M</span>' : p.injured ? '<span class="injury-tag">INJ ' + p.injured.matchesLeft + 'M</span>' : '';
-  return '<div class="player-card-mini cu-card" data-pid="' + p.id + '"' + (p.banned || p.injured ? ' style="opacity:0.5"' : '') + '>' +
+  var styleParts = ['--rarity-color:' + rc, '--rarity-glow:' + rg];
+  if (p.banned || p.injured) styleParts.push('opacity:0.5');
+  return '<div class="player-card-mini cu-card' + rarityClass + '" data-pid="' + p.id + '" style="' + styleParts.join(';') + '">' +
     '<div class="mini-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.4))">' + ovr + '</div>' +
     '<div class="mini-info"><div class="mini-name">' + p.name + banTag + '</div><div class="mini-role">' + p.role + (p.overseas ? ' · OS' : '') + '</div></div>' +
     '<div class="mini-stats"><span>' + (p.role.indexOf('Bowler') >= 0 ? p.bwl : p.bat) + '</span><span class="cu-chip mini-role-chip">' + roleShort + '</span></div>' +
@@ -7550,7 +7608,7 @@ function renderHubLedger() {
 function updateSquadScreen() {
   $('squad-count').textContent = GS.squad.length + '/' + GS.maxSquad;
   if (GS.squad.length === 0) {
-    hide('squad-list'); show('squad-empty'); hide('squad-morale-bar');
+    hide('squad-list'); show('squad-empty'); hide('squad-morale-bar'); hide('squad-fill-cta');
     $('ts-bat').textContent = '-'; $('ts-bwl').textContent = '-'; $('ts-ovr').textContent = '-';
     return;
   }
@@ -7576,11 +7634,23 @@ function updateSquadScreen() {
     var group = roleGroups[g];
     var players = sorted.filter(function(p) { return group.roles.indexOf(p.role) >= 0; });
     if (players.length === 0) continue;
-    html += '<div class="squad-role-group"><div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>' + group.label + '</span></div></div>';
+    // WIDER SCOPE (2026-08-02): section-header count chip -- real data (players.length within
+    // this already-computed role group), not an interactive filter. Reads closer to the mockup's
+    // filter-row without adding click-to-filter behavior (see PROGRESS.md decision log).
+    html += '<div class="squad-role-group"><div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>' + group.label + '</span></div><div class="sq-role-count">' + players.length + '</div></div>';
     html += players.map(renderPlayerMini).join('');
     html += '</div>';
   }
   $('squad-list').innerHTML = html;
+  // WIDER SCOPE (2026-08-02): persistent "fill the squad" CTA once roster has 1+ players --
+  // real GS.squad.length/GS.maxSquad data, reuses #squad-go-auction's exact nav action.
+  var openSlots = GS.maxSquad - GS.squad.length;
+  if (openSlots > 0) {
+    if ($('squad-fill-cta-sub')) $('squad-fill-cta-sub').textContent = 'Fill ' + openSlots + ' empty slot' + (openSlots === 1 ? '' : 's');
+    show('squad-fill-cta');
+  } else {
+    hide('squad-fill-cta');
+  }
 }
 
 // =============================================
@@ -10861,6 +10931,7 @@ function bindEvents() {
   $('hub-cards-btn').addEventListener('click', function() { goScreen('cards'); });
   $('mafia-banner').addEventListener('click', showMafiaOffer);
   $('squad-go-auction').addEventListener('click', function() { goScreen('auction'); if (!auction.active) startAuction(); });
+  if ($('squad-fill-cta')) $('squad-fill-cta').addEventListener('click', function() { goScreen('auction'); if (!auction.active) startAuction(); });
   $('bid-btn').addEventListener('click', placeBid);
   $('pass-btn').addEventListener('click', passBid);
   $('start-auction-btn').addEventListener('click', startAuction);

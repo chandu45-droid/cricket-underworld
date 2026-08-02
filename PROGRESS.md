@@ -77,6 +77,71 @@
 > `p15-visual.spec.js`) untouched. Angular clip-path convention followed throughout (`--clip-10`/
 > `--clip-6` on new chips, no `border-radius` introduced).
 
+> ### 🎬 WIDER SCOPE — Squad shipped (2026-08-02, needs testing)
+> Second screen under the WIDER-SCOPE label (after Hub, running in parallel in a separate worktree) —
+> unlike the 5 narrow "atmosphere-only" passes (Auction `0d03562`, Pack `0480e43`, Hub `3528e59`, Squad
+> `062d38c`, Match `8951416`), this pass may reshape HOW existing `GS` data is displayed (layout, density,
+> hierarchy, card treatment) to close the gap with `mockups/squad.html`'s composition — but still zero new
+> `GS` state, zero new persisted state, zero new nav beyond one explicitly-scoped CTA (below).
+>
+> **Ported/restyled (all real-data sources):**
+> 1. **`.team-stats-row` hero numbers** — bumped `ts-val` to 32px and added a per-stat `text-shadow` glow
+>    reusing the SAME rgba tuples already used by each tile's own `::after` radial wash (green/gold/blue/
+>    amber for Batting/Bowling/Overall/Morale). Source: `GS.squad` batting/bowling averages, `getTeamStrength()`,
+>    `GS.morale` — all pre-existing, unchanged reads.
+> 2. **`.squad-morale-bar`** — bigger `morale-val` (22px + glow) and a taller track (7px) with a shimmer
+>    sweep (`::after`, reusing the existing shared `shimmer` keyframe) over the fill. Mirrors the mockup's
+>    `.chem-bar` role using REAL `GS.morale` data — see explicit exclusion below for why this is NOT a
+>    "chemistry" stat.
+> 3. **`.squad-role-group` headers** — added a static count chip (`.sq-role-count`, real `players.length`
+>    for that already-computed role group) next to each `cu-ribbon` label, closer to the mockup's filter-row
+>    feel without adding click-to-filter behavior.
+> 4. **`.player-card-mini` rarity accent** — extended the SAME `RARITY_COLORS`/`RARITY_GLOW` tokens
+>    `renderPlayerCard()` already uses for the big Cards-screen card (ovr-badge/rarity-strip) onto the
+>    roster's compact mini-card: a thin top accent line in the rarity color for all tiers, a stronger
+>    static glow for epic, and an animated glow for legendary using ONE shared keyframe (`sqMiniRarityPulse`,
+>    parameterized by the per-card `--rarity-glow` custom property) — not a unique keyframe per card.
+>    `renderPlayerMini()` now sets `--rarity-color`/`--rarity-glow` inline, same pattern as `renderPlayerCard()`.
+>
+> **Filters decision — excluded (deliberate).** The mockup's `.filters` row (All/Batsmen/Bowlers/All-rounders/
+> Keepers clickable tabs) was NOT implemented as interactive. The real Squad screen has no toggle state to
+> back it, and wiring click-to-filter (even reusing the Cards-screen `.card-filter` pattern, which touches
+> no `GS`) would still be a new interactive capability the screen doesn't have today. Kept the existing
+> always-grouped 3-section display (Batters/All-Rounders/Bowlers), just gave the section headers a count
+> chip (item 3 above) so they read more intentionally. No exception taken here.
+>
+> **Persistent CTA decision — included.** Added `#squad-fill-cta`, a bottom CTA shown whenever
+> `0 < GS.squad.length < GS.maxSquad` (both pre-existing, already-read fields), with real remaining-slot
+> count ("Fill N empty slots"). Reuses the EXACT SAME action as the existing empty-state
+> `#squad-go-auction` handler (`goScreen('auction'); if (!auction.active) startAuction();`) — not a new nav
+> target. Hidden when squad is empty (existing `#squad-empty` CTA already covers that case, no double CTA)
+> and hidden when the squad is full (15/15, nothing to fill).
+>
+> **Deliberately excluded (and why):**
+> - **"Chemistry" stat** — the mockup shows a `Chemistry %` hero number + `.chem-bar`. Grepped `GS` for
+>   `chemistry`/`GS.chem`: zero matches. There is no such stat in this game. Did NOT invent one and did NOT
+>   relabel `GS.morale` as chemistry — that would misrepresent what the real number means to the player.
+>   `GS.morale` already gets its own real bar (item 2 above).
+> - **"Mythic" rarity tier** — `RARITIES` is `['common','uncommon','rare','epic','legendary']`; mythic
+>   doesn't exist in this game's rarity system. Not added.
+> - **Grid-conversion of the roster** — the mockup's big 3-column card grid is confirmed (from the earlier
+>   narrow Squad pass) to map to `#cards-screen` (the Cards/Collection tab), a deliberately different IA
+>   surface from the Squad roster's compact list. Kept `.player-card-mini`'s list/row layout; did not touch
+>   `#cards-screen`/`renderPlayerCard`/`.player-card`.
+> - **Interactive filter tabs** — see Filters decision above.
+>
+> **Thermal check:** `infinite` 59→61 (+2: one shared shimmer sweep on the single `.morale-fill` element,
+> one shared `sqMiniRarityPulse` keyframe gated to the legendary tier only — never per-card unique
+> keyframes). `backdrop-filter` 22→22, `canvas` 18→18 — unchanged.
+>
+> **Test selectors reconfirmed unaffected:** `#squad-screen.active` (nav tests), `.player-card-mini` count
+> (`comprehensive.spec.js:217` expects 11 — unchanged, only added classes/inline custom-properties to
+> existing elements, no elements added/removed), `#squad-screen` `.active` class (`features-10k.spec.js:440`),
+> `squad-count`/`squad-morale-bar`/`squad-go-auction`/`squad-role-group` ids/classes all preserved as-is.
+>
+> Files: `prototype/index.html` only. Commit: see git log. Founder-gated: not run via Playwright this
+> session — needs testing.
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED AGAIN (2026-08-02, no game code changed)
 > Founder: "resync" (part of a two-part "update both" instruction — see the scope-widening entry
 > directly below for the other half). Closes the gap opened by the Match cinematic pass (`8951416`).
