@@ -2641,6 +2641,47 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 @keyframes bidPunch{0%{transform:scale(1)}35%{transform:scale(1.16);text-shadow:0 0 22px rgba(255,210,63,0.55)}100%{transform:scale(1)}}
 
 /* ================================================================
+   WIDER SCOPE PASS (2026-08-02) — Auction, wider-composition pass.
+   Inventory found this screen already has the mockup's atmosphere
+   (auctionMesh gradient + spotlight-rays conic rotation), the full
+   rarity-tiered player card live during bidding (renderPlayerCard, via
+   showNextCard — untouched), and MORE functional bidding depth than the
+   mockup (real chronological bid-log + Mafia Intel panel it doesn't have
+   at all). So this pass is small and additive on purpose:
+   1) auction-cam-flashes: the ONE genuinely-missing atmospheric detail —
+      ambient "photographers in the crowd" camera flashes, independent of
+      the SOLD-moment flash above (.ssv-flash, untouched). 3 elements,
+      ONE shared keyframe, opacity capped at .3, no border-radius (angular
+      rule — a soft radial fade needs no circular clip to read as a flash).
+      Sits at z-index:1, below .auction-card-spotlight (z-index:2) and the
+      block avatar (z-index:3), so it never dims the live card.
+   2) auction-log-title: restyles the EXISTING "Bid History" section-title
+      into a premium card header (adds a small gavel icon — reusing the
+      same hammer path as .ssv-hammer above, so the auction's iconography
+      stays consistent — + a gold accent-line) closer to the mockup's
+      .board-head/.board-title weight. Same text, same data, same DOM id
+      (#bid-log untouched) — presentation only.
+   Explicitly EXCLUDED (see task brief): mockup's 4-button bid-ladder
+   (+5K/+10K/+25K/+50K) — new player-facing bid-increment choice, not in
+   scope. Mockup's .rivals mini-leaderboard (deduplicated top-3 standings)
+   — different data shape than the real chronological #bid-log; restyling
+   the log's presentation (above) was judged sufficient without an
+   invented "current top bidders" view. .bid-arena's card treatment
+   (glow/top-line/gradient) already comes from .cu-card — no gap found,
+   left untouched.
+   ================================================================ */
+.auction-cam-flashes{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.auction-cam-flashes span{position:absolute;width:36px;height:36px;background:radial-gradient(circle,rgba(255,255,255,0.55),transparent 70%);opacity:0;animation:aucCamFlash 7.5s ease-in-out infinite}
+.auction-cam-flashes span:nth-child(1){top:8%;left:12%;animation-delay:0s}
+.auction-cam-flashes span:nth-child(2){top:14%;right:14%;animation-delay:2.6s}
+.auction-cam-flashes span:nth-child(3){top:4%;left:58%;animation-delay:5.1s}
+@keyframes aucCamFlash{0%,92%,100%{opacity:0}5%,10%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.auction-cam-flashes span{animation:none;opacity:0}}
+#auction-screen .auction-log-title{display:flex;align-items:center;gap:8px}
+#auction-screen .auction-log-title svg{width:15px;height:15px;color:var(--gold-bright);flex-shrink:0;filter:drop-shadow(0 0 5px rgba(255,210,63,0.4))}
+#auction-screen .auction-log-title .accent-line{background:linear-gradient(90deg,var(--gold-bright),transparent 80%);opacity:0.5}
+
+/* ================================================================
    V3 KIT APPLICATION — B5: Deals/Favor Board + Debt Ledger, Collection,
    Pack Opening. LOOK ONLY, scoped to each surface's own selector — no
    wired id/class/data-* renamed. Mafia-panel danger aesthetic (crimson)
@@ -3222,6 +3263,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="cu-ribbon-wrap auction-block-ribbon"><div class="cu-ribbon cu-red"><span>On The Block</span></div></div>
         <div class="auction-stage">
           <div class="spotlight-rays"></div>
+          <div class="auction-cam-flashes"><span></span><span></span><span></span></div>
           <div class="auction-block-frame">
             <div class="cu-avatar" id="auction-block-avatar"></div>
             <div class="auction-card-spotlight" id="auction-spotlight"></div>
@@ -3258,7 +3300,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="intel-text" id="auction-intel-text"></div>
         </div>
         <div class="auction-log-panel glass cu-card" id="bid-log-panel">
-          <div class="section-title sm">Bid History<span class="accent-line"></span></div>
+          <div class="section-title sm auction-log-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21l6-6M14 3l7 7-3 3-7-7zM10 7l7 7"/></svg>Bid History<span class="accent-line"></span></div>
           <div class="bid-log" id="bid-log"></div>
         </div>
         <!-- Cinematic auction pass (2026-08-02): SOLD payoff overlay. Purely

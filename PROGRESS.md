@@ -1,5 +1,64 @@
 # Progress — Cricket Underworld
 
+> ### 🔨 WIDER SCOPE — Auction restyle pass shipped (2026-08-02, needs testing)
+> **Fourth wider-composition pass** (after Hub, alongside Squad/Match in parallel worktrees), applying
+> the founder's "update both" scope-widening decision to Auction — already got the narrow SOLD-stamp/
+> bid-punch pass (`0d03562`), which stays untouched here.
+>
+> **Inventory finding: this screen has less of a real gap than Hub/Squad did.** Before touching anything,
+> compared `design-lab/bolt-round4/project/public/mockups/auction.html` against `#auction-screen` line
+> by line:
+> - **Atmosphere already fully covered** — `#auction-screen`'s own animated mesh-gradient background
+>   (`auctionMesh`, L407-420) plus the already-rotating `.spotlight-rays` conic-gradient (`spotlightRotate
+>   20s linear infinite`, L730/732) around the stage. The mockup's `.atmosphere`/`.beam` layer would be
+>   pure redundancy on top — not added.
+> - **The live bidding card is already the full rarity-tiered card** — `showNextCard()` renders the SAME
+>   `renderPlayerCard()` component used on Cards/Pack screens (OVR badge, rarity strip/shimmer, stats).
+>   The mockup's simpler `.stage`/`.stat-strip` is already matched or exceeded. Not touched.
+> - **Bid info is already real and functional, and MORE information-rich than the mockup** — countdown
+>   ring, current bid, leading bidder, a real scrolling chronological `#bid-log` fed by `auctionTick()`,
+>   plus a Mafia Intel panel the mockup has no equivalent of at all (this game's own unique system, kept
+>   exactly as-is).
+>
+> **What was actually restyled (small, on purpose):**
+> 1. **`auction-cam-flashes`** — the one genuinely-missing atmospheric detail from the mockup: ambient
+>    "photographers in the crowd" camera flashes (`.flashes`/`.flash` in the mockup), independent of the
+>    SOLD-moment flash from the narrow pass (`.ssv-flash`, untouched). Added 3 elements sharing ONE
+>    keyframe (`aucCamFlash`), opacity capped at 0.3, staggered delays, `z-index:1` (below the card
+>    spotlight/avatar so it never dims the live card), no `border-radius` (angular-design rule — a soft
+>    radial fade needs no circular clip to read as a flash), `prefers-reduced-motion` respected.
+> 2. **`auction-log-title`** — restyled the existing "Bid History" section-title into a premium card
+>    header: added a small gavel icon (reusing the exact same hammer SVG path as `.ssv-hammer` from the
+>    narrow pass, so the auction's iconography stays consistent rather than inventing a new glyph) and a
+>    gold-tinted accent-line, closer to the mockup's `.board-head`/`.board-title` visual weight. Same
+>    text, same `#bid-log` data/DOM id, presentation only.
+>
+> **Explicitly excluded, and why:**
+> - **Mockup's 4-button bid-ladder** (+5K min / +10K step / +25K push / +50K all-in) — this is a
+>   different, more permissive interaction model (player chooses bid increment) than the real game's
+>   fixed "Bid [amount]" / "Pass" buttons. New player-facing mechanic, out of scope regardless of visual
+>   appeal.
+> - **Mockup's `.rivals` mini-leaderboard** (3 fixed rows, deduplicated "top bidders" standings, one
+>   marked Lead/You) — a different DATA SHAPE than the real `#bid-log`'s chronological history (same
+>   bidder can re-appear as they re-bid). Computing a deduplicated standings view from the log is
+>   possible but adds real complexity/risk to a screen that already works well; restyling the log's
+>   existing presentation (above) was judged sufficient. `#bid-log` itself was NOT restructured.
+> - **`.bid-arena`'s card treatment** — already carries `.cu-card`, which supplies the chamfered frame,
+>   gold radial glow, and gold top accent-line for free. Checked against the mockup's `.board`/
+>   `.current-bid` glow treatment; no concrete gap found, so left untouched (adding another pulsing glow
+>   on top would have competed with the existing `bidPunch` animation and cost thermal budget for no
+>   real gain).
+>
+> **Net effect:** this is the smallest wider-scope diff of the four shipped so far, on purpose — the
+> screen was already unusually well-developed (more real functional depth than its own mockup in some
+> areas), so the honest answer was a small, targeted restyle rather than manufactured scope.
+>
+> Thermal budget: `infinite` count 61 → 62 (+1, one shared keyframe for the 3 flash spans, within the
+> +0 to +2 target), `backdrop-filter` count unchanged at 22. All test-relevant selectors (`#auction-screen`,
+> `#current-bid`, `#bid-btn`, `#pass-btn`, `#bid-log`, `#sold-stamp-overlay`, `#auction-intel-panel`,
+> `#timer-circle`, `#timer-sec`) confirmed intact by grep — none were renamed or removed, only a sibling
+> div and an icon were added around them. Needs Playwright/founder testing (not run — founder-gated).
+
 > ### 🏛️ WIDER SCOPE — Hub layout/density pass shipped (2026-08-02, needs testing)
 > **First pass under the founder's "update both" scope-widening decision.** The 5 prior cinematic
 > passes (Auction/Pack/Hub/Squad/Match) were deliberately narrow — small additive atmosphere layers
