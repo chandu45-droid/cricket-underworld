@@ -1,5 +1,20 @@
 # Progress — Cricket Underworld
 
+> ### 🔒 PITCH.HTML EMAIL LEAK FIXED (2026-08-02)
+> Founder: "fix the pitch.html email leak." The footer's `mailto:chanduyeswanth45@gmail.com` (flagged
+> twice, unresolved since the 2026-08-02 anon-sale-listing prep) has been removed. Grepped the whole file
+> for gmail/mailto/chanduyeswanth first — that footer line was the ONLY occurrence, nothing else leaked.
+> Replaced with neutral copy consistent with the plan already documented in `outreach.md` ("Contact
+> happens through the marketplace's own messaging only... a fresh contact email set up once a real buyer
+> is confirmed") — footer now reads "Serious inquiries via the listing platform" instead of exposing a
+> personal address.
+> - **Not addressed by this fix (separate, pre-existing issue, still true):** `pitch.html` itself is still
+>   hosted only at the identifying `chandu45-droid.github.io` GitHub Pages URL, not mirrored to the
+>   anonymous Netlify host — so the file's URL still carries the personal GitHub handle even though its
+>   *content* is now clean. Per the 2026-08-02 anon-sale-listing entry's own options: keep `pitch.html`
+>   for warm/known contacts only and do not post its link on the cold marketplace listing, unless/until
+>   it's mirrored anonymously too.
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02, no game code changed)
 > Resumed session; founder chose "redeploy stale Netlify demo" from the open-threads list. `_deploy-anon/`
 > (the gitignored staging folder for `cricket-underworld.netlify.app`) was a manual snapshot from earlier
