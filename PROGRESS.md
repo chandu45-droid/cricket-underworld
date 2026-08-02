@@ -1,5 +1,12 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — Hub badge + reorder pass included
+> `_deploy-anon/index.html` refreshed to pick up the Hub badge+reorder pass (6516b95): the
+> `#hub-nav-dot` notification dot and the investigation-panel/debt-panel reorder that replaced
+> the original "Deals screen" ask. Diffed against `prototype/index.html`, byte-copied, re-verified
+> zero personal-identity strings (`chandu`/`yeswanth`/`@gmail`/`chandu45-droid`) via grep — 0
+> matches. Founder still needs to manually re-drag `_deploy-anon/` onto Netlify Drop.
+
 > ### 🔔 HUB BADGE + REORDER (2026-08-02c) — replaces the original "Deals screen" wider-scope ask
 > The founder's original ask for this pass was a "Deals screen wider-scope pass" (same treatment as
 > Hub/Squad/Match/Pack/Auction/Post-Match this session). Investigation found the mockup's "Deals"
