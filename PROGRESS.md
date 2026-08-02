@@ -1,5 +1,14 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — Player Detail pass included (session close-out)
+> `_deploy-anon/index.html` refreshed to pick up the Player Detail wider-scope pass (b303ca9): the
+> `--pd-glow` rarity-tiered hero glow fix and the Fix Success Rate visual bar. This is the final
+> resync for the day's full wider-scope pass series (Hub/Squad/Match/Pack/Auction/Post-Match/
+> Hub-badge-reorder/Player-Detail — all 8 covered). Diffed against `prototype/index.html`,
+> byte-copied, re-verified zero personal-identity strings (`chandu`/`yeswanth`/`@gmail`/
+> `chandu45-droid`) via grep — 0 matches. Founder still needs to manually re-drag `_deploy-anon/`
+> onto Netlify Drop.
+
 > ### 🎴 PLAYER DETAIL WIDER-SCOPE PASS (2026-08-02d) — 8th/FINAL screen in this session's series
 > Closes out the wider-scope pass series that covered Hub/Squad/Match/Pack/Auction/Post-Match/
 > Hub-badge-reorder this session. Player Detail (`showPlayerDetail()`, ~L7313) was already ahead
