@@ -1,5 +1,40 @@
 # Progress — Cricket Underworld
 
+> ### 🎨 APP ICON RECOLORED — Stump Crown adopted, generic orange swapped for real palette (2026-08-02)
+> Founder generated a bolt.new AI logo-concept export exploring 6 app-icon directions
+> (`design-lab/bolt-round5-logo/`). A `ui-designer` audit independently reviewed all 6 (reading the
+> actual SVG code) and gave a clear verdict: **adopt Concept 4, "Stump Crown"** (three cricket stumps
+> forming a crown) — the only concept that reads as both "cricket" and "underworld/prestige" at any
+> size, including tiny app-icon scale. It shipped in a generic orange with no relation to this game's
+> real palette, so the audit mandated a recolor before use.
+>
+> **What changed — `prototype/icon.svg` rebuilt from source geometry** (`design-lab/bolt-round5-logo/
+> project/src/components/Logos.tsx`, `LogoRecommended` — the refined final form of `LogoStumpCrown`/
+> Concept 4), recolored to the game's real design-system tokens (`docs/visual-design-system.md` §2.1):
+> - **Stumps**: `--gold-bright` `#DAA520` → `--gold` (Antique Gold) `#B8862F` (was an orange-adjacent
+>   approximation `#E8B84A`/`#D4A017`/`#8B5A2B`).
+> - **Crown arch + base bar**: `--blood` (Blood Red) `#CC1100` → `--crimson` (Crimson Deep) `#8B0000` —
+>   the game's real corrupt/underworld half, replacing the generic `#FF6A00`→`#B5470D` orange that had
+>   no basis in the palette.
+> - **Stump caps + diamond accent**: solid `#FFD700` lemon-gold → solid `--gold-bright` `#DAA520` (the
+>   design system explicitly flags lemon-gold as an anti-pattern — "burnished, NOT lemon").
+> - Composition, proportions, and silhouette kept exactly as designed (pure color swap). Source
+>   geometry is `viewBox 0 0 200`; scaled uniformly to the icon's `512x512` viewBox via a single
+>   `<g transform="scale(2.56)">` so every coordinate scales by the identical factor. Kept the existing
+>   dark-void `bg` gradient (`#0B0F1E`→`#060810`) behind the mark for contrast on any home-screen
+>   background (the source mockup has no background since it renders on a dark page already).
+> - Design call made mid-task: the diamond accent below the crown uses solid gold-bright rather than
+>   the red crown-arch gradient (source `LogoRecommended` used the red gradient there) — the recolor
+>   spec explicitly grouped the diamond with the stump-cap gold accents, giving a "gold jewel drop
+>   below a blood-red crown" motif.
+> - Regenerated `prototype/icon-192.png` and `prototype/icon-512.png` via the existing
+>   `prototype/gen_icons.js` Playwright pipeline; confirmed both PNGs changed (byte size and content
+>   hash both differ from the pre-recolor versions).
+> - `manifest.json` and `index.html`'s `<link rel="icon">`/`<link rel="apple-touch-icon">` reference the
+>   files by filename only (no embedded data-URI/inline SVG) — verified, no changes needed there.
+> - No test coverage of icon file contents (`tests/smoke.spec.js` only checks `manifest.icons.length`
+>   and unrelated in-app hub tile icons) — confirmed via grep, zero test-selector risk.
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — ALL 5 WIDER-SCOPE PASSES now included
 > Final re-sync of this batch: Auction (`285cd4d`) and Pack (inventory-only, no code change) have now
 > landed alongside the earlier Hub/Squad/Match wider-scope passes. `_deploy-anon/index.html` refreshed
