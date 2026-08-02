@@ -59,6 +59,57 @@
 > `#timer-circle`, `#timer-sec`) confirmed intact by grep — none were renamed or removed, only a sibling
 > div and an icon were added around them. Needs Playwright/founder testing (not run — founder-gated).
 
+> ### 📦 WIDER SCOPE — Pack: inventory only, no code change (2026-08-02)
+> **Third of five wider-scope passes to land honest instead of padded** (Auction is the other one
+> running the same instruction, in parallel). The narrow lighting-flash/smoke/`epicSpot` pass on Pack
+> already shipped in `0480e43` and stays untouched. This pass re-inventoried `design-lab/bolt-round4/
+> project/public/mockups/pack.html` against the real `openPack()` flow (grepped, ~L10354) specifically
+> looking for composition/layout to port — and concluded there is nothing safe to add.
+>
+> **Why the mockup doesn't map onto this game's actual flow:**
+> - The mockup depicts a **pre-purchase staging screen**: idle sealed-pack box with a `pack-shake`
+>   4s-infinite CSS animation, tier label, "3 Cards · Boosted Odds", an odds line, a "Pack Contents"
+>   disclosure list (guaranteed rare / standard cards / **a "chemistry boost token" — confirmed
+>   invented, no such item exists in `ALL_PLAYERS`/`GS`/the draw logic, correctly excluded**), and a
+>   "OPEN PACK · Cost ₹40,000 · 3 cards" CTA that triggers the reveal.
+> - The real `openPack(type)` is called **after** purchase already happened on the Vault/Store screen
+>   (cost already deducted at L10360) — it immediately builds and shows the flip-card grid inside
+>   `#pack-overlay`. There is no "idle sealed pack" moment in the real flow to host that box.
+> - The odds/contents disclosure the mockup shows **already exists, live, in the correct place**:
+>   `#odds-overlay` / `renderOdds()` (~L11714), fed by the real `PACK_INFO` array (~L11701-11704:
+>   `{name, cost, cards, floorLbl}` per pack type, e.g. "Final card guaranteed Rare or better"),
+>   triggered from `#store-odds-link` on the Store screen — i.e. pre-purchase, where the decision
+>   actually happens. Duplicating it inside the pack-overlay would be wrong (post-purchase, decision
+>   already made) and redundant.
+> - The revealed cards already use the full rarity-tiered `renderPlayerCard()` for **every** card in
+>   the pack (not one headline pull like the mockup) — richer than the mockup, not a downgrade to fix.
+> - The pack-type header (`packLabel`, e.g. "Standard Pack") is **already** rendered via `.cu-ribbon`
+>   (angular chamfered banner, gold gradient, uppercase letter-spacing — `index.html` ~L2440-2443) plus
+>   a "Tap to reveal" subtitle immediately above the flip-grid. This already has more visual weight than
+>   the mockup's plain "Pack Contents" text header — nothing to port here.
+>
+> **The one candidate considered and rejected: a brief "sealed pack" anticipation beat before the
+> flip-grid appears (the brief's suggested ~800-1200ms delay, reusing `pack-shake`-style CSS).**
+> Rejected on concrete evidence, not a guess: `tests/smoke.spec.js:126-131` clicks `#pack-standard`,
+> waits exactly `500ms`, then asserts `.pack-flip-container` count > 0. Any anticipation delay long
+> enough to actually read as a beat (the brief's own 800-1200ms suggestion, or anything with real
+> margin above the test's 500ms checkpoint) would make that assertion fail — flip-grid elements don't
+> exist yet while a sealed-box placeholder is showing instead. Shortening the delay to survive the
+> test (e.g. <300ms) would defeat the point of an "anticipation" beat and wasn't worth the risk for a
+> cosmetic flourish. Editing the test to accommodate a cosmetic change was out of scope. Concluded
+> this doesn't have a clean home without either breaking a verified selector or being too short to
+> matter.
+>
+> **Verdict: no `prototype/index.html` change shipped for Pack.** Zero new `GS` fields (moot — no
+> code touched). `openPack()`'s draw/RNG/currency logic, `spawnPackSparks()`, the flip-stagger timing
+> loop, `#odds-overlay`/`renderOdds()`/`PACK_INFO`, and the narrow pass's `packSurge`/smoke/`epicSpot`/
+> `legendarySpot` effects are all untouched (never opened for edit). Thermal counts unchanged because
+> nothing changed: `infinite` grep count and `backdrop-filter` grep count both identical pre/post (not
+> re-measured as a diff since no lines were touched). Re-grepped every test selector this brief listed
+> (`pack-overlay`, `pack-flip-container`, `pack-flip-inner.flipped`, `pack-collect-btn`,
+> `pack-opening-content`, `odds-overlay`, `store-odds-link`) across `tests/*.spec.js` — all present,
+> all still map to markup that was never opened for edit, so none can have broken.
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — now carries the WIDER-SCOPE passes
 > Founder asked whether the wider-composition work is live on Netlify too — it was not; GitHub Pages
 > auto-deploys on every push, but `_deploy-anon/` only updates when manually re-synced + re-dropped.
