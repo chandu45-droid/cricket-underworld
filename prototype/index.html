@@ -3500,6 +3500,7 @@ var GS = {
   factions: null,
   lastLogin: null, loginStreak: 0, bestLoginStreak: 0, loginClaimedDate: null,
   saveCode: null,
+  reckoningResolved: false,
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
@@ -3870,6 +3871,7 @@ function hydrateGS(d) {
       GS.factions=v(d.factions,null);
       GS.lastLogin=v(d.lastLogin,null); GS.loginStreak=v(d.loginStreak,0); GS.bestLoginStreak=v(d.bestLoginStreak,0); GS.loginClaimedDate=v(d.loginClaimedDate,null);
       GS.saveCode=v(d.saveCode,null);
+      GS.reckoningResolved=v(d.reckoningResolved,false);
       GS.squad = [];
       d.squad.forEach(function(p) { if (p && p.id && p.name && p.role) GS.squad.push(p); });
   return true;
@@ -9253,18 +9255,26 @@ function uwActIIIPromoCard() {
 
 // Act IV climax ("The Reckoning"): challenger -> champions, the plot spine's final branch.
 // Reads GS.alignment (and, for the corrupt path, GS.rivalData['Rajan Mehra'].rel as the read
-// of "Mehra's own standing") at the one promotion event that closes the story. Pure copy
-// routing — no new state, per docs/underworld-plot-spine.md Section 6.
+// of "Mehra's own standing") at the one promotion event that closes the story.
+// 2026-08-02 addendum (docs/underworld-plot-spine.md, "The Climax becomes a real choice"):
+// this card now also carries real buttons (climax:true, branch, buttons[]) so the caller can
+// render a choice instead of prose-only — see uwClimaxBeatHtml()/bindUwClimax() below.
 function uwClimaxCard() {
   var a = GS.alignment;
-  var title, desc, accent;
+  var title, desc, accent, branch, buttons;
   if (a >= 40) {
     title = 'Burn the Ledger — Champions League';
     accent = 'var(--green-bright)';
+    branch = 1;
     desc = 'Champions League. The name finally means something — and so does yours. Ruby delivers the old line anyway, flat, like she already knows how this ends: "' + SYNDICATE_DON + ' still expects the book settled." But DSP Arjun Sherawat is on the other line, and for once neither of them is bluffing. He does not ask if you have evidence — he already knows you do, three seasons of it, sitting untouched. Hand it over and the club walks out from under the ledger for good, clean, on the record. It costs everything left with the Syndicate — whatever still stands with ' + SYNDICATE_DON + ' evaporates the moment the file moves. No slow fade, no goodbye call. Just silence where his number used to be.';
+    buttons = [
+      { id: 'reckon-clean-accept-btn', label: 'Hand Over the Evidence', primary: true, accentStyle: 'border-bottom:3px solid var(--green-bright)' },
+      { id: 'reckon-clean-decline-btn', label: 'Not Yet', primary: false }
+    ];
   } else if (a <= -40) {
     title = 'Take the Chair — Champions League';
     accent = 'var(--blood)';
+    branch = 2;
     var mehraRel = GS.rivalData && GS.rivalData['Rajan Mehra'] ? GS.rivalData['Rajan Mehra'].rel : 0;
     desc = 'Champions League, and the call finally comes from the top. ' + SYNDICATE_DON + ' sounds tired in a way he never has before — an old man doing the arithmetic on how many seasons he has left to run this. "The chair is yours, if you want it." Not a job offer. A succession. The club stops owing the Syndicate and becomes it — every debt on the books gets rewritten as an asset instead. It costs the name over the door: whatever goodwill was left with the clean owners, the purist press, the sponsors who never asked questions, spends itself the moment the announcement goes out.';
     if (mehraRel >= 20) {
@@ -9272,18 +9282,121 @@ function uwClimaxCard() {
     } else {
       desc += ' No one else in the room has the standing to argue. Rajan Mehra will grumble from the sidelines, same as always — but the chair, when it is offered, is offered to you alone.';
     }
+    buttons = [
+      { id: 'reckon-corrupt-accept-btn', label: 'Take the Chair', primary: true, accentStyle: 'border-bottom:3px solid var(--blood)' },
+      { id: 'reckon-corrupt-decline-btn', label: 'Walk Away', primary: false }
+    ];
   } else {
     title = 'Pick, Now — Champions League';
     accent = 'var(--gold-bright)';
+    branch = 3;
     desc = 'Champions League, and this time nobody waits for you to decide on your own schedule. Ruby\'s message and DSP Arjun Sherawat\'s arrive the same week, almost the same hour — the Syndicate\'s offer and the clean way out, laid side by side, like they finally compared notes. Neither one trusts a club that has spent three seasons sitting exactly in the middle. Nothing here is new — the ledger, the debts, the standing with ' + SYNDICATE_DON + ', the evidence sitting with Sherawat, all of it has been here the whole time. What is new is that the spectrum cannot hold the fence any longer. Every offer still on the table, every debt still unpaid, every case still open — one of them is about to matter more than the others. Only you decide which.';
+    buttons = [
+      { id: 'reckon-pick-clean-btn', label: 'Cut Ties — Go Clean', primary: true },
+      { id: 'reckon-pick-corrupt-btn', label: 'Go All In', primary: false }
+    ];
   }
-  return { title: title, desc: desc, accent: accent };
+  return { title: title, desc: desc, accent: accent, climax: true, branch: branch, buttons: buttons };
 }
 
 // Renders a promotion beat-card reusing the existing themed .glass/uw-event-card pattern —
 // additive, dismissible, never blocks the season-continue flow.
 function uwPromoBeatHtml(card) {
   return '<div class="glass" id="uw-promo-beat-card" style="padding:12px;margin-top:16px;text-align:left;border-left:3px solid ' + card.accent + '"><div class="font-d fw-600 text-sm" style="color:' + card.accent + '">' + card.title + '</div><div class="text-xs text-slip" style="margin-top:6px;line-height:1.5">' + card.desc + '</div><div class="btn btn-outline text-xs" style="padding:6px 14px;margin-top:10px" id="uw-promo-beat-dismiss-btn">Dismiss</div></div>';
+}
+
+// 2026-08-02 addendum ("The Climax becomes a real choice"): the Reckoning card (uwClimaxCard(),
+// card.climax === true) is NOT dismissible — it renders real per-branch buttons instead of the
+// single Dismiss button above, and blocks #season-continue-btn until bindUwClimax() resolves it.
+// Act II/III promo beats keep using uwPromoBeatHtml() above, untouched.
+function uwClimaxBeatHtml(card) {
+  var h = '<div class="glass" id="uw-promo-beat-card" style="padding:12px;margin-top:16px;text-align:left;border-left:3px solid ' + card.accent + '"><div class="font-d fw-600 text-sm" style="color:' + card.accent + '">' + card.title + '</div><div class="text-xs text-slip" style="margin-top:6px;line-height:1.5">' + card.desc + '</div><div class="flex gap-10" style="margin-top:10px">';
+  for (var i = 0; i < card.buttons.length; i++) {
+    var b = card.buttons[i];
+    h += '<div class="btn ' + (b.primary ? 'btn-gold' : 'btn-outline') + ' text-xs flex-1" style="padding:8px 12px' + (b.accentStyle ? ';' + b.accentStyle : '') + '" id="' + b.id + '">' + b.label + '</div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+// Wires the Reckoning card's per-branch buttons to real GS.factions/GS state per
+// docs/underworld-plot-spine.md addendum tables. Mirrors bindUnderworldEvent()'s pattern
+// (initFactions() -> f.syndicate, .onclick mutates GS, then swap the card's own innerHTML to
+// a resolution line so the choice can't be re-clicked) but operates on the season-complete
+// render's #uw-promo-beat-card, not the post-match #uw-event-card.
+function bindUwClimax(card) {
+  initFactions();
+  var f = GS.factions;
+  function resolveClimax(html) {
+    var c = $('uw-promo-beat-card');
+    if (c) c.innerHTML = html;
+    var cb = $('season-continue-btn');
+    if (cb) { cb.style.display = ''; cb.style.pointerEvents = ''; cb.style.opacity = ''; }
+  }
+  // Branch 1 — "Burn the Ledger" (GS.alignment >= 40)
+  var cleanAccept = $('reckon-clean-accept-btn'), cleanDecline = $('reckon-clean-decline-btn');
+  if (cleanAccept) cleanAccept.onclick = function() {
+    GS.blackMoney = 0;
+    GS.debts = [];
+    f.syndicate.rel = -100;
+    f.syndicate.betrayed = (f.syndicate.betrayed || 0) + 1;
+    applyAlignShift(20);
+    GS.heat = Math.max(0, GS.heat - 15);
+    GS.reckoningResolved = true;
+    updateCurrency(); save();
+    resolveClimax('<div class="text-xs" style="color:var(--green-bright)">Done. Sherawat\'s people move fast — three seasons of paper, filed and signed in an afternoon. ' + SYNDICATE_DON + ' doesn\'t call. He doesn\'t need to; you already know what his silence means now. The ledger\'s gone. So is he.</div>');
+  };
+  if (cleanDecline) cleanDecline.onclick = function() {
+    applyAlignShift(-8);
+    GS.reckoningResolved = true;
+    save();
+    resolveClimax('<div class="text-xs text-slip">You don\'t hand it over. Ruby doesn\'t sound surprised. "Smart. Keep it as insurance." Sherawat doesn\'t call again — some doors only open once.</div>');
+  };
+  // Branch 2 — "Take the Chair" (GS.alignment <= -40)
+  var corruptAccept = $('reckon-corrupt-accept-btn'), corruptDecline = $('reckon-corrupt-decline-btn');
+  if (corruptAccept) corruptAccept.onclick = function() {
+    var mehraRel = (GS.rivalData && GS.rivalData['Rajan Mehra']) ? GS.rivalData['Rajan Mehra'].rel : 0;
+    var contested = mehraRel >= 20;
+    f.syndicate.rel = 100;
+    f.syndicate.favorsDone = (f.syndicate.favorsDone || 0) + 1;
+    GS.blackMoney += 500;
+    GS.debts = [];
+    applyAlignShift(-20);
+    GS.fanLoyalty = Math.max(0, GS.fanLoyalty - 25);
+    if (contested) GS.heat = Math.min(100, GS.heat + 10);
+    GS.reckoningResolved = true;
+    updateCurrency(); save();
+    var copy = contested
+      ? 'Mehra doesn\'t go quietly — word of the fight gets around, and for a week your name is in every mouth in the league for the wrong reason. But the chair is yours.'
+      : 'No one else in the room has the standing to argue. The chair is yours, and the debts on the books get rewritten as assets overnight.';
+    resolveClimax('<div class="text-xs" style="color:var(--blood)">' + copy + '</div>');
+  };
+  if (corruptDecline) corruptDecline.onclick = function() {
+    applyAlignShift(6);
+    f.syndicate.rel = Math.max(-100, f.syndicate.rel - 10);
+    GS.reckoningResolved = true;
+    save();
+    resolveClimax('<div class="text-xs text-slip">You say no. ' + SYNDICATE_DON + ' doesn\'t raise his voice — he never does — but the offer, once refused, does not come back. Some doors only open once, from his side too.</div>');
+  };
+  // Branch 3 — "Pick, Now" (-40 < GS.alignment < 40)
+  var pickClean = $('reckon-pick-clean-btn'), pickCorrupt = $('reckon-pick-corrupt-btn');
+  if (pickClean) pickClean.onclick = function() {
+    var pay = Math.min(GS.coins, 400);
+    GS.coins -= pay;
+    GS.blackMoney = Math.max(0, GS.blackMoney - 15);
+    applyAlignShift(25);
+    GS.reckoningResolved = true;
+    updateCurrency(); save();
+    resolveClimax('<div class="text-xs" style="color:var(--gold-bright)">You pay down what you can and tell Ruby the rest waits. It isn\'t the clean break Sherawat offered the others — but it\'s a direction, finally, and everyone who\'s been watching notices which way you leaned.</div>');
+  };
+  if (pickCorrupt) pickCorrupt.onclick = function() {
+    GS.blackMoney += 200;
+    f.syndicate.rel = Math.min(100, f.syndicate.rel + 20);
+    applyAlignShift(-25);
+    GS.reckoningResolved = true;
+    updateCurrency(); save();
+    resolveClimax('<div class="text-xs" style="color:var(--gold-bright)">You take the last offer on the table. Ruby doesn\'t smile, exactly, but she doesn\'t have to talk you into the next one either. That part\'s done now.</div>');
+  };
 }
 
 function endSeason() {
@@ -9302,7 +9415,7 @@ function endSeason() {
   if (result === 'PROMOTED') {
     if (leagueOrder[idx] === 'gully' && GS.league === 'sma') promoBeat = uwActIIPromoCard();
     else if (leagueOrder[idx] === 'sma' && GS.league === 'challenger') promoBeat = uwActIIIPromoCard();
-    else if (leagueOrder[idx] === 'challenger' && GS.league === 'champions') promoBeat = uwClimaxCard();
+    else if (leagueOrder[idx] === 'challenger' && GS.league === 'champions' && !GS.reckoningResolved) promoBeat = uwClimaxCard();
   }
   GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0; GS.streakShield = false;
   GS.seasonPass = { xp: 0, premium: false, claimedFree: [], claimedPremium: [] };
@@ -9360,17 +9473,28 @@ function endSeason() {
     fanVoteHtml + academyHtml + mentorHtml + academyGradHtml +
     '<div class="reward-row"><span>Sponsor</span><span class="val">' + sp.name + '</span></div>' +
     '<div class="reward-row"><span>Auction Purse</span><span class="val positive">' + GS.auctionPurse + '</span></div></div>' +
-    (promoBeat ? uwPromoBeatHtml(promoBeat) : '') +
+    (promoBeat ? (promoBeat.climax ? uwClimaxBeatHtml(promoBeat) : uwPromoBeatHtml(promoBeat)) : '') +
     '<div class="btn btn-gold lg" id="season-continue-btn" style="margin-top:24px">Start Season ' + GS.season + '</div>';
   $('match-result').classList.add('show');
-  if (promoBeat) {
+  // 2026-08-02 addendum: the Reckoning climax card is the one promo beat that blocks
+  // "Start Season" until resolved — every other promo beat (and the no-promo-beat SURVIVED/
+  // RELEGATED path) leaves season-continue-btn exactly as responsive as before.
+  var climaxUnresolved = !!(promoBeat && promoBeat.climax && !GS.reckoningResolved);
+  if (promoBeat && promoBeat.climax) {
+    bindUwClimax(promoBeat);
+  } else if (promoBeat) {
     var promoBeatDismissBtn = $('uw-promo-beat-dismiss-btn');
     if (promoBeatDismissBtn) promoBeatDismissBtn.onclick = function() {
       var pbc = $('uw-promo-beat-card');
       if (pbc) pbc.style.display = 'none';
     };
   }
-  $('season-continue-btn').onclick = function() {
+  var continueBtn = $('season-continue-btn');
+  if (climaxUnresolved) {
+    continueBtn.style.pointerEvents = 'none';
+    continueBtn.style.opacity = '0.4';
+  }
+  continueBtn.onclick = function() {
     $('match-result').classList.remove('show');
     setTimeout(function() { goScreen('hub'); }, 300);
   };
