@@ -1,5 +1,17 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — ALL 5 WIDER-SCOPE PASSES now included
+> Final re-sync of this batch: Auction (`285cd4d`) and Pack (inventory-only, no code change) have now
+> landed alongside the earlier Hub/Squad/Match wider-scope passes. `_deploy-anon/index.html` refreshed
+> (798,772 → 802,172 bytes) — other staged assets confirmed byte-identical. Re-verified zero
+> personal-identity strings in the copy.
+> **All 5 screens in the wider-composition initiative are now complete and reflected here:** Hub
+> (`0622743`), Squad (`1bad30e`), Match (`4031f6a`), Pack (`d6aadb5`, no code change — honest finding),
+> Auction (`285cd4d`).
+> **NOT done (founder step, ~2 min):** re-drag `_deploy-anon/` onto Netlify Drop.
+> **Still owed across this whole initiative (10 passes total: 5 narrow + 5 wider):** none of it has been
+> seen in a real browser yet — testing stays founder-gated.
+
 > ### 🔨 WIDER SCOPE — Auction restyle pass shipped (2026-08-02, needs testing)
 > **Fourth wider-composition pass** (after Hub, alongside Squad/Match in parallel worktrees), applying
 > the founder's "update both" scope-widening decision to Auction — already got the narrow SOLD-stamp/
