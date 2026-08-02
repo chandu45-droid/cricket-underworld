@@ -33,30 +33,59 @@ chanduyeswanth45@gmail.com
 
 ---
 
-## Marketplace Listing Draft (Flippa / Acquire.com / IndieGameBusiness — asset-sale format)
+## Marketplace Listing — SideProjectors (asset-sale format, anonymous)
 
 Cold marketplace listings get judged on different criteria than a warm DM — buyers there want scope, proof-of-build, and a clear price anchor up front. Use this shape, not the pitch-deck framing above.
 
-**Title:** Cricket Underworld — complete HTML5/PWA cricket strategy game, 46 systems, 167 tests, zero real-money mechanics
+**Venue note (2026-08-02, researched):** SideProjectors is the primary target — free, no commission, no vetting, and the one verified comparable case (a $0-MRR app sold there by a first-time solo seller) matches this profile closely. Empire Flippers ($50k listing minimum) and Acquire.com ($10k+ MRR sweet spot) both explicitly don't fit a pre-revenue sub-$3k deal — dropped from the target list. Flippa is technically usable but its $29–499 listing fee can eat most of a sale this size; keep as a fallback only. **No Reddit venue fits this listing** — researched and confirmed twice (2026-07-21, 2026-08-02): no active subreddit is built for selling a finished pre-revenue project outright, and this account has zero standing anywhere on Reddit besides.
 
-**One-line pitch:** A fully playable IPL-style cricket manager game (auctions, squad strategy, auto-sim matches, a unique corruption/alignment layer) for India's 600M-fan cricket audience — built solo, AI-assisted, source + all assets included.
+**Identity note:** this listing is posted from a new, unlinked account — no personal name, email, or GitHub handle anywhere in it. Contact happens through the marketplace's own messaging only.
 
-**Asking price:** Listing at **$1,500–$2,500** (mid-point of the honest pre-revenue code-asset comp range for a project this size — see note below). Open to offers; will consider a lower floor for a fast, clean sale.
+**Title:** Cricket Underworld — strategy cricket card game (HTML5/PWA), full source + live demo
+
+**One-line pitch:** A cricket auction + squad-strategy game with a mafia/corruption twist, for the Indian mobile market — 46 systems built, 167 automated tests passing, live and playable now.
+
+**Asking price:** **$1,500–$2,500**, open to offers; will consider a lower floor for a fast, clean sale.
 > *Why this number, not higher:* this is a pre-revenue prototype — no installs, no users, no MRR. Comparable sale mechanisms (Empire Flippers, Flippa app multiples) require real cash flow to price above a few thousand dollars; a code-only asset at this stage prices as **build effort + design IP**, not as a revenue multiple. (Priced 2026-07-11 by an internal viability pass researching exactly this asset — reused here rather than re-estimated, so the number doesn't drift between documents.)
 
 **What's included in a sale:**
 - Full source (`prototype/index.html`, single-file vanilla JS/CSS, ~10k lines, well-commented)
 - 167 Playwright E2E tests (4 spec files) — green as of 2026-07-27
 - Live playable build + design docs (architecture, GDD, visual design system)
-- Demo reel (60s gameplay video) + this pitch page
 - Full IP transfer: no third-party licensed assets, no real player names/likenesses (uses fictional archetypes — Google Play/App Store safe out of the box)
-- 30 days of founder Q&A/handover support after sale (email)
+- 30 days of Q&A/handover support after sale (via the platform, or a fresh contact email set up once a real buyer is confirmed)
 
 **What's NOT included / honest caveats:**
 - Zero users, zero revenue, zero App/Play Store listing yet (web-only PWA, no store presence)
 - No mobile-store billing wired in yet (`BILLING_LIVE=false` flag — store UI exists, real payments were deliberately deferred)
 - Solo-built, not team-audited; buyer should budget their own QA pass before a public relaunch
 
-**Reason for selling:** Founder is reprioritizing across a solo portfolio of India-market projects and would rather hand this to someone who can dedicate real distribution/marketing effort to it than let it sit unshipped.
+**Reason for selling:** Reprioritizing across a solo portfolio of projects — would rather hand this to someone who can dedicate real distribution/marketing effort to it than let it sit unshipped.
 
-**Tech stack:** HTML5/vanilla JS/CSS, PWA (installable, offline-capable), Playwright test suite, GitHub Pages hosting (portable to any static host).
+**Tech stack:** HTML5/vanilla JS/CSS, PWA (installable, offline-capable), Playwright test suite.
+
+**Live demo:** https://cricket-underworld.netlify.app/
+
+---
+
+## Indie Hackers "Show IH" Post (secondary channel, no direct-sale mechanism — drives buyers to the SideProjectors listing)
+
+The one verified comparable sale we found (a $0-MRR app, sold via SideProjectors) got its buyer interest from an Indie Hackers post first. Same play here — Indie Hackers isn't a marketplace, it's a forum, so this post doesn't sell directly, it points anyone serious back to the real listing.
+
+**Title:** Show IH: Cricket Underworld — 46-system cricket strategy game, 0 users, for sale
+
+**Body:**
+> Built a full cricket strategy game over the last few months — IPL-style auctions, squad management, auto-sim matches, and a mafia/corruption "alignment" system that shapes the economy around your club. Strategy-first, not reflex — every screen is a decision.
+>
+> 46 game systems, 50 player cards, 167 automated E2E tests (Playwright), HTML5/PWA — single-file, no build step, installable offline. Zero real-money mechanics by design.
+>
+> It's fully playable, but I'm not the right person to take it to launch/scale — reprioritizing across a few other projects. Selling the whole thing (source + assets + docs) rather than let it sit unshipped.
+>
+> $0 revenue, $0 users beyond a couple of early testers — being upfront about that. Pricing it as build effort + design IP, not a revenue multiple.
+>
+> Live demo: https://cricket-underworld.netlify.app/
+> Listing: [SideProjectors link — add once posted]
+>
+> Happy to answer questions here.
+
+**Posting note:** Indie Hackers ties posts to whatever account posts them — if full anonymity matters as much there as on the marketplace listing, use a fresh account with no prior identifying post history, same as the SideProjectors approach.
