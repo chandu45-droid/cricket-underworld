@@ -1,5 +1,16 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — 5-bug design-audit fix batch included
+> Closes the gap opened by the 5-bug fix batch (`98b8232`/`92e63df`): Hub OVR-ring clip fix, ticker edge
+> fade, achievement-rail contrast fix (verified independently — WCAG ratios re-computed by hand, matched
+> the build's numbers almost exactly: light 4.19→5.35:1, dark 3.68→4.88:1, both now clear AA), toast
+> offset fix, and a new SVG field backdrop behind Match's (confirmed-dead-code) fielder dots.
+> - `index.html` refreshed (802,172 → 810,179 bytes). Icon assets already synced from the prior pass,
+>   untouched here.
+> - Re-verified zero personal-identity strings in the copy.
+> - **This completes the sync for today's full design-audit remediation** (Stump Crown icon + 5-bug fix).
+> - **NOT done (founder step, ~2 min):** re-drag `_deploy-anon/` onto Netlify Drop.
+
 > ### 🩹 UI-DESIGNER AUDIT FOLLOW-UP — 5 defects fixed (Hub ring/ticker/achieve-rail/toast, Match field backdrop) (2026-08-02)
 > A `ui-designer` audit of the Hub/Squad/Match cinematic + wider-composition passes (shipped earlier
 > today) found 5 real, small defects, verified against actual screenshots at 320/390/768px in both
