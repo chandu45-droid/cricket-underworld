@@ -83,6 +83,15 @@
 > suite (founder-gated). Scratch scripts deleted after use, not committed. **Needs founder device pass**
 > before considering closed.
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — new app icon (Stump Crown recolor)
+> Founder: "resync the anon demo too" — closes the gap opened by the Stump Crown icon recolor (`eacfe6a`).
+> - `index.html` was already identical (the 5-bug design-audit fix batch hadn't landed yet at sync time —
+>   another re-sync will be needed once that lands).
+> - Copied the 3 changed icon assets: `icon.svg`, `icon-192.png`, `icon-512.png`. Re-verified zero
+>   personal-identity strings in the new SVG.
+> - `manifest.json`/`sw.js`/`pitch.html` confirmed already byte-identical, untouched.
+> - **NOT done (founder step, ~2 min):** re-drag `_deploy-anon/` onto Netlify Drop.
+
 > ### 🎨 APP ICON RECOLORED — Stump Crown adopted, generic orange swapped for real palette (2026-08-02)
 > Founder generated a bolt.new AI logo-concept export exploring 6 app-icon directions
 > (`design-lab/bolt-round5-logo/`). A `ui-designer` audit independently reviewed all 6 (reading the
