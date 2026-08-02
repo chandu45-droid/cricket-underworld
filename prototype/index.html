@@ -3331,7 +3331,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
     <div class="custom-section cu-card" id="backup-section">
       <div class="custom-section-title">Cloud Save &amp; Backup</div>
-      <div class="text-xs text-slip mb-8">Your progress lives on this device. Back it up so a new phone or a cleared browser never wipes your empire.</div>
+      <div class="text-xs text-slip mb-8" id="backup-section-note">Your progress lives on this device. Back it up so a new phone or a cleared browser never wipes your empire.</div>
       <div id="cloud-save-block" style="display:none">
         <div class="backup-row"><span class="text-xs text-slip">Your Save Code</span><span class="save-code" id="save-code-val">—</span></div>
         <div class="flex gap-8" style="margin-top:8px">
@@ -3504,7 +3504,29 @@ var GS = {
 };
 var LEAGUE_NAMES = { gully:'Gully Cricket', sma:'SMA League', challenger:'IPL Challenger', champions:'Champions League' };
 
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(GS)); } catch(e){} }
+// --- Save-integrity guards (playtest bug: two testers lost all progress on
+// refresh). A failed load must never cascade into a save() call silently
+// overwriting the player's real data with fresh/default GS. See load()
+// below for how these flags get set; both reset to false on a fresh boot.
+var _saveBlocked = false;      // true = a save existed but failed to load this session; refuse to persist over it
+var _loadFailedFlag = false;   // true = surface a "your save couldn't be read" notice once loading finishes
+var _storageUnavailableFlag = false; // true = boot probe found localStorage blocked/unavailable (e.g. in-app browser)
+var _saveWarnShown = false;    // throttle: warn about a broken save() at most once per session
+
+function save() {
+  if (_saveBlocked) return; // a prior load failure preserved an existing save -- do not overwrite it until the player recovers or explicitly resets
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(GS));
+  } catch (e) {
+    // Storage full / blocked mid-session (e.g. QuotaExceededError). Previously
+    // this was swallowed with zero diagnostic -- player kept playing believing
+    // progress was saved. Surface it once, point at the existing backup flow.
+    if (!_saveWarnShown) {
+      _saveWarnShown = true;
+      try { if (typeof toast === 'function') toast("Progress can't be saved in this browser — use Settings → Cloud Save & Backup to keep a copy.", 'error'); } catch (e2) {}
+    }
+  }
+}
 
 // =============================================
 // ANALYTICS (F4) — anonymous, local-first, offline-safe.
@@ -3877,9 +3899,74 @@ function hydrateGS(d) {
   return true;
 }
 function load() {
+  var raw;
   try {
-    hydrateGS(JSON.parse(localStorage.getItem(SAVE_KEY)));
-  } catch(e) { localStorage.removeItem(SAVE_KEY); }
+    raw = localStorage.getItem(SAVE_KEY);
+  } catch (e) {
+    return; // storage read blocked -- surfaced separately by the boot probe (_probeStorage), not here
+  }
+  if (raw === null || raw === undefined) return; // genuine new player: no save key at all
+  var parsed;
+  try {
+    parsed = JSON.parse(raw);
+    if (hydrateGS(parsed)) return; // loaded ok
+  } catch (e) { /* fall through to failure handling below */ }
+  // A save string existed but was corrupt/truncated (JSON.parse threw) or
+  // failed hydrateGS's shape guard (missing coins / squad not an array).
+  // Previously this branch called localStorage.removeItem(SAVE_KEY), permanently
+  // destroying the player's only copy. Now: preserve the raw string under a
+  // backup key, leave the primary key untouched, and block save() from
+  // overwriting it with fresh/default GS until the player explicitly recovers
+  // (Backup Code / Cloud Restore) or resets.
+  _saveBlocked = true;
+  _loadFailedFlag = true;
+  try { localStorage.setItem(SAVE_KEY + '_corrupt', raw); } catch (e2) {}
+  _applyStorageNotice();
+}
+
+// Boot-time storage-availability probe: write+read+delete a throwaway key.
+// Catches the in-app-browser scenario (WhatsApp/Instagram/Facebook webviews
+// commonly partition or block localStorage) EARLY, before the player invests
+// an hour believing they're saving. Never throws; degrades to "unavailable".
+function _probeStorage() {
+  try {
+    var k = '__cu_storage_probe__';
+    localStorage.setItem(k, '1');
+    var ok = localStorage.getItem(k) === '1';
+    localStorage.removeItem(k);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Update the existing Cloud Save & Backup section's intro line in place --
+// no new markup, just swaps the text when storage looks unreliable so the
+// recovery path (already built, just undiscovered) is visible at the moment
+// it matters. Safe to call any time; no-op if the element isn't there yet.
+function _applyStorageNotice() {
+  try {
+    var note = $('backup-section-note');
+    if (!note) return;
+    if (_storageUnavailableFlag) {
+      note.textContent = "This browser is blocking saves (common in WhatsApp/Instagram in-app browsers) — your progress will NOT persist here. Open this page in Chrome or Safari instead, or copy a Backup Code below right now.";
+    } else if (_loadFailedFlag) {
+      note.textContent = 'Your last save could not be read on this device. Nothing was deleted — use "Restore This Save" below with a Backup Code, or Cloud Restore, to recover it.';
+    }
+  } catch (e) {}
+}
+
+// After the loading screen clears, surface any storage problem found this
+// boot. Delayed until here (not fired from load()/probe directly) so the
+// toast isn't swallowed behind the loading splash.
+function _showStorageDiagnostics() {
+  try {
+    if (_storageUnavailableFlag) {
+      toast("This browser is blocking save data — open in Chrome/Safari to keep progress, or back up via Settings → Cloud Save & Backup.", 'error');
+    } else if (_loadFailedFlag) {
+      toast("Your save couldn't be read but was preserved, not deleted. See Settings → Cloud Save & Backup to recover it.", 'error');
+    }
+  } catch (e) {}
 }
 
 // =============================================
@@ -3932,6 +4019,7 @@ function importSaveString(str) {
   var obj = parseSaveString(str);
   if (!obj) return false;
   if (!hydrateGS(obj)) return false;
+  _saveBlocked = false; // explicit recovery succeeded -- safe to persist again
   save();
   return true;
 }
@@ -10055,6 +10143,7 @@ function initLoading() {
         // keep the hidden splash in the DOM: #loading.hide must stay
         // observable after fast first paints (see .hide CSS note)
         if (!GS.tutorialDone) setTimeout(showTutorial, 600);
+        _showStorageDiagnostics();
       }, 500);
     }
   }, 80);
@@ -10905,6 +10994,7 @@ updateHubSponsorTile();
 // INIT
 // =============================================
 try {
+  _storageUnavailableFlag = !_probeStorage();
   load();
   analyticsSessionStart();
   captureAcquisition();
