@@ -3593,6 +3593,15 @@ function getAnalytics() { return _anLoad(); }
 // unsent events stay queued (sentIdx cursor) and retry next flush,
 // so offline PWA play is never affected.
 // =============================================
+// ── FOUNDER: turn remote analytics ON here ─────────────────────────────
+// 1. Deploy analytics/apps-script-sink.gs as a Google Apps Script web app
+//    (exact steps are in the comment block at the top of that file) and
+//    copy the /exec URL it gives you after "Deploy".
+// 2. Paste that URL as the string below (keep the quotes), e.g.:
+//      var ANALYTICS_ENDPOINT = 'https://script.google.com/macros/s/AKfycb.../exec';
+// 3. Save, commit, push to master — GitHub Pages redeploys and every
+//    player's device starts sending anonymous events to your Sheet.
+// Full setup walkthrough + how to read the numbers: analytics/README.md
 var ANALYTICS_ENDPOINT = ''; // e.g. 'https://script.google.com/macros/s/XXXX/exec'
 function _anEndpoint() {
   try { var o = localStorage.getItem('cu_analytics_endpoint'); if (o) return o; } catch(e) {}
@@ -6649,6 +6658,7 @@ function goScreen(name) {
   var _tutOv = $('tut-overlay');
   if (_tutOv && _tutOv.classList.contains('show')) closeTutorial();
   if (name === currentScreen) return;
+  trackEvent('screen_view', { screen: name });
   SFX.tap();
   var old = $(currentScreen + '-screen');
   var next = $(name + '-screen');
@@ -7036,6 +7046,7 @@ var auction = { active: false, pool: [], idx: 0, bid: 0, bidder: null, timer: 0,
 var TIMER_CIRCUMFERENCE = 2 * Math.PI * 42;
 
 function startAuction() {
+  trackEvent('auction_entered', { squadSize: GS.squad.length });
   var avail = ALL_PLAYERS.filter(function(p) { return !GS.squad.some(function(s) { return s.id === p.id; }); });
   if (avail.length === 0) { toast('No more players available', 'error'); return; }
   avail.sort(function(a, b) { return RARITIES.indexOf(b.rarity) - RARITIES.indexOf(a.rarity); });
@@ -7133,6 +7144,7 @@ function aiBid() {
   updateBidUI(); SFX.bid();
 }
 
+var _anFirstBidLogged = false; // session-local funnel marker; not persisted, resets on reload
 function placeBid() {
   if (!auction.active) return;
   var newB = auction.bid + auction.step;
@@ -7147,6 +7159,7 @@ function placeBid() {
   auction.bid = newB; auction.bidder = 'you';
   auction.timer = Math.min(auction.timer + 2, auction.maxTimer);
   addBidLog('You', newB);
+  if (!_anFirstBidLogged) { _anFirstBidLogged = true; trackEvent('auction_first_bid', { price: newB }); }
   updateBidUI(); SFX.bid();
 }
 
@@ -7204,6 +7217,7 @@ function resolveCard() {
 
 function endAuction() {
   auction.active = false; clearInterval(auction.interval);
+  trackEvent('auction_completed', { squadSize: GS.squad.length });
   hide('auction-active-area'); show('auction-empty-area');
   var sqN = GS.squad.length;
   var plural = sqN === 1 ? ' player' : ' players';
@@ -8015,6 +8029,7 @@ function confirmSquadSelect() {
   }
   GS.selectedXI = sel;
   save();
+  trackEvent('xi_confirmed', { xiSize: sel.length, hasCaptain: !!GS.captainId });
   $('squad-select-overlay').classList.remove('show');
   startPreMatch();
 }
@@ -8094,6 +8109,7 @@ function startPreMatch() {
 
 function startMatch() {
   SFX.tap();
+  trackEvent('match_started', { season: GS.season, matchNum: GS.matchNum });
   match.active = true; match.innings = 1;
   match.blitz = !!match.blitzNext;
   match.batting = Math.random() < 0.5 ? 'you' : 'opp';
@@ -9413,6 +9429,7 @@ function uwClimaxBeatHtml(card) {
 // a resolution line so the choice can't be re-clicked) but operates on the season-complete
 // render's #uw-promo-beat-card, not the post-match #uw-event-card.
 function bindUwClimax(card) {
+  trackEvent('reckoning_shown', null);
   initFactions();
   var f = GS.factions;
   function resolveClimax(html) {
@@ -9432,12 +9449,14 @@ function bindUwClimax(card) {
     GS.heat = Math.max(0, GS.heat - 15);
     GS.reckoningResolved = true;
     updateCurrency(); save();
+    trackEvent('reckoning_choice', { branch: 'clean_accept' });
     resolveClimax('<div class="text-xs" style="color:var(--green-bright)">Done. Sherawat\'s people move fast — three seasons of paper, filed and signed in an afternoon. ' + SYNDICATE_DON + ' doesn\'t call. He doesn\'t need to; you already know what his silence means now. The ledger\'s gone. So is he.</div>');
   };
   if (cleanDecline) cleanDecline.onclick = function() {
     applyAlignShift(-8);
     GS.reckoningResolved = true;
     save();
+    trackEvent('reckoning_choice', { branch: 'clean_decline' });
     resolveClimax('<div class="text-xs text-slip">You don\'t hand it over. Ruby doesn\'t sound surprised. "Smart. Keep it as insurance." Sherawat doesn\'t call again — some doors only open once.</div>');
   };
   // Branch 2 — "Take the Chair" (GS.alignment <= -40)
@@ -9454,6 +9473,7 @@ function bindUwClimax(card) {
     if (contested) GS.heat = Math.min(100, GS.heat + 10);
     GS.reckoningResolved = true;
     updateCurrency(); save();
+    trackEvent('reckoning_choice', { branch: 'corrupt_accept', contested: contested });
     var copy = contested
       ? 'Mehra doesn\'t go quietly — word of the fight gets around, and for a week your name is in every mouth in the league for the wrong reason. But the chair is yours.'
       : 'No one else in the room has the standing to argue. The chair is yours, and the debts on the books get rewritten as assets overnight.';
@@ -9464,6 +9484,7 @@ function bindUwClimax(card) {
     f.syndicate.rel = Math.max(-100, f.syndicate.rel - 10);
     GS.reckoningResolved = true;
     save();
+    trackEvent('reckoning_choice', { branch: 'corrupt_decline' });
     resolveClimax('<div class="text-xs text-slip">You say no. ' + SYNDICATE_DON + ' doesn\'t raise his voice — he never does — but the offer, once refused, does not come back. Some doors only open once, from his side too.</div>');
   };
   // Branch 3 — "Pick, Now" (-40 < GS.alignment < 40)
@@ -9475,6 +9496,7 @@ function bindUwClimax(card) {
     applyAlignShift(25);
     GS.reckoningResolved = true;
     updateCurrency(); save();
+    trackEvent('reckoning_choice', { branch: 'pick_clean' });
     resolveClimax('<div class="text-xs" style="color:var(--gold-bright)">You pay down what you can and tell Ruby the rest waits. It isn\'t the clean break Sherawat offered the others — but it\'s a direction, finally, and everyone who\'s been watching notices which way you leaned.</div>');
   };
   if (pickCorrupt) pickCorrupt.onclick = function() {
@@ -9483,6 +9505,7 @@ function bindUwClimax(card) {
     applyAlignShift(-25);
     GS.reckoningResolved = true;
     updateCurrency(); save();
+    trackEvent('reckoning_choice', { branch: 'pick_corrupt' });
     resolveClimax('<div class="text-xs" style="color:var(--gold-bright)">You take the last offer on the table. Ruby doesn\'t smile, exactly, but she doesn\'t have to talk you into the next one either. That part\'s done now.</div>');
   };
 }
@@ -9499,6 +9522,7 @@ function endSeason() {
   } else if (relegated) {
     GS.league = leagueOrder[idx - 1]; result = 'RELEGATED'; bonus = 50;
   } else { result = 'SURVIVED'; bonus = 100 * (idx + 1); }
+  trackEvent('season_ended', { result: result, league: GS.league, season: GS.season });
   var promoBeat = null;
   if (result === 'PROMOTED') {
     if (leagueOrder[idx] === 'gully' && GS.league === 'sma') promoBeat = uwActIIPromoCard();
@@ -9615,6 +9639,7 @@ function openPack(type) {
     GS.squad.push(JSON.parse(JSON.stringify(card)));
     avail = avail.filter(function(p) { return p.id !== card.id; });
   }
+  trackEvent('pack_opened', { type: type, count: cards.length });
   save();
   var packLabel = (type === 'premium' ? 'Premium' : type === 'ad' ? 'Sponsor' : 'Standard') + ' Pack';
   var html = '<div class="cu-card" style="text-align:center;padding:14px 18px 10px;margin:36px auto 6px;max-width:300px">' +
@@ -10075,6 +10100,7 @@ var tutStep = 0;
 function showTutorial() {
   if (GS.tutorialDone) return;
   tutStep = 0;
+  trackEvent('tutorial_started', null);
   $('tut-skip-btn').style.display = '';
   renderTutStep();
   $('tut-overlay').classList.add('show');
@@ -10095,6 +10121,7 @@ function renderTutStep() {
 
 function nextTutStep() {
   SFX.tap();
+  trackEvent('tutorial_step', { step: tutStep });
   tutStep++;
   if (tutStep >= TUT_STEPS.length) {
     closeTutorial();
@@ -10105,9 +10132,10 @@ function nextTutStep() {
 
 function closeTutorial() {
   var wasFirst = !GS.tutorialDone;
+  var tutCompleted = tutStep >= TUT_STEPS.length;
   GS.tutorialDone = true;
   save();
-  if (wasFirst) trackEvent('tutorial_done', null);
+  if (wasFirst) trackEvent(tutCompleted ? 'tutorial_done' : 'tutorial_skipped', { step: tutStep });
   $('tut-overlay').classList.remove('show');
 }
 
@@ -10788,6 +10816,7 @@ function renderStore() {
 }
 
 function showStore() {
+  trackEvent('store_opened', null);
   renderStore();
   $('store-overlay').classList.add('show');
 }

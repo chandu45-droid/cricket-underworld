@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cricket Underworld — Analytics</title>
+<style>
+  /* ============================================================
+     Palette — validated default instance (blue categorical slot 1,
+     status good/warning/critical, sequential blue ordinal ramp).
+     Founder-only internal tool; not part of the game's player-facing
+     angular/gold brand on purpose — this is a plain, legible ops page.
+     ============================================================ */
+  :root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --surface-2:      #212120;
+    --page:           #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;   /* categorical slot 1 / sequential base */
+    --seq-250:        #184f95;
+    --seq-350:        #1c5cab;
+    --seq-450:        #256abf;
+    --seq-550:        #2a78d6;
+    --seq-650:        #3987e5;
+    --good:           #0ca30c;
+    --warning:        #fab219;
+    --critical:       #e66767;
+    --neutral:        #898781;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --surface-1:      #fcfcfb;
+      --surface-2:      #f4f3ef;
+      --page:           #f9f9f7;
+      --text-primary:   #0b0b0b;
+      --text-secondary: #52514e;
+      --text-muted:     #898781;
+      --grid:           #e1e0d9;
+      --baseline:       #c3c2b7;
+      --border:         rgba(11,11,11,0.10);
+      --series-1:       #2a78d6;
+      --seq-250:        #9ec5f4;
+      --seq-350:        #5598e7;
+      --seq-450:        #2a78d6;
+      --seq-550:        #1c5cab;
+      --seq-650:        #104281;
+      --good:           #006300;
+      --warning:        #fab219;
+      --critical:       #d03b3b;
+      --neutral:        #898781;
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #f4f3ef;
+    --page:           #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;
+    --seq-250:        #9ec5f4;
+    --seq-350:        #5598e7;
+    --seq-450:        #2a78d6;
+    --seq-550:        #1c5cab;
+    --seq-650:        #104281;
+    --good:           #006300;
+    --warning:        #fab219;
+    --critical:       #d03b3b;
+    --neutral:        #898781;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--page); color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding: 20px 16px 60px; max-width: 980px; margin: 0 auto; }
+
+  .topbar {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 4px;
+  }
+  h1 {
+    font-size: 20px; font-weight: 700; letter-spacing: 0.2px; margin: 0;
+  }
+  h1 span { color: var(--text-muted); font-weight: 500; }
+  .theme-toggle {
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--text-secondary);
+    font-size: 12px; padding: 6px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .sub { color: var(--text-muted); font-size: 12.5px; margin: 2px 0 20px; line-height: 1.5; }
+  .sub b { color: var(--text-secondary); }
+
+  .setup {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 22px;
+  }
+  .setup label { display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .setup-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .setup input[type=text] {
+    flex: 1 1 320px; min-width: 0; background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text-primary); font-size: 13px; padding: 9px 10px; border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .setup button, .btn {
+    background: var(--series-1); color: #fff; border: none; font-size: 13px; font-weight: 600;
+    padding: 9px 16px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .setup button:disabled { opacity: 0.5; cursor: default; }
+  .status-line { font-size: 12px; margin-top: 8px; color: var(--text-muted); }
+  .status-line.err { color: var(--critical); }
+  .status-line.ok { color: var(--good); }
+
+  #app { display: none; }
+  #app.show { display: block; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 22px; }
+  .tile {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 14px 12px;
+  }
+  .tile .val { font-size: 26px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .tile .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .tile .sub2 { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+
+  .panel {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px 18px; margin-bottom: 16px;
+  }
+  .panel h2 { font-size: 13px; font-weight: 700; margin: 0 0 3px; letter-spacing: 0.2px; }
+  .panel .desc { font-size: 11.5px; color: var(--text-muted); margin: 0 0 14px; line-height: 1.5; }
+  .panel .empty { font-size: 12px; color: var(--text-muted); padding: 6px 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* bar list — single-hue magnitude bars, direct-labeled */
+  .bl-row { display: grid; grid-template-columns: 128px 1fr 46px; align-items: center; gap: 8px; margin: 7px 0; }
+  .bl-label { font-size: 12px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bl-track { background: var(--grid); border-radius: 3px; height: 10px; overflow: hidden; }
+  .bl-fill { height: 100%; border-radius: 3px; background: var(--series-1); }
+  .bl-fill.good { background: var(--good); }
+  .bl-fill.critical { background: var(--critical); }
+  .bl-fill.warning { background: var(--warning); }
+  .bl-fill.neutral { background: var(--neutral); }
+  .bl-val { font-size: 12px; color: var(--text-primary); text-align: right; font-variant-numeric: tabular-nums; }
+
+  .status-row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 4px; }
+  .status-chip { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .status-chip b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); font-weight: 600; padding: 0 8px 8px; border-bottom: 1px solid var(--grid); }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--grid); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  td.uid { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--text-primary); }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  .foot { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 28px; line-height: 1.6; }
+  .foot code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Cricket Underworld <span>— Analytics</span></h1>
+  <button class="theme-toggle" id="theme-toggle" type="button">Toggle theme</button>
+</div>
+<p class="sub">
+  Who opened the game and what they tried — aggregated from anonymous on-device events.
+  <b>This shows anonymous distinct devices, never real identities</b> (no names, no emails, no login system exists).
+</p>
+
+<div class="setup">
+  <label for="endpoint-input">Apps Script /exec URL (from <code>analytics/apps-script-sink.gs</code> deployment)</label>
+  <div class="setup-row">
+    <input type="text" id="endpoint-input" placeholder="https://script.google.com/macros/s/XXXXXXXX/exec" autocomplete="off" spellcheck="false">
+    <button id="load-btn" type="button">Load</button>
+    <button id="refresh-btn" type="button" style="display:none;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)">Refresh</button>
+  </div>
+  <div class="status-line" id="status-line">Paste the URL once — it's saved in this browser only (localStorage), never committed to the repo.</div>
+</div>
+
+<div id="app">
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Onboarding funnel</h2>
+      <p class="desc">Where new players drop off in the tutorial. Each stage = players who reached at least that point.</p>
+      <div id="funnel-chart"></div>
+    </div>
+    <div class="panel">
+      <h2>Screens visited</h2>
+      <p class="desc">What they actually tapped into, ranked by visits.</p>
+      <div id="screens-chart"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Auction funnel</h2>
+      <p class="desc">Entered the auction room → placed a first bid → auction finished.</p>
+      <div id="auction-chart"></div>
+      <div class="status-row" style="margin-top:12px">
+        <div class="status-chip"><span class="status-dot" style="background:var(--series-1)"></span>XI confirmed: <b id="xi-count">0</b></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Matches</h2>
+      <p class="desc">Started vs. completed, and the win/loss/tie split of completed matches.</p>
+      <div id="match-chart"></div>
+      <div class="status-row" id="match-status"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Seasons ended</h2>
+      <p class="desc">Promotion / relegation outcomes across completed seasons.</p>
+      <div class="status-row" id="season-status"></div>
+    </div>
+    <div class="panel">
+      <h2>Packs &amp; Vault</h2>
+      <p class="desc">Pack opens by type, and Vault (store) visits vs. buy-intent taps.</p>
+      <div id="packs-chart"></div>
+      <div class="status-row" style="margin-top:10px">
+        <div class="status-chip"><span class="status-dot" style="background:var(--series-1)"></span>Vault opened: <b id="store-opened">0</b></div>
+        <div class="status-chip"><span class="status-dot" style="background:var(--warning)"></span>Buy tapped (no billing live): <b id="store-intent">0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="reckoning-panel">
+    <h2>The Reckoning (narrative climax)</h2>
+    <p class="desc">Anyone who reached the climax card, and which branch they chose.</p>
+    <div class="status-row" style="margin-bottom:10px">
+      <div class="status-chip"><span class="status-dot" style="background:var(--series-1)"></span>Reached the climax: <b id="reckoning-shown">0</b></div>
+    </div>
+    <div id="reckoning-chart"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Anonymous devices</h2>
+    <p class="desc">One row per anonymous install id. This is the honest answer to "who logged in" — there is no login system, so device, not identity, is the unit. Most recently active first, capped at 200.</p>
+    <div class="table-wrap">
+      <table id="devices-table">
+        <thead><tr><th>Device ID</th><th>First seen</th><th>Last active</th><th>Sessions</th><th>Events</th></tr></thead>
+        <tbody id="devices-body"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="devices-empty" style="display:none">No device data yet.</div>
+  </div>
+
+</div>
+
+<p class="foot">
+  Data is anonymous and on-device-first: nothing is ever tied to a name, email, or IP.<br>
+  Setup / redeploy notes live in <code>analytics/README.md</code>.
+</p>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- theme toggle ----------
+  var root = document.documentElement;
+  try {
+    var savedTheme = localStorage.getItem('cu_dash_theme');
+    if (savedTheme) root.setAttribute('data-theme', savedTheme);
+  } catch (e) {}
+  document.getElementById('theme-toggle').addEventListener('click', function () {
+    var cur = root.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('cu_dash_theme', next); } catch (e) {}
+  });
+
+  // ---------- endpoint persistence ----------
+  var ENDPOINT_KEY = 'cu_dashboard_endpoint';
+  var input = document.getElementById('endpoint-input');
+  var loadBtn = document.getElementById('load-btn');
+  var refreshBtn = document.getElementById('refresh-btn');
+  var statusLine = document.getElementById('status-line');
+  var appEl = document.getElementById('app');
+
+  try {
+    var saved = localStorage.getItem(ENDPOINT_KEY);
+    if (saved) input.value = saved;
+  } catch (e) {}
+
+  loadBtn.addEventListener('click', function () { load(); });
+  refreshBtn.addEventListener('click', function () { load(true); });
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+
+  function setStatus(msg, cls) {
+    statusLine.textContent = msg;
+    statusLine.className = 'status-line' + (cls ? ' ' + cls : '');
+  }
+
+  function load(isRefresh) {
+    var url = input.value.trim();
+    if (!url) { setStatus('Paste the /exec URL first.', 'err'); return; }
+    try { localStorage.setItem(ENDPOINT_KEY, url); } catch (e) {}
+    loadBtn.disabled = true;
+    setStatus(isRefresh ? 'Refreshing…' : 'Loading…');
+    fetch(url, { method: 'GET' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        loadBtn.disabled = false;
+        if (data && data.error) { setStatus('Sheet returned an error: ' + data.error, 'err'); return; }
+        render(data || {});
+        appEl.classList.add('show');
+        refreshBtn.style.display = '';
+        setStatus('Loaded ' + (data.generated || '') + ' — click Refresh for the latest.', 'ok');
+      })
+      .catch(function (err) {
+        loadBtn.disabled = false;
+        setStatus('Could not reach that URL (' + err.message + '). Check it was deployed with "Anyone" access and ends in /exec.', 'err');
+      });
+  }
+
+  // ---------- render helpers ----------
+  function el(tag, cls, html) {
+    var e = document.createElement('div');
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // Renders an ordered or sorted {label: count} object as single-hue magnitude bars.
+  // order: optional array of [key, label] pairs to force a specific (funnel) order;
+  // otherwise sorted by count descending.
+  function renderBarList(container, obj, opts) {
+    opts = opts || {};
+    container.innerHTML = '';
+    var entries;
+    if (opts.order) {
+      entries = opts.order.map(function (pair) { return [pair[0], pair[1], obj[pair[0]] || 0]; });
+    } else {
+      entries = Object.keys(obj || {}).map(function (k) { return [k, opts.labelize ? opts.labelize(k) : k, obj[k]]; });
+      entries.sort(function (a, b) { return b[2] - a[2]; });
+    }
+    if (opts.limit) entries = entries.slice(0, opts.limit);
+    if (!entries.length || entries.every(function (e) { return !e[2]; })) {
+      container.appendChild(el('div', 'empty', 'No data yet.'));
+      return;
+    }
+    var max = Math.max.apply(null, entries.map(function (e) { return e[2]; }).concat([1]));
+    entries.forEach(function (e) {
+      var row = el('div', 'bl-row');
+      row.appendChild(el('div', 'bl-label', esc(e[1])));
+      var track = el('div', 'bl-track');
+      var fill = el('div', 'bl-fill' + (opts.fillClass ? ' ' + opts.fillClass(e[0]) : ''));
+      fill.style.width = Math.max(2, Math.round((e[2] / max) * 100)) + '%';
+      track.appendChild(fill);
+      row.appendChild(track);
+      row.appendChild(el('div', 'bl-val', String(e[2])));
+      container.appendChild(row);
+    });
+  }
+
+  function statusChips(container, items) {
+    // items: [{label, value, color}]
+    container.innerHTML = '';
+    items.forEach(function (it) {
+      var chip = el('div', 'status-chip');
+      var dot = el('span', 'status-dot');
+      dot.style.background = it.color;
+      chip.appendChild(dot);
+      chip.appendChild(document.createTextNode(it.label + ': '));
+      var b = document.createElement('b');
+      b.textContent = it.value;
+      chip.appendChild(b);
+      container.appendChild(chip);
+    });
+  }
+
+  function tile(val, lbl, sub2) {
+    var t = el('div', 'tile');
+    t.appendChild(el('div', 'val', esc(val)));
+    t.appendChild(el('div', 'lbl', esc(lbl)));
+    if (sub2) t.appendChild(el('div', 'sub2', esc(sub2)));
+    return t;
+  }
+
+  function render(data) {
+    // ---- headline tiles ----
+    var tiles = document.getElementById('tiles');
+    tiles.innerHTML = '';
+    tiles.appendChild(tile(data.installs != null ? data.installs : 0, 'Anonymous players'));
+    tiles.appendChild(tile(data.sessions != null ? data.sessions : 0, 'Sessions'));
+    tiles.appendChild(tile(data.d1 != null ? data.d1 : 'n/a', 'D1 retention', data.d1_cohort != null ? data.d1_cohort + ' eligible' : ''));
+    tiles.appendChild(tile(data.d7 != null ? data.d7 : 'n/a', 'D7 retention', data.d7_cohort != null ? data.d7_cohort + ' eligible' : ''));
+
+    // ---- onboarding funnel ----
+    var funnel = data.funnel || {};
+    var tutStep = funnel.tutorial_step || {};
+    var stepKeys = Object.keys(tutStep).map(Number).sort(function (a, b) { return a - b; });
+    var order = [['__started', 'Tutorial started']];
+    stepKeys.forEach(function (k) { order.push(['s' + k, 'Reached step ' + (k + 2)]); });
+    order.push(['__done', 'Completed']);
+    var funnelData = { __started: funnel.tutorial_started || 0, __done: funnel.tutorial_done || 0 };
+    stepKeys.forEach(function (k) { funnelData['s' + k] = tutStep[k]; });
+    renderBarList(document.getElementById('funnel-chart'), funnelData, {
+      order: order,
+      fillClass: function (key) { return key === '__done' ? 'good' : null; }
+    });
+    if (funnel.tutorial_skipped) {
+      var skipNote = el('div', 'empty', 'Skipped or dismissed early (any point): <b style="color:var(--critical)">' + funnel.tutorial_skipped + '</b>');
+      document.getElementById('funnel-chart').appendChild(skipNote);
+    }
+
+    // ---- screens ----
+    renderBarList(document.getElementById('screens-chart'), data.screens || {}, { limit: 10 });
+
+    // ---- auction funnel ----
+    var a = data.auctions || {};
+    renderBarList(document.getElementById('auction-chart'), {
+      entered: a.entered || 0, firstBid: a.firstBid || 0, completed: a.completed || 0
+    }, {
+      order: [['entered', 'Entered auction'], ['firstBid', 'Placed a bid'], ['completed', 'Auction completed']]
+    });
+    document.getElementById('xi-count').textContent = data.xi_confirmed || 0;
+
+    // ---- matches ----
+    var m = data.matches || {};
+    renderBarList(document.getElementById('match-chart'), {
+      started: m.started || 0, completed: m.completed || 0
+    }, { order: [['started', 'Matches started'], ['completed', 'Matches completed']] });
+    statusChips(document.getElementById('match-status'), [
+      { label: 'Wins', value: m.wins || 0, color: 'var(--good)' },
+      { label: 'Losses', value: m.losses || 0, color: 'var(--critical)' },
+      { label: 'Ties', value: m.ties || 0, color: 'var(--neutral)' }
+    ]);
+
+    // ---- seasons ----
+    var s = data.seasons || {};
+    statusChips(document.getElementById('season-status'), [
+      { label: 'Promoted', value: s.promoted || 0, color: 'var(--good)' },
+      { label: 'Survived', value: s.survived || 0, color: 'var(--neutral)' },
+      { label: 'Relegated', value: s.relegated || 0, color: 'var(--critical)' },
+      { label: 'Seasons ended (total)', value: s.ended || 0, color: 'var(--series-1)' }
+    ]);
+
+    // ---- packs ----
+    var p = data.packs || {};
+    renderBarList(document.getElementById('packs-chart'), p.byType || {}, {
+      labelize: function (k) { return k.charAt(0).toUpperCase() + k.slice(1) + ' pack'; }
+    });
+    var store = data.store || {};
+    document.getElementById('store-opened').textContent = store.opened || 0;
+    document.getElementById('store-intent').textContent = store.intent || 0;
+
+    // ---- reckoning ----
+    document.getElementById('reckoning-shown').textContent = (data.reckoning && data.reckoning.shown) || 0;
+    var branchLabels = {
+      clean_accept: 'Burned the ledger (clean)',
+      clean_decline: 'Kept it as insurance',
+      corrupt_accept: 'Took the chair (corrupt)',
+      corrupt_decline: 'Said no to the Don',
+      pick_clean: 'Picked clean, last minute',
+      pick_corrupt: 'Picked corrupt, last minute'
+    };
+    renderBarList(document.getElementById('reckoning-chart'), (data.reckoning && data.reckoning.choices) || {}, {
+      labelize: function (k) { return branchLabels[k] || k; },
+      fillClass: function (k) { return k.indexOf('clean') === 0 || k === 'pick_clean' ? 'good' : (k.indexOf('corrupt') >= 0 ? 'critical' : null); }
+    });
+
+    // ---- devices table ----
+    var devices = data.devices || [];
+    var tbody = document.getElementById('devices-body');
+    var emptyEl = document.getElementById('devices-empty');
+    tbody.innerHTML = '';
+    if (!devices.length) {
+      emptyEl.style.display = '';
+    } else {
+      emptyEl.style.display = 'none';
+      devices.forEach(function (d) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="uid">' + esc(d.uid) + '</td>' +
+          '<td>' + esc(d.installDay) + '</td>' +
+          '<td>' + esc(d.lastActive) + '</td>' +
+          '<td>' + esc(d.sessions) + '</td>' +
+          '<td>' + esc(d.totalEvents) + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  // auto-load if a URL was already saved
+  if (input.value) load();
+})();
+</script>
+</body>
+</html>
