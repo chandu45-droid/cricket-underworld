@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A1D26"/>
+      <stop offset="50%" stop-color="#12141A"/>
+      <stop offset="100%" stop-color="#050608"/>
+    </linearGradient>
+    <linearGradient id="stump" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F5D061"/>
+      <stop offset="30%" stop-color="#E8B84A"/>
+      <stop offset="60%" stop-color="#D4A017"/>
+      <stop offset="100%" stop-color="#8B5A2B"/>
+    </linearGradient>
+    <linearGradient id="bail" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7A1A"/>
+      <stop offset="50%" stop-color="#FF6A00"/>
+      <stop offset="100%" stop-color="#B5470D"/>
+    </linearGradient>
+    <linearGradient id="base" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#B5470D"/>
+      <stop offset="50%" stop-color="#FF6A00"/>
+      <stop offset="100%" stop-color="#B5470D"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(255,106,0,0.15)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+    <filter id="dropGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+
+  <!-- Radial ember glow -->
+  <circle cx="256" cy="256" r="200" fill="url(#glow)"/>
+
+  <!-- Subtle grain via noise filter overlay -->
+  <rect width="512" height="512" rx="112" ry="112" fill="rgba(255,106,0,0.02)"/>
+
+  <!-- Three stumps -->
+  <rect x="133" y="133" width="33" height="213" rx="4" fill="url(#stump)"/>
+  <rect x="239.5" y="97" width="33" height="249" rx="4" fill="url(#stump)"/>
+  <rect x="346" y="133" width="33" height="213" rx="4" fill="url(#stump)"/>
+
+  <!-- Stump caps - pointed gold -->
+  <path d="M 133 133 L 149.5 112 L 166 133 Z" fill="#FFD700"/>
+  <path d="M 239.5 97 L 256 76 L 272.5 97 Z" fill="#FFD700"/>
+  <path d="M 346 133 L 362.5 112 L 379 133 Z" fill="#FFD700"/>
+
+  <!-- Bails - crown arch connecting all three -->
+  <path
+    d="M 149.5 123 Q 202 90 256 87 Q 310 90 362.5 123 L 362.5 138 Q 310 105 256 102 Q 202 105 149.5 138 Z"
+    fill="url(#bail)"
+  />
+
+  <!-- Base bar -->
+  <rect x="97" y="346" width="318" height="23" rx="5" fill="url(#base)"/>
+
+  <!-- Diamond accent -->
+  <path d="M 256 390 L 282 422 L 256 454 L 230 422 Z" fill="url(#bail)"/>
+  <path d="M 256 400 L 274 422 L 256 444 L 238 422 Z" fill="#050608" opacity="0.4"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="rgba(255,106,0,0.06)" stroke-width="2"/>
+</svg>

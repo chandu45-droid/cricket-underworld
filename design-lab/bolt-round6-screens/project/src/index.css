@@ -1,0 +1,232 @@
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cu-black: #050608;
+  --cu-void: #0A0B0F;
+  --cu-charcoal: #12141A;
+  --cu-slate: #1A1D26;
+  --cu-orange: #FF6A00;
+  --cu-gold: #D4A017;
+  --cu-amber: #F59E0B;
+  --cu-copper: #B87333;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--cu-black);
+  color: #E8EAF0;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Cinematic grain texture */
+.cu-grain {
+  position: relative;
+}
+.cu-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Vignette overlay */
+.cu-vignette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(5,6,8,0.8) 100%);
+}
+
+/* Ember particle */
+.cu-ember {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FF6A00 0%, rgba(255,106,0,0) 70%);
+  pointer-events: none;
+}
+
+/* Light sweep across logo */
+.cu-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.cu-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,215,0,0.15) 50%, transparent 70%);
+  animation: sweep 4s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  0% { transform: translateX(-200%); }
+  50%, 100% { transform: translateX(300%); }
+}
+
+/* Gold gradient text */
+.cu-gold-text {
+  background: linear-gradient(180deg, #E8B84A 0%, #D4A017 40%, #B87333 70%, #8B5A2B 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 2px rgba(212,160,23,0.3));
+}
+
+/* Orange gradient text */
+.cu-ember-text {
+  background: linear-gradient(180deg, #FF7A1A 0%, #FF6A00 40%, #D4621A 70%, #B5470D 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 3px rgba(255,106,0,0.4));
+}
+
+/* Metal sheen border */
+.cu-metal-border {
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--cu-void), var(--cu-void)),
+    linear-gradient(135deg, rgba(212,160,23,0.4) 0%, rgba(184,115,51,0.2) 30%, rgba(255,106,0,0.3) 60%, rgba(212,160,23,0.4) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+/* Glow ring */
+.cu-glow-ring {
+  box-shadow:
+    0 0 20px rgba(255,106,0,0.15),
+    0 0 40px rgba(255,106,0,0.08),
+    inset 0 0 20px rgba(255,106,0,0.05);
+}
+
+/* Card surface */
+.cu-card {
+  background: linear-gradient(180deg, rgba(26,29,38,0.6) 0%, rgba(10,11,15,0.8) 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px);
+}
+
+.cu-card:hover {
+  border-color: rgba(255,106,0,0.25);
+}
+
+/* Smoke layer */
+.cu-smoke {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,106,0,0.06) 0%, transparent 60%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+/* Animated gradient border */
+.cu-anim-border {
+  position: relative;
+}
+.cu-anim-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,106,0,0.5), rgba(212,160,23,0.3), rgba(255,106,0,0.1), rgba(212,160,23,0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  background-size: 300% 300%;
+  animation: borderShift 6s ease infinite;
+}
+
+@keyframes borderShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Logo reveal animation */
+@keyframes logoReveal {
+  0% { opacity: 0; transform: scale(0.85) translateY(20px); filter: blur(10px); }
+  50% { opacity: 0.8; filter: blur(2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+.cu-logo-reveal {
+  animation: logoReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Hammer strike */
+@keyframes hammerStrike {
+  0%, 100% { transform: rotate(0deg); }
+  40% { transform: rotate(-25deg); }
+  55% { transform: rotate(8deg); }
+  65% { transform: rotate(-5deg); }
+  75% { transform: rotate(0deg); }
+}
+
+.cu-hammer-strike {
+  transform-origin: 30% 70%;
+  animation: hammerStrike 3s ease-in-out infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0A0B0F; }
+::-webkit-scrollbar-thumb { background: #1A1D26; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #FF6A00; }
+
+/* Section divider */
+.cu-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,106,0,0.3) 50%, transparent 100%);
+}
+
+/* Premium button */
+.cu-btn-primary {
+  background: linear-gradient(180deg, #FF7A1A 0%, #FF6A00 50%, #D4621A 100%);
+  color: #050608;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow:
+    0 4px 20px rgba(255,106,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+.cu-btn-primary:hover {
+  box-shadow:
+    0 6px 30px rgba(255,106,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    inset 0 -1px 0 rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+
+.cu-btn-ghost {
+  background: rgba(26,29,38,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #E8EAF0;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+.cu-btn-ghost:hover {
+  border-color: rgba(255,106,0,0.4);
+  background: rgba(255,106,0,0.05);
+}
