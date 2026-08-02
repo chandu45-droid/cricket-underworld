@@ -1,5 +1,63 @@
 # Progress — Cricket Underworld
 
+> ### 🚨 CRITICAL: SAVE-DATA LOSS FIXED + FOUNDER ANALYTICS WIRED (2026-08-02, `1553c95` + `6849120`, both LIVE)
+> Founder: *"i gave to one or two people - problem is when refreshed there progress is getting killed and had to start fresh"*
+> and *"me as a founder want to see who logged in and what they tried - how can i see?"*
+>
+> **1. Save-data destruction — root cause found in code, FIXED, live (`1553c95`).**
+> The old `load()` was: `try { hydrateGS(JSON.parse(localStorage.getItem(SAVE_KEY))); } catch(e){ localStorage.removeItem(SAVE_KEY); }`
+> — i.e. **any** load error PERMANENTLY DELETED the player's only save. Three confirmed defects:
+> - (a) the catch destroyed data outright (corrupt/truncated JSON → save gone, no backup, no warning);
+> - (b) `hydrateGS()` returning `false` (its line-3839 shape guard) was **silently ignored** — GS stayed at
+>   defaults, player saw a fresh game, and the next `save()` **overwrote their real save with the blank state**.
+>   Silent corruption, arguably worse than (a);
+> - (c) `save()` swallowed every error, so a QuotaExceeded / blocked-storage failure was invisible — player
+>   plays an hour believing it's saved, nothing persists.
+> **NOTE — a first hypothesis was WRONG and was discarded before any code changed:** I initially suspected
+> `d.squad.forEach` was an unguarded landmine, then read line 3839 and found `Array.isArray(d.squad)` already
+> guards it. Evidence-before-diagnosis held; no fix was shipped for the unproven cause.
+> **Fix:** `load()` never calls `removeItem` again (only the user-initiated Reset button does, L10324 — verified
+> by grep, exactly 1 remaining call site); a failed load preserves the raw string to `cu_save_v3_corrupt` and
+> sets `_saveBlocked`, which makes `save()` refuse to overwrite until the player explicitly recovers
+> (Backup Code / Cloud Restore clears it) or resets; `save()` now surfaces failure once/session via `toast()`;
+> a boot-time `_probeStorage()` write/read/delete test catches blocked storage EARLY and rewrites the existing
+> Settings → Cloud Save & Backup note in place. **No save-format or SAVE_KEY change** (existing saves stay valid).
+> **ROOT CAUSE OF THE TESTERS' LOSS REMAINS UNPROVEN** — the leading (untested) hypothesis is that the link was
+> shared over WhatsApp and in-app browser webviews partition/clear localStorage. The fix is deliberately
+> *diagnostic and non-destructive* rather than a bet on one cause.
+> **Known residual gap (flagged by the builder, NOT fixed):** storage that *works in-session* but is *evicted
+> between sessions* (iOS WebKit ITP-style eviction in some webviews) would pass the boot probe and produce NO
+> warning — player still loses data on their next visit. Not speculatively built for; needs real-device evidence.
+>
+> **2. Analytics instrumented + founder dashboard built, live (`6849120`) — but NOT yet collecting.**
+> Root finding: the analytics plumbing already existed and was good, it was just **switched off and under-instrumented**
+> — `ANALYTICS_ENDPOINT` was `''` (so nothing ever transmitted) and only 3 events existed
+> (`session_start`/`purchase_stub`/`odds_view`), which cannot answer "what did they try."
+> Added **13 event call sites**: `screen_view` (from `goScreen`, covers every nav tap), full tutorial funnel
+> (`tutorial_started`/`_step`/`_done` vs `_skipped`), auction funnel (`entered`/`first_bid`/`completed`),
+> `xi_confirmed`, `match_started`, `season_ended`, `pack_opened`, `store_opened`, and `reckoning_shown` +
+> `reckoning_choice` across all 6 climax branches. Extended `analytics/apps-script-sink.gs`'s `doGet()`
+> (backward-compatible) to aggregate funnels + up to 200 anonymous device rows, and added a self-contained
+> `analytics/dashboard.html` (no build step, no CDN, ₹0). `ANALYTICS_ENDPOINT` is deliberately **still `''`** in
+> committed code — purely additive, zero behavior change until the founder switches it on.
+> **BLOCKED ON FOUNDER (~5 min, cannot be done by an agent):** deploy the Apps Script, paste the `/exec` URL into
+> `ANALYTICS_ENDPOINT`, push. Exact numbered steps in `analytics/README.md`.
+> **Expectation set honestly:** "who logged in" can only ever mean **anonymous distinct devices** — there is no
+> login system, so no names/emails/IPs, by design and by law. Retroactive data is impossible; collection starts
+> only once the endpoint is switched on.
+>
+> **3. Underworld sequence beats — WIP, NOT merged, parked in a worktree.**
+> Section 7 of the plot spine ("The Alignment-Branched Telling") was specced but never built: the spine only
+> exists at 4 bookend moments (tutorial + 2 promo cards + climax), while the **recurring** events a player sees
+> dozens of times (hafta, election, rival offer, neta demand, case stages) are static generic copy. Verified
+> before briefing: hafta copy is one static string (L5686), `CASE_STAGES` is 4 bare labels (L4167), and
+> `Arvind Patil` appears exactly ONCE in the whole file (L4100, the data array — zero reactive flavour).
+> A builder got ~106 insertions in before dying mid-verification (API ENOTFOUND); work was **recovered from disk**
+> (ground-truth-is-git case law) and committed on branch `worktree-cu-wt-uw-sequences` (`174ce45`).
+> Orchestrator pre-checks passed (syntax clean; no protected climax/promo function touched; no consequence logic
+> deleted) but **the builder's own final review never completed — this has NOT had a real review pass and is
+> deliberately NOT on master.** Resume by reviewing that diff properly before merging.
+
 > ### ✅ RECKONING CLIMAX UPGRADED — real branched choice, not a Dismiss card (2026-08-02, commits `4ee6e8c`+`ceddc85`)
 > Founder: *"Upgrade the plot-spine climax"* — the shipped climax (below) was a deliberate thin build,
 > prose-only behind one Dismiss button; the three endings *described* costs nothing in code applied.
