@@ -1,5 +1,49 @@
 # Progress — Cricket Underworld
 
+> ### 🔔 HUB BADGE + REORDER (2026-08-02c) — replaces the original "Deals screen" wider-scope ask
+> The founder's original ask for this pass was a "Deals screen wider-scope pass" (same treatment as
+> Hub/Squad/Match/Pack/Auction/Post-Match this session). Investigation found the mockup's "Deals"
+> screen doesn't map to any real nav destination — real nav is Hub/Squad/Auction/Cards/League, and
+> everything the mockup shows (favors, debts, heat/tribunal risk, deal cards) already exists as Hub
+> sub-panels (`investigation-panel`, `debt-panel`, `hub-ledger`). A player-experience consult was run
+> and explicitly recommended AGAINST building a new "Deals" nav tab — a 6th tab would shrink every
+> tab's thumb-target, and the mockup's "Initiate a Deal" CTA is a fabricated mechanic that doesn't
+> exist in the real code. Founder approved the consult's narrower alternative instead: **badge +
+> reorder** on the existing Hub panels, nothing more.
+>
+> **1. Notification dot on the Hub nav icon.** Added `#hub-nav-dot` (`.nav-dot` CSS, static — no
+> animation, thermal-neutral) inside the Hub `.nav-item` (~L3728). Shown/hidden by a single check —
+> `GS.investigation || GS.debts.length > 0` — added directly alongside the existing
+> `show/hide('investigation-panel')` and `show/hide('debt-panel')` calls inside `updateHub()`
+> (~L7601-7610), so the dot can never drift out of sync with the panels it represents. Color is
+> `var(--blood)` (real design-system token, `docs/visual-design-system.md` — "Corrupt highlight,
+> warnings, heat", the general attention/alert color already used for debt-stage-2/bans/high-heat
+> elsewhere in this same screen), ring uses `rgba(var(--chrome-rgb),1)` to match the bottom-nav's
+> actual background gradient. `updateHub()` already runs unconditionally on app init (L12076,
+> before any nav click), so the dot is correct on first paint, not just after navigation.
+>
+> **2. Reordered two Hub panels.** `investigation-panel` and `debt-panel` moved (as complete,
+> unmodified blocks — pure cut/paste, no internal markup/JS touched) from AFTER the Store & Rewards
+> drawer + `mafia-banner` (buried 4-5 scroll-lengths down) to immediately after `#hub-ledger`, before
+> the Store & Rewards drawer. Relative order to each other unchanged (investigation before debt, as
+> before). `mafia-banner` and Store & Rewards now sit after these two panels instead of before.
+> `ban-panel`/`injury-panel`/Club Management drawer untouched, same position as before.
+>
+> **Explicitly out of scope (per founder's approval of the narrower ask):** no new "Deals" nav tab,
+> no "Initiate a Deal" mechanic, no `hub-ledger`+debt-list accordion merge (a further nice-to-have
+> the consult raised but founder did not approve), no changes to any other screen.
+>
+> **Verified** with a throwaway Playwright script (deleted after use, per protocol) against
+> `npx serve`, injecting `GS.debts`/`GS.investigation` state the same way `tests/comprehensive.spec.js`
+> does: dot hidden on first paint with no debts/investigation; dot+debt-panel appear together when
+> debts present, investigation-panel stays hidden; dot+investigation-panel appear together when
+> investigation active, debt-panel stays hidden; both together when both present; DOM order confirmed
+> `hub-ledger < investigation-panel < debt-panel < drawer-rewards/mafia-banner/ban-panel`. 14/14 checks
+> passed. Grepped `tests/*.spec.js` for `investigation-panel|debt-panel|hub-ledger|nav-item` first —
+> all existing test assertions are ID/attribute-based (`#investigation-panel`, `.nav-item[data-screen=...]`),
+> none pin DOM position, so nothing broke. Thermal gate unchanged: `infinite`=62, `backdrop-filter`=22,
+> `requestAnimationFrame`/`<canvas>`=8 (baseline == after — the dot is static, zero new animation loops).
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — Post-Match wider-scope pass included
 > `_deploy-anon/index.html` refreshed to pick up the Post-Match wider-scope pass (458f553):
 > Standout Performer card wired from real scorecard data, hero verdict card, real Contract-XP
