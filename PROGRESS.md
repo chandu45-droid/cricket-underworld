@@ -1,5 +1,25 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02, no game code changed)
+> Resumed session; founder chose "redeploy stale Netlify demo" from the open-threads list. `_deploy-anon/`
+> (the gitignored staging folder for `cricket-underworld.netlify.app`) was a manual snapshot from earlier
+> the same day (12:50) — stale against everything shipped since: auction SOLD-payoff/bid-punch (`0d03562`),
+> pack cinematic pass (`0480e43`), the critical save-loss fix (`1553c95`), analytics instrumentation
+> (`6849120`), and the full plot-spine/Reckoning-climax work.
+> - Diffed each staged asset against `prototype/`: only `index.html` had drifted (746,368 → 766,900 bytes);
+>   `manifest.json`/`sw.js`/`icon.svg`/`icon-192.png`/`icon-512.png` byte-identical, left untouched.
+> - Re-verified the anonymity invariant before copying: grep -i "chandu|yeswanth|@gmail|chandu45-droid"
+>   against `prototype/index.html` — zero matches, same as the original prep. Copied, re-verified the copy
+>   — still zero matches.
+> - Confirmed all asset refs in the copied file are relative (`icon.svg`, `icon-192.png`, `manifest.json`,
+>   Google Fonts) — safe for a Netlify Drop root deploy, same structure as the working live demo.
+> - **NOT done (founder step, ~2 min, cannot be done by an agent):** re-drag `_deploy-anon/` onto
+>   Netlify Drop to push the refresh live. Until then `cricket-underworld.netlify.app` still serves the
+>   12:50 snapshot — buyers evaluating it right now still see the pre-cinematic build.
+> - **Also still open from the same thread (not actioned this pass, founder chose Netlify sync only):**
+>   `pitch.html` footer still shows the real email (flagged twice, see the Aug 2 anon-sale-listing entry
+>   below); neither cinematic pass has been seen in a browser (founder-gated testing).
+
 > ### 🎬 CINEMATIC DIRECTION PASS — auction + pack shipped LIVE (2026-08-02, `0d03562` + `0480e43`)
 > Founder issued a product-vision update: Cricket Underworld is "a high-stakes underground cricket
 > universe," not a cricket app. Explicit hard rules: **no logic changes, no removed features, no
