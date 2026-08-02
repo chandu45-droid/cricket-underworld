@@ -8,7 +8,7 @@ wave's D1/D7 is separable in the analytics sheet.
 > ~3 min) and confirm a test event lands in the sheet. Distribution without the
 > sink running = burned audience with no signal.
 
-**Base URL:** `https://chandu45-droid.github.io/cricket-underworld/prototype/`
+**Base URL:** `https://cricket-underworld.netlify.app/`
 
 ---
 

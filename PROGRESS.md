@@ -1,5 +1,37 @@
 # Progress — Cricket Underworld
 
+> ### 📌 ANONYMOUS SALE LISTING PREP — demo link swapped to a de-identified host, all outward-facing docs updated (2026-08-02)
+> Founder is prepping to sell the project (asset flip, ~$1,200–1,500 asking) via SideProjectors and wants
+> zero personal identity exposed to prospective buyers. Two identity leaks existed: (1) the live demo URL
+> was `chandu45-droid.github.io/cricket-underworld` — a personal GitHub handle in the URL; (2) `pitch.html`'s
+> footer has the founder's real email (`chanduyeswanth45@gmail.com`) — **still unresolved, flagged below.**
+>
+> **Fixed:** copied just the playable game (`index.html`, `manifest.json`, `sw.js`, icons — verified by grep
+> to contain zero personal-name/email strings) into a gitignored `_deploy-anon/` staging folder, founder
+> deployed it via Netlify Drop under a neutral site name. Live, verified working end-to-end in a real
+> browser (Hub screen renders correctly, meters/tiles/nav all intact, zero console errors) at:
+> **`https://cricket-underworld.netlify.app/`**
+>
+> Swapped the old `chandu45-droid.github.io/cricket-underworld/...` link for the new anonymous one in every
+> **outward-facing / current-pointer** doc: `README.md`, `pitch.html` (both CTA buttons), `UI-AUDIT.md`,
+> `distribution/DISTRIBUTION-KIT.md`, `docs/bolt-redesign-brief.md`, `outreach.md` (the two playable-demo
+> links only).
+>
+> **Deliberately left unchanged (2 categories):**
+> - **This file's own historical log entries** (3 occurrences, e.g. line ~182/221/784 below) — those are
+>   dated narrative describing what was true *at the time* (e.g. "confirmed live at chandu45-droid.github.io
+>   ... HTTP 200, byte-identical to master HEAD"); rewriting them would falsify the record. Append-only
+>   logs don't get retroactively edited — new facts get a new entry, like this one.
+> - **`outreach.md`'s two `pitch.html` links** (WhatsApp + email templates) — `pitch.html` itself was never
+>   mirrored to the anonymous host, so pointing it at the netlify URL would 404. It still lives at the old
+>   identifying GitHub Pages URL.
+>
+> **Still open (founder decision needed, flagged twice now, not yet actioned):** `pitch.html`'s footer
+> (`mailto:chanduyeswanth45@gmail.com`) still shows the founder's real email. If `pitch.html` is ever sent
+> to a buyer or posted anywhere public, that leak is live. Options: strip/replace the email, or keep
+> `pitch.html` strictly for warm/known contacts (not the cold marketplace listing) and never post its link
+> publicly.
+
 > ### 🚨 CRITICAL: SAVE-DATA LOSS FIXED + FOUNDER ANALYTICS WIRED (2026-08-02, `1553c95` + `6849120`, both LIVE)
 > Founder: *"i gave to one or two people - problem is when refreshed there progress is getting killed and had to start fresh"*
 > and *"me as a founder want to see who logged in and what they tried - how can i see?"*

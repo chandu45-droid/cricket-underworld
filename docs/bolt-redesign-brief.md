@@ -73,7 +73,7 @@ Then Auction, then the others. Explain each key design decision in 1-2 lines.
 
 ## PART 2 — SCREENS TO SCREENSHOT (attach to bolt, in this priority order)
 
-Capture from the live demo: `https://chandu45-droid.github.io/cricket-underworld/prototype/index.html`
+Capture from the live demo: `https://cricket-underworld.netlify.app/`
 (or local `npx serve prototype -l 8080`). **All at 390x844 (primary), a few at 320x568.**
 Use a save with a populated squad + mid-season state so screens aren't empty.
 

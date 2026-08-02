@@ -3,7 +3,7 @@
 **Date:** 2026-06-18
 **Viewport:** 390×844 (iPhone 14 Pro equivalent, 2× DPR)
 **Source:** Single-file HTML5/PWA — `prototype/index.html` (~431 KB)
-**Live URL:** https://chandu45-droid.github.io/cricket-underworld/
+**Live URL:** https://cricket-underworld.netlify.app/
 
 ---
 

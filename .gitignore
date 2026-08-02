@@ -29,3 +29,6 @@ npm-debug.log*
 .claude/settings.local.json
 *.backup
 .claude/worktrees/
+
+# Anonymous deploy staging (SideProjectors listing mirror — never commit, no personal info by design)
+_deploy-anon/

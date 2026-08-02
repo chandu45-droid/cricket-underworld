@@ -2,7 +2,7 @@
 
 Cricket auction + card strategy game with a mafia/corruption alignment system.
 
-**Live demo:** https://chandu45-droid.github.io/cricket-underworld/
+**Live demo:** https://cricket-underworld.netlify.app/
 
 ---
 
