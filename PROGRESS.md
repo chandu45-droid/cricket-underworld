@@ -1,5 +1,74 @@
 # Progress — Cricket Underworld
 
+> ### 🏆 WIDER-SCOPE COMPOSITION PASS — Post-Match Result (2026-08-02, needs testing)
+> Sixth screen under the wider-scope label (Hub/Squad/Match/Pack/Auction shipped earlier). Re-inventoried
+> `design-lab/bolt-round4/project/public/mockups/postmatch.html` against the real `endMatch()` result
+> screen (`#match-result`, grepped ~L9652 pre-edit). Verdict going in: this screen is already MORE
+> data-dense than the mockup (corruption reports, tribunal verdicts, rival relationship events, debt
+> warnings, ban/injury events, streak milestones, daily challenge, social feed, next-opponent tease —
+> none of which the mockup has), so this pass found exactly 3 concrete, real-data-backed gaps rather than
+> porting the mockup's composition wholesale. Explicitly did NOT port the mockup's invented "Level/XP"
+> fake system — the real syndicate contract (season pass) system already covers that ground.
+>
+> **1. Wired up the dead `.potm` CSS into a real "Standout Performer" card.** `.potm`/`.potm-label`/
+> `.potm-name`/`.potm-stat` (index.html ~L1787-1790) were defined in CSS but never referenced by any
+> markup in the whole file — an orphaned "Player of the Match" card designed but never built. Added
+> `computeStandoutPerformer(sc, won, tied)` (new function, sits just above `endMatch()`): reads the REAL
+> per-player data already collected during the match at `match.scorecard.you/opp.batters/bowlers` (same
+> arrays `showScorecard()` renders in the scorecard table — no new state, no invented stats). For each
+> side it finds the best real batting return (highest runs) and best real bowling return (most wickets,
+> tie-broken by fewest runs conceded), scores each with a small fixed heuristic (batting: runs + fours +
+> sixes×2; bowling: wkts×28 − runs conceded), adds a +10 tie-break bonus to whichever side actually won
+> the match, then picks the single highest-scoring candidate — fully deterministic, no RNG. Verified live
+> via Playwright: a loss picked a top-scoring batter from the LOSING side (71 off 49, no bowler on either
+> side had a bowling case as strong) and a win correctly picked a 5-wicket bowling haul over any batting
+> return. Rendered using the EXISTING `.potm*` CSS classes verbatim — checked first and confirmed they
+> already use real design tokens (`--glass-bg`, `--gold`, `--gold-bright`, `--white`, `--slip`, `--font-d`)
+> since this CSS originated in this codebase, not the mockup, so no recoloring was needed.
+>
+> **2. Wrapped the bare Victory/Defeat verdict in a `.cu-card` hero panel with an icon.** Was previously
+> unbordered text directly on the overlay background. Now wrapped `result-text`/`result-scores`/
+> `result-margin` in `<div class="cu-card result-hero-card">` reusing the exact same `.cu-card`/`.cu-green`/
+> `.cu-red` language already used elsewhere on this same screen (tribunal verdict card, and the
+> `#fix-active-banner` warning card on the pre-match screen) — no new card style invented. Added a small
+> inline SVG icon above the verdict, matching this codebase's existing icon convention (14-20px inline
+> SVG, `stroke`/`fill` via CSS var tokens, no icon library): the same 5-point star path already used
+> elsewhere for achievement/training icons (`HUB_STAR_SVG`) for a win, the same warning-triangle path
+> already used on `#fix-active-banner` for a loss, and a plain neutral circle-with-line for a tie (no
+> precedent existed for tied, so this is the one new glyph — kept intentionally minimal). New CSS is
+> layout-only (`margin`/`padding`/icon `width`/`height`/`filter: drop-shadow`), no new colors, no
+> `border-radius` beyond the pre-existing `--clip-14` chamfer `.cu-card` already supplies. `result-scores`
+> element and its exact text-content shape are untouched — only its parent changed.
+>
+> **3. Added a real syndicate-contract progress bar under the "Contract XP" reward row.** That row was
+> previously a dead-end "+X" number with no visible progression, even though the Hub screen already shows
+> real season-pass tier progress via `updatePassPanel()`. Reused the EXACT same math
+> (`GS.seasonPass.xp − tier×PASS_TIER_XP`, `Math.round((intoTier/PASS_TIER_XP)×100)`) and the existing
+> generic `.pass-xp-bar`/`.pass-xp-fill` CSS classes (already unscoped/reusable, so zero new CSS needed)
+> to render a compact bar plus a "Tier N · X / 70 XP to Tier N+1" line. No new fake "Level" system — this
+> is the real syndicate contract tier, same data the Hub panel already reads.
+>
+> **Explicitly excluded, and why:** everything else the inventory listed as already-shipped (corruption
+> report, heat/investigation/tribunal banners, rival events/scandals, debt warnings, underworld notes, ban/
+> injury events, match-payout hero, the other 10 reward rows, post-match event cards, streak milestone,
+> daily challenge, match hook, next-opponent tease, social feed, scorecard/continue/play-again buttons) was
+> left untouched — this screen's data density already exceeds the mockup, so padding it further would be
+> manufactured scope, not a real gap.
+>
+> **Verified with a throwaway Playwright script against `npx serve` (deleted before finishing, per the
+> testing-is-founder-gated rule — real `npx playwright test` was NOT run):** drove real matches to a loss
+> (light theme) and a win (dark theme) via localStorage state injection + `#skip-btn`, screenshotted both,
+> confirmed the standout-performer card renders correct real numbers, the hero card renders `cu-red`/
+> `cu-green` correctly with the right icon, the contract-progress bar width matches the real XP math, and
+> `.result-scores` / `#match-continue-btn` / `#view-scorecard-btn` / `#match-play-again-btn` all still
+> exist and function. Confirmed by grep that `tests/*.spec.js`'s only pins on this screen
+> (`.match-result-overlay.show`, `.result-scores` text shape, the three button IDs) are all untouched.
+>
+> Thermal budget: `infinite` 62 → 62 (+0 — no new animation, icon is static, `.pass-xp-fill`'s width
+> transition was already pre-existing generic CSS), `backdrop-filter` 22 → 22 (+0), `requestAnimationFrame`/
+> `<canvas>` 8 → 8 (+0). Zero new animation loops added. Needs Playwright/founder testing (not run —
+> founder-gated); self-verified only via the throwaway script described above.
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — 5-bug design-audit fix batch included
 > Closes the gap opened by the 5-bug fix batch (`98b8232`/`92e63df`): Hub OVR-ring clip fix, ticker edge
 > fade, achievement-rail contrast fix (verified independently — WCAG ratios re-computed by hand, matched
