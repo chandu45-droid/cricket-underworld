@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-morality="clean" data-momentum="winning">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Cricket Blitz — Match</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --clip-cut: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 12px, 12px 0);
+  --hero-cta: linear-gradient(160deg,#ff6a00,#c2410c);
+  --atmosphere: rgba(59,130,246,.08);
+  --atmosphere-glow: rgba(59,130,246,.15);
+}
+[data-theme="dark"]{
+  --void:#020617; --base:#0f172a; --panel:#1e293b; --elevated:#334155;
+  --ink:#f8fafc; --ink-soft:#94a3b8; --ink-faint:#64748b;
+  --accent:#ff6a00; --accent-soft:#f97316; --accent-2:#fb923c;
+  --victory:#22c55e; --danger:#ef4444; --highlight:#facc15;
+  --line:#334155; --accent-line: rgba(255,106,0,.30);
+  --accent-glow: 0 0 0 1px rgba(255,106,0,.25), 0 6px 24px -8px rgba(255,106,0,.35);
+}
+[data-theme="light"]{
+  --void:#f1f5f9; --base:#e2e8f0; --panel:#cbd5e1; --elevated:#f1f5f9;
+  --ink:#0f172a; --ink-soft:#475569; --ink-faint:#94a3b8;
+  --accent:#ea580c; --accent-soft:#f97316; --accent-2:#fb923c;
+  --victory:#16a34a; --danger:#dc2626; --highlight:#ca8a04;
+  --line:#cbd5e1; --accent-line: rgba(234,88,12,.25);
+  --accent-glow: 0 0 0 1px rgba(234,88,12,.20), 0 6px 20px -10px rgba(234,88,12,.25);
+}
+[data-morality="corrupt"]{
+  --accent: var(--danger); --accent-soft:#f87171; --accent-2:#fca5a5;
+  --accent-glow: 0 0 0 1px rgba(239,68,68,.30), 0 6px 24px -8px rgba(239,68,68,.35);
+  --accent-line: rgba(239,68,68,.35);
+}
+/* Momentum atmosphere states */
+[data-momentum="winning"]{ --atmosphere: rgba(59,130,246,.10); --atmosphere-glow: rgba(59,130,246,.20); }
+[data-momentum="losing"]{ --atmosphere: rgba(239,68,68,.08); --atmosphere-glow: rgba(239,68,68,.15); }
+[data-momentum="close"]{ --atmosphere: rgba(255,106,0,.10); --atmosphere-glow: rgba(255,106,0,.20); }
+[data-momentum="clutch"]{ --atmosphere: rgba(239,68,68,.15); --atmosphere-glow: rgba(239,68,68,.25); }
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Rajdhani',sans-serif;color:var(--ink);background:var(--void);
+  width:390px;height:844px;margin:0 auto;position:relative;overflow:hidden;
+  font-feature-settings:"tnum" 1,"lnum" 1;letter-spacing:.2px;
+  display:flex;flex-direction:column;
+  transition:background .8s ease;
+}
+
+/* ═════════════ DYNAMIC ATMOSPHERE ═════════════ */
+.atmosphere{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;transition:opacity .8s ease;}
+.atm-glow{position:absolute;inset:0;background:radial-gradient(100% 60% at 50% 0%,var(--atmosphere-glow),transparent 60%);transition:background .8s ease;}
+.atm-vignette{position:absolute;inset:0;background:radial-gradient(130% 100% at 50% 40%,transparent 50%,rgba(2,6,23,.7) 100%);}
+
+/* Stadium light beams */
+.beam{position:absolute;top:-10%;width:3px;height:120%;background:linear-gradient(180deg,var(--atmosphere-glow),transparent);transform-origin:top center;animation:beam-sweep 8s ease-in-out infinite;}
+.beam:nth-child(1){left:15%;transform:rotate(8deg);animation-delay:0s;}
+.beam:nth-child(2){left:50%;transform:rotate(-5deg);animation-delay:-3s;background:linear-gradient(180deg,rgba(255,106,0,.06),transparent);}
+.beam:nth-child(3){left:80%;transform:rotate(10deg);animation-delay:-5s;}
+@keyframes beam-sweep{0%,100%{opacity:.4;}50%{opacity:.8;}}
+@media (prefers-reduced-motion:reduce){.beam{animation:none;opacity:.4;}}
+
+/* Particles */
+.particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
+.p{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,106,0,.5);opacity:0;animation:float-up 14s linear infinite;}
+.p:nth-child(1){left:8%;bottom:0;animation-delay:0s;}.p:nth-child(2){left:22%;bottom:0;animation-delay:3s;background:rgba(59,130,246,.4);}
+.p:nth-child(3){left:38%;bottom:0;animation-delay:6s;}.p:nth-child(4){left:55%;bottom:0;animation-delay:2s;background:rgba(250,204,21,.4);}
+.p:nth-child(5){left:68%;bottom:0;animation-delay:8s;}.p:nth-child(6){left:82%;bottom:0;animation-delay:5s;background:rgba(59,130,246,.4);}
+@keyframes float-up{0%{opacity:0;transform:translateY(0) scale(.5);}10%{opacity:.4;}90%{opacity:.15;}100%{opacity:0;transform:translateY(-844px) scale(1);}}
+@media (prefers-reduced-motion:reduce){.p{animation:none;opacity:0;}}
+
+/* ═════════════ BROADCAST HEADER ═════════════ */
+.bcast{position:relative;z-index:30;flex:0 0 auto;background:linear-gradient(180deg,rgba(15,23,42,.92) 0%,rgba(15,23,42,.5) 80%,transparent 100%);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);clip-path:var(--clip-cut);border-bottom:1px solid var(--accent-line);padding:8px 14px 9px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;}
+.bcast::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.back{width:32px;height:32px;display:grid;place-items:center;background:rgba(255,255,255,.06);border-radius:9px;border:1px solid var(--line);color:var(--ink);cursor:pointer;transition:transform .15s;}
+.back:active{transform:scale(.9);}
+.back svg{width:17px;height:17px;}
+.bcast-title{font-family:'Teko';font-weight:600;font-size:18px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);line-height:1;}
+.bcast-sub{font-size:10px;font-weight:500;color:var(--ink-soft);letter-spacing:.5px;text-transform:uppercase;margin-top:2px;display:flex;align-items:center;gap:5px;}
+.bcast-sub .live-dot{width:6px;height:6px;background:var(--danger);border-radius:50%;animation:pulse-live 1.2s infinite;box-shadow:0 0 6px var(--danger);}
+@keyframes pulse-live{0%,100%{opacity:1;}50%{opacity:.3;}}
+@media (prefers-reduced-motion:reduce){.bcast-sub .live-dot{animation:none;}}
+.cur{display:flex;align-items:center;gap:4px;padding:4px 8px;background:rgba(255,255,255,.06);border-radius:7px;border:1px solid var(--line);font-weight:600;font-size:13px;color:var(--ink);}
+.cur svg{width:12px;height:12px;}
+
+.scroll{flex:1 1 0;padding:10px 14px 76px;display:flex;flex-direction:column;gap:10px;position:relative;z-index:10;overflow:hidden;}
+
+/* ═════════════ BROADCAST SCOREBOARD ═════════════ */
+.scoreboard{position:relative;background:linear-gradient(160deg,var(--panel) 0%,var(--base) 100%);border-radius:16px;border:1px solid var(--accent-line);box-shadow:var(--accent-glow);overflow:hidden;flex:0 0 auto;}
+.scoreboard::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.scoreboard::after{content:"";position:absolute;inset:0;background:radial-gradient(80% 50% at 50% 0%,var(--atmosphere),transparent 70%);pointer-events:none;transition:background .8s ease;}
+.sb-top{padding:12px 14px 10px;position:relative;z-index:2;}
+.sb-tag{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sb-tag .l{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--accent);}
+.sb-tag .l .dot{width:7px;height:7px;background:var(--danger);border-radius:50%;animation:pulse-live 1.2s infinite;box-shadow:0 0 8px var(--danger);}
+@media (prefers-reduced-motion:reduce){.sb-tag .l .dot{animation:none;}}
+.sb-tag .r{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);background:rgba(255,255,255,.06);padding:3px 7px;border-radius:6px;}
+.sb-teams{display:grid;grid-template-columns:1fr auto;gap:10px 14px;align-items:center;}
+.sb-team{display:flex;align-items:center;gap:8px;}
+.sb-team .ab{font-family:'Teko';font-weight:700;font-size:22px;color:var(--ink);letter-spacing:.5px;}
+.sb-team .nm{font-size:10px;font-weight:600;color:var(--ink-soft);letter-spacing:.3px;}
+.sb-runs{font-family:'Teko';font-weight:700;font-size:30px;color:var(--ink);line-height:.9;text-align:right;font-variant-numeric:tabular-nums;}
+.sb-runs .wk{font-size:18px;color:var(--ink-soft);}
+.sb-runs .ov{font-size:12px;color:var(--ink-soft);display:block;font-weight:600;}
+.sb-team.bat .ab,.sb-team.bat .nm{color:var(--accent);}
+.sb-runs.bat{color:var(--accent);text-shadow:0 0 12px rgba(255,106,0,.2);}
+.sb-divider{height:1px;background:var(--line);margin:8px 0;position:relative;z-index:2;}
+.sb-req{position:relative;z-index:2;font-size:12px;font-weight:600;color:var(--ink-soft);text-align:center;}
+.sb-req b{color:var(--accent);font-weight:700;}
+
+/* Win probability */
+.winprob{padding:0 14px 12px;position:relative;z-index:2;}
+.wp-track{height:5px;background:var(--elevated);border-radius:5px;overflow:hidden;display:flex;}
+.wp-you{background:linear-gradient(90deg,var(--accent-soft),var(--accent));width:64%;box-shadow:0 0 8px rgba(255,106,0,.2);animation:wp-fill 1s cubic-bezier(.2,.7,.2,1) .3s both;transition:width .8s ease;}
+.wp-opp{background:linear-gradient(90deg,var(--ink-faint),var(--ink-soft));flex:1;opacity:.4;}
+@keyframes wp-fill{from{width:0;}}
+.wp-labels{display:flex;justify-content:space-between;font-size:9px;font-weight:600;color:var(--ink-soft);margin-top:4px;letter-spacing:.5px;}
+.wp-labels b{color:var(--accent);font-weight:700;}
+
+/* ═════════════ MOMENTUM & PRESSURE ═════════════ */
+.meters-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:0 0 auto;}
+.meter-card{background:linear-gradient(160deg,var(--panel) 0%,var(--base) 100%);border-radius:12px;border:1px solid var(--line);padding:10px 12px;position:relative;overflow:hidden;}
+.meter-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.meter-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.meter-head .t{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);}
+.meter-head .v{font-family:'Teko';font-weight:700;font-size:16px;color:var(--ink);line-height:1;}
+.meter-head .v.hot{color:var(--danger);}
+.meter-head .v.cool{color:var(--victory);}
+.meter-bar{height:6px;background:var(--elevated);border-radius:6px;overflow:hidden;}
+.meter-fill{height:100%;border-radius:6px;animation:mf 1s cubic-bezier(.2,.7,.2,1) .4s both;transition:width .8s ease;}
+.meter-fill.momentum{background:linear-gradient(90deg,var(--accent-soft),var(--accent));width:72%;box-shadow:0 0 6px rgba(255,106,0,.2);}
+.meter-fill.pressure{background:linear-gradient(90deg,var(--highlight),var(--danger));width:45%;box-shadow:0 0 6px rgba(239,68,68,.15);}
+@keyframes mf{from{width:0;}}
+.meter-sub{font-size:9px;font-weight:500;color:var(--ink-soft);margin-top:4px;}
+.meter-sub b{color:var(--ink);font-weight:600;}
+.pp-strip{display:flex;gap:4px;margin-top:7px;}
+.pp-pip{flex:1;height:4px;background:var(--elevated);border-radius:4px;}
+.pp-pip.done{background:var(--accent);box-shadow:0 0 4px var(--accent);}
+.pp-pip.active{background:var(--accent-soft);opacity:.6;animation:pulse-live 1.5s infinite;}
+@media (prefers-reduced-motion:reduce){.pp-pip.active{animation:none;}}
+.pp-label{font-size:8px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-top:4px;}
+.pp-label b{color:var(--accent);}
+
+/* ═════════════ COMMENTARY TICKER ═════════════ */
+.ticker{background:linear-gradient(90deg,var(--panel),var(--base),var(--panel));border-radius:10px;border:1px solid var(--line);padding:8px 12px;display:flex;align-items:center;gap:8px;overflow:hidden;flex:0 0 auto;position:relative;}
+.ticker::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.ticker .ic{flex:0 0 auto;width:24px;height:24px;display:grid;place-items:center;background:var(--elevated);border-radius:7px;color:var(--accent);}
+.ticker .ic svg{width:14px;height:14px;}
+.ticker .track{flex:1;overflow:hidden;white-space:nowrap;}
+.ticker .track .msg{display:inline-block;animation:ticker-scroll 20s linear infinite;font-size:12px;font-weight:500;color:var(--ink);}
+.ticker .track .msg b{color:var(--accent);font-weight:700;}
+@keyframes ticker-scroll{from{transform:translateX(100%);}to{transform:translateX(-100%);}}
+@media (prefers-reduced-motion:reduce){.ticker .track .msg{animation:none;}}
+
+/* ═════════════ STRATEGY ═════════════ */
+.strat{background:linear-gradient(160deg,var(--panel) 0%,var(--base) 100%);border-radius:12px;border:1px solid var(--line);padding:11px 13px;position:relative;overflow:hidden;flex:0 0 auto;}
+.strat::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.strat-head{display:flex;align-items:center;gap:7px;font-family:'Teko';font-weight:600;font-size:16px;letter-spacing:.4px;text-transform:uppercase;color:var(--ink);margin-bottom:9px;}
+.strat-head svg{width:16px;height:16px;color:var(--accent);filter:drop-shadow(0 0 4px var(--accent));}
+.strat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.strat-opt{padding:9px 10px;background:var(--elevated);border-radius:9px;border:1px solid var(--line);cursor:pointer;transition:transform .1s,border-color .2s,box-shadow .2s;}
+.strat-opt:active{transform:scale(.96);}
+.strat-opt .t{font-family:'Teko';font-weight:600;font-size:15px;color:var(--ink);letter-spacing:.3px;line-height:1;}
+.strat-opt .d{font-size:9px;font-weight:500;color:var(--ink-soft);margin-top:2px;}
+.strat-opt.active{border-color:var(--accent);background:linear-gradient(160deg,var(--elevated),var(--panel));box-shadow:0 0 12px rgba(255,106,0,.15);}
+.strat-opt.active .t{color:var(--accent);}
+
+/* ═════════════ OVER FEED ═════════════ */
+.feed{background:linear-gradient(160deg,var(--panel) 0%,var(--base) 100%);border-radius:12px;border:1px solid var(--line);padding:11px 13px;position:relative;overflow:hidden;flex:0 0 auto;}
+.feed::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.feed-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.feed-title{font-family:'Teko';font-weight:600;font-size:15px;letter-spacing:.4px;text-transform:uppercase;color:var(--ink);display:flex;align-items:center;gap:6px;}
+.feed-title svg{width:14px;height:14px;color:var(--accent);}
+.feed-over{font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.5px;background:rgba(255,106,0,.08);padding:3px 7px;border-radius:6px;}
+.ball-row{display:flex;gap:4px;margin-bottom:8px;}
+.ball{flex:1;min-height:28px;display:grid;place-items:center;border-radius:7px;font-family:'Teko';font-weight:700;font-size:14px;color:var(--ink);background:var(--elevated);transition:transform .15s;}
+.ball:active{transform:scale(.85);}
+.ball.b4{background:var(--accent);color:#fff;box-shadow:0 0 8px rgba(255,106,0,.2);}
+.ball.b6{background:var(--victory);color:#fff;box-shadow:0 0 8px rgba(34,197,94,.2);}
+.ball.wk{background:var(--danger);color:#fff;box-shadow:0 0 8px rgba(239,68,68,.2);}
+.ball.dot{color:var(--ink-faint);}
+.feed-line{display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--elevated);border-radius:7px;margin-bottom:4px;font-size:11px;}
+.feed-line .ov{font-family:'Teko';font-weight:700;color:var(--ink-soft);font-size:13px;min-width:26px;}
+.feed-line .txt{color:var(--ink);font-weight:500;flex:1;}
+.feed-line .txt b{color:var(--accent);font-weight:700;}
+.feed-line .r{margin-left:auto;font-family:'Teko';font-weight:700;color:var(--accent);font-size:15px;}
+.feed-line .r.six{color:var(--victory);}
+
+/* ═════════════ CTA ═════════════ */
+.cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;border:none;cursor:pointer;background:var(--hero-cta);color:#fff;border-radius:12px;font-family:'Teko';font-weight:700;font-size:22px;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 8px 24px -8px rgba(255,106,0,.5),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .08s;flex:0 0 auto;position:relative;overflow:hidden;}
+.cta:active{transform:translateY(1px) scale(.99);}
+.cta::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:cta-shine 3s ease-in-out infinite;}
+@keyframes cta-shine{0%,100%{transform:translateX(-100%);}50%{transform:translateX(100%);}}
+@media (prefers-reduced-motion:reduce){.cta::before{animation:none;opacity:0;}}
+.cta svg{width:20px;height:20px;position:relative;z-index:2;}
+.cta>span{position:relative;z-index:2;}
+.cta-sub{font-size:10px;font-weight:600;letter-spacing:1px;opacity:.85;font-family:'Rajdhani';text-transform:uppercase;margin-top:1px;}
+
+/* ═════════════ CLUTCH MODE OVERLAY ═════════════ */
+[data-momentum="clutch"] .atm-glow{background:radial-gradient(100% 60% at 50% 0%,rgba(239,68,68,.25),transparent 60%);animation:clutch-pulse 1.5s ease-in-out infinite;}
+@keyframes clutch-pulse{0%,100%{opacity:.7;}50%{opacity:1;}}
+@media (prefers-reduced-motion:reduce){[data-momentum="clutch"] .atm-glow{animation:none;}}
+
+.nav{position:absolute;bottom:0;left:0;right:0;z-index:40;background:linear-gradient(180deg,rgba(15,23,42,.85) 0%,rgba(15,23,42,.97) 50%);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--accent-line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px 8px;}
+.nav::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--accent-line) 50%,transparent 90%);}
+.nav button{background:none;border:none;cursor:pointer;color:var(--ink-soft);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'Rajdhani';font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;min-height:40px;justify-content:center;transition:transform .15s;position:relative;}
+.nav button:active{transform:scale(.85);}
+.nav button svg{width:20px;height:20px;transition:transform .2s;}
+.nav button.active{color:var(--accent);}
+.nav button.active svg{filter:drop-shadow(0 0 6px var(--accent));transform:translateY(-2px);}
+.nav button.active::after{content:"";position:absolute;bottom:0;width:22px;height:2px;background:var(--accent);border-radius:2px 2px 0 0;box-shadow:0 0 8px var(--accent);animation:nav-slide .3s ease;}
+@keyframes nav-slide{from{width:0;}to{width:22px;}}
+@media (prefers-reduced-motion:reduce){.nav button.active svg{transform:none;}.nav button.active::after{animation:none;}}
+
+.tog{position:absolute;top:6px;right:6px;z-index:60;display:flex;gap:5px;}
+.tog button{font-family:'Rajdhani';font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border:1px solid var(--line);background:rgba(15,23,42,.8);color:var(--ink);padding:5px 8px;border-radius:7px;cursor:pointer;min-height:26px;backdrop-filter:blur(8px);}
+.tog button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.scroll>*{opacity:0;transform:translateY(12px) scale(.98);animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards;}
+.scroll>*:nth-child(1){animation-delay:.1s;}.scroll>*:nth-child(2){animation-delay:.18s;}.scroll>*:nth-child(3){animation-delay:.26s;}.scroll>*:nth-child(4){animation-delay:.34s;}.scroll>*:nth-child(5){animation-delay:.42s;}.scroll>*:nth-child(6){animation-delay:.50s;}
+@keyframes rise{to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.scroll>*{opacity:1;transform:none;animation:none;}}
+
+/* ═════════════ MATCH MOMENT OVERLAYS ═════════════ */
+.moment-overlay{position:absolute;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:0;transform:scale(.8);transition:opacity .15s,transform .15s;}
+.moment-overlay.active{opacity:1;transform:scale(1);pointer-events:auto;animation:moment-slam .6s cubic-bezier(.2,.8,.2,1);}
+@keyframes moment-slam{0%{opacity:0;transform:scale(2);}30%{opacity:1;transform:scale(.9);}50%{transform:scale(1.05);}100%{transform:scale(1);}}
+@media (prefers-reduced-motion:reduce){.moment-overlay.active{animation:none;}}
+
+.moment-overlay .mo-bg{position:absolute;inset:0;}
+.moment-overlay.six .mo-bg{background:radial-gradient(60% 60% at 50% 50%,rgba(34,197,94,.25),rgba(34,197,94,.05) 60%,transparent 80%);}
+.moment-overlay.four .mo-bg{background:radial-gradient(60% 60% at 50% 50%,rgba(255,106,0,.25),rgba(255,106,0,.05) 60%,transparent 80%);}
+.moment-overlay.wicket .mo-bg{background:radial-gradient(60% 60% at 50% 50%,rgba(239,68,68,.3),rgba(239,68,68,.05) 60%,transparent 80%);}
+
+.mo-burst{position:absolute;width:300px;height:300px;border-radius:50%;border:3px solid;opacity:0;}
+.moment-overlay.active .mo-burst{animation:burst-ring .8s ease-out forwards;}
+.moment-overlay.six .mo-burst{border-color:rgba(34,197,94,.4);}
+.moment-overlay.four .mo-burst{border-color:rgba(255,106,0,.4);}
+.moment-overlay.wicket .mo-burst{border-color:rgba(239,68,68,.5);}
+@keyframes burst-ring{0%{opacity:1;transform:scale(.3);}100%{opacity:0;transform:scale(1.8);}}
+.mo-burst:nth-child(2){animation-delay:.15s !important;width:220px;height:220px;}
+@media (prefers-reduced-motion:reduce){.moment-overlay.active .mo-burst{animation:none;}}
+
+.mo-text{position:relative;z-index:2;font-family:'Teko';font-weight:700;letter-spacing:4px;text-transform:uppercase;text-align:center;}
+.moment-overlay.six .mo-text{font-size:96px;color:#22c55e;text-shadow:0 0 40px rgba(34,197,94,.6),0 0 80px rgba(34,197,94,.3),0 4px 0 #166534;}
+.moment-overlay.four .mo-text{font-size:88px;color:#ff6a00;text-shadow:0 0 40px rgba(255,106,0,.6),0 0 80px rgba(255,106,0,.3),0 4px 0 #9a3412;}
+.moment-overlay.wicket .mo-text{font-size:72px;color:#ef4444;text-shadow:0 0 40px rgba(239,68,68,.6),0 0 80px rgba(239,68,68,.3),0 4px 0 #991b1b;}
+
+.mo-sub{font-family:'Rajdhani';font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-top:-6px;position:relative;z-index:2;}
+.moment-overlay.six .mo-sub{color:rgba(34,197,94,.9);}
+.moment-overlay.four .mo-sub{color:rgba(255,106,0,.9);}
+.moment-overlay.wicket .mo-sub{color:rgba(239,68,68,.9);}
+
+.mo-distance{font-family:'Teko';font-size:28px;font-weight:600;color:var(--ink);margin-top:8px;position:relative;z-index:2;opacity:.8;}
+
+/* Edge flash effect */
+.edge-flash{position:absolute;inset:0;z-index:190;pointer-events:none;opacity:0;transition:opacity .1s;}
+.edge-flash.active{opacity:1;animation:flash-out .5s ease-out forwards;}
+.edge-flash.six{box-shadow:inset 0 0 80px rgba(34,197,94,.4),inset 0 0 160px rgba(34,197,94,.1);}
+.edge-flash.four{box-shadow:inset 0 0 80px rgba(255,106,0,.4),inset 0 0 160px rgba(255,106,0,.1);}
+.edge-flash.wicket{box-shadow:inset 0 0 80px rgba(239,68,68,.5),inset 0 0 160px rgba(239,68,68,.15);}
+@keyframes flash-out{0%{opacity:1;}100%{opacity:0;}}
+@media (prefers-reduced-motion:reduce){.edge-flash.active{animation:none;opacity:0;}}
+
+/* Screen shake */
+@keyframes screen-shake{0%,100%{transform:translate(0);}10%{transform:translate(-3px,-2px);}20%{transform:translate(4px,1px);}30%{transform:translate(-2px,3px);}40%{transform:translate(3px,-1px);}50%{transform:translate(-1px,2px);}60%{transform:translate(2px,-2px);}70%{transform:translate(-3px,1px);}80%{transform:translate(1px,-1px);}90%{transform:translate(-1px,2px);}}
+body.shaking{animation:screen-shake .4s ease-in-out;}
+@media (prefers-reduced-motion:reduce){body.shaking{animation:none;}}
+
+/* Crowd eruption (crowd surges up, flags wave fast) */
+body.erupting .crowd-row .head{animation-duration:.3s !important;transform:translateY(-6px);}
+body.erupting .flag{animation-duration:.3s !important;}
+
+/* Momentum shift banner */
+.shift-banner{position:absolute;top:50%;left:50%;z-index:180;transform:translate(-50%,-50%);pointer-events:none;opacity:0;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.shift-banner.active{opacity:1;animation:shift-in .8s cubic-bezier(.2,.8,.2,1) forwards;}
+@keyframes shift-in{0%{opacity:0;transform:translate(-50%,-50%) scaleX(0);}20%{opacity:1;transform:translate(-50%,-50%) scaleX(1.1);}40%{transform:translate(-50%,-50%) scaleX(1);}100%{opacity:0;transform:translate(-50%,-50%) scaleX(1);}}
+@media (prefers-reduced-motion:reduce){.shift-banner.active{animation:none;}}
+.shift-banner .line{width:200px;height:2px;background:linear-gradient(90deg,transparent,var(--atmosphere-glow),var(--accent),var(--atmosphere-glow),transparent);}
+.shift-banner .txt{font-family:'Teko';font-weight:700;font-size:18px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);text-shadow:0 0 12px var(--atmosphere-glow);}
+
+/* Confetti for SIX */
+.confetti-container{position:absolute;inset:0;z-index:195;pointer-events:none;overflow:hidden;}
+.confetti-piece{position:absolute;width:8px;height:8px;top:-10px;opacity:0;}
+.confetti-container.active .confetti-piece{animation:confetti-fall 2s ease-out forwards;}
+@keyframes confetti-fall{0%{opacity:1;transform:translateY(0) rotate(0deg);}100%{opacity:0;transform:translateY(844px) rotate(720deg);}}
+.confetti-piece:nth-child(1){left:8%;background:#22c55e;animation-delay:0s;width:6px;height:10px;}
+.confetti-piece:nth-child(2){left:18%;background:#facc15;animation-delay:.05s;border-radius:50%;}
+.confetti-piece:nth-child(3){left:30%;background:#3b82f6;animation-delay:.1s;width:10px;height:5px;}
+.confetti-piece:nth-child(4){left:42%;background:#ff6a00;animation-delay:.08s;}
+.confetti-piece:nth-child(5){left:55%;background:#22c55e;animation-delay:.12s;width:5px;height:12px;}
+.confetti-piece:nth-child(6){left:65%;background:#facc15;animation-delay:.06s;border-radius:50%;}
+.confetti-piece:nth-child(7){left:75%;background:#3b82f6;animation-delay:.14s;}
+.confetti-piece:nth-child(8){left:85%;background:#ef4444;animation-delay:.09s;width:7px;height:7px;border-radius:50%;}
+.confetti-piece:nth-child(9){left:92%;background:#22c55e;animation-delay:.11s;width:5px;height:10px;}
+.confetti-piece:nth-child(10){left:48%;background:#ff6a00;animation-delay:.07s;width:9px;height:4px;}
+@media (prefers-reduced-motion:reduce){.confetti-container.active .confetti-piece{animation:none;}}
+
+/* Crowd stadium for match (ambient) */
+.stadium-crowd{position:absolute;bottom:0;left:0;right:0;height:80px;z-index:0;pointer-events:none;overflow:hidden;}
+.stadium-crowd .c-row{position:absolute;bottom:0;left:0;right:0;height:30px;display:flex;gap:2px;align-items:flex-end;opacity:.25;}
+.stadium-crowd .c-row.cr1{bottom:40px;opacity:.15;}
+.stadium-crowd .c-row.cr2{bottom:0;opacity:.25;}
+.stadium-crowd .c-row .h{flex:1;height:var(--h,10px);background:#1e293b;border-radius:50% 50% 0 0;animation:crowd-bob var(--d,3s) ease-in-out infinite;animation-delay:var(--delay,0s);}
+@keyframes crowd-bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
+body.erupting .stadium-crowd .c-row .h{animation-duration:.4s !important;transform:translateY(-5px);}
+body.erupting .stadium-crowd .c-row{opacity:.4 !important;}
+@media (prefers-reduced-motion:reduce){.stadium-crowd .c-row .h{animation:none;}}
+
+/* LED flash for moments */
+.led-flash{position:absolute;bottom:80px;left:0;right:0;height:20px;z-index:5;pointer-events:none;display:flex;align-items:center;justify-content:center;opacity:0;font-family:'Teko';font-weight:700;font-size:12px;letter-spacing:3px;text-transform:uppercase;transition:opacity .15s;}
+.led-flash.active{animation:led-blink .8s ease-in-out;}
+.led-flash.six{color:#22c55e;text-shadow:0 0 8px #22c55e;background:linear-gradient(90deg,transparent,rgba(34,197,94,.1),transparent);}
+.led-flash.four{color:#ff6a00;text-shadow:0 0 8px #ff6a00;background:linear-gradient(90deg,transparent,rgba(255,106,0,.1),transparent);}
+.led-flash.wicket{color:#ef4444;text-shadow:0 0 8px #ef4444;background:linear-gradient(90deg,transparent,rgba(239,68,68,.1),transparent);}
+@keyframes led-blink{0%{opacity:0;}15%{opacity:1;}30%{opacity:.3;}45%{opacity:1;}60%{opacity:.3;}80%{opacity:1;}100%{opacity:0;}}
+@media (prefers-reduced-motion:reduce){.led-flash.active{animation:none;}}
+</style>
+</head>
+<body data-momentum="winning">
+
+<!-- Atmosphere -->
+<div class="atmosphere">
+  <div class="atm-glow"></div>
+  <div class="atm-vignette"></div>
+  <div class="beam"></div><div class="beam"></div><div class="beam"></div>
+</div>
+<div class="particles"><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div></div>
+
+<div class="tog">
+  <button id="t-theme" onclick="toggleTheme()">Light</button>
+  <button id="t-mor" onclick="toggleMor()">Corrupt</button>
+  <button id="t-mom" onclick="cycleMomentum()">Clutch</button>
+  <button id="t-moment" onclick="triggerMoment()" style="background:rgba(34,197,94,.3);border-color:rgba(34,197,94,.5);">Event!</button>
+</div>
+
+<header class="bcast">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <span class="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></span>
+    <div><div class="bcast-title">Match 28</div><div class="bcast-sub"><span class="live-dot"></span>Mumbai Royals vs Kolkata Kings</div></div>
+  </div>
+  <span class="cur"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--highlight)"><circle cx="8" cy="8" r="6"/><path d="M8 4v8M6 6h3a1.5 1.5 0 010 3H6.5"/></svg><span>2,84,500</span></span>
+</header>
+
+<main class="scroll">
+
+  <section class="scoreboard">
+    <div class="sb-top">
+      <div class="sb-tag"><span class="l"><span class="dot"></span> Live · 2nd Innings</span><span class="r">Over 14.2 / 20</span></div>
+      <div class="sb-teams">
+        <div class="sb-team bat"><div><div class="ab">MBR</div><div class="nm">Mumbai Royals</div></div></div>
+        <div class="sb-runs bat">142<span class="wk">/3</span><span class="ov">14.2 ov</span></div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-teams">
+        <div class="sb-team"><div><div class="ab">KNG</div><div class="nm">Kolkata Kings</div></div></div>
+        <div class="sb-runs">138<span class="wk">/7</span><span class="ov">20.0 ov</span></div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-req">Need <b>5 runs</b> from <b>34 balls</b> · RR 9.86 · Req 8.82</div>
+    </div>
+    <div class="winprob">
+      <div class="wp-track"><div class="wp-you"></div><div class="wp-opp"></div></div>
+      <div class="wp-labels"><span>Win Prob <b>64%</b></span><span>Clutch Window</span></div>
+    </div>
+  </section>
+
+  <section class="ticker">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0118 0M7 12a5 5 0 0110 0"/><circle cx="12" cy="12" r="1"/></svg></span>
+    <div class="track"><span class="msg"><b>COMMENTARY:</b> "Five to win from 34 balls — this should be a formality, but the Kings won't give up without a fight. Pressure is building on the bowler." &nbsp;&nbsp;&nbsp; <b>CROWD:</b> "The Wankhede is buzzing — they can smell victory." &nbsp;&nbsp;&nbsp; </span></div>
+  </section>
+
+  <section class="meters-row">
+    <div class="meter-card">
+      <div class="meter-head"><span class="t">Momentum</span><span class="v cool">+72</span></div>
+      <div class="meter-bar"><div class="meter-fill momentum"></div></div>
+      <div class="meter-sub">Surging · <b>3 boundaries</b> in 6 balls</div>
+    </div>
+    <div class="meter-card">
+      <div class="meter-head"><span class="t">Pressure</span><span class="v hot">Med</span></div>
+      <div class="meter-bar"><div class="meter-fill pressure"></div></div>
+      <div class="meter-sub">Climbing · <b>5 to win</b> · 34 balls</div>
+      <div class="pp-strip"><div class="pp-pip done"></div><div class="pp-pip done"></div><div class="pp-pip active"></div><div class="pp-pip"></div><div class="pp-pip"></div></div>
+      <div class="pp-label">Powerplay <b>Ov 15</b> · death overs</div>
+    </div>
+  </section>
+
+  <section class="strat">
+    <div class="strat-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 8v8M8 12h8"/></svg>Match Strategy</div>
+    <div class="strat-grid">
+      <div class="strat-opt active"><div class="t">Aggressive</div><div class="d">High risk · +12% RR</div></div>
+      <div class="strat-opt"><div class="t">Balanced</div><div class="d">Steady · default</div></div>
+      <div class="strat-opt"><div class="t">Defensive</div><div class="d">Save wickets · -8% RR</div></div>
+      <div class="strat-opt"><div class="t">Finisher</div><div class="d">All-out · death overs</div></div>
+    </div>
+  </section>
+
+  <section class="feed">
+    <div class="feed-head"><span class="feed-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Over Feed</span><span class="feed-over">Over 14</span></div>
+    <div class="ball-row">
+      <div class="ball b4">4</div><div class="ball dot">·</div><div class="ball">2</div><div class="ball b6">6</div><div class="ball">1</div><div class="ball b4">4</div>
+    </div>
+    <div class="feed-line"><span class="ov">14.6</span><span class="txt"><b>V. Sharma</b> drives to long-off</span><span class="r">4</span></div>
+    <div class="feed-line"><span class="ov">14.5</span><span class="txt"><b>R. Khan</b> taps to point</span><span class="r">1</span></div>
+    <div class="feed-line"><span class="ov">14.4</span><span class="txt"><b>V. Sharma</b> launches over cover</span><span class="r six">6</span></div>
+  </section>
+
+  <button class="cta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/></svg>
+    <span>SIMULATE NEXT OVER<span class="cta-sub">5 runs to win · 34 balls</span></span>
+  </button>
+
+</main>
+
+<!-- Match Moment Overlays -->
+<div class="moment-overlay six" id="mo-six">
+  <div class="mo-bg"></div>
+  <div class="mo-burst"></div>
+  <div class="mo-burst"></div>
+  <div class="mo-text">SIX!</div>
+  <div class="mo-sub">MAXIMUM!</div>
+  <div class="mo-distance">98m</div>
+</div>
+<div class="moment-overlay four" id="mo-four">
+  <div class="mo-bg"></div>
+  <div class="mo-burst"></div>
+  <div class="mo-burst"></div>
+  <div class="mo-text">FOUR!</div>
+  <div class="mo-sub">BOUNDARY</div>
+</div>
+<div class="moment-overlay wicket" id="mo-wicket">
+  <div class="mo-bg"></div>
+  <div class="mo-burst"></div>
+  <div class="mo-burst"></div>
+  <div class="mo-text">OUT!</div>
+  <div class="mo-sub">CLEAN BOWLED</div>
+</div>
+
+<!-- Edge flash -->
+<div class="edge-flash" id="edge-flash"></div>
+
+<!-- Confetti for SIX -->
+<div class="confetti-container" id="confetti">
+  <div class="confetti-piece"></div><div class="confetti-piece"></div><div class="confetti-piece"></div><div class="confetti-piece"></div><div class="confetti-piece"></div><div class="confetti-piece"></div><div class="confetti-piece"></div><div class="confetti-piece"></div><div class="confetti-piece"></div><div class="confetti-piece"></div>
+</div>
+
+<!-- LED flash bar -->
+<div class="led-flash" id="led-flash"></div>
+
+<!-- Momentum shift banner -->
+<div class="shift-banner" id="shift-banner">
+  <div class="line"></div>
+  <div class="txt">MOMENTUM SHIFT</div>
+  <div class="line"></div>
+</div>
+
+<!-- Stadium crowd ambience -->
+<div class="stadium-crowd">
+  <div class="c-row cr1">
+    <div class="h" style="--h:7px;--d:2.5s;--delay:0s"></div><div class="h" style="--h:9px;--d:3s;--delay:.1s"></div><div class="h" style="--h:6px;--d:2.8s;--delay:.2s"></div><div class="h" style="--h:8px;--d:3.2s;--delay:.05s"></div><div class="h" style="--h:7px;--d:2.7s;--delay:.15s"></div><div class="h" style="--h:9px;--d:3s;--delay:.25s"></div><div class="h" style="--h:6px;--d:2.9s;--delay:.1s"></div><div class="h" style="--h:8px;--d:3.1s;--delay:.2s"></div><div class="h" style="--h:7px;--d:2.6s;--delay:0s"></div><div class="h" style="--h:9px;--d:3s;--delay:.15s"></div><div class="h" style="--h:6px;--d:2.8s;--delay:.05s"></div><div class="h" style="--h:8px;--d:3.2s;--delay:.25s"></div><div class="h" style="--h:7px;--d:2.7s;--delay:.1s"></div><div class="h" style="--h:9px;--d:3s;--delay:.2s"></div><div class="h" style="--h:6px;--d:2.9s;--delay:0s"></div>
+  </div>
+  <div class="c-row cr2">
+    <div class="h" style="--h:9px;--d:3s;--delay:.1s"></div><div class="h" style="--h:11px;--d:2.5s;--delay:.2s"></div><div class="h" style="--h:8px;--d:3.5s;--delay:0s"></div><div class="h" style="--h:10px;--d:2.8s;--delay:.15s"></div><div class="h" style="--h:9px;--d:3.2s;--delay:.05s"></div><div class="h" style="--h:11px;--d:2.7s;--delay:.25s"></div><div class="h" style="--h:8px;--d:3s;--delay:.1s"></div><div class="h" style="--h:10px;--d:2.9s;--delay:.2s"></div><div class="h" style="--h:9px;--d:3.3s;--delay:0s"></div><div class="h" style="--h:11px;--d:2.6s;--delay:.15s"></div><div class="h" style="--h:8px;--d:3.1s;--delay:.05s"></div><div class="h" style="--h:10px;--d:2.8s;--delay:.25s"></div><div class="h" style="--h:9px;--d:3s;--delay:.1s"></div><div class="h" style="--h:11px;--d:2.7s;--delay:.2s"></div><div class="h" style="--h:8px;--d:3.2s;--delay:0s"></div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11l8-7 8 7v9H4z"/><path d="M9 20v-6h6v6"/></svg>Hub</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>Auction</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M9 6V4h6v2"/></svg>Squad</button>
+  <button class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Match</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M9 11l2 2 4-4"/></svg>Deals</button>
+</nav>
+
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';document.getElementById('t-theme').classList.toggle('on',h.dataset.theme==='light');document.getElementById('t-theme').textContent=h.dataset.theme==='light'?'Dark':'Light';}
+function toggleMor(){const h=document.documentElement;h.dataset.morality=h.dataset.morality==='clean'?'corrupt':'clean';document.getElementById('t-mor').classList.toggle('on',h.dataset.morality==='corrupt');document.getElementById('t-mor').textContent=h.dataset.morality==='corrupt'?'Clean':'Corrupt';}
+const momStates=['winning','close','losing','clutch'];const momLabels=['Winning','Close','Losing','Clutch'];
+let momIdx=0;
+function cycleMomentum(){
+  const prev=momStates[momIdx];
+  momIdx=(momIdx+1)%4;
+  document.body.dataset.momentum=momStates[momIdx];
+  document.getElementById('t-mom').textContent=momLabels[momIdx];
+  document.getElementById('t-mom').classList.toggle('on',momStates[momIdx]==='clutch');
+  if(prev!==momStates[momIdx]) triggerShiftBanner();
+}
+
+// Match Moment System
+const moments=['six','four','wicket'];
+let momentIdx=0;
+function triggerMoment(){
+  const type=moments[momentIdx];
+  momentIdx=(momentIdx+1)%3;
+  
+  // Screen shake
+  document.body.classList.add('shaking');
+  setTimeout(()=>document.body.classList.remove('shaking'),400);
+  
+  // Crowd eruption
+  document.body.classList.add('erupting');
+  setTimeout(()=>document.body.classList.remove('erupting'),2000);
+  
+  // Edge flash
+  const ef=document.getElementById('edge-flash');
+  ef.className='edge-flash '+type+' active';
+  setTimeout(()=>ef.className='edge-flash',500);
+  
+  // LED flash
+  const lf=document.getElementById('led-flash');
+  lf.className='led-flash '+type+' active';
+  lf.textContent=type==='six'?'● ● ● MAXIMUM ● ● ●':type==='four'?'● ● ● BOUNDARY ● ● ●':'● ● ● WICKET ● ● ●';
+  setTimeout(()=>lf.className='led-flash',800);
+  
+  // Main overlay
+  const overlay=document.getElementById('mo-'+type);
+  overlay.classList.add('active');
+  
+  // Confetti for six
+  if(type==='six'){
+    document.getElementById('confetti').classList.add('active');
+    setTimeout(()=>document.getElementById('confetti').classList.remove('active'),2200);
+  }
+  
+  // Auto-dismiss overlay
+  setTimeout(()=>overlay.classList.remove('active'),1800);
+}
+
+function triggerShiftBanner(){
+  const b=document.getElementById('shift-banner');
+  b.classList.add('active');
+  setTimeout(()=>b.classList.remove('active'),1200);
+}
+</script>
+</body>
+</html>

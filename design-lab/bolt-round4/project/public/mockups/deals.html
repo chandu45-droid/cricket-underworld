@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-morality="clean" data-heat="medium">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Cricket Blitz — Deals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --clip-cut: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 12px, 12px 0);
+  --hero-cta: linear-gradient(160deg,#ff6a00,#c2410c);
+  --underworld: rgba(127,29,29,.06);
+}
+[data-theme="dark"]{
+  --void:#020617; --base:#0f172a; --panel:#1e293b; --elevated:#334155;
+  --ink:#f8fafc; --ink-soft:#94a3b8; --ink-faint:#64748b;
+  --accent:#ff6a00; --accent-soft:#f97316; --accent-2:#fb923c;
+  --victory:#22c55e; --danger:#ef4444; --highlight:#facc15;
+  --line:#334155; --accent-line: rgba(255,106,0,.30);
+  --accent-glow: 0 0 0 1px rgba(255,106,0,.25), 0 6px 24px -8px rgba(255,106,0,.35);
+}
+[data-theme="light"]{
+  --void:#f1f5f9; --base:#e2e8f0; --panel:#cbd5e1; --elevated:#f1f5f9;
+  --ink:#0f172a; --ink-soft:#475569; --ink-faint:#94a3b8;
+  --accent:#ea580c; --accent-soft:#f97316; --accent-2:#fb923c;
+  --victory:#16a34a; --danger:#dc2626; --highlight:#ca8a04;
+  --line:#cbd5e1; --accent-line: rgba(234,88,12,.25);
+  --accent-glow: 0 0 0 1px rgba(234,88,12,.20), 0 6px 20px -10px rgba(234,88,12,.25);
+}
+[data-morality="corrupt"]{
+  --accent: var(--danger); --accent-soft:#f87171; --accent-2:#fca5a5;
+  --accent-glow: 0 0 0 1px rgba(239,68,68,.30), 0 6px 24px -8px rgba(239,68,68,.35);
+  --accent-line: rgba(239,68,68,.35);
+  --underworld: rgba(127,29,29,.15);
+}
+/* Heat states */
+[data-heat="low"]{ --underworld: rgba(34,197,94,.04); }
+[data-heat="medium"]{ --underworld: rgba(250,204,21,.06); }
+[data-heat="high"]{ --underworld: rgba(239,68,68,.10); }
+[data-heat="critical"]{ --underworld: rgba(239,68,68,.18); }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Rajdhani',sans-serif;color:var(--ink);background:var(--void);
+  width:390px;height:844px;margin:0 auto;position:relative;overflow:hidden;
+  font-feature-settings:"tnum" 1,"lnum" 1;letter-spacing:.2px;
+  display:flex;flex-direction:column;
+  transition:background .8s ease;
+}
+.atmosphere{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.atm-glow{position:absolute;inset:0;background:radial-gradient(100% 60% at 50% 0%,var(--underworld),transparent 60%);transition:background .8s ease;}
+.atm-vignette{position:absolute;inset:0;background:radial-gradient(130% 100% at 50% 40%,transparent 50%,rgba(2,6,23,.7) 100%);}
+.beam{position:absolute;top:-10%;width:3px;height:120%;background:linear-gradient(180deg,rgba(255,106,0,.06),transparent);transform-origin:top center;animation:beam-sweep 8s ease-in-out infinite;}
+.beam:nth-child(1){left:15%;transform:rotate(8deg);animation-delay:0s;}
+.beam:nth-child(2){left:50%;transform:rotate(-5deg);animation-delay:-3s;}
+.beam:nth-child(3){left:80%;transform:rotate(10deg);animation-delay:-5s;}
+@keyframes beam-sweep{0%,100%{opacity:.4;}50%{opacity:.8;}}
+@media (prefers-reduced-motion:reduce){.beam{animation:none;opacity:.4;}}
+.particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
+.p{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,106,0,.5);opacity:0;animation:float-up 14s linear infinite;}
+.p:nth-child(1){left:8%;bottom:0;animation-delay:0s;}.p:nth-child(2){left:22%;bottom:0;animation-delay:3s;background:rgba(239,68,68,.4);}
+.p:nth-child(3){left:38%;bottom:0;animation-delay:6s;}.p:nth-child(4){left:55%;bottom:0;animation-delay:2s;background:rgba(250,204,21,.4);}
+.p:nth-child(5){left:68%;bottom:0;animation-delay:8s;}.p:nth-child(6){left:82%;bottom:0;animation-delay:5s;background:rgba(239,68,68,.4);}
+@keyframes float-up{0%{opacity:0;transform:translateY(0) scale(.5);}10%{opacity:.4;}90%{opacity:.15;}100%{opacity:0;transform:translateY(-844px) scale(1);}}
+@media (prefers-reduced-motion:reduce){.p{animation:none;opacity:0;}}
+
+.bcast{position:relative;z-index:30;flex:0 0 auto;background:linear-gradient(180deg,rgba(15,23,42,.92) 0%,rgba(15,23,42,.5) 80%,transparent 100%);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);clip-path:var(--clip-cut);border-bottom:1px solid var(--accent-line);padding:8px 14px 9px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;}
+.bcast::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.back{width:32px;height:32px;display:grid;place-items:center;background:rgba(255,255,255,.06);border-radius:9px;border:1px solid var(--line);color:var(--ink);cursor:pointer;transition:transform .15s;}
+.back:active{transform:scale(.9);}
+.back svg{width:17px;height:17px;}
+.bcast-title{font-family:'Teko';font-weight:600;font-size:18px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);line-height:1;}
+.bcast-sub{font-size:10px;font-weight:500;color:var(--ink-soft);letter-spacing:.5px;text-transform:uppercase;margin-top:2px;display:flex;align-items:center;gap:5px;}
+.bcast-sub .live-dot{width:6px;height:6px;background:var(--danger);border-radius:50%;animation:pulse-live 1.2s infinite;box-shadow:0 0 6px var(--danger);}
+@keyframes pulse-live{0%,100%{opacity:1;}50%{opacity:.3;}}
+@media (prefers-reduced-motion:reduce){.bcast-sub .live-dot{animation:none;}}
+.cur{display:flex;align-items:center;gap:4px;padding:4px 8px;background:rgba(255,255,255,.06);border-radius:7px;border:1px solid var(--line);font-weight:600;font-size:13px;color:var(--ink);}
+.cur svg{width:12px;height:12px;}
+
+.scroll{flex:1 1 0;padding:10px 14px 60px;display:flex;flex-direction:column;gap:9px;position:relative;z-index:10;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* TENSION METER */
+.tension{position:relative;background:linear-gradient(160deg,var(--panel) 0%,var(--base) 100%);border-radius:16px;border:1px solid var(--accent-line);box-shadow:var(--accent-glow);overflow:hidden;padding:13px 14px 14px;flex:0 0 auto;}
+.tension::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.tension::after{content:"";position:absolute;inset:0;background:radial-gradient(80% 50% at 50% 0%,var(--underworld),transparent 70%);pointer-events:none;transition:background .8s ease;}
+.t-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;position:relative;z-index:2;}
+.t-title{display:flex;align-items:center;gap:7px;font-family:'Teko';font-weight:600;font-size:17px;letter-spacing:.4px;text-transform:uppercase;color:var(--ink);}
+.t-title svg{width:18px;height:18px;color:var(--accent);filter:drop-shadow(0 0 4px var(--accent));}
+.t-heat{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--ink-soft);letter-spacing:.5px;text-transform:uppercase;}
+.t-heat .bars{display:flex;gap:2px;}
+.t-heat .bars i{width:4px;height:12px;background:var(--line);border-radius:2px;transition:background .3s,box-shadow .3s;}
+.t-heat .bars i.on{background:var(--danger);box-shadow:0 0 4px var(--danger);}
+.t-heat .bars i.on.warn{background:var(--highlight);box-shadow:0 0 4px var(--highlight);}
+.t-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;position:relative;z-index:2;}
+.ts{background:var(--elevated);border-radius:9px;padding:9px 10px;text-align:center;position:relative;overflow:hidden;}
+.ts::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.ts .n{font-family:'Teko';font-weight:700;font-size:22px;color:var(--ink);line-height:.9;}
+.ts .n.good{color:var(--victory);}
+.ts .n.bad{color:var(--danger);}
+.ts .l{font-size:8px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);margin-top:2px;}
+.heat-meter{margin-top:11px;position:relative;z-index:2;}
+.heat-label{display:flex;justify-content:space-between;font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;}
+.heat-label b{color:var(--danger);}
+.heat-track{height:6px;background:var(--elevated);border-radius:6px;overflow:hidden;}
+.heat-fill{height:100%;width:60%;background:linear-gradient(90deg,var(--highlight),var(--danger));border-radius:6px;box-shadow:0 0 6px rgba(239,68,68,.15);animation:heat-fill 1s cubic-bezier(.2,.7,.2,1) .4s both;transition:width .8s ease,box-shadow .8s;}
+[data-heat="critical"] .heat-fill{box-shadow:0 0 12px rgba(239,68,68,.3);animation:heat-pulse 1s ease-in-out infinite;}
+@keyframes heat-pulse{0%,100%{box-shadow:0 0 8px rgba(239,68,68,.2);}50%{box-shadow:0 0 16px rgba(239,68,68,.4);}}
+@media (prefers-reduced-motion:reduce){[data-heat="critical"] .heat-fill{animation:none;}}
+@keyframes heat-fill{from{width:0;}}
+.heat-pips{display:flex;justify-content:space-between;margin-top:4px;}
+.heat-pips span{font-size:7px;font-weight:600;color:var(--ink-faint);letter-spacing:.3px;}
+
+.sec-head{display:flex;align-items:center;gap:7px;margin:1px 0 -2px;flex:0 0 auto;}
+.sec-head .bar{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);}
+.sec-head .txt{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft);}
+
+.deal{background:linear-gradient(160deg,var(--panel) 0%,var(--base) 100%);border-radius:11px;border:1px solid var(--line);padding:10px 12px;display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start;position:relative;overflow:hidden;transition:transform .1s,border-color .2s,box-shadow .2s;flex:0 0 auto;cursor:pointer;}
+.deal:active{transform:scale(.98);}
+.deal::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.deal.active{border-color:var(--accent-line);box-shadow:var(--accent-glow);}
+.deal.active::before{background:linear-gradient(90deg,transparent,var(--accent),transparent);height:2px;}
+.deal .av{width:36px;height:36px;background:var(--elevated);border-radius:9px;display:grid;place-items:center;flex:0 0 auto;}
+.deal .av svg{width:20px;height:20px;}
+.deal .av.red{color:var(--danger);}
+.deal .av.green{color:var(--victory);}
+.deal .av.gray{color:var(--ink-soft);}
+.deal-body .who{font-family:'Teko';font-weight:600;font-size:15px;color:var(--ink);letter-spacing:.3px;line-height:1;}
+.deal-body .what{font-size:11px;font-weight:500;color:var(--ink-soft);margin-top:2px;line-height:1.3;}
+.deal-body .what b{color:var(--ink);font-weight:600;}
+.deal-meta{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+.deal-meta span{font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 6px;border-radius:5px;background:var(--elevated);color:var(--ink-soft);}
+.deal-meta span.accent{color:var(--accent);border:1px solid var(--accent-line);background:rgba(255,106,0,.06);}
+.deal-meta span.warn{color:var(--danger);border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);}
+.deal-meta span.good{color:var(--victory);border:1px solid rgba(34,197,94,.2);background:rgba(34,197,94,.06);}
+.deal .badge{position:absolute;top:8px;right:10px;font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 6px;border-radius:5px;}
+.deal .badge.open{background:var(--accent);color:#fff;box-shadow:0 0 6px rgba(255,106,0,.2);}
+.deal .badge.due{background:var(--danger);color:#fff;box-shadow:0 0 6px rgba(239,68,68,.2);animation:pulse-live 2s infinite;}
+@media (prefers-reduced-motion:reduce){.deal .badge.due{animation:none;}}
+.deal .badge.closed{background:var(--elevated);color:var(--ink-soft);}
+.deal .badge.new{background:var(--victory);color:#fff;animation:pulse-badge 2s infinite;}
+@keyframes pulse-badge{0%,100%{box-shadow:0 0 6px rgba(34,197,94,.2);}50%{box-shadow:0 0 14px rgba(34,197,94,.4);}}
+@media (prefers-reduced-motion:reduce){.deal .badge.new{animation:none;}}
+
+.cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;border:none;cursor:pointer;background:var(--hero-cta);color:#fff;border-radius:12px;font-family:'Teko';font-weight:700;font-size:20px;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 8px 24px -8px rgba(255,106,0,.5),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .08s;flex:0 0 auto;position:relative;overflow:hidden;}
+.cta:active{transform:translateY(1px) scale(.99);}
+.cta::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:cta-shine 3s ease-in-out infinite;}
+@keyframes cta-shine{0%,100%{transform:translateX(-100%);}50%{transform:translateX(100%);}}
+@media (prefers-reduced-motion:reduce){.cta::before{animation:none;opacity:0;}}
+.cta svg{width:18px;height:18px;position:relative;z-index:2;}
+.cta>span{position:relative;z-index:2;}
+.cta-sub{font-size:10px;font-weight:600;letter-spacing:1px;opacity:.85;font-family:'Rajdhani';text-transform:uppercase;margin-top:1px;}
+
+.nav{position:absolute;bottom:0;left:0;right:0;z-index:40;background:linear-gradient(180deg,rgba(15,23,42,.85) 0%,rgba(15,23,42,.97) 50%);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--accent-line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px 8px;}
+.nav::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--accent-line) 50%,transparent 90%);}
+.nav button{background:none;border:none;cursor:pointer;color:var(--ink-soft);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'Rajdhani';font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;min-height:40px;justify-content:center;transition:transform .15s;position:relative;}
+.nav button:active{transform:scale(.85);}
+.nav button svg{width:20px;height:20px;transition:transform .2s;}
+.nav button.active{color:var(--accent);}
+.nav button.active svg{filter:drop-shadow(0 0 6px var(--accent));transform:translateY(-2px);}
+.nav button.active::after{content:"";position:absolute;bottom:0;width:22px;height:2px;background:var(--accent);border-radius:2px 2px 0 0;box-shadow:0 0 8px var(--accent);animation:nav-slide .3s ease;}
+@keyframes nav-slide{from{width:0;}to{width:22px;}}
+@media (prefers-reduced-motion:reduce){.nav button.active svg{transform:none;}.nav button.active::after{animation:none;}}
+
+.tog{position:absolute;top:6px;right:6px;z-index:60;display:flex;gap:5px;}
+.tog button{font-family:'Rajdhani';font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border:1px solid var(--line);background:rgba(15,23,42,.8);color:var(--ink);padding:5px 8px;border-radius:7px;cursor:pointer;min-height:26px;backdrop-filter:blur(8px);}
+.tog button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.scroll>*{opacity:0;transform:translateY(12px) scale(.98);animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards;}
+.scroll>*:nth-child(1){animation-delay:.1s;}.scroll>*:nth-child(2){animation-delay:.18s;}.scroll>*:nth-child(3){animation-delay:.26s;}.scroll>*:nth-child(4){animation-delay:.34s;}.scroll>*:nth-child(5){animation-delay:.42s;}.scroll>*:nth-child(6){animation-delay:.50s;}.scroll>*:nth-child(7){animation-delay:.58s;}
+@keyframes rise{to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.scroll>*{opacity:1;transform:none;animation:none;}}
+</style>
+</head>
+<body data-heat="medium">
+
+<div class="atmosphere"><div class="atm-glow"></div><div class="atm-vignette"></div><div class="beam"></div><div class="beam"></div><div class="beam"></div></div>
+<div class="particles"><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div></div>
+
+<div class="tog">
+  <button id="t-theme" onclick="toggleTheme()">Light</button>
+  <button id="t-mor" onclick="toggleMor()">Corrupt</button>
+  <button id="t-heat" onclick="cycleHeat()">Heat+</button>
+</div>
+
+<header class="bcast">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <span class="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></span>
+    <div><div class="bcast-title">The Ledger</div><div class="bcast-sub"><span class="live-dot"></span>Deals · Favors · Debts</div></div>
+  </div>
+  <span class="cur"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--danger)"><path d="M8 2l5 3v5l-5 4-5-4V5z"/></svg><span>HEAT 3</span></span>
+</header>
+
+<main class="scroll">
+
+  <section class="tension">
+    <div class="t-top">
+      <div class="t-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 8v8M8 12h8"/></svg>Underworld Status</div>
+      <div class="t-heat">Heat<span class="bars"><i class="on"></i><i class="on"></i><i class="on warn"></i><i></i><i></i></span></div>
+    </div>
+    <div class="t-grid">
+      <div class="ts"><div class="n good">3</div><div class="l">Active Favors</div></div>
+      <div class="ts"><div class="n bad">2</div><div class="l">Debts Owed</div></div>
+      <div class="ts"><div class="n good">Clean</div><div class="l">Reputation</div></div>
+    </div>
+    <div class="heat-meter">
+      <div class="heat-label"><span>Tribunal Risk</span><b>Level 3 / 5</b></div>
+      <div class="heat-track"><div class="heat-fill"></div></div>
+      <div class="heat-pips"><span>Safe</span><span>Watch</span><span style="color:var(--highlight);font-weight:700;">Caution</span><span>Danger</span><span>Burn</span></div>
+    </div>
+  </section>
+
+  <div class="sec-head"><span class="bar"></span><span class="txt">Active Deals</span><span class="bar"></span></div>
+
+  <div class="deal active">
+    <span class="av green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="3"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg></span>
+    <div class="deal-body">
+      <div class="who">V. Rathore</div>
+      <div class="what">Sell him <b>M. Reddy (WK)</b> at reserve price — before auction Day 18</div>
+      <div class="deal-meta"><span class="accent">In your favor</span><span class="warn">Due Day 18</span><span class="good">+2 rep</span></div>
+    </div>
+    <span class="badge open">Open</span>
+  </div>
+
+  <div class="deal">
+    <span class="av red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 8v8"/></svg></span>
+    <div class="deal-body">
+      <div class="who">Bengal Broker</div>
+      <div class="what">Owe <b>₹1,20,000</b> from last auction bridge loan · no conditions</div>
+      <div class="deal-meta"><span class="warn">Debt owed</span><span class="warn">Due Day 18</span><span class="warn">+1 heat if late</span></div>
+    </div>
+    <span class="badge due">Due</span>
+  </div>
+
+  <div class="deal">
+    <span class="av gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+    <div class="deal-body">
+      <div class="who">Shadab Khan · Agent</div>
+      <div class="what">Offers inside auction tip for <b>S-tier bowler</b> — wants first right of refusal</div>
+      <div class="deal-meta"><span class="accent">Incoming offer</span><span>Expires Day 15</span></div>
+    </div>
+    <span class="badge new">New</span>
+  </div>
+
+  <div class="sec-head"><span class="bar"></span><span class="txt">Closed</span><span class="bar"></span></div>
+
+  <div class="deal">
+    <span class="av green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l2 2 4-4M12 2l9 5v10l-9 5-9-5V7z"/></svg></span>
+    <div class="deal-body">
+      <div class="who">Tribunal Board</div>
+      <div class="what">Match-fixing probe Day 8 — <b>cleared, no evidence</b></div>
+      <div class="deal-meta"><span>Closed</span><span class="good">Heat -1</span></div>
+    </div>
+    <span class="badge closed">Done</span>
+  </div>
+
+  <button class="cta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    <span>INITIATE A DEAL<span class="cta-sub">Reach out via the broker</span></span>
+  </button>
+
+</main>
+
+<nav class="nav">
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11l8-7 8 7v9H4z"/><path d="M9 20v-6h6v6"/></svg>Hub</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>Auction</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M9 6V4h6v2"/></svg>Squad</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Match</button>
+  <button class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M9 11l2 2 4-4"/></svg>Deals</button>
+</nav>
+
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';document.getElementById('t-theme').classList.toggle('on',h.dataset.theme==='light');document.getElementById('t-theme').textContent=h.dataset.theme==='light'?'Dark':'Light';}
+function toggleMor(){const h=document.documentElement;h.dataset.morality=h.dataset.morality==='clean'?'corrupt':'clean';document.getElementById('t-mor').classList.toggle('on',h.dataset.morality==='corrupt');document.getElementById('t-mor').textContent=h.dataset.morality==='corrupt'?'Clean':'Corrupt';}
+const heatStates=['low','medium','high','critical'];const heatLabels=['Low','Medium','High','Critical'];
+let heatIdx=1;
+function cycleHeat(){heatIdx=(heatIdx+1)%4;document.body.dataset.heat=heatStates[heatIdx];document.getElementById('t-heat').textContent=heatLabels[heatIdx];document.getElementById('t-heat').classList.toggle('on',heatStates[heatIdx]==='critical');}
+</script>
+</body>
+</html>

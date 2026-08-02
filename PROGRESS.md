@@ -1,5 +1,72 @@
 # Progress — Cricket Underworld
 
+> ### 🎬 CINEMATIC DIRECTION PASS — auction + pack shipped LIVE (2026-08-02, `0d03562` + `0480e43`)
+> Founder issued a product-vision update: Cricket Underworld is "a high-stakes underground cricket
+> universe," not a cricket app. Explicit hard rules: **no logic changes, no removed features, no
+> rewritten systems, no navigation changes, no regressions** — presentation/atmosphere only, one screen
+> at a time, verify between each. Design source: a bolt.new export (5 zips iterated same day; used the
+> newest, 13:03) extracted to `design-lab/bolt-round4/` (12 plain-HTML mockups: 5 hub variants + auction,
+> match, postmatch, squad, player, pack, deals).
+>
+> **Font policy — founder DECIDED: substitute already-loaded fonts** (over loading new ones / partial
+> load / build-both-and-compare). Turned out to be moot for the developed mockups: `hub.html`, `auction`,
+> `match`, `pack` in round-4 already use **Teko + Rajdhani only** — the two fonts the game loads — so the
+> port costs **zero network bytes** and does not reopen the ratified 2026-07-11 L3 ruling (Space Grotesk +
+> Cinzel stay cut for the ~100-150KB India budget). **The `hub-a/b/c/d` variants are the outlier** — they
+> introduce Fraunces/Space Grotesk/DM Sans/Space Mono/Archivo/Inter/Instrument Serif/Sora and would each
+> reopen that ruling; Hub A literally uses the exact font that was cut. Treat A/B/C/D as superseded
+> exploration unless the founder explicitly revives one.
+>
+> **Thermal pre-check (S24 case law) — the vision LOOKED dangerous and wasn't.** "Particles, smoke, fog,
+> floodlights, camera flashes" reads like a replay of the S24 overheat (always-on rAF canvas loop + 21
+> backdrop-filters + 52 infinite anims). Audited the mockups BEFORE briefing any build: **0 `<canvas>`,
+> 0 `requestAnimationFrame`** across all of them — the cinematic look is achieved with CSS gradients and
+> shadows, not particle systems. So this direction is thermally *safer* than what already ships. The one
+> real risk was the mockups' 10-17 infinite animations each; both builds were instructed to convert
+> ambient loops into one-shot `forwards` animations, and both landed at **net zero increase**.
+>
+> - **AUCTION (`0d03562`)** — founder's named "signature feature." Added: **SOLD payoff** (stamp-slam +
+>   hammer strike + one-shot confetti + camera flash; gold when you win, crimson when a rival takes the
+>   lot) and **bid punch** (one-shot hit on `#current-bid`, fires on your bids AND the AI's).
+>   `aiBid`/`placeBid`/`resolveCard` each got exactly ONE appended call — verified the deleted lines were
+>   re-added verbatim with `flashBid()` appended, not rewritten. Counts: infinite 52→52, backdrop 21→22
+>   (one transient ~1.1s overlay, blur ≤10px). All 6 test-referenced auction ids intact.
+> - **PACK (`0480e43`)** — added `packSurge` lighting flash, two smoke wisps (used `filter:blur()` NOT
+>   `backdrop-filter` — cheaper, samples only the element), **`epicSpot`** (epic pulls previously had NO
+>   unique visual beyond spark count), a scale-pop on `legendarySpot` so legendary reads bigger not just
+>   brighter, and a collection-update settle beat. **Zero JS touched** — `openPack()` draw/odds/currency/
+>   guaranteed-floor byte-for-byte unchanged, so published gacha odds stay truthful (Play compliance line).
+>   Independently re-counted: infinite 54→54, backdrop 35→35, rAF/canvas +0.
+>
+> **FINDING WORTH ACTING ON — most requested beats ALREADY EXISTED.** Auction: countdown pressure
+> (`timer-bar-fill.warn/.danger`, `#bid-btn.urgency`) and player entrance/spotlight (`cardEnter`,
+> `spotlight-rays`) were already shipped from the v3-kit pass — verified intact, deliberately NOT rebuilt.
+> Pack: `packBurst`, `revealRing`, `legendarySpot`, `sparkFly` w/ rarity-scaled spark counts (0/5/8/12/18),
+> the NEW badge, ambient `packRays` — all already there. **Two screens running, the majority of the vision
+> doc's asks were already implemented.** Inference (not yet acted on): the perceived gap is probably NOT
+> missing effects but the FIRST IMPRESSION — i.e. the hub, the one screen untouched. The founder's own
+> success criterion ("open it and immediately think: this doesn't feel like a cricket app") is a hub test.
+> **Recommended next pass = hub, not another effects screen.**
+>
+> **Stale doc corrected:** CODEBASE-MAP warned `#pack-overlay` shares `.match-result-overlay` with
+> `#match-result` (a CSS change would have silently restyled match results). A prior pass had ALREADY
+> split it to `.pack-open-overlay`; the map note was stale and is now fixed. The warning still earned its
+> place — it cost nothing and improved the doc.
+>
+> **BLOCKED / OUTSTANDING:**
+> - **`image.png`** — founder answered the hub-direction question with "I added public/mockups/image.png",
+>   but it exists ONLY in bolt's online workspace: not in any of the 5 exported zips, not anywhere on disk
+>   (filesystem search). Cannot be used until pasted into chat. Hub work is blocked on it (or on picking
+>   `hub.html`, the developed one with correct fonts).
+> - **Netlify demo is STALE for buyers.** `cricket-underworld.netlify.app` (the de-identified sale listing
+>   demo) is a MANUAL Netlify-Drop snapshot from a gitignored `_deploy-anon/` folder — it is NOT wired to
+>   master. It currently lacks BOTH cinematic passes. **Every future master push auto-deploys GitHub Pages
+>   but NOT Netlify** — two targets that silently drift while the asset is being shopped to buyers.
+> - **Neither pass has been seen in a browser** (founder-gated testing). Nobody has watched the SOLD stamp
+>   or the pack surge actually fire, in either theme.
+> - Open design call: SOLD stamp fires only when `auction.bidder` is truthy — suppressed on a
+>   zero-bid expiry. Founder may want an "UNSOLD" beat instead.
+
 > ### 📌 ANONYMOUS SALE LISTING PREP — demo link swapped to a de-identified host, all outward-facing docs updated (2026-08-02)
 > Founder is prepping to sell the project (asset flip, ~$1,200–1,500 asking) via SideProjectors and wants
 > zero personal identity exposed to prospective buyers. Two identity leaks existed: (1) the live demo URL

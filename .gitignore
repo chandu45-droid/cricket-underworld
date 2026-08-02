@@ -32,3 +32,7 @@ npm-debug.log*
 
 # Anonymous deploy staging (SideProjectors listing mirror — never commit, no personal info by design)
 _deploy-anon/
+
+# bolt.new design-reference exports (mockups kept locally; bolt-round4 is the live reference)
+design-lab/bolt-round2/
+design-lab/bolt-round3/

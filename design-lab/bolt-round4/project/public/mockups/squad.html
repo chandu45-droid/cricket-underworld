@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-morality="clean">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=390, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Cricket Blitz — Squad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --clip-cut: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 12px, 12px 0);
+  --hero-cta: linear-gradient(160deg,#ff6a00,#c2410c);
+  /* Rarity colors */
+  --r-common: #64748b;
+  --r-rare: #3b82f6;
+  --r-epic: #a855f7;
+  --r-legendary: #facc15;
+  --r-mythic: #f43f5e;
+}
+[data-theme="dark"]{
+  --void:#020617; --base:#0f172a; --panel:#1e293b; --elevated:#334155;
+  --ink:#f8fafc; --ink-soft:#94a3b8; --ink-faint:#64748b;
+  --accent:#ff6a00; --accent-soft:#f97316; --accent-2:#fb923c;
+  --victory:#22c55e; --danger:#ef4444; --highlight:#facc15;
+  --line:#334155; --accent-line: rgba(255,106,0,.30);
+  --accent-glow: 0 0 0 1px rgba(255,106,0,.25), 0 6px 24px -8px rgba(255,106,0,.35);
+}
+[data-theme="light"]{
+  --void:#f1f5f9; --base:#e2e8f0; --panel:#cbd5e1; --elevated:#f1f5f9;
+  --ink:#0f172a; --ink-soft:#475569; --ink-faint:#94a3b8;
+  --accent:#ea580c; --accent-soft:#f97316; --accent-2:#fb923c;
+  --victory:#16a34a; --danger:#dc2626; --highlight:#ca8a04;
+  --line:#cbd5e1; --accent-line: rgba(234,88,12,.25);
+  --accent-glow: 0 0 0 1px rgba(234,88,12,.20), 0 6px 20px -10px rgba(234,88,12,.25);
+}
+[data-morality="corrupt"]{
+  --accent: var(--danger); --accent-soft:#f87171; --accent-2:#fca5a5;
+  --accent-glow: 0 0 0 1px rgba(239,68,68,.30), 0 6px 24px -8px rgba(239,68,68,.35);
+  --accent-line: rgba(239,68,68,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Rajdhani',sans-serif;color:var(--ink);background:var(--void);
+  width:390px;height:844px;margin:0 auto;position:relative;overflow:hidden;
+  font-feature-settings:"tnum" 1,"lnum" 1;letter-spacing:.2px;
+  display:flex;flex-direction:column;
+}
+.atmosphere{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.atm-glow{position:absolute;inset:0;background:radial-gradient(100% 60% at 50% 0%,rgba(255,106,0,.08),transparent 60%);}
+.atm-vignette{position:absolute;inset:0;background:radial-gradient(130% 100% at 50% 40%,transparent 50%,rgba(2,6,23,.7) 100%);}
+.beam{position:absolute;top:-10%;width:3px;height:120%;background:linear-gradient(180deg,rgba(255,106,0,.06),transparent);transform-origin:top center;animation:beam-sweep 8s ease-in-out infinite;}
+.beam:nth-child(1){left:15%;transform:rotate(8deg);animation-delay:0s;}
+.beam:nth-child(2){left:50%;transform:rotate(-5deg);animation-delay:-3s;}
+.beam:nth-child(3){left:80%;transform:rotate(10deg);animation-delay:-5s;}
+@keyframes beam-sweep{0%,100%{opacity:.4;}50%{opacity:.8;}}
+@media (prefers-reduced-motion:reduce){.beam{animation:none;opacity:.4;}}
+.particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
+.p{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,106,0,.5);opacity:0;animation:float-up 14s linear infinite;}
+.p:nth-child(1){left:8%;bottom:0;animation-delay:0s;}.p:nth-child(2){left:22%;bottom:0;animation-delay:3s;background:rgba(59,130,246,.4);}
+.p:nth-child(3){left:38%;bottom:0;animation-delay:6s;}.p:nth-child(4){left:55%;bottom:0;animation-delay:2s;background:rgba(250,204,21,.4);}
+.p:nth-child(5){left:68%;bottom:0;animation-delay:8s;}.p:nth-child(6){left:82%;bottom:0;animation-delay:5s;background:rgba(59,130,246,.4);}
+@keyframes float-up{0%{opacity:0;transform:translateY(0) scale(.5);}10%{opacity:.4;}90%{opacity:.15;}100%{opacity:0;transform:translateY(-844px) scale(1);}}
+@media (prefers-reduced-motion:reduce){.p{animation:none;opacity:0;}}
+
+.bcast{position:relative;z-index:30;flex:0 0 auto;background:linear-gradient(180deg,rgba(15,23,42,.92) 0%,rgba(15,23,42,.5) 80%,transparent 100%);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);clip-path:var(--clip-cut);border-bottom:1px solid var(--accent-line);padding:8px 14px 9px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;}
+.bcast::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent-line),transparent);}
+.back{width:32px;height:32px;display:grid;place-items:center;background:rgba(255,255,255,.06);border-radius:9px;border:1px solid var(--line);color:var(--ink);cursor:pointer;transition:transform .15s;}
+.back:active{transform:scale(.9);}
+.back svg{width:17px;height:17px;}
+.bcast-title{font-family:'Teko';font-weight:600;font-size:18px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);line-height:1;}
+.bcast-sub{font-size:10px;font-weight:500;color:var(--ink-soft);letter-spacing:.5px;text-transform:uppercase;margin-top:2px;display:flex;align-items:center;gap:5px;}
+.bcast-sub .live-dot{width:6px;height:6px;background:var(--victory);border-radius:50%;animation:pulse-live 1.5s infinite;box-shadow:0 0 6px var(--victory);}
+@keyframes pulse-live{0%,100%{opacity:1;}50%{opacity:.3;}}
+@media (prefers-reduced-motion:reduce){.bcast-sub .live-dot{animation:none;}}
+.cur{display:flex;align-items:center;gap:4px;padding:4px 8px;background:rgba(255,255,255,.06);border-radius:7px;border:1px solid var(--line);font-weight:600;font-size:13px;color:var(--ink);}
+.cur svg{width:12px;height:12px;}
+
+.scroll{flex:1 1 0;padding:10px 14px 60px;display:flex;flex-direction:column;gap:10px;position:relative;z-index:10;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* SUMMARY */
+.summary{position:relative;background:linear-gradient(160deg,var(--panel) 0%,var(--base) 100%);border-radius:14px;border:1px solid var(--accent-line);box-shadow:var(--accent-glow);overflow:hidden;padding:12px 14px 11px;flex:0 0 auto;}
+.summary::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.summary::after{content:"";position:absolute;inset:0;background:radial-gradient(80% 50% at 50% 0%,rgba(255,106,0,.08),transparent 70%);pointer-events:none;}
+.sum-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;position:relative;z-index:2;}
+.sum-row .s{text-align:center;}
+.sum-row .s .n{font-family:'Teko';font-weight:700;font-size:28px;color:var(--accent);line-height:.9;text-shadow:0 0 12px rgba(255,106,0,.2);}
+.sum-row .s .l{font-size:8px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-top:2px;}
+.sum-row .s+.s{border-left:1px solid var(--line);}
+.chem{margin-top:9px;position:relative;z-index:2;}
+.chem-l{display:flex;justify-content:space-between;font-size:9px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;}
+.chem-l b{color:var(--accent);font-weight:700;}
+.chem-bar{height:6px;background:var(--elevated);border-radius:6px;overflow:hidden;}
+.chem-fill{height:100%;width:78%;background:linear-gradient(90deg,var(--accent-soft),var(--accent));border-radius:6px;animation:chem-fill 1s cubic-bezier(.2,.7,.2,1) .3s both;}
+@keyframes chem-fill{from{width:0;}}
+
+/* FILTERS */
+.filters{display:flex;gap:5px;overflow-x:auto;flex:0 0 auto;padding-bottom:1px;}
+.filters button{flex:0 0 auto;min-height:32px;padding:5px 11px;border:1px solid var(--line);background:var(--panel);color:var(--ink-soft);border-radius:9px;font-family:'Rajdhani';font-weight:600;font-size:11px;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.filters button.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 4px 12px rgba(255,106,0,.2);}
+
+/* ═════════════ RARITY-TIERED CARDS ═════════════ */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1 1 0;align-content:start;}
+.pcard{
+  background:linear-gradient(165deg,var(--elevated) 0%,var(--panel) 100%);
+  border-radius:12px;padding:8px 7px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative;overflow:hidden;border:1px solid var(--line);transition:transform .12s;
+}
+.pcard:active{transform:scale(.94);}
+.pcard::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 50% 0%,rgba(255,106,0,.06),transparent 70%);pointer-events:none;}
+.pcard .ovr{font-family:'Teko';font-weight:700;font-size:24px;line-height:.9;position:relative;z-index:2;}
+.pcard .sil{color:var(--ink);opacity:.4;width:28px;height:28px;position:relative;z-index:2;}
+.pcard .nm{font-family:'Teko';font-weight:600;font-size:12px;color:var(--ink);line-height:.95;letter-spacing:.3px;text-align:center;position:relative;z-index:2;}
+.pcard .role{font-size:8px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink-soft);position:relative;z-index:2;}
+.pcard .pwr{display:flex;align-items:center;gap:2px;font-size:8px;font-weight:600;color:var(--ink-soft);position:relative;z-index:2;}
+.pcard .pwr svg{width:9px;height:9px;}
+
+/* COMMON — simple, muted */
+.pcard.r-common{border-color:var(--line);opacity:.85;}
+.pcard.r-common .ovr{color:var(--r-common);}
+.pcard.r-common::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--r-common),transparent);opacity:.3;}
+.pcard.r-common .tag{position:absolute;top:5px;right:5px;font-size:7px;font-weight:700;padding:2px 4px;border-radius:4px;letter-spacing:.3px;z-index:3;color:var(--r-common);background:var(--elevated);}
+
+/* RARE — blue glow */
+.pcard.r-rare{border-color:rgba(59,130,246,.3);box-shadow:0 0 0 1px rgba(59,130,246,.15),0 4px 12px rgba(59,130,246,.08);}
+.pcard.r-rare .ovr{color:var(--r-rare);text-shadow:0 0 12px rgba(59,130,246,.3);}
+.pcard.r-rare::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--r-rare),transparent);opacity:.6;}
+.pcard.r-rare .tag{position:absolute;top:5px;right:5px;font-size:7px;font-weight:700;padding:2px 4px;border-radius:4px;letter-spacing:.3px;z-index:3;color:var(--r-rare);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);}
+
+/* EPIC — purple particles */
+.pcard.r-epic{border-color:rgba(168,85,247,.3);box-shadow:0 0 0 1px rgba(168,85,247,.15),0 4px 12px rgba(168,85,247,.1);}
+.pcard.r-epic .ovr{color:var(--r-epic);text-shadow:0 0 12px rgba(168,85,247,.3);}
+.pcard.r-epic::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--r-epic),transparent);opacity:.7;animation:rarity-pulse 2.5s ease-in-out infinite;}
+.pcard.r-epic::after{background:radial-gradient(60% 40% at 50% 0%,rgba(168,85,247,.1),transparent 70%);}
+.pcard.r-epic .tag{position:absolute;top:5px;right:5px;font-size:7px;font-weight:700;padding:2px 4px;border-radius:4px;letter-spacing:.3px;z-index:3;color:var(--r-epic);background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);}
+
+/* LEGENDARY — gold lighting */
+.pcard.r-legendary{border-color:rgba(250,204,21,.4);box-shadow:0 0 0 1px rgba(250,204,21,.2),0 4px 16px rgba(250,204,21,.1);}
+.pcard.r-legendary .ovr{color:var(--r-legendary);text-shadow:0 0 16px rgba(250,204,21,.4);}
+.pcard.r-legendary::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--r-legendary),transparent);opacity:.8;animation:rarity-pulse 2.5s ease-in-out infinite;}
+.pcard.r-legendary::after{background:radial-gradient(60% 40% at 50% 0%,rgba(250,204,21,.12),transparent 70%);}
+.pcard.r-legendary .tag{position:absolute;top:5px;right:5px;font-size:7px;font-weight:700;padding:2px 4px;border-radius:4px;letter-spacing:.3px;z-index:3;color:var(--r-legendary);background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);}
+
+/* MYTHIC — animated border, moving background */
+.pcard.r-mythic{border-color:var(--r-mythic);box-shadow:0 0 0 1px var(--r-mythic),0 4px 20px rgba(244,63,94,.15);animation:mythic-border 3s ease-in-out infinite;}
+@keyframes mythic-border{0%,100%{box-shadow:0 0 0 1px var(--r-mythic),0 4px 20px rgba(244,63,94,.15);}50%{box-shadow:0 0 0 2px var(--r-mythic),0 8px 30px rgba(244,63,94,.25);}}
+@media (prefers-reduced-motion:reduce){.pcard.r-mythic{animation:none;}}
+.pcard.r-mythic .ovr{color:var(--r-mythic);text-shadow:0 0 16px rgba(244,63,94,.4);}
+.pcard.r-mythic::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--r-mythic),transparent);opacity:1;animation:rarity-pulse 1.5s ease-in-out infinite;}
+.pcard.r-mythic::after{background:linear-gradient(120deg,rgba(244,63,94,.08),rgba(168,85,247,.08),rgba(244,63,94,.08));background-size:200% 200%;animation:mythic-bg 4s ease infinite;}
+@keyframes mythic-bg{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+@media (prefers-reduced-motion:reduce){.pcard.r-mythic::after{animation:none;}}
+.pcard.r-mythic .tag{position:absolute;top:5px;right:5px;font-size:7px;font-weight:700;padding:2px 4px;border-radius:4px;letter-spacing:.3px;z-index:3;color:#fff;background:var(--r-mythic);}
+
+@keyframes rarity-pulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+@media (prefers-reduced-motion:reduce){.pcard.r-epic::before,.pcard.r-legendary::before,.pcard.r-mythic::before{animation:none;}}
+
+/* Captain badge */
+.pcard.cap{border-color:var(--accent);}
+.pcard .cap-badge{position:absolute;top:5px;left:5px;width:16px;height:16px;display:grid;place-items:center;background:var(--accent);border-radius:5px;z-index:3;box-shadow:0 0 6px rgba(255,106,0,.3);}
+.pcard .cap-badge svg{width:10px;height:10px;color:#fff;}
+
+/* CTA */
+.cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;border:none;cursor:pointer;background:var(--hero-cta);color:#fff;border-radius:12px;font-family:'Teko';font-weight:700;font-size:21px;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 8px 24px -8px rgba(255,106,0,.5),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .08s;flex:0 0 auto;position:relative;overflow:hidden;}
+.cta:active{transform:translateY(1px) scale(.99);}
+.cta::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:cta-shine 3s ease-in-out infinite;}
+@keyframes cta-shine{0%,100%{transform:translateX(-100%);}50%{transform:translateX(100%);}}
+@media (prefers-reduced-motion:reduce){.cta::before{animation:none;opacity:0;}}
+.cta svg{width:19px;height:19px;position:relative;z-index:2;}
+.cta>span{position:relative;z-index:2;}
+.cta-sub{font-size:10px;font-weight:600;letter-spacing:1px;opacity:.85;font-family:'Rajdhani';text-transform:uppercase;margin-top:1px;}
+
+.nav{position:absolute;bottom:0;left:0;right:0;z-index:40;background:linear-gradient(180deg,rgba(15,23,42,.85) 0%,rgba(15,23,42,.97) 50%);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--accent-line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px 8px;}
+.nav::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--accent-line) 50%,transparent 90%);}
+.nav button{background:none;border:none;cursor:pointer;color:var(--ink-soft);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'Rajdhani';font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;min-height:40px;justify-content:center;transition:transform .15s;position:relative;}
+.nav button:active{transform:scale(.85);}
+.nav button svg{width:20px;height:20px;transition:transform .2s;}
+.nav button.active{color:var(--accent);}
+.nav button.active svg{filter:drop-shadow(0 0 6px var(--accent));transform:translateY(-2px);}
+.nav button.active::after{content:"";position:absolute;bottom:0;width:22px;height:2px;background:var(--accent);border-radius:2px 2px 0 0;box-shadow:0 0 8px var(--accent);animation:nav-slide .3s ease;}
+@keyframes nav-slide{from{width:0;}to{width:22px;}}
+@media (prefers-reduced-motion:reduce){.nav button.active svg{transform:none;}.nav button.active::after{animation:none;}}
+
+.tog{position:absolute;top:6px;right:6px;z-index:60;display:flex;gap:5px;}
+.tog button{font-family:'Rajdhani';font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border:1px solid var(--line);background:rgba(15,23,42,.8);color:var(--ink);padding:5px 8px;border-radius:7px;cursor:pointer;min-height:26px;backdrop-filter:blur(8px);}
+.tog button.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.scroll>*{opacity:0;transform:translateY(12px) scale(.98);animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards;}
+.scroll>*:nth-child(1){animation-delay:.1s;}.scroll>*:nth-child(2){animation-delay:.18s;}.scroll>*:nth-child(3){animation-delay:.26s;}.scroll>*:nth-child(4){animation-delay:.34s;}
+@keyframes rise{to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.scroll>*{opacity:1;transform:none;animation:none;}}
+</style>
+</head>
+<body>
+
+<div class="atmosphere"><div class="atm-glow"></div><div class="atm-vignette"></div><div class="beam"></div><div class="beam"></div><div class="beam"></div></div>
+<div class="particles"><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div><div class="p"></div></div>
+
+<div class="tog"><button id="t-theme" onclick="toggleTheme()">Light</button><button id="t-mor" onclick="toggleMor()">Corrupt</button></div>
+
+<header class="bcast">
+  <div style="display:flex;align-items:center;gap:9px;">
+    <span class="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></span>
+    <div><div class="bcast-title">Squad</div><div class="bcast-sub"><span class="live-dot"></span>Mumbai Royals · 16 Players</div></div>
+  </div>
+  <span class="cur"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--highlight)"><circle cx="8" cy="8" r="6"/><path d="M8 4v8M6 6h3a1.5 1.5 0 010 3H6.5"/></svg><span>2,84,500</span></span>
+</header>
+
+<main class="scroll">
+
+  <section class="summary">
+    <div class="sum-row">
+      <div class="s"><div class="n">87.4</div><div class="l">Squad OVR</div></div>
+      <div class="s"><div class="n">78%</div><div class="l">Chemistry</div></div>
+      <div class="s"><div class="n">16/16</div><div class="l">Roster</div></div>
+    </div>
+    <div class="chem">
+      <div class="chem-l"><span>Team Chemistry</span><b>78 / 100</b></div>
+      <div class="chem-bar"><div class="chem-fill"></div></div>
+    </div>
+  </section>
+
+  <div class="filters">
+    <button class="active">All</button>
+    <button>Batsmen</button>
+    <button>Bowlers</button>
+    <button>All-rounders</button>
+    <button>Keepers</button>
+  </div>
+
+  <section class="grid">
+    <!-- Mythic Captain -->
+    <div class="pcard r-mythic cap">
+      <span class="cap-badge"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l3 3 3-3M6 6v3"/></svg></span>
+      <span class="tag">MYTHIC</span>
+      <div class="ovr">91</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>
+      <div class="nm">V. SHARMA</div>
+      <div class="role">BAT · C</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>94</div>
+    </div>
+    <!-- Legendary -->
+    <div class="pcard r-legendary">
+      <span class="tag">LEGEND</span>
+      <div class="ovr">88</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>
+      <div class="nm">R. KHAN</div>
+      <div class="role">BAT</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>89</div>
+    </div>
+    <!-- Epic -->
+    <div class="pcard r-epic">
+      <span class="tag">EPIC</span>
+      <div class="ovr">84</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>
+      <div class="nm">A. PATEL</div>
+      <div class="role">AR</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>82</div>
+    </div>
+    <!-- Epic bowler -->
+    <div class="pcard r-epic">
+      <span class="tag">EPIC</span>
+      <div class="ovr">82</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3a9 9 0 109 9"/><path d="M12 3v9h9"/></svg>
+      <div class="nm">S. SINGH</div>
+      <div class="role">BOWL</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>80</div>
+    </div>
+    <!-- Legendary keeper -->
+    <div class="pcard r-legendary">
+      <span class="tag">LEGEND</span>
+      <div class="ovr">86</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>
+      <div class="nm">M. REDDY</div>
+      <div class="role">WK</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>85</div>
+    </div>
+    <!-- Rare -->
+    <div class="pcard r-rare">
+      <span class="tag">RARE</span>
+      <div class="ovr">79</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3a9 9 0 109 9"/><path d="M12 3v9h9"/></svg>
+      <div class="nm">J. VERMA</div>
+      <div class="role">BOWL</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>77</div>
+    </div>
+    <!-- Rare -->
+    <div class="pcard r-rare">
+      <span class="tag">RARE</span>
+      <div class="ovr">75</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>
+      <div class="nm">K. NAIR</div>
+      <div class="role">BAT</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>72</div>
+    </div>
+    <!-- Common -->
+    <div class="pcard r-common">
+      <span class="tag">COMMON</span>
+      <div class="ovr">73</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3a9 9 0 109 9"/><path d="M12 3v9h9"/></svg>
+      <div class="nm">D. JOSHI</div>
+      <div class="role">BOWL</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>70</div>
+    </div>
+    <!-- Common -->
+    <div class="pcard r-common">
+      <span class="tag">COMMON</span>
+      <div class="ovr">68</div>
+      <svg class="sil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg>
+      <div class="nm">T. ALI</div>
+      <div class="role">BAT</div>
+      <div class="pwr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l1.5 3.5L11 5l-2.5 2.5L9 11 6 9 3 11l.5-3.5L1 5l3.5-.5z"/></svg>65</div>
+    </div>
+  </section>
+
+  <button class="cta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>
+    <span>GO TO AUCTION<span class="cta-sub">Fill 2 empty slots</span></span>
+  </button>
+
+</main>
+
+<nav class="nav">
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11l8-7 8 7v9H4z"/><path d="M9 20v-6h6v6"/></svg>Hub</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>Auction</button>
+  <button class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M9 6V4h6v2"/></svg>Squad</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Match</button>
+  <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M9 11l2 2 4-4"/></svg>Deals</button>
+</nav>
+
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';document.getElementById('t-theme').classList.toggle('on',h.dataset.theme==='light');document.getElementById('t-theme').textContent=h.dataset.theme==='light'?'Dark':'Light';}
+function toggleMor(){const h=document.documentElement;h.dataset.morality=h.dataset.morality==='clean'?'corrupt':'clean';document.getElementById('t-mor').classList.toggle('on',h.dataset.morality==='corrupt');document.getElementById('t-mor').textContent=h.dataset.morality==='corrupt'?'Clean':'Corrupt';}
+</script>
+</body>
+</html>
