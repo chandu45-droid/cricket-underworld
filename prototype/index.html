@@ -871,10 +871,17 @@ html[data-theme="light"] .auction-purse-zone .purse{
    ================================================================ */
 .match-pitch-bg{position:relative;margin:-12px -13px 0;padding:20px 16px 18px;background:linear-gradient(180deg,rgba(34,212,126,0.03) 0%,transparent 60%);border-bottom:1px solid rgba(34,212,126,0.08);margin-bottom:14px;overflow:hidden;min-height:200px}
 .match-pitch-bg::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(34,212,126,0.15),transparent)}
+/* WIDER SCOPE (3rd pass, Match): broadcast-frame top accent line on the pitch card,
+   real-data source: none, pure decoration matching mockup's scoreboard weight */
+.match-pitch-bg::before{content:'';position:absolute;top:0;left:14%;right:14%;height:1px;background:linear-gradient(90deg,transparent,rgba(240,200,80,0.35),transparent);z-index:1}
 #match-canvas{image-rendering:auto}
 #fielder-dots{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;pointer-events:none;z-index:2}
 
 .match-scoreboard{text-align:center;position:relative;z-index:1}
+/* WIDER SCOPE: radial glow behind the score digits -- broadcast-scoreboard weight,
+   sits behind .match-scoreboard's own text via negative z-index within its own
+   stacking context (position:relative + z-index:1 above establishes that context) */
+.match-scoreboard::before{content:'';position:absolute;top:52%;left:50%;transform:translate(-50%,-50%);width:260px;height:130px;background:radial-gradient(ellipse,rgba(var(--hl-rgb),0.10) 0%,transparent 72%);z-index:-1;pointer-events:none}
 .you-status{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:5px 18px;clip-path:var(--clip-btn-sm);display:inline-block;margin-bottom:10px;animation:statusPulse 2s ease-in-out infinite}
 .you-status.batting{background:rgba(34,212,126,0.15);color:var(--green-bright);box-shadow:0 0 12px rgba(34,212,126,0.1)}
 .you-status.bowling{background:rgba(59,130,246,0.15);color:var(--blue-bright);box-shadow:0 0 12px rgba(59,130,246,0.1)}
@@ -1030,6 +1037,11 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .score-char{display:inline-block}
 .score-char.roll{animation:digitRoll 0.35s ease-out both}
 .match-scoreboard .overs{font-size:12px;color:var(--slip);margin-top:6px;letter-spacing:1.5px;font-family:var(--font-d);font-weight:600}
+/* WIDER SCOPE: chase-context line, 2nd innings only. Real-data source: match.target,
+   cRuns, match.ball (120-match.ball for balls remaining) -- same math already used
+   internally for the end-of-over "Need N off M" moment text, now surfaced persistently. */
+.match-scoreboard .chase-line{margin-top:8px;font-size:12px;color:var(--white-60);letter-spacing:0.5px;font-family:var(--font-b);font-weight:600}
+.match-scoreboard .chase-line strong{color:var(--gold-bright);font-family:var(--font-d);font-weight:700}
 
 .match-phases{display:flex;align-items:center;gap:3px;margin-bottom:16px;padding:0}
 .match-phase{flex:1;text-align:center;padding:14px 8px;position:relative;background:var(--glass-bg);border:var(--glass-border);transition:all 0.3s var(--spring)}
@@ -1044,16 +1056,28 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .match-phase.completed .phase-fill{width:100%!important;background:var(--gold)}
 .match-phase.completed .phase-name{color:var(--gold-bright);text-shadow:0 0 8px rgba(240,200,80,0.2)}
 
-.momentum-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;background:var(--glass-bg);border-radius:3px;border:var(--glass-border);box-shadow:var(--glass-shadow)}
+/* WIDER SCOPE: momentum-bar given more card weight/prominence (bigger padding, top
+   accent, header row with a real-data-derived sublabel) -- semantics UNCHANGED, still
+   the same two-team tug-of-war bar driven by match.momentum, no second display added. */
+.momentum-bar{display:block;margin-bottom:16px;padding:14px 16px;background:var(--glass-bg);border-radius:3px;border:var(--glass-border);box-shadow:var(--glass-shadow);border-top:2px solid rgba(240,200,80,0.16)}
+.momentum-bar .mb-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.momentum-bar .mb-title{font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--slip)}
+.momentum-bar .mb-sublabel{font-family:var(--font-d);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--slip)}
+.momentum-bar .mb-sublabel.surging{color:var(--gold-bright);text-shadow:0 0 10px rgba(240,200,80,0.3)}
+.momentum-bar .mb-sublabel.slipping{color:var(--blood);text-shadow:0 0 10px rgba(220,38,38,0.25)}
+.momentum-bar .mb-track{display:flex;align-items:center;gap:10px}
 .momentum-bar .team-label{font-family:var(--font-d);font-size:11px;font-weight:700;min-width:40px;letter-spacing:1px;text-transform:uppercase}
 .momentum-bar .team-label.you{text-align:right;color:var(--gold-bright);text-shadow:0 0 10px rgba(240,200,80,0.2)}
 .momentum-bar .team-label.opp{text-align:left;color:var(--blood);text-shadow:0 0 10px rgba(220,38,38,0.2)}
-.momentum-bar .bar-container{flex:1;height:6px;background:rgba(136,150,176,0.06);border-radius:2px;overflow:hidden;position:relative}
+.momentum-bar .bar-container{flex:1;height:8px;background:rgba(136,150,176,0.06);border-radius:2px;overflow:hidden;position:relative}
 .momentum-bar .bar-fill-left{position:absolute;right:50%;height:100%;background:linear-gradient(270deg,var(--gold-bright),var(--gold));border-radius:2px;transition:width 0.5s var(--spring);box-shadow:0 0 8px rgba(240,200,80,0.3)}
 .momentum-bar .bar-fill-right{position:absolute;left:50%;height:100%;background:linear-gradient(90deg,var(--blood),var(--crimson));border-radius:2px;transition:width 0.5s var(--spring);box-shadow:0 0 8px rgba(220,38,38,0.3)}
-.momentum-bar .bar-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:2px;height:12px;background:var(--white-20);border-radius:1px;z-index:1}
+.momentum-bar .bar-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:2px;height:14px;background:var(--white-20);border-radius:1px;z-index:1}
 
-.match-moments{margin-bottom:16px;max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(var(--hl-rgb),0.06) transparent}
+/* WIDER SCOPE: "Key Moments" feed given first-class card framing -- content/logic
+   (addMoment(), 10-item cap, commentary generation) untouched, container only. */
+.match-feed-card{border-top:2px solid rgba(240,200,80,0.16)}
+.match-moments{margin-bottom:16px;max-height:230px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(var(--hl-rgb),0.06) transparent}
 .match-moment{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(var(--hl-rgb),0.03);animation:fadeSlideUp 0.3s var(--spring)}
 .match-moment .moment-icon{width:30px;height:30px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-family:var(--font-d);font-weight:700}
 .match-moment .moment-icon.runs{background:rgba(34,212,126,0.1);color:var(--green-bright);border:1px solid rgba(34,212,126,0.12)}
@@ -1075,7 +1099,11 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .bbs-name{font-family:var(--font-d);font-size:15px;font-weight:700;letter-spacing:0.5px}
 .bbs-stat{font-size:11px;color:var(--slip);margin-top:2px;font-family:var(--font-b)}
 .bbs-vs{font-family:var(--font-d);font-size:10px;color:var(--white-20);letter-spacing:3px;text-transform:uppercase}
-.match-tactics{display:flex;gap:6px;margin-bottom:14px;align-items:center}
+/* WIDER SCOPE: tactics grid given card framing + a header label for hierarchy --
+   button ids, click mechanism, and the 5 existing tactic options are untouched. */
+.tactics-card{padding:12px 12px 10px;margin-bottom:14px}
+.tactics-card .tc-label{font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--slip);margin-bottom:10px}
+.match-tactics{display:flex;gap:6px;margin-bottom:0;align-items:center}
 .tactic-btn{flex:1;text-align:center;padding:10px 4px;font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;border:1px solid rgba(var(--hl-rgb),0.06);color:var(--slip);cursor:pointer;transition:all 0.2s var(--spring);background:var(--glass-bg)}
 .tactic-btn.active{border-color:rgba(34,212,126,0.35);color:var(--green-bright);background:rgba(34,212,126,0.1);box-shadow:0 0 16px rgba(34,212,126,0.12),inset 0 0 12px rgba(34,212,126,0.04)}
 .tactic-btn:active{transform:scale(0.94)}
@@ -3370,6 +3398,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           </div>
           <div class="score" id="match-score">0/0</div>
           <div class="overs" id="match-overs">0.0 overs</div>
+          <div class="chase-line" id="chase-line" style="display:none"></div>
         </div>
       </div>
 
@@ -3382,13 +3411,16 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       </div>
 
       <div class="momentum-bar" id="momentum-bar">
-        <div class="team-label you">YOU</div>
-        <div class="bar-container">
-          <div class="bar-fill-left" id="momentum-you" style="width:0%"></div>
-          <div class="bar-center"></div>
-          <div class="bar-fill-right" id="momentum-opp" style="width:0%"></div>
+        <div class="mb-head"><span class="mb-title">Momentum</span><span class="mb-sublabel steady" id="momentum-sublabel">Steady</span></div>
+        <div class="mb-track">
+          <div class="team-label you">YOU</div>
+          <div class="bar-container">
+            <div class="bar-fill-left" id="momentum-you" style="width:0%"></div>
+            <div class="bar-center"></div>
+            <div class="bar-fill-right" id="momentum-opp" style="width:0%"></div>
+          </div>
+          <div class="team-label opp">OPP</div>
         </div>
-        <div class="team-label opp">OPP</div>
       </div>
 
       <div class="batter-bowler-strip" id="bb-strip">
@@ -3397,13 +3429,16 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="bbs-player"><div><div class="bbs-name" id="bbs-bowler">-</div><div class="bbs-stat" id="bbs-bwl-stat">-</div></div><div class="bbs-tag bwl">BWL</div></div>
       </div>
       <div id="weather-banner" class="weather-banner" style="display:none"></div>
-      <div class="match-tactics" id="match-tactics">
-        <div class="tactic-btn" data-strat="aggressive" id="tac-aggro">AGGRO</div>
-        <div class="tactic-btn active" data-strat="balanced" id="tac-balanced">BALANCED</div>
-        <div class="tactic-btn" data-strat="defensive" id="tac-defense">DEFENSE</div>
-        <div class="tactic-boost" id="boost-btn">BOOST</div>
-        <div class="tactic-btn drs" id="drs-btn">DRS</div>
-        <div class="tactic-btn impact" id="impact-btn" style="display:none">IMPACT</div>
+      <div class="tactics-card cu-card">
+        <div class="tc-label">Match Tactics</div>
+        <div class="match-tactics" id="match-tactics">
+          <div class="tactic-btn" data-strat="aggressive" id="tac-aggro">AGGRO</div>
+          <div class="tactic-btn active" data-strat="balanced" id="tac-balanced">BALANCED</div>
+          <div class="tactic-btn" data-strat="defensive" id="tac-defense">DEFENSE</div>
+          <div class="tactic-boost" id="boost-btn">BOOST</div>
+          <div class="tactic-btn drs" id="drs-btn">DRS</div>
+          <div class="tactic-btn impact" id="impact-btn" style="display:none">IMPACT</div>
+        </div>
       </div>
       <div class="bowler-picker cu-card" id="bowler-picker" style="display:none;padding:14px">
         <div class="bp-title">Choose Bowler<span class="accent-line"></span></div>
@@ -3430,7 +3465,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
       <div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>Key Moments</span></div></div>
-      <div class="cu-card" style="padding:13px"><div id="match-moments" class="match-moments"></div></div>
+      <div class="cu-card match-feed-card" style="padding:13px"><div id="match-moments" class="match-moments"></div></div>
       <div class="btn btn-outline full mt-12" id="skip-btn">Skip to Result</div>
     </div>
 
@@ -7983,6 +8018,15 @@ function updateMomentum(runs, wkt, isYou) {
   var oppW = Math.max(0, 50 - match.momentum);
   $('momentum-you').style.width = youW + '%';
   $('momentum-opp').style.width = oppW + '%';
+  // WIDER SCOPE: sublabel derived from the real match.momentum value (simple threshold),
+  // no new state -- "you"-relative since momentum > 50 always favours the you side.
+  var mbSub = $('momentum-sublabel');
+  if (mbSub) {
+    var subLabel = match.momentum > 65 ? 'Surging' : match.momentum < 35 ? 'Slipping' : 'Steady';
+    var subCls = match.momentum > 65 ? 'surging' : match.momentum < 35 ? 'slipping' : 'steady';
+    mbSub.textContent = subLabel;
+    mbSub.className = 'mb-sublabel ' + subCls;
+  }
 }
 
 function formMod(form) { return 0.6 + form * 0.008; }
@@ -8882,9 +8926,11 @@ function startMatch() {
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : GS.teamName;
   _lastScoreText = ''; updateMatchScore(0, 0);
   $('match-overs').textContent = '0.0 overs';
+  $('chase-line').style.display = 'none';
   $('match-moments').innerHTML = '';
   $('momentum-you').style.width = '0%';
   $('momentum-opp').style.width = '0%';
+  $('momentum-sublabel').textContent = 'Steady'; $('momentum-sublabel').className = 'mb-sublabel steady';
   var phaseIds = ['pp','mid','death'];
   for (var i = 0; i < 3; i++) { $(phaseIds[i] + '-score').textContent = '-'; $(phaseIds[i] + '-fill').style.width = '0%'; $('phase-' + phaseIds[i]).className = 'match-phase' + (i === 0 ? ' active' : ''); }
   show('skip-btn');
@@ -8992,6 +9038,23 @@ function simBall() {
   if (ballInOver === 5) displayOvers = (over + 1) + '.0';
   updateMatchScore(cRuns, cWkts);
   $('match-overs').textContent = displayOvers + ' overs';
+  // WIDER SCOPE: persistent chase-context line, 2nd innings only. Real-data source:
+  // match.target + cRuns + match.ball -- same "Need N off M" math already used by the
+  // end-of-over moment text (see below), now also surfaced live every ball.
+  var chaseEl = $('chase-line');
+  if (chaseEl) {
+    if (match.innings === 2 && match.target > 0) {
+      var chaseNeed = match.target + 1 - cRuns, chaseBalls = 120 - match.ball;
+      if (chaseNeed > 0 && chaseBalls > 0) {
+        chaseEl.style.display = 'block';
+        chaseEl.innerHTML = 'Need <strong>' + chaseNeed + '</strong> off <strong>' + chaseBalls + '</strong> balls';
+      } else {
+        chaseEl.style.display = 'none';
+      }
+    } else {
+      chaseEl.style.display = 'none';
+    }
+  }
   var phaseIds = ['pp','mid','death'];
   if (phase !== match.phase) {
     $('phase-' + phaseIds[match.phase]).className = 'match-phase completed';
@@ -9346,8 +9409,17 @@ function switchInnings() {
   $('bowling-team').textContent = match.batting === 'you' ? match.opponent.name : GS.teamName;
   _lastScoreText = ''; updateMatchScore(0, 0);
   $('match-overs').textContent = '0.0 overs';
+  // WIDER SCOPE: chase-line is real from ball 1 of the 2nd innings (target already set above).
+  // Guard matches the existing "target > 0" convention used by the end-of-over moment text.
+  if (match.target > 0) {
+    $('chase-line').style.display = 'block';
+    $('chase-line').innerHTML = 'Need <strong>' + (match.target + 1) + '</strong> off <strong>120</strong> balls';
+  } else {
+    $('chase-line').style.display = 'none';
+  }
   $('momentum-you').style.width = '0%';
   $('momentum-opp').style.width = '0%';
+  $('momentum-sublabel').textContent = 'Steady'; $('momentum-sublabel').className = 'mb-sublabel steady';
   var phaseIds = ['pp','mid','death'];
   for (var i = 0; i < 3; i++) { $(phaseIds[i] + '-score').textContent = '-'; $(phaseIds[i] + '-fill').style.width = '0%'; $('phase-' + phaseIds[i]).className = 'match-phase' + (i===0?' active':''); }
   updateFieldRestriction(0);

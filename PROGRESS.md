@@ -51,6 +51,82 @@
 > `pack-opening-content`, `odds-overlay`, `store-odds-link`) across `tests/*.spec.js` — all present,
 > all still map to markup that was never opened for edit, so none can have broken.
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — now carries the WIDER-SCOPE passes
+> Founder asked whether the wider-composition work is live on Netlify too — it was not; GitHub Pages
+> auto-deploys on every push, but `_deploy-anon/` only updates when manually re-synced + re-dropped.
+> - Refreshed `index.html` (775,665 → 798,772 bytes) to pick up the three wider-scope passes landed so
+>   far: Hub (`0622743`), Squad (`1bad30e`), Match (`4031f6a`/`3cc402c`). Other staged assets confirmed
+>   byte-identical.
+> - Re-verified zero personal-identity strings in the copy.
+> - **Auction and Pack wider-scope passes are still running** (separate worktrees) — this snapshot does
+>   NOT yet include them. Another re-sync will be needed once they land.
+> - **NOT done (founder step, ~2 min):** re-drag `_deploy-anon/` onto Netlify Drop.
+
+> ### 🖼️ WIDER-SCOPE COMPOSITION PASS — Match (2026-08-02, third pass under this label, needs testing)
+> Third of the widened-scope cinematic passes (after Hub and Squad, run concurrently in separate
+> worktrees) — founder confirmed his mockup zip is byte-identical to `design-lab/bolt-round4/` and
+> that the live game's narrow passes never ported the mockup's actual layout density/hierarchy for
+> Match. Scope for this pass: **reshape HOW existing `match`/`GS` data is displayed** (layout, density,
+> visual hierarchy, card treatment) — no new persisted state, no new mechanics. The narrow Match pass's
+> six/four/wicket text-slam (`8951416`) and the `matchMesh` background are untouched/not duplicated.
+>
+> **Restyled (real-data sources, no new state):**
+> - **Scoreboard card** (`.match-pitch-bg` / `.match-scoreboard`) — added a top gold accent line and a
+>   radial glow behind the score digits for broadcast-scoreboard visual weight. `#match-score
+>   .score-char` digit-roll structure (test-referenced, `smoke.spec.js:79`) is completely untouched —
+>   only the surrounding container got new `::before` pseudo-elements.
+> - **Momentum bar** (`.momentum-bar`) — kept as the same real two-team tug-of-war bar driven by
+>   `match.momentum` (no second/duplicate momentum display added). Given more card weight (bigger
+>   padding, taller bar, gold top accent) plus a new header row with a sublabel ("Surging" >65 /
+>   "Slipping" <35 / "Steady" otherwise) derived from the existing `match.momentum` value via simple
+>   threshold in `updateMomentum()` — no new tracked field.
+> - **"Key Moments" feed** (`#match-moments`) — container given a gold top-accent card treatment
+>   (`.match-feed-card`) and a slightly taller viewport (200px→230px). `addMoment()`, the 10-item cap,
+>   and all commentary generation logic are byte-for-byte untouched — restyle only.
+> - **Match Tactics grid** (`.match-tactics`) — wrapped in a `cu-card` (`.tactics-card`) with a
+>   "MATCH TACTICS" header label for hierarchy. All 5 button ids (`tac-aggro`/`tac-balanced`/
+>   `tac-defense`/`boost-btn`/`drs-btn`/`impact-btn`) and the click-to-activate mechanism are untouched
+>   — `#tac-aggro`/`.active` (test-referenced, `comprehensive.spec.js:515-516`) confirmed intact.
+>
+> **New, real-data-backed addition:**
+> - **Chase-context line** ("Need N off M balls") under the score, 2nd innings only. Real-data source:
+>   `match.target`, `cRuns`, and `match.ball` (`120 - match.ball` for balls remaining) — the exact same
+>   math the game already computes internally for the end-of-over "Need N off M" moment text
+>   (`simBall()`, ballInOver===5 block). Updated every ball in `simBall()`, initialized at 2nd-innings
+>   start in `switchInnings()`, hidden by default / reset in `startMatch()`. Gated on `match.target > 0`
+>   to match the existing convention used by the pre-existing over-summary code (handles the
+>   all-out-for-0 edge case the same way the codebase already does).
+>
+> **Deliberately excluded (flagged, not built):**
+> - **Win-probability bar** — no validated win-probability is tracked anywhere; the internal sim math
+>   produces per-ball outcome-weighting ratios for RNG purposes only. Presenting that as a stable "Win
+>   Prob 64%" would misrepresent an internal RNG knob as a real stat. Excluded entirely.
+> - **"Pressure" meter** — no numeric "pressure" stat exists anywhere in the codebase (confirmed via
+>   grep — it only appears as flavor-text/CSS class names). Excluded entirely, not even relabeled.
+> - **Phase/over-progress pip strip** — the research brief for this pass suggested building one from
+>   `match.phase`/`match.phaseScores`, but on inspection the game **already has** a fully-built, richer
+>   version of exactly this: `.match-phases` (`#phase-pp`/`#phase-mid`/`#phase-death`, Power/Middle/
+>   Death with live scores and fill bars, ~L3294-3297 markup, updated throughout `simBall()`). Building
+>   a second one would have been a confusing duplicate — left untouched, not restyled further since it
+>   already carries strong visual weight (active/completed states, glass-card framing).
+> - **Ticker marquee** — same reasoning as the phase strip: the existing "Key Moments" feed is already
+>   richer than a single-line marquee (typed icons, entrance animations, chase-aware commentary). Only
+>   its container got more visual weight; no marquee was added.
+>
+> **Thermal check:** `infinite` 59→59, `backdrop-filter` 22→22, `<canvas>` 2→2 — zero new animations,
+> this pass is restyling/reframing already-live real data plus one pure-CSS decorative line/glow (no
+> `infinite` keyframe), consistent with the S24 thermal-budget case law.
+>
+> **Colors/tokens:** every addition reuses existing tokens only (`--gold-bright`, `--hl-rgb`, `--blood`,
+> `--slip`, `--white-60`, `--white-20`) — no literal mockup orange/slate values. Angular design rule
+> respected — no rounded corners introduced; `.tactics-card` inherits `cu-card`'s existing chamfered
+> `clip-path`.
+>
+> Implementation: `prototype/index.html` only (CSS + markup + `simBall()`/`updateMomentum()`/
+> `startMatch()`/`switchInnings()` JS). Zero new `GS`/`match` fields, zero save-format changes, zero
+> navigation changes. Not tested in browser (founder-gated) — verified by re-reading every edited
+> region for balanced tags/braces and re-grepping all match-related test selectors.
+
 > ### 🏛️ WIDER SCOPE — Hub layout/density pass shipped (2026-08-02, needs testing)
 > **First pass under the founder's "update both" scope-widening decision.** The 5 prior cinematic
 > passes (Auction/Pack/Hub/Squad/Match) were deliberately narrow — small additive atmosphere layers
