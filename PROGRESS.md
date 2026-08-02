@@ -1,5 +1,63 @@
 # Progress — Cricket Underworld
 
+> ### 🎬 CINEMATIC DIRECTION PASS — Squad shipped (2026-08-02, needs testing)
+> Fourth screen in the direction pass, after Auction (`0d03562`), Pack (`0480e43`), Hub (`3528e59`) — same
+> hard rules: **no logic changes, no removed features, no rewritten systems, no navigation changes, no
+> regressions**, presentation/atmosphere only.
+>
+> **Inventory first, build second.** Unlike Hub, Squad already had most of the design system's "spotlight
+> grading" built: `#squad-screen`'s animated `squadMesh` mesh-gradient background (15s loop, untouched),
+> and a rarity-tiered player-card system (`RARITY_COLORS`, holo-sheen legendary cards, hex `.ovr-badge`)
+> that's already more developed than the design-lab mockup's version — including a mockup-invented
+> "mythic" tier the real game's data doesn't have, correctly never added anywhere. The real gap (confirmed
+> by grep — no beam/particle/light-sweep classes existed near squad) was atmosphere in the header zone,
+> analogous to what Hub's floodlights/embers added there.
+>
+> Design source was `design-lab/bolt-round4/project/public/mockups/squad.html` — read in full for its
+> `.atmosphere`/`.particles` beam-sweep + float-up CSS technique only. **Deliberately NOT ported**: its
+> `.summary` card (Squad OVR/Chemistry/Roster + a chemistry bar — "chemistry" isn't a real game mechanic),
+> its `.filters` row (All/Batsmen/Bowlers/etc — no such filter exists in `updateSquadScreen()`), its 5-tier
+> rarity card grid (incl. the invented "mythic" tier), its CTA button, its orange/slate palette, and its
+> nav chrome. **IA distinction confirmed:** the mockup's big rarity-card grid actually corresponds to this
+> game's `#cards-screen` (a different screen, out of scope), not `#squad-screen` — which is the
+> roster/team-management view using compact `.player-card-mini` rows, untouched here.
+> - **2-3 sweeping light beams** — new `.squad-atmosphere .sq-beam` divs, opacity-oscillating via one
+>   shared `sqBeamSweep` keyframe with `animation-delay` variance per beam (same technique as Hub's
+>   floodlight flicker) — `transform`/`opacity` only.
+> - **3 ambient motes** — `.squad-atmosphere .sq-motes span`, same visual language as Hub's `.hub-embers`
+>   (gold dot, `box-shadow` glow, opacity+`translateY` drift) on one shared `sqMoteDrift` keyframe, for
+>   consistency across screens.
+> - **Structural gotcha handled:** `#squad-screen` is both the screen wrapper AND its own scroll container
+>   (`.screen{position:absolute;overflow-y:auto}`), unlike the mockup's separate fixed body + scrolling
+>   `<main>`. So the new atmosphere layer is confined to a `height:200px` box covering just the header zone
+>   (`.squad-header` + `.team-stats-row` + `.squad-morale-bar`) rather than spanning the full screen — it
+>   scrolls away with the rest of the content once the player scrolls the roster list, same as the header
+>   itself, instead of trying to fake a pinned backdrop. `team-stats-row`/`squad-morale-bar` sit on opaque
+>   `.cu-card` panels (`--glass-bg` is an opaque gradient, not translucent), so the beams/motes are only
+>   visually live in the `.squad-header` strip above them — the extra height below is inert by design, not
+>   a bug. `.squad-header` was given `position:relative;z-index:1` (one new declaration) so it paints above
+>   the atmosphere layer despite being declared first in the DOM; `team-stats-row`/`squad-morale-bar`
+>   already sit above it for free via their existing `.cu-card` `position:relative` + later DOM order.
+>
+> **Thermal counts (S24 case law):** `infinite` 57→59 (+2 — `sqBeamSweep`, `sqMoteDrift`, each a single
+> shared keyframe reused across elements via `animation-delay`, not one keyframe per element). well within
+> the low-single-digit budget. `backdrop-filter` 22→22 (+0). `requestAnimationFrame`/`<canvas>` 8→8 (+0,
+> untouched). Every new animation is `opacity`/`transform` only. `--gold-bright` confirmed defined in both
+> `:root` and `html[data-theme="light"]` before use; no new custom properties invented. The existing global
+> `@media (prefers-reduced-motion: reduce)` rule (universal `*,*::before,*::after` selector) automatically
+> covers the new elements — no new per-element overrides added.
+>
+> **Zero JS touched.** Pure CSS (`prototype/index.html` ~L1206-1229) + 5 new static decorative `<div>`s
+> (~L3311-3316), same class of change as the Hub pass. No existing `id` changed, no `updateSquadScreen()`/
+> `renderPlayerMini()` logic touched, no `GS` state read/written, `.player-card-mini` markup/classes
+> untouched (test-referenced: `tests/comprehensive.spec.js:217` counts these elements). Test-referenced
+> `#squad-screen.active` (`comprehensive.spec.js:192,205`, `features-10k.spec.js:440`) — whatever produces
+> that class toggle is untouched (zero JS).
+>
+> **Unseen in browser — testing is founder-gated per project CLAUDE.md.** Verified by reading code only:
+> HTML nesting checked (new `.squad-atmosphere` block closes cleanly, `.squad-header` unaffected), CSS
+> braces balanced, grep counts re-run post-edit.
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED AGAIN (2026-08-02, no game code changed)
 > Founder: "resync the anon demo too" — closes the gap opened by the Hub cinematic pass (`3528e59`:
 > floodlight flicker, crowd band, embers, LED ticker).

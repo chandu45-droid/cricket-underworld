@@ -1202,6 +1202,32 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .squad-role-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--white-06),transparent)}
 #squad-screen .player-card-mini{border-left:3px solid var(--green-bright);margin-bottom:6px}
 #squad-screen .player-card-mini[style*="opacity"]{border-left-color:var(--blood)}
+
+/* Cinematic pass: header-zone atmosphere — 2-3 sweeping light beams + a few
+   drifting motes, confined to the squad-header strip (team-stats-row and
+   squad-morale-bar sit on opaque .cu-card panels, so anything lower is hidden
+   anyway — no need to chase them with extra z-index). #squad-screen is itself
+   the scroll container (position:absolute;overflow-y:auto), so this layer is
+   anchored to its own box and scrolls away with the rest of the content —
+   that's fine, it only needs to read as "this header has atmosphere", not
+   persist as a pinned backdrop. squad-header gets an explicit z-index so it
+   paints above the atmosphere despite being declared first in the DOM;
+   team-stats-row/squad-morale-bar already sit above it for free (position:relative
+   via .cu-card, later in DOM = same auto/0 stacking group, tie broken by tree order). */
+.squad-header{position:relative;z-index:1}
+.squad-atmosphere{position:absolute;top:0;left:0;right:0;height:200px;overflow:hidden;pointer-events:none;z-index:0}
+.squad-atmosphere .sq-beam{position:absolute;top:-10%;width:2px;height:120%;background:linear-gradient(180deg,rgba(255,210,63,0.10),transparent);transform-origin:top center;opacity:0.18;animation:sqBeamSweep 8s ease-in-out infinite}
+.squad-atmosphere .sq-beam:nth-child(1){left:15%;transform:rotate(7deg)}
+.squad-atmosphere .sq-beam:nth-child(2){left:50%;transform:rotate(-5deg);animation-delay:-3s}
+.squad-atmosphere .sq-beam:nth-child(3){left:82%;transform:rotate(9deg);animation-delay:-5.5s}
+@keyframes sqBeamSweep{0%,100%{opacity:0.18}50%{opacity:0.4}}
+.squad-atmosphere .sq-motes{position:absolute;inset:0}
+.squad-atmosphere .sq-motes span{position:absolute;bottom:4%;width:2px;height:2px;border-radius:50%;background:var(--gold-bright);opacity:0;box-shadow:0 0 4px var(--gold-bright);animation:sqMoteDrift 10s ease-in-out infinite}
+.squad-atmosphere .sq-motes span:nth-child(1){left:22%}
+.squad-atmosphere .sq-motes span:nth-child(2){left:58%;width:3px;height:3px;animation-delay:-4s}
+.squad-atmosphere .sq-motes span:nth-child(3){left:80%;animation-delay:-7s}
+@keyframes sqMoteDrift{0%{opacity:0;transform:translateY(0)}12%{opacity:0.45}55%{opacity:0.25}100%{opacity:0;transform:translateY(-70px)}}
+
 #squad-empty{padding:60px 0;display:flex;flex-direction:column;align-items:center}
 #squad-empty .empty-icon{margin-bottom:16px;opacity:0.12}
 #squad-empty .empty-icon svg{width:64px;height:64px;stroke:var(--slip);fill:none;stroke-width:1.2}
@@ -3282,6 +3308,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
     <!-- SQUAD -->
     <div class="screen" id="squad-screen">
+      <div class="squad-atmosphere">
+        <div class="sq-beam"></div>
+        <div class="sq-beam"></div>
+        <div class="sq-beam"></div>
+        <div class="sq-motes"><span></span><span></span><span></span></div>
+      </div>
       <div class="squad-header">
         <div class="cu-ribbon-wrap" style="margin:0"><div class="cu-ribbon"><span>Your Squad</span></div></div>
         <div class="squad-count" id="squad-count">0/15</div>
