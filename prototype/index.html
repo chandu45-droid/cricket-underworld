@@ -1767,6 +1767,15 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 #pack-overlay::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 50% 38%,rgba(240,200,80,0.10) 0%,rgba(240,200,80,0.03) 30%,transparent 65%);pointer-events:none}
 #pack-overlay::after{content:'';position:fixed;left:50%;top:38%;width:140vmax;height:140vmax;margin-left:-70vmax;margin-top:-70vmax;background:conic-gradient(from 0deg,transparent 0deg,rgba(240,200,80,0.05) 12deg,transparent 26deg,transparent 90deg,rgba(240,200,80,0.04) 102deg,transparent 118deg,transparent 180deg,rgba(240,200,80,0.05) 195deg,transparent 210deg,transparent 275deg,rgba(240,200,80,0.04) 288deg,transparent 305deg);animation:packRays 26s linear infinite;pointer-events:none}
 @keyframes packRays{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+/* Anticipation beat: one-shot lighting surge + smoke wisps when the pack opens (founder ask: "lighting changes. smoke.").
+   All animations below are single-run (fill:both, never looping) and gated on .show -- zero cost while the overlay is closed, retriggers each open. */
+#pack-overlay.show::before{animation:packSurge 0.9s ease-out both}
+@keyframes packSurge{0%{opacity:0;transform:scale(0.75)}50%{opacity:1;transform:scale(1.12)}100%{opacity:0.85;transform:scale(1)}}
+.pack-smoke{position:absolute;width:220px;height:220px;left:15%;bottom:8%;border-radius:50%;background:radial-gradient(circle,rgba(240,200,80,0.12),transparent 70%);filter:blur(28px);opacity:0;z-index:0;pointer-events:none}
+.pack-smoke.pack-smoke-2{left:auto;right:12%;bottom:32%;background:radial-gradient(circle,var(--purple-glow),transparent 70%)}
+#pack-overlay.show .pack-smoke{animation:smokeDrift 2.6s ease-out both}
+#pack-overlay.show .pack-smoke.pack-smoke-2{animation:smokeDrift 2.6s ease-out 0.3s both}
+@keyframes smokeDrift{0%{opacity:0;transform:translate(0,0) scale(0.8)}30%{opacity:0.65}100%{opacity:0.22;transform:translate(18px,-26px) scale(1.3)}}
 .pack-title{font-family:var(--font-d);font-size:28px;font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:4px;background:linear-gradient(135deg,#FFE9A8,var(--gold-bright) 40%,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:textReveal 0.7s ease-out both;filter:drop-shadow(0 0 18px rgba(240,200,80,0.25));padding-top:36px}
 .pack-sub{text-align:center;color:var(--slip);font-size:12px;text-transform:uppercase;letter-spacing:2.5px;margin:6px 0 14px}
 .pack-flip-container{position:relative}
@@ -1775,12 +1784,17 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 @keyframes revealRing{0%{opacity:0.9;transform:scale(0.85)}100%{opacity:0;transform:scale(1.25)}}
 .pack-flip-container.revealed .pack-card-front .player-card{box-shadow:0 0 22px var(--rev-glow,rgba(240,200,80,0.25)),var(--elevation-3)}
 .pack-flip-container[data-r="legendary"].revealed{animation:legendarySpot 1.8s ease-out 0.45s}
-@keyframes legendarySpot{0%{filter:brightness(1.9) drop-shadow(0 0 32px rgba(220,38,38,0.65))}100%{filter:none}}
+@keyframes legendarySpot{0%{filter:brightness(1.9) drop-shadow(0 0 32px rgba(220,38,38,0.65));transform:scale(1)}35%{transform:scale(1.14)}100%{filter:none;transform:scale(1)}}
+/* Epic gets its own (smaller) spotlight beat -- previously only legendary had a distinct punch beyond spark count */
+.pack-flip-container[data-r="epic"].revealed{animation:epicSpot 1.4s ease-out 0.45s}
+@keyframes epicSpot{0%{filter:brightness(1.5) drop-shadow(0 0 22px rgba(196,155,26,0.5));transform:scale(1)}35%{transform:scale(1.07)}100%{filter:none;transform:scale(1)}}
 .pack-spark{position:absolute;left:50%;top:50%;width:5px;height:5px;background:var(--rev-color,#F0C850);transform:rotate(45deg);box-shadow:0 0 8px var(--rev-color,#F0C850);pointer-events:none;z-index:3;animation:sparkFly 0.8s ease-out forwards}
 @keyframes sparkFly{0%{opacity:1;transform:translate(0,0) rotate(45deg) scale(1)}100%{opacity:0;transform:translate(var(--sx),var(--sy)) rotate(405deg) scale(0.2)}}
 .pack-card-front::after{content:'NEW';position:absolute;top:8px;left:0;z-index:5;font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:2px;color:#0A0C14;background:linear-gradient(135deg,#FFE9A8,var(--gold-bright));padding:3px 10px;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%);opacity:0;pointer-events:none}
 .pack-flip-inner.flipped .pack-card-front::after{animation:newBadgeIn 0.4s var(--spring-bounce) 0.55s both}
 @keyframes newBadgeIn{0%{opacity:0;transform:translateX(-10px) scale(0.7)}100%{opacity:1;transform:translateX(0) scale(1)}}
+/* Collection-update beat: Collect button settles in after the reveal sequence (reuses existing fadeUp keyframe) */
+#pack-collect-btn{animation:fadeUp 0.5s ease-out 0.3s both}
 
 /* Bowler picker between overs */
 .bowler-picker{margin-bottom:12px;animation:fadeSlideUp 0.3s var(--spring)}
@@ -3312,7 +3326,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 <div class="match-result-overlay" id="match-result"></div>
 <div class="overlay" id="mafia-overlay"><div class="modal" style="background:linear-gradient(180deg,rgba(15,13,26,0.98) 0%,rgba(8,6,16,0.98) 100%);border-color:rgba(220,38,38,0.12)"><div class="modal-handle" style="background:rgba(220,38,38,0.3)"></div><div id="mafia-offer-content"></div></div></div>
 <div class="overlay" id="player-detail-overlay"><div class="modal"><div class="modal-handle"></div><div id="player-detail-content"></div></div></div>
-<div class="pack-open-overlay" id="pack-overlay"><div id="pack-opening-content" style="width:100%;max-width:400px"></div></div>
+<div class="pack-open-overlay" id="pack-overlay"><div class="pack-smoke" aria-hidden="true"></div><div class="pack-smoke pack-smoke-2" aria-hidden="true"></div><div id="pack-opening-content" style="width:100%;max-width:400px"></div></div>
 <div class="scorecard-overlay" id="scorecard-overlay"><div id="scorecard-content" style="width:100%;max-width:400px;margin:auto"></div></div>
 
 <!-- SQUAD SELECTION -->

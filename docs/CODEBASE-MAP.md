@@ -8,7 +8,7 @@
 |---|---|
 | 1-19 | head/meta |
 | 20-2179 | ALL CSS (section comments inside: palette ~L38, angular design ~L100, per-screen grading ~L234, politics zone ~L1408, zone reskins ~L1515, hub monetization ~L1976, drop-rates overlay ~L2010, sponsor break ~L2088) |
-| 2195-3072 | ALL markup: screens + overlays. `#match-result` L2862, `#pack-overlay` L2865 (NOTE: shares class `match-result-overlay` -- known collision) |
+| 2195-3072 | ALL markup: screens + overlays. `#match-result` ~L3326, `#pack-overlay` ~L3329 (RESOLVED 2026-08-02: pack overlay now has its own class `.pack-open-overlay`, no longer shares `.match-result-overlay` -- verified during pack-cinematic pass) |
 | 3073-10151 | ALL game JS |
 
 ## JS regions (anchor function -> approx line)
