@@ -2157,6 +2157,64 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .battle-team{text-align:center;flex:1;display:flex;flex-direction:column;align-items:center}
 .battle-vs{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);padding:8px 16px;background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(255,210,63,0.1));border-radius:4px;border:1px solid rgba(var(--hl-rgb),0.1);letter-spacing:4px;flex-shrink:0;clip-path:var(--clip-diamond);width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:14px}
 
+/* ================================================================
+   WIDER-SCOPE HUB PASS (2026-08-02) — mockup layout/density port.
+   Club-identity card, achievement rail, desk row, underworld ledger.
+   All values below restyle EXISTING real data (see PROGRESS.md entry
+   for the exact GS field -> element mapping). No new GS fields.
+   ================================================================ */
+.hub-header.cu-card{padding:14px 16px;margin:0 0 10px}
+
+/* Achievement rail — computed-threshold badges (renderHubAchievements()) */
+.hub-achieve-rail{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 10px;padding:1px 1px}
+.hub-achieve-rail::-webkit-scrollbar{display:none}
+.hub-ach-item{flex:0 0 auto;min-width:58px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 10px;background:var(--glass-bg);border:1px solid var(--border);clip-path:var(--clip-10);transition:transform 0.15s,border-color 0.2s}
+.hub-ach-item:active{transform:scale(0.93)}
+.hub-ach-item svg{width:18px;height:18px;stroke:var(--slip);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:0.4}
+.hub-ach-item .hub-ach-name{font-family:var(--font-b);font-size:8.5px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--slip);white-space:nowrap;text-align:center}
+.hub-ach-item.earned{border-color:rgba(240,200,80,0.35)}
+.hub-ach-item.earned svg{stroke:var(--gold-bright);opacity:1;filter:drop-shadow(0 0 4px rgba(240,200,80,0.4))}
+.hub-ach-item.earned .hub-ach-name{color:var(--white)}
+.hub-ach-item.locked svg{opacity:0.25}
+
+/* Desk row — Squad Strength (+mini standings) & Season Progress (renderHubDeskRow()) */
+.hub-desk-row{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;margin:0 0 10px}
+.hub-desk-tile{padding:11px 12px 12px}
+.hd-lbl{font-family:var(--font-d);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--slip)}
+.hd-val{font-family:var(--font-d);font-size:26px;font-weight:700;line-height:1;color:var(--white);margin-top:3px}
+.hd-val .hd-of{font-size:14px;color:var(--slip);font-weight:600}
+.hd-delta{font-size:9.5px;font-weight:700;margin-top:2px}
+.hd-delta.up{color:var(--green-bright)}
+.hd-delta.down{color:var(--blood)}
+.hd-sub{font-size:10px;color:var(--slip);margin-top:2px}
+.hd-stand{margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.hd-stand-row{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;font-size:11px}
+.hd-stand-row .hd-pos{font-family:var(--font-d);font-weight:700;color:var(--slip);font-size:11px}
+.hd-stand-row .hd-nm{font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd-stand-row .hd-pts{font-weight:700;color:var(--white)}
+.hd-stand-row.me .hd-nm,.hd-stand-row.me .hd-pts{color:var(--gold-bright)}
+.hd-empty{font-size:10px;color:var(--slip);margin-top:8px;line-height:1.4}
+.hd-prog-bar{height:5px;background:var(--track-bg);box-shadow:var(--track-shadow);overflow:hidden;margin-top:9px}
+.hd-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-bright));transition:width 0.8s var(--spring)}
+
+/* Manager's Ledger — real underworld data surfaced (renderHubLedger()) */
+.hub-ledger{padding:11px 13px 12px;margin:0 0 9px}
+.hub-ledger-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.hll-title{font-family:var(--font-d);font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--white)}
+.hll-heat{font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:0.5px;color:var(--slip)}
+.hub-ledger-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.hlg-stat{background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.06);padding:7px 8px;clip-path:var(--clip-6)}
+.hlg-lbl{font-size:8px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--slip)}
+.hlg-val{font-family:var(--font-d);font-size:17px;font-weight:700;color:var(--white);margin-top:1px;line-height:1}
+.hlg-val.good{color:var(--green-bright)}
+.hlg-val.warn{color:var(--blood)}
+.hlg-val.mid{color:var(--amber)}
+.hub-ledger-debt{margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:rgba(var(--hl-rgb),0.04);border-left:3px solid var(--blood);font-size:10.5px}
+.hub-ledger-debt.clean{border-left-color:var(--green-bright)}
+.hub-ledger-debt .hld-who{font-weight:600;color:var(--white)}
+.hub-ledger-debt .hld-amt{font-weight:700;color:var(--blood)}
+.hub-ledger-debt.clean .hld-amt{color:var(--green-bright)}
+
 /* Facility cards — enhanced with elevation + glow on active */
 .facility-card{box-shadow:var(--elevation-1);transition:all 0.3s var(--spring-bounce)}
 .facility-card:active{transform:scale(0.93);box-shadow:0 1px 3px rgba(0,0,0,0.2)}
@@ -2747,7 +2805,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="hub-crowd-band"></div>
         <div class="hub-embers"><span></span><span></span><span></span></div>
 
-        <div class="hub-header stagger-child">
+        <div class="hub-header cu-card stagger-child">
           <div class="team-crest cu-avatar" id="hub-crest"><div class="team-crest-glow"></div></div>
           <div class="manager-info">
             <div class="manager-name" id="manager-name">Manager</div>
@@ -2818,6 +2876,10 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="helr-lbl" id="empire-rank-caption">Squad Power</div>
         </div>
       </div>
+
+      <!-- Wider-scope pass (2026-08-02): achievement rail — computed-threshold badges,
+           zero new GS fields (see renderHubAchievements()). -->
+      <div class="hub-achieve-rail stagger-child" id="hub-achieve-rail"></div>
 
       <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon cu-ribbon-sub"><span>Primary Loop</span></div></div>
       <div class="action-tiles stagger-child">
@@ -2896,6 +2958,14 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="qt-label">Market</div>
         </div>
       </div>
+
+      <!-- Wider-scope pass (2026-08-02): desk row (Squad Strength + Season Progress)
+           and Manager's Ledger — both JS-rendered from existing GS fields, see
+           renderHubDeskRow()/renderHubLedger(). No new persisted state. -->
+      <div class="hub-desk-row stagger-child" id="hub-desk-row"></div>
+
+      <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon cu-ribbon-sub"><span>The Underworld</span></div></div>
+      <div class="hub-ledger cu-card stagger-child" id="hub-ledger"></div>
 
       <!-- ===== Drawer: Store & Rewards (collapsed by default) ===== -->
       <div class="hub-drawer" id="drawer-rewards">
@@ -7366,7 +7436,112 @@ function updateHub() {
   renderEmpireLine();
   renderLoginPanel();
   if (typeof updateHubSponsorTile === 'function') updateHubSponsorTile();
+  renderHubAchievements();
+  renderHubDeskRow();
+  renderHubLedger();
   updateCurrency();
+}
+
+// =============================================
+// WIDER-SCOPE HUB PASS (2026-08-02) — presentation-only widgets, all reading
+// existing GS fields. See PROGRESS.md for the exact field->badge/tile mapping.
+// =============================================
+function renderHubAchievements() {
+  var wrap = $('hub-achieve-rail');
+  if (!wrap) return;
+  // Each badge is a read-only threshold on an existing GS stat, computed at
+  // render time — nothing new is tracked or saved.
+  var badges = [
+    { name: '50 Wins', earned: GS.wins >= 50, icon: '<path d="M8 21h8m-4-4v4m-5-8a5 5 0 0 1 10 0c0 2-1 3-5 5-4-2-5-3-5-5z"/>' },
+    { name: 'Season 3', earned: GS.season >= 3, icon: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>' },
+    { name: 'Hot Streak', earned: GS.bestStreak >= 3, icon: '<path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/>' },
+    { name: 'Fan Favorite', earned: GS.fanLoyalty >= 80, icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
+    { name: 'Clean Run', earned: GS.cleanStreak >= 5, icon: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>' },
+    { name: '100 Wins', earned: GS.wins >= 100, icon: '<path d="M12 2l3 6 6 1-4.5 4 1 6L12 16l-5.5 3 1-6L3 9l6-1z"/>' }
+  ];
+  var h = '';
+  for (var i = 0; i < badges.length; i++) {
+    var b = badges[i];
+    h += '<div class="hub-ach-item ' + (b.earned ? 'earned' : 'locked') + '"><svg viewBox="0 0 24 24">' + b.icon + '</svg><div class="hub-ach-name">' + b.name + '</div></div>';
+  }
+  wrap.innerHTML = h;
+}
+
+// Session-only (not persisted) — last-rendered squad OVR, purely for the
+// desk-row delta indicator. Resets on reload; never written to GS/save().
+var _hubLastOvr = null;
+function renderHubDeskRow() {
+  var wrap = $('hub-desk-row');
+  if (!wrap) return;
+  var ovr = getTeamStrength();
+  var deltaHtml = '';
+  if (GS.squad.length > 0 && _hubLastOvr !== null && _hubLastOvr !== ovr) {
+    var dlt = ovr - _hubLastOvr;
+    deltaHtml = '<div class="hd-delta ' + (dlt > 0 ? 'up' : 'down') + '">' + (dlt > 0 ? '▲' : '▼') + ' ' + Math.abs(dlt) + ' since last visit</div>';
+  }
+  if (GS.squad.length > 0) _hubLastOvr = ovr;
+  var standHtml;
+  if (GS.squad.length === 0) {
+    // Same case-law as renderEmpireLine(): a strength rank with no squad
+    // reads as fake, so show an honest empty state instead.
+    standHtml = '<div class="hd-empty">Build your squad to see standings</div>';
+  } else {
+    var table = [{ name: GS.teamName, str: ovr, you: true }];
+    for (var i = 0; i < RIVALS.length; i++) table.push({ name: RIVALS[i].name, str: RIVALS[i].strength, you: false });
+    table.sort(function(a, b) { return b.str - a.str; });
+    var youIdx = 0;
+    for (var ti = 0; ti < table.length; ti++) { if (table[ti].you) { youIdx = ti; break; } }
+    var top = table.slice(0, 3);
+    if (youIdx >= 3) top[2] = table[youIdx];
+    standHtml = '<div class="hd-stand">';
+    for (var s = 0; s < top.length; s++) {
+      var rank = table.indexOf(top[s]) + 1;
+      standHtml += '<div class="hd-stand-row' + (top[s].you ? ' me' : '') + '"><span class="hd-pos">' + rank + '</span><span class="hd-nm">' + top[s].name + '</span><span class="hd-pts">' + top[s].str + '</span></div>';
+    }
+    standHtml += '</div>';
+  }
+  var progressPct = Math.min(100, Math.max(0, (GS.matchNum - 1) / 14 * 100));
+  wrap.innerHTML =
+    '<div class="hub-desk-tile hub-desk-squad cu-card">' +
+      '<div class="hd-lbl">Squad Strength</div>' +
+      '<div class="hd-val">' + ovr + '</div>' + deltaHtml +
+      standHtml +
+    '</div>' +
+    '<div class="hub-desk-tile hub-desk-season cu-card">' +
+      '<div class="hd-lbl">Season Progress</div>' +
+      '<div class="hd-val">' + GS.matchNum + '<span class="hd-of">/14</span></div>' +
+      '<div class="hd-sub">' + GS.wins + 'W ' + GS.losses + 'L</div>' +
+      '<div class="hd-prog-bar"><div class="hd-prog-fill" style="width:' + progressPct + '%"></div></div>' +
+    '</div>';
+}
+
+function renderHubLedger() {
+  var wrap = $('hub-ledger');
+  if (!wrap) return;
+  initFactions();
+  var f = GS.factions;
+  var favorsTotal = (f.syndicate.favorsDone || 0) + (f.neta.favorsDone || 0) + (f.bhai.favorsDone || 0);
+  var riskLabel = GS.heat >= 76 ? 'Critical' : GS.heat >= 51 ? 'High' : GS.heat >= 26 ? 'Medium' : 'Low';
+  var riskCls = GS.heat >= 51 ? 'warn' : GS.heat >= 26 ? 'mid' : 'good';
+  var repLabel = getAlignmentZone(GS.alignment).name;
+  var repCls = GS.alignment >= 45 ? 'good' : GS.alignment <= -31 ? 'warn' : 'mid';
+  var owed = GS.debts.length;
+  var debtHtml;
+  if (owed > 0) {
+    var d0 = GS.debts[0];
+    var dueTxt = d0.matchesLeft >= 0 ? 'due in ' + d0.matchesLeft + ' match' + (d0.matchesLeft === 1 ? '' : 'es') : Math.abs(d0.matchesLeft) + ' overdue';
+    debtHtml = '<div class="hub-ledger-debt"><span class="hld-who">' + d0.source + '</span><span class="hld-amt">' + d0.principal + ' B$ &middot; ' + dueTxt + '</span></div>';
+  } else {
+    debtHtml = '<div class="hub-ledger-debt clean"><span class="hld-who">No outstanding debts</span><span class="hld-amt">&#10003; Clear</span></div>';
+  }
+  wrap.innerHTML =
+    '<div class="hub-ledger-head"><div class="hll-title">Manager&#39;s Ledger</div><div class="hll-heat">Heat ' + GS.heat + '</div></div>' +
+    '<div class="hub-ledger-grid">' +
+      '<div class="hlg-stat"><div class="hlg-lbl">Favors</div><div class="hlg-val good">' + favorsTotal + '</div></div>' +
+      '<div class="hlg-stat"><div class="hlg-lbl">Risk</div><div class="hlg-val ' + riskCls + '">' + riskLabel + '</div></div>' +
+      '<div class="hlg-stat"><div class="hlg-lbl">Rep</div><div class="hlg-val ' + repCls + '">' + repLabel + '</div></div>' +
+      '<div class="hlg-stat"><div class="hlg-lbl">Owed</div><div class="hlg-val' + (owed > 0 ? ' warn' : '') + '">' + owed + '</div></div>' +
+    '</div>' + debtHtml;
 }
 
 // =============================================

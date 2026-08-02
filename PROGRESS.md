@@ -1,5 +1,82 @@
 # Progress — Cricket Underworld
 
+> ### 🏛️ WIDER SCOPE — Hub layout/density pass shipped (2026-08-02, needs testing)
+> **First pass under the founder's "update both" scope-widening decision.** The 5 prior cinematic
+> passes (Auction/Pack/Hub/Squad/Match) were deliberately narrow — small additive atmosphere layers
+> bolted onto the existing layout, explicitly excluding anything that restructured composition. Founder
+> compared the live game to `design-lab/bolt-round4/project/public/mockups/hub.html` directly and it
+> still doesn't match — the mockup's density/hierarchy/composition was never actually ported, only
+> effects were layered on top. This pass ports more of that composition on **Hub** using only real `GS`
+> data — still zero new `GS` fields, zero new persisted state, zero navigation changes.
+>
+> **Ported / restyled (with real-data source):**
+> - **Club identity card** — `.hub-header` now also carries `.cu-card` (chamfered glass panel,
+>   `padding:14px 16px`), giving the crest/name/power-ring group the boxed hero prominence the
+>   mockup's `.club-id` panel has. Zero data change — `#hub-crest`, `#manager-name`, `#league-label`,
+>   `#align-zone-tag`, `#hub-star-pips`, `#hub-power-ring`/`#power-val`/`#power-ring-fill` all untouched
+>   (ids, JS bindings, SVG geometry unchanged — confirmed against `tests/p15-visual.spec.js`).
+> - **Achievement rail** (`#hub-achieve-rail`, `renderHubAchievements()`) — 6 badges, each a read-only
+>   `existing_stat >= threshold` check computed at render time, zero persistence:
+>   - "50 Wins" → `GS.wins >= 50`
+>   - "Season 3" → `GS.season >= 3`
+>   - "Hot Streak" → `GS.bestStreak >= 3` (existing win-streak-milestone stat)
+>   - "Fan Favorite" → `GS.fanLoyalty >= 80`
+>   - "Clean Run" → `GS.cleanStreak >= 5` (existing clean-streak counter, already shown elsewhere on Hub)
+>   - "100 Wins" → `GS.wins >= 100`
+> - **Desk row** (`#hub-desk-row`, `renderHubDeskRow()`) — two tiles:
+>   - *Squad Strength*: `getTeamStrength()` (same value the power ring shows) + a session-only
+>     (non-persisted, resets on reload) delta vs. last render, same client-side-comparison pattern
+>     `renderHubMeterTrend()` already uses for Align/Heat/Fans. Below it, a top-3 mini-standings list by
+>     `RIVALS[].strength` vs. your real strength — the exact same fields `getEmpireRank()` already uses
+>     for the rank shown in `.hub-empire-line` directly above (not the League screen's randomly-simulated
+>     win cache, which would have meant duplicating side-effecting logic for this pass). Empty-squad case
+>     shows an honest "Build your squad to see standings" message — same case-law as
+>     `renderEmpireLine()`'s existing "Unranked" guard (a fake-looking rank with 0 matches played was a
+>     prior playtest defect).
+>   - *Season Progress*: `GS.matchNum` / 14 and `GS.wins`/`GS.losses` — the exact same fields and 14-match
+>     total already used by the existing (drawer-buried) "Season Progress" panel; this just surfaces the
+>     same real numbers more prominently in the main flow. The original panel is untouched inside
+>     Drawer: Club Management.
+> - **Manager's Ledger** (`#hub-ledger`, `renderHubLedger()`) — underworld data surfaced out of the
+>   collapsed drawer into the main flow, all from `getFactionRows()`'s existing backing fields:
+>   - Favors = `GS.factions.syndicate.favorsDone + .neta.favorsDone + .bhai.favorsDone` (real, summed)
+>   - Risk = `GS.heat` banded Low/Medium/High/Critical using the exact same 26/51/76 thresholds
+>     `updateHub()` already uses to color the Heat meter
+>   - Rep = `getAlignmentZone(GS.alignment).name` — same function that drives `#align-zone-tag`
+>   - Owed = `GS.debts.length`
+>   - Debt line = first real `GS.debts[0]` entry (source/principal/matchesLeft, same fields the existing
+>     `#debt-panel` renders) — if no debts, an honest "No outstanding debts" empty state, never a
+>     fabricated NPC name/amount.
+>
+> **Deliberately excluded (flagged for founder, not guessed at):**
+> - **XP/level bar** (mockup's "7,200/10,000 XP, Lvl 15" under the club name) — no player/club
+>   level or XP system exists anywhere in `GS` (confirmed via grep: no `GS.xp`, `GS.level`). Dropped
+>   entirely per the brief's stated preference, rather than repurposing the slot for something that would
+>   read as fake.
+> - **Hero fan-count reformat** ("1.2M FANS +4.2K") — `GS.fanLoyalty` is a 0-100 loyalty score, not an
+>   absolute fan count; converting it to a fabricated "1.2M" via an invented multiplier would misrepresent
+>   real data. Fans stays in the existing `.hub-meters` strip, value/trend unchanged.
+> - **Match-hero form line** (W/W/L/W/N) and **win-odds %** on the battle card — no per-rival sequential
+>   match-history is tracked in an easily-readable form; the only "win chance" formula in the codebase
+>   (`simKnockoutMatch`'s `str/(str+str)`) belongs to a different subsystem (off-screen knockout bracket
+>   sim) and isn't a stat the game surfaces to players elsewhere, so introducing it here would be a new
+>   derived metric, not a restyle of an existing one. Left `.hub-battle-card`/`#hub-next-rival` as-is.
+> - **League-table-based mini-standings** (wins/pts, matching `#league-screen` exactly) — considered, but
+>   `updateLeagueTable()`'s rival win-counts come from a randomly-simulated cache (`GS.rivalWins`) that's
+>   lazily populated with side effects; reusing it from Hub would mean either duplicating that
+>   side-effecting logic or triggering it as an unrelated side effect of opening Hub. Used the
+>   strength-based standings (`RIVALS[].strength`, already real and side-effect-free, same fields
+>   `getEmpireRank()` uses) instead — see Desk Row above.
+>
+> **Verification (testing is founder-gated, not run):** thermal counts unchanged before/after —
+> `infinite` 59→59, `backdrop-filter` 22→22, `<canvas` 2→2 (net-zero new animation loops; the one CSS
+> transition added — `.hd-prog-fill` — is a one-shot width transition, not a loop). Re-grepped every
+> selector `tests/*.spec.js` asserts on `#hub-screen`/`hub-crest`/`manager-name`/`hub-meters`/
+> `hub-empire-line`/`action-tile`/`hub-battle-card`/`hub-login-panel`/`quick-tile`/`drawer-rewards` —
+> all present, unchanged markup shape. `#hub-screen`'s `hubMesh` background animation (asserted by
+> `p15-visual.spec.js`) untouched. Angular clip-path convention followed throughout (`--clip-10`/
+> `--clip-6` on new chips, no `border-radius` introduced).
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED AGAIN (2026-08-02, no game code changed)
 > Founder: "resync" (part of a two-part "update both" instruction — see the scope-widening entry
 > directly below for the other half). Closes the gap opened by the Match cinematic pass (`8951416`).
