@@ -1,5 +1,54 @@
 # Progress — Cricket Underworld
 
+> ### 🎬 CINEMATIC DIRECTION PASS — Match shipped (2026-08-02, needs testing)
+> Fifth screen in the direction pass, after Auction (`0d03562`), Pack (`0480e43`), Hub (`3528e59`), Squad
+> (`062d38c`) — same hard rules: **no logic changes, no removed features, no rewritten systems, no
+> navigation changes, no regressions**, presentation/atmosphere only.
+>
+> **Inventory first, build second.** Match already had the most built of any screen so far: its own
+> animated mesh-gradient background (`matchMesh`, 18s loop, untouched), and a full ball-outcome
+> celebration system — `spawnCelebration()` (canvas particle burst), `flashOutcome()` (sets
+> `#outcome-flash`'s className to `six`/`four`/`wicket`, which drives an existing CSS radial-gradient
+> flash via `outcomeBurst`), and `screenShake()` (reserved for match losses, not touched/extended here).
+> All three fire from the existing `if (!match.skipMode) {...}` guard at the six/four/wicket call sites
+> (~L8764-8766) — confirmed untouched. The real gap: no big dramatic TEXT moment (a "SIX!"/"FOUR!"/"OUT!"
+> slam), the natural Match-screen equivalent of Auction's SOLD stamp.
+>
+> **Implementation — zero JS added.** Because `flashOutcome(type)` already sets `#outcome-flash`'s
+> className to exactly `six`/`four`/`wicket` on every real event (and nothing else touches that
+> className), the text-slam is a pure CSS `::after` keyed off those same existing classes —
+> `#outcome-flash.six::after{content:'SIX!';...}` etc. — each with its own one-shot slam-in keyframe
+> (`outcomeTextSlam`: scale 0.55→1.12→1, opacity 0→1→0, forwards fill-mode, no loop). Added
+> `display:flex;align-items:center;justify-content:center` to the base `#outcome-flash` rule so the
+> pseudo-element centers in the full-viewport stage — the div has no children (confirmed via grep), so
+> this is a no-op for `.win`/`.loss`, which get no `::after` content and render nothing extra.
+> - **Colors:** literal `rgb()` triples copied exactly from the `.six`/`.four`/`.wicket` flash gradients
+>   directly above (255,207,68 gold / 34,211,153 teal / 239,45,45 red) — checked the closest design
+>   tokens (`--gold-bright #FFD23F`, `--green-bright #34D399`) and they're close-but-not-exact, so literal
+>   reuse was chosen to keep flash+text perfectly color-matched rather than introduce a subtle mismatch.
+>   Zero new custom properties.
+> - **Type:** `var(--font-d)` (Teko), 76px for SIX!/OUT!, 68px for FOUR! (longer word), 5-6px
+>   letter-spacing — checked against the existing scoreboard `.score` (56px, up to 5 chars like "120/4")
+>   and sized up since these strings are shorter (4-5 chars) and rarer/more dramatic; confirmed no
+>   wrap/clip risk at 390px width.
+> - Verified before/after grep counts identical: `infinite` 59→59, `backdrop-filter` 22→22,
+>   `requestAnimationFrame|<canvas` 8→8 (the raw count did transiently read 60 because a code-comment's
+>   own prose contained the word "infinite" — reworded the comment so the count reflects real animations,
+>   not prose false-positives).
+>
+> **Deliberately excluded (per brief):** momentum/win-probability meter (no backing `GS` state — would be
+> inventing a feature), a redundant edge-flash box-shadow layer (the radial flash already does this),
+> DOM confetti (canvas `spawnCelebration` already does this), an LED "MAXIMUM" flash bar (a second
+> competing text element would be noise, not polish), stadium crowd ambience (mesh background already
+> covers per-screen atmosphere; no reason to duplicate Hub's crowd-band here), restructuring
+> `.match-tactics` into a mockup grid shape (real AGGRO/BALANCED/DEFENSE/DRS/IMPACT buttons are wired to
+> real `GS` state, untouched), screen-shake on every six/four/wicket (reserved for losses; adding it to
+> frequent in-match events risks feeling repetitive — left for the founder to request explicitly), and a
+> text-slam for `win`/`loss` (those belong to the Post-Match/Victory screen, the next item in the queue,
+> not live-simulation Match).
+>
+> Needs testing (Playwright is founder-gated, not run this session).
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED AGAIN (2026-08-02, no game code changed)
 > Founder: "resync the anon demo too" — closes the gap opened by the Squad cinematic pass (`062d38c`:
 > header-zone light beams + ambient motes).

@@ -1861,11 +1861,26 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    ================================================================ */
 
 /* --- Outcome flash overlay --- */
-#outcome-flash{position:fixed;inset:0;pointer-events:none;z-index:300;opacity:0;transition:opacity 0.15s}
+#outcome-flash{position:fixed;inset:0;pointer-events:none;z-index:300;opacity:0;transition:opacity 0.15s;display:flex;align-items:center;justify-content:center}
 #outcome-flash.six{background:radial-gradient(circle at 50% 50%,rgba(255,207,68,0.35) 0%,rgba(255,180,0,0.15) 30%,transparent 70%);animation:outcomeBurst 0.6s ease-out forwards}
 #outcome-flash.four{background:radial-gradient(circle at 50% 50%,rgba(34,211,153,0.3) 0%,rgba(34,211,153,0.1) 30%,transparent 70%);animation:outcomeBurst 0.5s ease-out forwards}
 #outcome-flash.wicket{background:radial-gradient(circle at 50% 50%,rgba(239,45,45,0.35) 0%,rgba(180,20,20,0.15) 30%,transparent 70%);animation:outcomeBurst 0.6s ease-out forwards}
 #outcome-flash.win{background:radial-gradient(circle at 50% 50%,rgba(255,207,68,0.4) 0%,rgba(255,180,0,0.2) 40%,transparent 75%);animation:outcomeBurst 0.8s ease-out forwards}
+/* CINEMATIC MATCH PASS (2026-08-02) -- six/four/wicket text-slam.
+   Pure CSS ::after keyed off the className flashOutcome() already sets on
+   #outcome-flash for every real ball event (six/four/wicket), guarded by
+   the existing match.skipMode check at the three call sites (~L8764-8766,
+   untouched). Zero JS added -- the hook (className=type) already exists.
+   Colors are the exact literal rgb() triples copied from the .six/.four/
+   .wicket flash gradients directly above (not the nearest design tokens,
+   which are close-but-not-exact -- e.g. --gold-bright #FFD23F vs this
+   flash's 255,207,68 -- so literal reuse keeps flash+text perfectly
+   color-matched, per the brief). One-shot animation (forwards fill-mode,
+   no looping keyframe) so the ambient-loop tally is untouched by this pass. */
+#outcome-flash.six::after{content:'SIX!';font-family:var(--font-d);font-size:76px;font-weight:700;letter-spacing:6px;line-height:1;color:rgb(255,207,68);text-shadow:0 0 30px rgba(255,207,68,0.55),0 4px 26px rgba(0,0,0,0.55);animation:outcomeTextSlam 0.6s cubic-bezier(.2,.8,.25,1) forwards}
+#outcome-flash.four::after{content:'FOUR!';font-family:var(--font-d);font-size:68px;font-weight:700;letter-spacing:5px;line-height:1;color:rgb(34,211,153);text-shadow:0 0 30px rgba(34,211,153,0.5),0 4px 26px rgba(0,0,0,0.55);animation:outcomeTextSlam 0.5s cubic-bezier(.2,.8,.25,1) forwards}
+#outcome-flash.wicket::after{content:'OUT!';font-family:var(--font-d);font-size:76px;font-weight:700;letter-spacing:6px;line-height:1;color:rgb(239,45,45);text-shadow:0 0 30px rgba(239,45,45,0.55),0 4px 26px rgba(0,0,0,0.55);animation:outcomeTextSlam 0.6s cubic-bezier(.2,.8,.25,1) forwards}
+@keyframes outcomeTextSlam{0%{opacity:0;transform:scale(0.55) rotate(-3deg)}35%{opacity:1;transform:scale(1.12) rotate(1deg)}55%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:0;transform:scale(1.05) rotate(0)}}
 /* L4 juice: loss now gets a designed beat too — a somber blood vignette flash
    plus a short screen shake (transform-only, GPU-composited for 60fps). */
 #outcome-flash.loss{background:radial-gradient(circle at 50% 46%,rgba(150,26,26,0.30) 0%,rgba(50,12,12,0.14) 42%,transparent 76%);animation:outcomeBurst 0.7s ease-out forwards}
