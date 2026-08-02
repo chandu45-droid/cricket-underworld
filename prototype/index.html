@@ -1985,12 +1985,48 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-stadium-skyline svg{width:100%;height:100%}
 
 /* Floodlight pillars */
-.hub-stadium-backdrop .floodlight{position:absolute;top:8px;width:2px;height:40px;background:linear-gradient(180deg,rgba(255,210,63,0.3),transparent);opacity:0.4}
+.hub-stadium-backdrop .floodlight{position:absolute;top:8px;width:2px;height:40px;background:linear-gradient(180deg,rgba(255,210,63,0.3),transparent);opacity:0.4;--fl-peak:0.4;animation:floodlightFlicker 5s ease-in-out infinite}
 .hub-stadium-backdrop .floodlight::before{content:'';position:absolute;top:-4px;left:-3px;width:8px;height:8px;background:radial-gradient(circle,rgba(255,210,63,0.6),transparent);border-radius:50%}
 .hub-stadium-backdrop .floodlight:nth-child(1){left:12%}
-.hub-stadium-backdrop .floodlight:nth-child(2){right:12%}
-.hub-stadium-backdrop .floodlight:nth-child(3){left:35%;height:30px;opacity:0.25}
-.hub-stadium-backdrop .floodlight:nth-child(4){right:35%;height:30px;opacity:0.25}
+.hub-stadium-backdrop .floodlight:nth-child(2){right:12%;animation-delay:-1.7s}
+.hub-stadium-backdrop .floodlight:nth-child(3){left:35%;height:30px;opacity:0.25;--fl-peak:0.25;animation-delay:-3.2s}
+.hub-stadium-backdrop .floodlight:nth-child(4){right:35%;height:30px;opacity:0.25;--fl-peak:0.25;animation-delay:-4.4s}
+/* Cinematic pass: subtle flicker reusing the existing 4 floodlights — peak
+   opacity is per-element via --fl-peak so dimmer rear lights (3/4) stay
+   dimmer instead of the animation flattening them to a shared value. */
+@keyframes floodlightFlicker{
+  0%,100%{opacity:var(--fl-peak)}
+  45%{opacity:calc(var(--fl-peak) * 0.55)}
+  50%{opacity:calc(var(--fl-peak) * 1.35)}
+  72%{opacity:calc(var(--fl-peak) * 0.75)}
+}
+
+/* Crowd silhouette — one static dot-pattern band, NOT individually animated
+   divs (thermal budget). Faded in via mask so it reads as a distant packed
+   stand blending into the bottom fade. */
+.hub-crowd-band{position:absolute;left:0;right:0;bottom:0;height:34px;opacity:0.12;pointer-events:none;
+  background-image:radial-gradient(circle at 4px 6px,var(--white) 1.3px,transparent 1.6px);
+  background-size:9px 10px;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 45%,#000 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,#000 45%,#000 100%)}
+
+/* Ambient embers — 2-4 drifting motes, one shared keyframe (opacity+transform
+   only, no filter/blur) to keep the animation-loop count minimal. */
+.hub-embers{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.hub-embers span{position:absolute;bottom:6%;width:3px;height:3px;border-radius:50%;background:var(--gold-bright);opacity:0;box-shadow:0 0 4px var(--gold-bright);animation:hubEmberDrift 9s ease-in-out infinite}
+.hub-embers span:nth-child(1){left:18%;animation-delay:0s}
+.hub-embers span:nth-child(2){left:52%;width:2px;height:2px;animation-delay:-3s}
+.hub-embers span:nth-child(3){left:78%;animation-delay:-6s}
+@keyframes hubEmberDrift{0%{opacity:0;transform:translateY(0)}12%{opacity:0.5}55%{opacity:0.3}100%{opacity:0;transform:translateY(-70px)}}
+
+/* LED news ticker — decorative marquee, static flavor text, zero JS/state
+   binding. Appended as a normal flex child AFTER .hub-meters (see markup) so
+   it lays out below the opaque meters panel instead of behind it. */
+.hub-news-ticker{position:relative;z-index:2;margin-top:8px;padding:6px 0;overflow:hidden;background:linear-gradient(180deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border-top:1px solid rgba(var(--hl-rgb),0.08);border-bottom:1px solid rgba(var(--hl-rgb),0.08)}
+.hub-news-ticker .ticker-track{display:flex;gap:36px;width:max-content;white-space:nowrap;animation:hubTickerScroll 26s linear infinite}
+.hub-news-ticker .ticker-track span{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--white-40)}
+.hub-news-ticker .ticker-track .tk-dot{width:4px;height:4px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 4px var(--gold-bright);flex-shrink:0}
+@keyframes hubTickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* Manager header — larger, cinematic */
 .hub-header{display:flex;align-items:center;gap:16px;margin-bottom:0;padding:0;position:relative;z-index:2}
@@ -2667,6 +2703,8 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="floodlight"></div>
         <div class="floodlight"></div>
         <div class="hub-stadium-skyline"><svg viewBox="0 0 390 120" preserveAspectRatio="none"><path d="M0,120 L0,80 L15,80 L15,40 L18,40 L18,80 L40,80 L40,70 L60,70 L60,60 L80,55 L100,52 L120,50 L140,48 L160,47 L180,46 L195,46 L210,46 L230,47 L250,48 L270,50 L290,52 L310,55 L330,60 L350,70 L370,80 L372,80 L372,40 L375,40 L375,80 L390,80 L390,120Z" fill="currentColor"/></svg></div>
+        <div class="hub-crowd-band"></div>
+        <div class="hub-embers"><span></span><span></span><span></span></div>
 
         <div class="hub-header stagger-child">
           <div class="team-crest cu-avatar" id="hub-crest"><div class="team-crest-glow"></div></div>
@@ -2710,6 +2748,21 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
               <div class="meter-value" id="fan-val" style="color:var(--blue-bright)">50</div><span class="cu-delta" id="fan-trend"></span>
             </div>
             <div class="meter-bar"><div class="meter-fill" id="fan-fill" style="width:50%;background:linear-gradient(90deg,var(--blue),#60A5FA)"></div></div>
+          </div>
+        </div>
+
+        <div class="hub-news-ticker" aria-hidden="true">
+          <div class="ticker-track">
+            <span><span class="tk-dot"></span>TRANSFER WINDOW OPEN — SYNDICATE WATCHING</span>
+            <span><span class="tk-dot"></span>BLACK MARKET WHISPERS OF A RARE PULL TONIGHT</span>
+            <span><span class="tk-dot"></span>HEAT RISING ACROSS THE UNDERWORLD LEAGUE</span>
+            <span><span class="tk-dot"></span>AUCTION FLOOR REPORTS RECORD BIDS THIS WEEK</span>
+            <span><span class="tk-dot"></span>LEDGERS SETTLE AT MIDNIGHT — STAY CLEAN</span>
+            <span><span class="tk-dot"></span>TRANSFER WINDOW OPEN — SYNDICATE WATCHING</span>
+            <span><span class="tk-dot"></span>BLACK MARKET WHISPERS OF A RARE PULL TONIGHT</span>
+            <span><span class="tk-dot"></span>HEAT RISING ACROSS THE UNDERWORLD LEAGUE</span>
+            <span><span class="tk-dot"></span>AUCTION FLOOR REPORTS RECORD BIDS THIS WEEK</span>
+            <span><span class="tk-dot"></span>LEDGERS SETTLE AT MIDNIGHT — STAY CLEAN</span>
           </div>
         </div>
       </div>

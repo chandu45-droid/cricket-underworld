@@ -1,5 +1,59 @@
 # Progress — Cricket Underworld
 
+> ### 🎬 CINEMATIC DIRECTION PASS — Hub shipped LIVE (2026-08-02)
+> Third screen in the direction pass, after Auction (`0d03562`) and Pack (`0480e43`) — same hard rules:
+> **no logic changes, no removed features, no rewritten systems, no navigation changes, no regressions**,
+> presentation/atmosphere only. Hub is the highest-priority screen (first thing every player and every
+> prospective buyer sees), so this closes the "first impression" gap flagged in the earlier entry.
+>
+> Design source was `design-lab/bolt-round4/project/public/mockups/hub.html`, an AI concept mockup — read
+> in full, but **deliberately NOT ported wholesale**: it's a from-scratch reimagining with features the
+> real game has no backing logic for (achievement rail with unlock badges, an XP progress ring, a
+> restructured desk-row and underworld-ledger layout, a CTA button, bottom nav) and a generic
+> orange/slate palette that doesn't match this game's gold/blood/ivory-noir design system. **None of that
+> was touched.** Only the mockup's genuinely new atmosphere ideas — that the real Hub's existing
+> `.hub-stadium-backdrop` (shipped in the P2 Hub redesign, static since) doesn't have — were built,
+> reimplemented with the game's own CSS tokens (`--gold-bright`, `--white`, `--white-40`, `--font-b`,
+> `--hl-rgb`, all confirmed defined in both `:root` and `html[data-theme="light"]`):
+> - **Floodlight flicker** — the existing 4 `.floodlight` elements (no new elements) now oscillate via one
+>   shared `floodlightFlicker` keyframe; a `--fl-peak` custom property per element keeps the two dimmer
+>   rear lights dimmer instead of the animation flattening all 4 to the same brightness.
+> - **Crowd silhouette** — one static `.hub-crowd-band` div, a CSS dot-pattern (`radial-gradient` +
+>   `background-size`) faded in with a `mask-image`, zero animation, zero extra DOM — explicitly NOT the
+>   mockup's 45 individually-animated divs (thermal budget).
+> - **Ambient embers** — 3 small dots (`.hub-embers span`) drifting opacity+`translateY` on one shared
+>   keyframe (`hubEmberDrift`), within the "2-4 particles" ceiling.
+> - **LED news ticker** — `.hub-news-ticker`, a `translateX` marquee of static in-world flavor lines
+>   (syndicate/auction/black-market themed — NOT the mockup's placeholder team names), `aria-hidden` since
+>   the list is duplicated for a seamless loop. Landed as a real flex child appended AFTER `.hub-meters`
+>   (confirmed by reading the layout: `.hub-stadium-backdrop` is `flex-direction:column`, and its content
+>   already exceeds `min-height:148px`) — NOT `position:absolute;bottom:0`, so it doesn't render behind the
+>   opaque `.hub-meters` panel.
+> - **Fireworks / waving flags** — skipped. Budget stayed tight enough after the 4 items above that adding
+>   them wasn't needed; they were explicitly lowest-priority/cut-first in the brief.
+> - **Stadium entrance fade** — skipped entirely, on purpose. The game already has its own verified-clean
+>   fresh-install splash/reel sequence (see the "LOOK L5" entry); a second competing full-screen fade on
+>   Hub risked a regression there.
+>
+> **Thermal counts (S24 case law):** `infinite` 54→57 (+3 — floodlight flicker, embers, ticker; each a
+> single shared keyframe reused across elements via `animation-delay`, not one keyframe per element).
+> `backdrop-filter` 22→22 (+0). `requestAnimationFrame`/`<canvas>` 8→8 (+0, untouched). Every new animation
+> is `opacity`/`transform` only. The existing global `@media (prefers-reduced-motion: reduce)` rule (a
+> universal `*,*::before,*::after` selector) automatically covers all new elements — no new per-element
+> reduced-motion overrides were needed or added.
+>
+> **Zero JS touched** — confirmed via diff (no `function`/`addEventListener`/`<script>` lines added). Pure
+> CSS + static decorative markup, same class as the Pack pass. No existing element's `id` changed, no
+> `updateHub()` logic touched, no GS state read/written. Test-referenced selectors confirmed untouched:
+> `#hub-screen`, `#hub-crest`, `.hub-battle-card`, `.action-tile`, `#hub-screen.active`, and specifically
+> the `#hub-screen` `hubMesh` keyframe/animation (`p15-visual.spec.js:267` asserts its computed
+> `animationName`) — not modified.
+>
+> **Unseen in browser — testing is founder-gated per project CLAUDE.md.** Verified by reading code only:
+> markup nesting checked (`.hub-stadium-backdrop` still closes cleanly after the new ticker), CSS braces
+> balanced, all new custom properties/tokens confirmed defined in both theme scopes before use. Needs a
+> real-device pass before calling it done.
+
 > ### 🔒 PITCH.HTML MIRRORED TO THE ANONYMOUS HOST (2026-08-02)
 > Founder: "mirror pitch.html to the anonymous host too" — closes the gap flagged right after the email-fix
 > above (content was clean, but the URL still carried the personal GitHub handle).
