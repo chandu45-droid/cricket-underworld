@@ -1,5 +1,18 @@
 # Progress — Cricket Underworld
 
+> ### 🔄 ANON NETLIFY DEMO RE-SYNCED AGAIN (2026-08-02, no game code changed)
+> Founder: "resync" (part of a two-part "update both" instruction — see the scope-widening entry
+> directly below for the other half). Closes the gap opened by the Match cinematic pass (`8951416`).
+> - Only `index.html` had drifted (773,696 → 775,665 bytes); all other staged assets confirmed
+>   byte-identical.
+> - Re-verified zero personal-identity strings in the copy.
+> - **NOT done (founder step, ~2 min):** re-drag `_deploy-anon/` onto Netlify Drop.
+> - Founder separately confirmed (via zip-comparison this session) that `design-lab/bolt-round4/` —
+>   the source for all 5 cinematic passes so far — is genuinely the design target he's judging the live
+>   game against, and that the live game correctly does NOT yet match its fuller composition (achievement
+>   rail, chemistry cards, momentum meters, LED tickers, etc. were deliberately excluded from every pass
+>   so far as feature-inventing/system-rewriting). Direction for what happens next is in the entry below.
+
 > ### 🎬 CINEMATIC DIRECTION PASS — Match shipped (2026-08-02, needs testing)
 > Fifth screen in the direction pass, after Auction (`0d03562`), Pack (`0480e43`), Hub (`3528e59`), Squad
 > (`062d38c`) — same hard rules: **no logic changes, no removed features, no rewritten systems, no
