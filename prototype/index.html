@@ -4264,6 +4264,30 @@ function getInspector(name) {
 var CASE_STAGES = ['FIR Filed', 'Evidence', 'Chargesheet', 'Court Date'];
 function caseStageIndex(m) { return m >= 5 ? 0 : m >= 3 ? 1 : m >= 2 ? 2 : 3; }
 function caseStage(m) { return m >= 5 ? 'FIR filed' : m >= 3 ? 'evidence gathering' : m >= 2 ? 'chargesheet filed' : 'court date set'; }
+// Alignment-gated case-stage narration (docs/underworld-plot-spine.md §7 example 2): at high
+// alignment the framing is a clean man caught in one moment of weakness (inspector almost
+// apologetic); at low alignment it is one more name on a long list (routine, businesslike).
+// Narration only -- CASE_STAGES/caseStageIndex/thresholds/bribe costs/outcomes are untouched.
+function caseStageNarration(idx, insp) {
+  var high = GS.alignment > 0;
+  if (idx === 3 && insp.trait === 'incorruptible') {
+    return high
+      ? insp.name + ' does not gloat — never does. "This is not personal," the file reads, in so many words. It almost sounds true.'
+      : insp.name + ' does not negotiate, does not gloat, does not blink. Court was always where this one was headed.';
+  }
+  var lines = high ? [
+    insp.name + ' files it like a name that does not belong on this list yet — clean, until now, caught once.',
+    insp.name + ' is building the file slowly. Every entry reads like an excuse waiting to be found.',
+    'Chargesheet drafted. ' + insp.name + ' still leaves the door open a crack, like there is a way out.',
+    'Court is set. Even ' + insp.name + ' sounds like this one stings.'
+  ] : [
+    insp.name + ' files it without looking up. One more name, one more file.',
+    insp.name + ' builds the file the way every file gets built here — routine, unhurried, thorough.',
+    'Chargesheet drafted. ' + insp.name + ' stopped keeping count of these a long time ago.',
+    'Court is set. ' + insp.name + ' has sent up plenty like you. This one is no different.'
+  ];
+  return lines[idx] || '';
+}
 
 // =============================================
 // AUDIO
@@ -5571,10 +5595,28 @@ function showRivalProfile(rivalName) {
     rl.cls === 'text-amber' ? 'background:rgba(245,158,11,0.14);color:var(--amber);border:1px solid rgba(245,158,11,0.3)' :
     rl.cls === 'text-red' ? 'background:rgba(220,38,38,0.14);color:var(--blood);border:1px solid rgba(220,38,38,0.3)' :
     'background:rgba(var(--hl-rgb),0.06);color:var(--slip);border:1px solid rgba(var(--hl-rgb),0.12)';
+  // Reactive flavour, docs/underworld-plot-spine.md §5/§7: Arvind Patil (purist) warms as
+  // GS.alignment rises and cools as it falls; Rajan Mehra (shark) is the inverse. Additive text
+  // on this existing profile surface only -- no new UI, no mechanics change.
+  var reactiveFlavor = '';
+  if (rival.name === 'Arvind Patil') {
+    reactiveFlavor = GS.alignment >= 40
+      ? 'Patil has stopped needling you about the Syndicate rumours — these days he will even wave from across the ground.'
+      : GS.alignment <= -20
+      ? 'Patil will not shake your hand anymore. He says it loud enough for the press to hear.'
+      : 'Patil is polite, careful. He has not decided what to make of you yet.';
+  } else if (rival.name === 'Rajan Mehra') {
+    reactiveFlavor = GS.alignment <= -20
+      ? 'Mehra treats you like family now — the good kind, the kind that does not ask questions.'
+      : GS.alignment >= 40
+      ? 'Mehra can barely stand to be in the same room. A clean rival makes his own arrangement look worse.'
+      : 'Mehra is watching, patient, waiting to see which way you go.';
+  }
   var html = '<div style="text-align:center;margin-bottom:14px">' +
     '<div class="cu-avatar" style="width:64px;height:64px;margin:0 auto">' + portraitHtml + '</div>' +
     '<div class="cu-ribbon-wrap" style="justify-content:center;margin:10px 0 0"><div class="cu-ribbon' + (rival.banned ? ' cu-red' : '') + '"><span>' + rival.name + '</span></div></div>' +
     '<div class="text-xs text-slip" style="font-style:italic;margin-top:6px">' + rival.trait + '</div>' +
+    (reactiveFlavor ? '<div class="text-xs" style="margin-top:6px;color:var(--gold-bright)">' + reactiveFlavor + '</div>' : '') +
     '<div class="cu-chip" style="margin-top:8px;' + relChipStyle + '">' + rl.text + ' (rel: ' + rd.rel + ')</div>' +
     (isColluding ? '<div class="text-xs text-purple" style="margin-top:4px">Collusion pact active</div>' : '') +
     (rival.banned ? '<div class="text-xs text-red" style="margin-top:4px">SUSPENDED</div>' : '') +
@@ -5779,16 +5821,31 @@ function processUnderworldWeek(won) {
     if (f.bhai.haftaDue > 0) f.bhai.haftaDue--;
     if (f.bhai.haftaDue <= 0) {
       var amt = Math.max(40, Math.min(200, Math.round(GS.coins * 0.05)));
+      // Alignment-gated per docs/underworld-plot-spine.md §7 example 1, further branched on
+      // f.bhai.rel (respect arc, Act I-III) -- same cost, same buttons, copy only.
+      var haftaLine = GS.alignment > 0
+        ? '"Clean money\'s slower money," ' + BHAI_NAME + ' says. "Pay up anyway."'
+        : '"You\'re one of mine now," ' + BHAI_NAME + ' says. "Pay up, like family does."';
+      var haftaTail = f.bhai.rel >= 40
+        ? ' His boys wave you through without counting it twice — ' + amt + ' coins keeps the stands yours.'
+        : f.bhai.rel <= -30
+        ? ' Nobody at the gate is smiling this time. ' + amt + ' coins, or the crowd turns colder still.'
+        : ' His boys are at the gate. ' + amt + ' coins keeps the stands friendly and the pitch yours.';
       event = { type: 'hafta', amt: amt, title: BHAI_NAME + ' — Hafta Due',
-        desc: 'His boys are at the gate. ' + amt + ' coins keeps the stands friendly and the pitch yours.',
+        desc: haftaLine + haftaTail,
         accent: '#F97316' };
     }
   }
   if (f.neta.election > 0) f.neta.election--;
   if (!event && f.neta.election === 3 && !f.neta.backed && !f.neta.fundingSeen) {
     f.neta.fundingSeen = true;
+    // Per docs/underworld-plot-spine.md Act II: the first faction that asks for a PUBLIC
+    // commitment, not a private payment -- alignment-branched framing, same cost/buttons.
+    var electionDesc = GS.alignment > 0
+      ? 'Both camps sent men to your office — not a bag this time, a handshake for the cameras. 300 coins backs a name in public, where everyone can see who you picked. ' + NETA_CANDIDATES[0].name + ' (' + NETA_CANDIDATES[0].party + ') vs ' + NETA_CANDIDATES[1].name + ' (' + NETA_CANDIDATES[1].party + ').'
+      : 'Both camps sent men to your office. 300 coins buys a friend in power — and this time everyone will know it was you who backed him. ' + NETA_CANDIDATES[0].name + ' (' + NETA_CANDIDATES[0].party + ') vs ' + NETA_CANDIDATES[1].name + ' (' + NETA_CANDIDATES[1].party + ').';
     event = { type: 'election', cost: 300, title: 'Election Season — Fund a Campaign?',
-      desc: 'Both camps sent men to your office. 300 coins buys a friend in power — if your horse wins. ' + NETA_CANDIDATES[0].name + ' (' + NETA_CANDIDATES[0].party + ') vs ' + NETA_CANDIDATES[1].name + ' (' + NETA_CANDIDATES[1].party + ').',
+      desc: electionDesc,
       accent: '#F59E0B' };
   }
   if (f.neta.election <= 0) {
@@ -5819,8 +5876,29 @@ function processUnderworldWeek(won) {
     var nxt = getNextRival();
     if (nxt && nxt.alignment < 0 && Math.random() < 0.18) {
       var pay = 150 + Math.round(nxt.strength);
-      event = { type: 'rivaloffer', rival: nxt.name, pay: pay, title: nxt.name + ' — A Quiet Proposal',
-        desc: '"Lose to me next match. Nobody plays hero, everybody gets paid." ' + pay + ' black money on the table.',
+      // Rajan Mehra is the dark-mirror rival (docs/underworld-plot-spine.md §4/§5): Act II he
+      // sizes the player up as a potential partner, Act III he escalates toward "a working
+      // arrangement" if alignment is trending corrupt, or turns openly hostile if it is trending
+      // clean. Other rivals keep a generic-but-better-written version. Payout/consequences
+      // untouched -- copy only.
+      var offTitle, offDesc;
+      if (nxt.name === 'Rajan Mehra' && (GS.league === 'challenger' || GS.league === 'champions')) {
+        if (GS.alignment <= -10) {
+          offTitle = 'Rajan Mehra — A Working Arrangement';
+          offDesc = 'Mehra does not bother with the sales pitch anymore. "You know how this goes by now." Lose next match, ' + pay + ' black money moves, same as always — except this time he says it like he means every match after.';
+        } else {
+          offTitle = 'Rajan Mehra — He Knows About You Too';
+          offDesc = 'Mehra smiles like a man holding a card he has not played yet. "Lose to me, or I start talking about what I have heard." ' + pay + ' black money on the table — or his silence, for now.';
+        }
+      } else if (nxt.name === 'Rajan Mehra') {
+        offTitle = 'Rajan Mehra — A Quiet Proposal';
+        offDesc = 'He is not asking like the others do — Mehra is sizing you up. "Lose to me next match. Nobody plays hero, everybody gets paid." ' + pay + ' black money on the table.';
+      } else {
+        offTitle = nxt.name + ' — A Quiet Proposal';
+        offDesc = '"Lose to me next match. Nobody plays hero, everybody gets paid," ' + nxt.name + ' says, like it is already decided. ' + pay + ' black money on the table.';
+      }
+      event = { type: 'rivaloffer', rival: nxt.name, pay: pay, title: offTitle,
+        desc: offDesc,
         accent: '#A78BFA' };
     }
   }
@@ -5829,9 +5907,30 @@ function processUnderworldWeek(won) {
   if (!event && f.neta.ally && f.neta.power && !f.neta.demand && f.neta.demandCd <= 0 && GS.matchNum > 3) {
     var dpick = NETA_DEMANDS[Math.floor(Math.random() * NETA_DEMANDS.length)];
     f.neta.demand = dpick.type;
+    // Per docs/underworld-plot-spine.md Act III: political pressure and match integrity collide
+    // in public view, most dramatically on 'throwmatch'. Branched here at the event-construction
+    // site (not in NETA_DEMANDS) so the array stays a single source of type/title/label/cost --
+    // see showNetaScreen() at the Politics Desk, which still reads dpick.desc from NETA_DEMANDS
+    // directly when the demand banner is reopened outside this event card; that secondary
+    // surface intentionally keeps the neutral copy rather than duplicating this branch.
+    var netaHigh = GS.alignment > 0;
+    var demandDesc = dpick.desc;
+    if (dpick.type === 'throwmatch') {
+      demandDesc = netaHigh
+        ? '"A big man is watching next match, and his home team must win." It is the first time politics has asked you to touch a scoreline in the open, not a quiet payment. "You understand what I am saying. Lose it — quietly."'
+        : '"A big man is watching next match, and his home team must win." By now this is routine business. "You understand what I am saying. Lose it — quietly."';
+    } else if (dpick.type === 'fundraiser') {
+      demandDesc = netaHigh
+        ? '"The party is short of funds. Play a benefit match — the gate comes to us." He asks it like a favour between friends, not an order. You could still say no.'
+        : '"The party is short of funds. Play a benefit match — the gate comes to us. You do not mind, na?" He is not really asking.';
+    } else if (dpick.type === 'nephew') {
+      demandDesc = netaHigh
+        ? '"My sister\'s boy fancies himself a batsman." He says it lightly, testing whether you will refuse a man who put him in power. "Good for the family, good for you."'
+        : '"My sister\'s boy fancies himself a batsman. Put him on your books — good for the family, good for you. He will not play much, do not worry."';
+    }
     event = { type: 'netademand', dtype: dpick.type, label: dpick.label,
       title: f.neta.power + ' — ' + dpick.title,
-      desc: dpick.desc, accent: '#F59E0B' };
+      desc: demandDesc, accent: '#F59E0B' };
   }
   // Ally-in-power perk: heat cools faster while your MLA holds office (patronage at work).
   if (f.neta.ally && f.neta.power && GS.heat > 0) {
@@ -5925,6 +6024,7 @@ function renderCaseFile() {
   track.innerHTML = h;
   var insp = getInspector(inv.inspector);
   var ah = '<div class="pw-insp"><span class="pw-insp-name">' + insp.name + '</span><span class="pw-insp-tag ' + insp.trait + '">' + insp.tag + '</span><span class="pw-insp-desc">' + insp.desc + '</span></div>';
+  ah += '<div class="text-xs text-slip" style="margin-top:6px;line-height:1.5">' + caseStageNarration(idx, insp) + '</div>';
   ah += '<div class="flex gap-10" style="margin-top:8px">';
   if (insp.trait !== 'incorruptible' && !inv.bribeTried) {
     var cost = Math.round(insp.bribeBase * (inv.matchesLeft >= 3 ? 1 : 1.6));
@@ -8828,7 +8928,7 @@ function endMatch() {
     (externalHeat.amount > 0 ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.15);border-radius:3px;border-left:3px solid var(--amber);background:rgba(224,120,0,0.04)">' + externalHeat.reason + ' (+' + externalHeat.amount + ' heat)</div>' : '') +
     (heatEvent ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:1px solid rgba(224,120,0,0.2);border-radius:3px;border-left:3px solid var(--amber)">' + heatEvent + '</div>' : '') +
     (invStatus === 'started' ? '<div class="text-xs text-red" style="text-align:center;margin:6px 0;padding:10px;border:2px dashed var(--amber);border-radius:3px;background:rgba(245,158,11,0.04)"><strong>FORMAL INVESTIGATION OPENED</strong><br>The board is reviewing your conduct. Tribunal in 5 matches. No favors allowed.</div>' : '') +
-    (invStatus === 'ongoing' ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:2px dashed var(--amber);border-radius:3px">Investigation ongoing — ' + (GS.investigation ? GS.investigation.matchesLeft : 0) + ' matches until tribunal</div>' : '') +
+    (invStatus === 'ongoing' ? '<div class="text-xs text-amber" style="text-align:center;margin:6px 0;padding:8px;border:2px dashed var(--amber);border-radius:3px">Investigation ongoing — ' + (GS.investigation ? GS.investigation.matchesLeft : 0) + ' matches until tribunal' + (GS.investigation ? '<div style="margin-top:4px;opacity:.85">' + caseStageNarration(caseStageIndex(GS.investigation.matchesLeft), getInspector(GS.investigation.inspector)) + '</div>' : '') + '</div>' : '') +
     (tribunalResult ? '<div class="cu-ribbon-wrap" style="justify-content:center;margin:10px 0 0"><div class="cu-ribbon"><span>Tribunal</span></div></div>' +
       '<div class="cu-card ' + (tribunalResult.gap < 0 ? 'cu-green' : 'cu-red') + '" style="margin:8px 0;padding:14px;text-align:center"><div class="font-d fw-700 ' + tribunalResult.cls + '" style="font-size:24px;text-transform:uppercase;letter-spacing:4px" id="tribunal-verdict-text"></div><div class="text-xs text-slip" style="margin:6px 0">Prosecution: ' + tribunalResult.prosecution + ' · Defense: ' + tribunalResult.defense + '</div><div class="text-xs" style="margin-top:4px">' + tribunalResult.desc + '</div></div>' : '') +
     (rivalEvent ? '<div class="text-xs ' + rivalEvent.cls + '" style="text-align:center;margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:3px">' + rivalEvent.text + '</div>' : '') +
