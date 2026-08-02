@@ -1,5 +1,27 @@
 # Progress — Cricket Underworld
 
+> ### 🔒 PITCH.HTML MIRRORED TO THE ANONYMOUS HOST (2026-08-02)
+> Founder: "mirror pitch.html to the anonymous host too" — closes the gap flagged right after the email-fix
+> above (content was clean, but the URL still carried the personal GitHub handle).
+> - Grepped `pitch.html` for chandu/yeswanth/@gmail/chandu45-droid/github first — zero matches (the only
+>   leak was the already-fixed footer email). Its one external link was already the anon Netlify demo
+>   (`https://cricket-underworld.netlify.app/`), set in the earlier 2026-08-02 demo-link swap.
+> - Copied `pitch.html` into `_deploy-anon/` (the same gitignored staging folder as `index.html`) —
+>   re-verified zero identity strings in the copy too. No new assets needed (file has no `src=` refs).
+> - Updated the two outbound pitch links in `outreach.md` (WhatsApp/DM template line 9, email template
+>   line 26) from the identifying `chandu45-droid.github.io/cricket-underworld/pitch.html` to
+>   `https://cricket-underworld.netlify.app/pitch.html` — these are the actual copy-paste templates the
+>   founder sends to prospects, so this was the live leak surface, not just pitch.html's own content.
+> - Checked every other doc referencing `pitch.html` (`docs/demo/README.md`, `BUILD-SHEET-10K.md`) —
+>   filename mentions only, no identifying URLs. `PROGRESS.md`'s own historical entries left untouched
+>   (append-only rule — those describe what was true at the time).
+> - **NOT done (founder step, same ~2 min Netlify Drop as the demo re-sync above):** re-drag
+>   `_deploy-anon/` (now containing `index.html` + `pitch.html` + assets) onto Netlify Drop. Once live,
+>   `pitch.html` is reachable with zero identity trace end-to-end — URL, links, and content all clean.
+> - The old identifying `pitch.html` at `chandu45-droid.github.io/cricket-underworld/pitch.html` still
+>   exists too (repo's Pages auto-serves it from master) — it just isn't linked from any outbound template
+>   anymore. Founder call whether that old copy matters (fine for warm/known contacts per the earlier note).
+
 > ### 🔒 PITCH.HTML EMAIL LEAK FIXED (2026-08-02)
 > Founder: "fix the pitch.html email leak." The footer's `mailto:chanduyeswanth45@gmail.com` (flagged
 > twice, unresolved since the 2026-08-02 anon-sale-listing prep) has been removed. Grepped the whole file

@@ -6,7 +6,7 @@ Hey! I've built a working prototype of **Cricket Underworld** — a cricket stra
 
 46 game systems running, 167 automated tests passing. Playable right now: https://cricket-underworld.netlify.app/
 
-Looking for investment or acquisition interest. 5 min to play, pitch page here: https://chandu45-droid.github.io/cricket-underworld/pitch.html
+Looking for investment or acquisition interest. 5 min to play, pitch page here: https://cricket-underworld.netlify.app/pitch.html
 
 ---
 
@@ -23,7 +23,7 @@ I'm a solo developer who's built **Cricket Underworld** — the first cricket st
 **What's built:** 46 interconnected game systems, 50 player cards, 9 AI rival managers, 167 automated E2E tests. A 5-faction Power Web (Syndicate, Thana, Neta, Bhai, Rival Bosses) drives an underworld influence layer no other cricket game has. Solo-built with AI-assisted development in under 3 months.
 
 **Play it now:** https://cricket-underworld.netlify.app/
-**Full pitch:** https://chandu45-droid.github.io/cricket-underworld/pitch.html
+**Full pitch:** https://cricket-underworld.netlify.app/pitch.html
 
 I'm looking for the right partner — investment or acquisition — to take this from prototype to production. Happy to walk you through the game and roadmap.
 
