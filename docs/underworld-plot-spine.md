@@ -249,3 +249,73 @@ founder/build-time verification before implementation: confirm no Playwright tes
 | Bhupathi Rao / Savitri Devi | `NETA_CANDIDATES` | Election-cycle public-commitment beat |
 | Rajan Mehra | `RIVALS[0]` (shark) | Dark mirror rival, succession contest |
 | Arvind Patil | `RIVALS[1]` (purist) | Clean-path foil, reactive only |
+
+---
+
+## Addendum (2026-08-02) — The Climax becomes a real choice, not a narrative payoff card
+
+**Trigger for this addendum:** founder verdict — the shipped climax (`uwClimaxCard()`, commit `3915f76`) is pure prose behind a single "Dismiss" button. The three endings *describe* costs ("forfeits everything with the Syndicate," "costs the name over the door") that nothing in code actually applies. Upgrading it to a real choice-with-consequences, using the game's own established pattern instead of inventing new UI.
+
+**The existing pattern being reused** (already live for hafta/election/rival-offer/neta-demand, `prototype/index.html` ~5680-5811 + ~8762-8811): an event object with `type`, real buttons rendered with stable `id`s, a `bindXxx(ev)` function wiring `.onclick` handlers that mutate `GS` state directly, then swap the card's own innerHTML to a resolution line so a choice can't be re-clicked. The climax needs the same *shape*, adapted to fire inside `endSeason()`'s season-complete render (not the post-match render) since that's where it already lives.
+
+### Overview
+
+Each of the three alignment-gated endings gets two buttons (three for the undecided middle) instead of one Dismiss. Clicking one applies real, permanent `GS` state changes and swaps the card to a resolution line. The card **blocks "Start Season N+1"** until resolved — justified below (Open Question 1).
+
+### Player experience
+
+The player reaches Champions League, sees the Season Complete screen as today, and the Reckoning card renders in the same visual slot — but now with two buttons instead of "Dismiss," and the "Start Season" button greyed out beneath it until they pick one. This is the one moment in the whole spine where the game stops and makes the player actually spend the identity they've been building for three acts, instead of just narrating it at them. It should feel like the heaviest single click in the game — which is also the argument for blocking (Open Question 1).
+
+### Mechanics
+
+**New state (one field, justified below in Open Question 3):** `GS.reckoningResolved` — boolean, default `false`. Add to the defaults object and `hydrateGS()`/`load()` alongside other persisted flags (same precedent as `GS.darkTheme`, `GS.loginStreak`). Set `true` the instant any climax button is clicked, in every branch, no exceptions.
+
+**Guard at the call site.** In `endSeason()`, change the trigger condition from `else if (leagueOrder[idx]==='challenger' && GS.league==='champions') promoBeat = uwClimaxCard();` to also require `!GS.reckoningResolved`. Without this, a relegation from `champions` back to `challenger` followed by re-promotion re-fires the card — harmless when it was flavor text, a real farm exploit now (repeat "Take the Chair" for a repeated 500-blackMoney windfall + rel reset, or repeat "Burn the Ledger" for a repeated debt wipe). This guard is the single most important line in this addendum — do not ship the mechanical version without it.
+
+**Blocking mechanic.** In the season-complete render, hide or disable `#season-continue-btn` while a climax card is showing AND `!GS.reckoningResolved`. Re-enable it the moment any climax button resolves (no artificial delay — matches the immediacy of every other `resolveUwCard`-style swap in the codebase).
+
+#### Branch 1 — "Burn the Ledger" (`GS.alignment >= 40`)
+
+| Button | id | State deltas | Resolution copy |
+|---|---|---|---|
+| **"Hand Over the Evidence"** (primary, `btn-gold`, green accent to match the branch's `--green-bright`) | `reckon-clean-accept-btn` | `GS.blackMoney = 0`; `GS.debts = []`; `f.syndicate.rel = -100`; `f.syndicate.betrayed = (f.syndicate.betrayed\|\|0)+1`; `applyAlignShift(20)`; `GS.heat = Math.max(0, GS.heat-15)`; `GS.reckoningResolved = true` | *"Done. Sherawat's people move fast — three seasons of paper, filed and signed in an afternoon. Anna Seth doesn't call. He doesn't need to; you already know what his silence means now. The ledger's gone. So is he."* |
+| **"Not Yet"** (secondary, `btn-outline`) | `reckon-clean-decline-btn` | No blackMoney/debts change; `applyAlignShift(-8)`; `GS.reckoningResolved = true` | *"You don't hand it over. Ruby doesn't sound surprised. 'Smart. Keep it as insurance.' Sherawat doesn't call again — some doors only open once."* |
+
+Why balanced: Accept is a real, large, permanent cost (100% of Syndicate relationship, gone for the rest of the run) for a real permanent gain (debt zeroed, heat drops, alignment locks toward the ceiling) — not a freebie. Decline isn't a safe no-op either — it costs 8 alignment (a real if smaller step back toward the corrupt end) for keeping optionality, so "just dismiss and keep both" is not on the table.
+
+#### Branch 2 — "Take the Chair" (`GS.alignment <= -40`)
+
+| Button | id | State deltas | Resolution copy |
+|---|---|---|---|
+| **"Take the Chair"** (primary, `btn-gold`, blood/red accent to match `--blood`) | `reckon-corrupt-accept-btn` | `f.syndicate.rel = 100`; `f.syndicate.favorsDone = (f.syndicate.favorsDone\|\|0)+1`; `GS.blackMoney += 500`; `GS.debts = []`; `applyAlignShift(-20)`; `GS.fanLoyalty = Math.max(0, GS.fanLoyalty-25)`; if `GS.rivalData['Rajan Mehra'] \|\| {}).rel >= 20` also `GS.heat = Math.min(100, GS.heat+10)` (the succession fight gets noticed); `GS.reckoningResolved = true` | Contested (mehraRel>=20): *"Mehra doesn't go quietly — word of the fight gets around, and for a week your name is in every mouth in the league for the wrong reason. But the chair is yours."* Uncontested: *"No one else in the room has the standing to argue. The chair is yours, and the debts on the books get rewritten as assets overnight."* |
+| **"Walk Away"** (secondary, `btn-outline`) | `reckon-corrupt-decline-btn` | `applyAlignShift(6)`; `f.syndicate.rel = Math.max(-100, f.syndicate.rel-10)`; `GS.reckoningResolved = true` | *"You say no. ' + SYNDICATE_DON + ' doesn't raise his voice — he never does — but the offer, once refused, does not come back. Some doors only open once, from his side too."* |
+
+Why balanced: Accept trades the club's public name (25 fan loyalty, a real ongoing-relationship cost) and a further alignment slide for a large one-time coin windfall + a maxed, but now terminal, Syndicate relationship — not a no-cost power grab. Refusing the single most corrupt offer in the game is the one moment a deeply corrupt run can claw back alignment, but Anna Seth punishes the refusal (-10 rel) so it isn't a free redemption button either.
+
+#### Branch 3 — "Pick, Now" (`-40 < GS.alignment < 40`)
+
+Per Section 6, this branch uses "the exact same mechanical levers the player has had the whole game" rather than granting either full decided-branch ending — the player is forcing a resolution, not retroactively having played three acts of one path.
+
+| Button | id | State deltas | Resolution copy |
+|---|---|---|---|
+| **"Cut Ties — Go Clean"** | `reckon-pick-clean-btn` | `var pay = Math.min(GS.coins, 400); GS.coins -= pay;` (never a hard gate — deducts whatever is affordable, down to 0, so this button is always clickable, see Open Question 2); `GS.blackMoney = Math.max(0, GS.blackMoney-15)`; `applyAlignShift(25)`; `GS.reckoningResolved = true` | *"You pay down what you can and tell Ruby the rest waits. It isn't the clean break Sherawat offered the others — but it's a direction, finally, and everyone who's been watching notices which way you leaned."* |
+| **"Go All In"** | `reckon-pick-corrupt-btn` | `GS.blackMoney += 200`; `f.syndicate.rel = Math.min(100, f.syndicate.rel+20)`; `applyAlignShift(-25)`; `GS.reckoningResolved = true` | *"You take the last offer on the table. Ruby doesn't smile, exactly, but she doesn't have to talk you into the next one either. That part's done now."* |
+
+Why balanced: neither button reaches the ±40 threshold needed for the "real" decided endings on its own (a 25-point swing from mid-band, after `applyAlignShift`'s inertia damping, lands short of the ±40 gate at the extremes it's dampened against) — this branch resolves the fence-sitting into a lean, it doesn't retroactively hand out either full ending. "Cut Ties" costs real coins (or all remaining coins if poor) for a smaller debt paydown than the full "Burn the Ledger" wipe; "Go All In" grants a smaller windfall than "Take the Chair" for the same reason — this branch is deliberately the lesser version of both, matching the doc's own framing of it as indecision finally forced to resolve, not a stealth-third ending.
+
+### Edge cases
+
+- **Zero test coupling risk, verified:** grepped `tests/*.spec.js` for `uw-promo-beat`, `uwClimaxCard`, `endSeason`, `season-continue-btn` — zero matches. All existing `#match-result` test assertions target the single-match win/loss flow (`#match-continue-btn`), never the 14-match season-complete/`#season-continue-btn` path. This card and the button changes below it are entirely outside current suite coverage — safe to restructure freely, but a future test pass should probably add coverage for it now that it's stateful, not just decorative.
+- **Never a soft-lock:** every branch has at least one always-free, always-clickable button (Decline/Walk-Away/Go-All-In cost nothing; "Cut Ties" deducts `min(coins,400)` rather than gating on a minimum) — a player with 0 coins and 0 black money can still resolve every branch and unblock "Start Season."
+- **`GS.evidence` may be empty on a squeaky-clean run** (a player who never triggered a mafia/rival-bribe offer has nothing in the array) even though the "Burn the Ledger" copy says "three seasons of it, sitting untouched." Not gating the button on `GS.evidence.length` — matches the existing Act II pattern (`prototype/index.html`, the `GS.evidence.length > 0` check already degrades gracefully to generic phrasing elsewhere). Flavor text stays as-is; this is a narrative white lie the doc already accepts elsewhere, not a new problem.
+- **Relegation out of Champions League after resolving:** once `GS.reckoningResolved` is true, the card never fires again regardless of future promotion/relegation cycling (see Guard above) — the player's ending stands for the rest of the run.
+
+### Open questions (resolved here, flagging the reasoning)
+
+1. **Should this block "Start Season N+1"?** — **Yes.** Every other promo beat in this doc is explicitly non-blocking (Section 8's whole feasibility case rested on "additive, never gates flow"), but the climax is different in kind: it's the one moment the doc calls "the payoff," and a payoff you can shrug past with Dismiss isn't a payoff. The cost is small and contained — zero test coupling (verified above), and every branch guarantees an always-free resolution path, so blocking can't soft-lock or break any existing assertion. If this is ever found to feel punitive in practice, the fix is a one-line revert (drop the button-disable, keep everything else) — flagging that low-risk reversibility rather than treating this as a permanent architectural commitment.
+2. **Coin-gating "Cut Ties":** deliberately NOT a hard minimum (unlike hafta/election, which do hard-gate and `toast('Not enough coins')` on failure) — a hard gate here risks a genuine soft-lock at exactly the moment the game must not soft-lock. `Math.min(GS.coins, 400)` was chosen over a hard gate specifically for this reason; flag if a future balance pass wants stricter parity with the hafta/election pattern.
+3. **Is `GS.reckoningResolved` an acceptable "new mechanic"** given the doc's Section 6 explicitly says "no new state/mechanics"? — Judged yes, on narrow grounds: it is not new *narrative* mechanics (no new factions, no new screens, no new currencies) — it is the minimum state needed to make a real choice a real choice (preventing the farm-exploit on relegation/re-promotion cycling, per Edge cases above). A stateless version of this addendum is not safely buildable. If a future pass wants zero new fields at any cost, the fallback is gating on `GS.league === 'champions' && <some existing high-water-mark field>` — none currently exists cleanly, so this was not pursued as the primary recommendation.
+
+### Build handoff scope
+
+One function edit (`uwClimaxCard()` → returns per-branch button configs, not just prose), one new small render/bind pair mirroring `uwPromoBeatHtml`/its dismiss-wiring (~9283-9372) adapted for real buttons + `GS` mutation + resolve-in-place, one `endSeason()` call-site guard (`!GS.reckoningResolved`), one `#season-continue-btn` disable/enable toggle, one new persisted boolean added to defaults + `hydrateGS()`. No new CSS beyond existing `.glass`/`.btn`/`.btn-outline`/`.btn-gold`/accent-var classes already in the file. No new screens, currencies, or components.
