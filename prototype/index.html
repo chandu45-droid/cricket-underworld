@@ -2403,6 +2403,52 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 #auction-screen .intel-title.cu-chip{background:rgba(220,38,38,0.14);color:var(--blood);border:1px solid rgba(220,38,38,0.3);margin-bottom:6px}
 
 /* ================================================================
+   CINEMATIC AUCTION PASS (2026-08-02) — SOLD payoff + bid punch.
+   PRESENTATION ONLY. No bid math/purse/timer/resolution logic touched.
+   showSoldStamp()/flashBid() (JS, near resolveCard/placeBid/aiBid) are
+   pure read-and-animate hooks: they read auction.bid/auction.bidder/p.name
+   (already-computed values) and toggle CSS classes, nothing else. Every
+   wired id this screen's tests depend on (auction-purse, current-bid,
+   bidder-name, timer-circle, timer-bar-fill, bid-btn, pass-btn, bid-log,
+   auction-spotlight, auction-intel-panel/-text, start-auction-btn,
+   auction-active-area/-empty-area) is untouched — this block only adds
+   new elements/classes around them. Countdown pressure (.timer-progress/
+   .timer-bar-fill .warn/.danger, #bid-btn.urgency) and player-entrance
+   (.auction-card-spotlight .player-card cardEnter, .spotlight-rays) were
+   already shipped in the earlier V3 kit pass above — verified intact,
+   not modified here. */
+.sold-stamp-overlay{position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0}
+.sold-stamp-overlay.show{opacity:1}
+.ssv-flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,0.9),transparent 55%);opacity:0}
+.sold-stamp-overlay.show .ssv-flash{animation:ssvFlash 0.9s ease-out forwards}
+@keyframes ssvFlash{0%{opacity:0}6%{opacity:.85}14%{opacity:0}30%{opacity:.5}42%{opacity:0}100%{opacity:0}}
+.ssv-confetti{position:absolute;inset:0;overflow:hidden}
+.ssv-confetti span{position:absolute;top:-16px;width:6px;height:11px;border-radius:1px;opacity:0}
+.sold-stamp-overlay.show .ssv-confetti span{animation:ssvFall 1.1s ease-in forwards}
+.ssv-confetti span:nth-child(1){left:8%;background:var(--gold-bright);animation-delay:.02s}
+.ssv-confetti span:nth-child(2){left:20%;background:var(--green-bright);animation-delay:.10s}
+.ssv-confetti span:nth-child(3){left:33%;background:var(--blood);animation-delay:.05s}
+.ssv-confetti span:nth-child(4){left:47%;background:var(--gold-bright);animation-delay:.16s}
+.ssv-confetti span:nth-child(5){left:60%;background:var(--green-bright);animation-delay:.08s}
+.ssv-confetti span:nth-child(6){left:72%;background:var(--blood);animation-delay:.13s}
+.ssv-confetti span:nth-child(7){left:84%;background:var(--gold-bright);animation-delay:.03s}
+.ssv-confetti span:nth-child(8){left:92%;background:var(--green-bright);animation-delay:.18s}
+@keyframes ssvFall{0%{opacity:0;transform:translateY(0) rotate(0)}8%{opacity:1}100%{opacity:0;transform:translateY(260px) rotate(420deg)}}
+.ssv-card{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;transform:scale(0) rotate(-8deg);opacity:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);/* perf: true transient overlay -- SOLD payoff only, ~1.1s window, blur trimmed to 10px */background:rgba(var(--abyss-rgb),0.55);padding:22px 34px;clip-path:var(--clip-card-tr);border:1px solid rgba(var(--hl-rgb),0.14)}
+.sold-stamp-overlay.show .ssv-card{animation:ssvPop .55s cubic-bezier(.2,.7,.2,1) .08s forwards}
+@keyframes ssvPop{0%{transform:scale(0) rotate(-10deg);opacity:0}60%{transform:scale(1.15) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+.ssv-hammer{width:34px;height:34px;color:var(--gold-bright);opacity:0;transform:translateY(-30px) rotate(-25deg)}
+.sold-stamp-overlay.show .ssv-hammer{animation:ssvHammer .5s ease-out .32s forwards}
+@keyframes ssvHammer{0%{opacity:0;transform:translateY(-30px) rotate(-25deg)}60%{opacity:1;transform:translateY(0) rotate(4deg)}100%{opacity:1;transform:translateY(4px) rotate(0)}}
+.ssv-stamp{font-family:var(--font-d);font-size:46px;font-weight:700;letter-spacing:4px;line-height:1;margin-top:6px;color:var(--gold-bright);text-shadow:0 0 24px rgba(255,210,63,0.5)}
+.ssv-player{font-family:var(--font-d);font-size:20px;font-weight:600;color:var(--white);letter-spacing:.5px;margin-top:6px;text-align:center}
+.ssv-price{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--gold-bright);font-variant-numeric:tabular-nums;letter-spacing:.5px;margin-top:4px}
+.sold-stamp-overlay.lost .ssv-stamp{color:var(--blood);text-shadow:0 0 24px rgba(220,38,38,0.45)}
+.sold-stamp-overlay.lost .ssv-hammer{color:var(--blood)}
+.current-bid.bid-punch{animation:bidPunch .38s cubic-bezier(.2,.8,.3,1)}
+@keyframes bidPunch{0%{transform:scale(1)}35%{transform:scale(1.16);text-shadow:0 0 22px rgba(255,210,63,0.55)}100%{transform:scale(1)}}
+
+/* ================================================================
    V3 KIT APPLICATION — B5: Deals/Favor Board + Debt Ledger, Collection,
    Pack Opening. LOOK ONLY, scoped to each surface's own selector — no
    wired id/class/data-* renamed. Mafia-panel danger aesthetic (crimson)
@@ -2993,6 +3039,19 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="auction-log-panel glass cu-card" id="bid-log-panel">
           <div class="section-title sm">Bid History<span class="accent-line"></span></div>
           <div class="bid-log" id="bid-log"></div>
+        </div>
+        <!-- Cinematic auction pass (2026-08-02): SOLD payoff overlay. Purely
+             presentational, populated/toggled by showSoldStamp() in the JS
+             AUCTION region (see resolveCard()) -- no logic lives here. -->
+        <div class="sold-stamp-overlay" id="sold-stamp-overlay">
+          <div class="ssv-flash"></div>
+          <div class="ssv-confetti"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="ssv-card">
+            <svg class="ssv-hammer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l6-6M14 3l7 7-3 3-7-7zM10 7l7 7"/></svg>
+            <div class="ssv-stamp">SOLD</div>
+            <div class="ssv-player" id="sold-stamp-player"></div>
+            <div class="ssv-price" id="sold-stamp-price"></div>
+          </div>
         </div>
       </div>
       <div class="auction-empty empty-state" id="auction-empty-area">
@@ -7431,7 +7490,7 @@ function aiBid() {
   auction.timer = Math.min(auction.timer + 2, auction.maxTimer);
   addBidLog(rival.name, newB);
   clearOverspendWarn();
-  updateBidUI(); SFX.bid();
+  updateBidUI(); SFX.bid(); flashBid();
 }
 
 var _anFirstBidLogged = false; // session-local funnel marker; not persisted, resets on reload
@@ -7450,7 +7509,34 @@ function placeBid() {
   auction.timer = Math.min(auction.timer + 2, auction.maxTimer);
   addBidLog('You', newB);
   if (!_anFirstBidLogged) { _anFirstBidLogged = true; trackEvent('auction_first_bid', { price: newB }); }
-  updateBidUI(); SFX.bid();
+  updateBidUI(); SFX.bid(); flashBid();
+}
+
+// Cinematic auction pass (2026-08-02) -- presentation-only visual hooks.
+// Both read already-computed auction state and toggle CSS classes; neither
+// mutates GS/auction/purse/timer. flashBid() punches the current-bid number
+// on every bid (yours or a rival's). showSoldStamp() is the SOLD payoff,
+// called once per resolved card from resolveCard() below.
+function flashBid() {
+  var el = $('current-bid');
+  if (!el) return;
+  el.classList.remove('bid-punch');
+  void el.offsetWidth; // force reflow so back-to-back bids retrigger the animation
+  el.classList.add('bid-punch');
+}
+
+var _soldStampTimer = null;
+function showSoldStamp(name, price, won) {
+  var el = $('sold-stamp-overlay');
+  if (!el) return;
+  var nameEl = $('sold-stamp-player'), priceEl = $('sold-stamp-price');
+  if (nameEl) nameEl.textContent = name;
+  if (priceEl) priceEl.textContent = price;
+  el.classList.remove('show', 'won', 'lost');
+  void el.offsetWidth;
+  el.classList.add('show', won ? 'won' : 'lost');
+  clearTimeout(_soldStampTimer);
+  _soldStampTimer = setTimeout(function() { el.classList.remove('show', 'won', 'lost'); }, 1100);
 }
 
 function showOverspendWarn(amt) {
@@ -7493,6 +7579,7 @@ function addBidLog(name, amount) {
 
 function resolveCard() {
   var p = auction.pool[auction.idx];
+  if (auction.bidder) showSoldStamp(p.name, auction.bid, auction.bidder === 'you');
   if (auction.bidder === 'you') {
     GS.auctionPurse -= auction.bid; GS.coins -= auction.bid;
     GS.squad.push(JSON.parse(JSON.stringify(p)));
