@@ -1,5 +1,88 @@
 # Progress — Cricket Underworld
 
+> ### 🩹 UI-DESIGNER AUDIT FOLLOW-UP — 5 defects fixed (Hub ring/ticker/achieve-rail/toast, Match field backdrop) (2026-08-02)
+> A `ui-designer` audit of the Hub/Squad/Match cinematic + wider-composition passes (shipped earlier
+> today) found 5 real, small defects, verified against actual screenshots at 320/390/768px in both
+> themes and a real driven match. All 5 fixed, CSS/markup-only, zero game-state/logic changes.
+>
+> **1 [HIGH] Hub OVR ring clipped off-screen at 320px.** `.hub-header`'s flex row (80px crest + name
+> column + 76px ring, 16px gaps) doesn't reflow at narrow widths; the row overflowed its own card by
+> ~33px with just the default "Manager" name, and `.screen`'s `overflow-x:hidden` clipped the ring at
+> the viewport edge instead of reflowing it. Added a `@media (max-width:340px)` block (placed *after*
+> the base rules so cascade order — not just the media match — wins): crest 80→64→62px, ring 76→48px,
+> header gap 16→8px, name font 32→23px. First pass (ring-only shrink, crest untouched) fit the ring but
+> made "Manager" itself start truncating ("Mana...") — measured the real content-box math (.hub-header's
+> border-box 288px at 320vw minus its own 32px padding = 256px content width) and rebalanced across
+> crest+ring+font instead of ring alone. Verified un-truncated + ring fully on-screen for "Manager",
+> "Siddharth", and "Virender Rao" at 320/340/390px; only the true 20-char input-cap extreme
+> ("Chandrasekhar Reddy") still ellipsizes — `min-width:0` + `text-overflow:ellipsis` on the name is a
+> deliberate safety net for that case, not the primary mechanism.
+>
+> **2 [HIGH] Hub LED ticker "hard truncation."** Investigated before touching anything: the marquee
+> is NOT broken — `.ticker-track`'s content is already duplicated once (10 spans = 5 unique ×2) and
+> `hubTickerScroll` already drives a continuous `translateX(0)→translateX(-50%)` loop. Confirmed live
+> by sampling the computed `transform` at t=0/3s/6s — value advances every sample,
+> `animation-play-state:running`. The audit's screenshot caught it mid-cycle, which is inherent to any
+> running marquee, not a defect. **Outcome: no repair needed to the marquee itself** — added a
+> polish-only CSS edge fade (`mask-image`, both edges, transparent→opaque within 20px) so the
+> inevitable mid-word edge reads as an intentional vignette. Chose `mask-image` over a solid-color
+> pseudo-element because the ticker sits directly on the hub screen's own radial-gradient backdrop
+> (no flat card color to fade toward).
+>
+> **3 [MEDIUM] Hub achievement rail contrast + no scroll cue.** `.hub-ach-item .hub-ach-name` was
+> 8.5px `var(--slip)` on `var(--glass-bg)`. Computed WCAG contrast by hand from the actual CSS hex
+> values (relative-luminance formula, sRGB→linear, worst-case gradient stop per theme):
+> - Light theme: `--slip` `#57687C` vs glass-bg darkest stop `#E8DCBC` = **~4.19:1** (fails 4.5:1 AA;
+>   matches the audit's own ~4.15:1 reading within rounding) → `--white-60` `rgba(26,35,51,.72)`
+>   composited over the same stop = **~5.34:1** (passes).
+> - Dark theme: `--slip` `#7A8299` vs glass-bg lightest stop `#232B40` = **~3.68:1** (also fails,
+>   worse than light) → `--white-60` `rgba(232,224,212,.6)` composited over the same stop =
+>   **~4.90:1** (passes).
+> Moved to the existing `--white-60` token (already used elsewhere for readable secondary text on a
+> card — `--slip` is for body-copy on the main screen bg, not the smallest label on a small card) and
+> bumped 8.5px→9.5px. Both themes now clear AA with margin at the single worst-case pixel. Added a
+> right-edge `mask-image` fade on `.hub-achieve-rail` (same rationale as the ticker — no card color
+> behind it to fade toward) so the 6-badge horizontal scroll reads as "more content" instead of a hard
+> stop.
+>
+> **4 [MEDIUM] Hub toasts overlapping the manager card.** `.toast[data-screen="hub"]` was tuned
+> (2026-07-31) to `top:calc(var(--top-h)+4px)` for a pre-cinematic-pass header. Today's Hub cinematic
+> pass grew the header into a full stadium-backdrop card; measured live (`getBoundingClientRect`,
+> identical at 320/390px — fixed mobile-width column) that `.hub-header` now spans top:68px→bottom:195px,
+> so the old +4px (56px from viewport top) landed mid-header, over the manager name. Moved to
+> `top:calc(var(--top-h)+155px)`, clearing the header with margin at both widths. Every row below is
+> packed tight enough (largest gap 20px vs. toast's ~40px+ height) that a toast will still graze
+> hub-meters briefly — accepted tradeoff since the only hard requirement (clear the manager
+> name/OVR ring) is met.
+>
+> **5 [LOW] Match screen fielder dots read as debug scatter.** Investigated the actual rendering path
+> before touching anything: `#fielder-dots`/`FIELDER_POSITIONS`/`updateFielderDots()` (the anchors named
+> in the brief) turned out to be **dead code** — the container is `display:none` in the markup and
+> nothing in the codebase ever toggles it visible (confirmed via live `getComputedStyle` after calling
+> `updateFielderDots()` directly — still `display:none`). The actual live fielder/ground visual is a
+> separate, already-existing canvas 2D system (`matchCanvas.drawGround()` + `drawFielders()`, called
+> every frame from `render()`) that already draws a boundary ellipse + pitch rectangle, just at very low
+> alpha (0.06–0.2), which is why it under-renders as "no boundary/pitch" in practice. Per the brief's
+> constraint (don't touch dot-positioning/game logic), left `matchCanvas` and the dead DOM system alone
+> and added a purely additive SVG backdrop (`#fielder-field-svg`, z-index:1, between canvas z0 and the
+> inert `#fielder-dots` z2) — an oval boundary + center pitch rectangle, monoline `stroke-width:1.8`
+> matching `.action-tile .tile-icon svg`'s existing convention, colored `var(--green-bright)` (existing
+> token, already this screen's accent) at 0.34 opacity. Verified via live screenshots (light theme
+> standard field, dark theme attacking field, both 320/390px) that the pitch strip and boundary are now
+> clearly legible without competing with the fielder dots. **Flagging for founder:** the dead
+> `#fielder-dots`/`FIELDER_POSITIONS` DOM system is real tech debt worth a cleanup pass separately —
+> it was out of scope here since the brief explicitly said not to touch dot-positioning logic.
+>
+> **Verification:** thermal grep unchanged (62 `infinite`, 22 `backdrop-filter`, before = after — no
+> new always-running animations or blur layers). Brace count balanced (4471/4471). All test-referenced
+> selectors survived unmodified (`hub-power-ring` id, `hub-news-ticker`/`hub-achieve-rail` classes,
+> `fielder-dots` id, `hub-crest`/`manager-name`/`hub-meters`/`hub-empire-line`/`action-tile`/
+> `hub-battle-card`/`drawer-rewards`/`match-score .score-char`/`tac-aggro`) — none renamed, none removed.
+> Verified locally via `npx serve prototype` + throwaway Playwright scripts (state-injected screenshots
+> at 320/340/390px, both themes, plus live match-screen rendering) — not the real `npx playwright test`
+> suite (founder-gated). Scratch scripts deleted after use, not committed. **Needs founder device pass**
+> before considering closed.
+
 > ### 🎨 APP ICON RECOLORED — Stump Crown adopted, generic orange swapped for real palette (2026-08-02)
 > Founder generated a bolt.new AI logo-concept export exploring 6 app-icon directions
 > (`design-lab/bolt-round5-logo/`). A `ui-designer` audit independently reviewed all 6 (reading the

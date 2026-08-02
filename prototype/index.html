@@ -876,6 +876,19 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .match-pitch-bg::before{content:'';position:absolute;top:0;left:14%;right:14%;height:1px;background:linear-gradient(90deg,transparent,rgba(240,200,80,0.35),transparent);z-index:1}
 #match-canvas{image-rendering:auto}
 #fielder-dots{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;pointer-events:none;z-index:2}
+/* FIX (2026-08-02, ui-designer audit item 5): #fielder-dots is real functional
+   data (attacking/standard/defensive field settings, updateFielderDots()) with no
+   visual context behind it -- just dots floating on the spotlight gradient, reads
+   as debug output. Added a pure backdrop layer (z-index:1, below the z-index:2
+   dots, above #match-canvas's z-index:0) -- zero changes to updateFielderDots(),
+   FIELDER_POSITIONS, or dot markup/positioning. Monoline stroke-width:1.8 matches
+   the existing icon convention (.action-tile .tile-icon svg). Ellipse boundary is
+   the pre-registered exception to the angular/no-rounded-corners rule -- it's a
+   literal cricket-ground shape, not UI chrome. Colored via var(--green-bright) at
+   low opacity (existing token, already this screen's accent -- .match-pitch-bg's
+   own gradient/border use the same green) rather than a new color. */
+#fielder-field-svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;pointer-events:none;z-index:1;opacity:0.34}
+#fielder-field-svg .ff-line{fill:none;stroke:var(--green-bright);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 .match-scoreboard{text-align:center;position:relative;z-index:1}
 /* WIDER SCOPE: radial glow behind the score digits -- broadcast-scoreboard weight,
@@ -1436,7 +1449,19 @@ html[data-theme="light"] .auction-purse-zone .purse{
    row -- pulled it up into the small decorative gap above the header instead. Auction's
    purse zone + round chip fill that same space, so the toast is pushed down to clear
    both. toast() tags the element with data-screen (see JS ~L4963). */
-.toast[data-screen="hub"]{top:calc(var(--top-h) + 4px)}
+/* FIX (2026-08-02, ui-designer audit item 4): this +4px offset was tuned (2026-07-31,
+   comment above) to a shorter pre-cinematic-pass header. Today's Hub cinematic pass
+   grew the header into a full stadium-backdrop card (80px crest + 32px name + power
+   ring), so .hub-header now measures top:68px/bottom:195px in the rendered layout
+   (measured via local Playwright getBoundingClientRect at 320 and 390px -- identical,
+   this is a fixed mobile-width content column per the brief) -- the old +4px (=56px
+   from viewport top) landed mid-header, over the manager name. Moved past the header's
+   real bottom edge (195px) with a margin; every other row below (hub-meters, ticker,
+   empire-line, achieve-rail) is packed with no gap taller than the toast itself
+   (largest is 20px, toast is ~40px+), so a toast will still graze hub-meters briefly --
+   accepted tradeoff since the only hard requirement is clearing the manager card
+   name/OVR ring, which this does with margin at both 320 and 390px. */
+.toast[data-screen="hub"]{top:calc(var(--top-h) + 155px)}
 .toast[data-screen="auction"]{top:calc(var(--top-h) + 166px)}
 
 /* ================================================================
@@ -2092,6 +2117,23 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    binding. Appended as a normal flex child AFTER .hub-meters (see markup) so
    it lays out below the opaque meters panel instead of behind it. */
 .hub-news-ticker{position:relative;z-index:2;margin-top:8px;padding:6px 0;overflow:hidden;background:linear-gradient(180deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border-top:1px solid rgba(var(--hl-rgb),0.08);border-bottom:1px solid rgba(var(--hl-rgb),0.08)}
+/* FIX (2026-08-02, ui-designer audit item 2): VERIFIED the marquee itself is not
+   broken -- .ticker-track's content list is already duplicated once (10 spans =
+   5 unique x2) and hubTickerScroll already drives a continuous translateX(0)->
+   translateX(-50%) loop (confirmed live: sampled computed transform at t=0/3s/6s,
+   value advances every sample, animation-play-state:running). What the audit read
+   as "hard truncation" is just a single static screenshot catching the marquee
+   mid-cycle -- inherent to ANY running marquee, not a defect. No JS/keyframe/
+   content changes made. Per the brief's own fallback clause ("only fall back to
+   ellipsis/fade-edge if there's a real reason the marquee can't work") the real
+   reason here is cosmetic, not functional: at any single instant the edges still
+   read as an abrupt cut. Added a pure-CSS edge fade (mask-image, both edges) so
+   that cut reads as an intentional vignette instead of breakage -- mask (not a
+   pseudo-element matched to a background color) was chosen because this ticker
+   sits directly on the hub screen's own per-screen radial-gradient backdrop, not
+   a flat card color, so fading content to transparent is the only approach that
+   can't visibly mismatch the surface behind it in either theme. */
+.hub-news-ticker{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 20px,#000 calc(100% - 20px),transparent 100%)}
 .hub-news-ticker .ticker-track{display:flex;gap:36px;width:max-content;white-space:nowrap;animation:hubTickerScroll 26s linear infinite}
 .hub-news-ticker .ticker-track span{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--white-40)}
 .hub-news-ticker .ticker-track .tk-dot{width:4px;height:4px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 4px var(--gold-bright);flex-shrink:0}
@@ -2111,6 +2153,39 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-power-ring .ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s var(--spring),stroke 0.8s;filter:drop-shadow(0 0 6px var(--align-accent-dim))}
 .hub-power-ring .power-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);text-shadow:0 0 16px rgba(var(--hl-rgb),0.1);line-height:1}
 .hub-power-ring .power-label{font-size:10px;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-top:2px;font-family:var(--font-b);font-weight:600}
+/* FIX (2026-08-02, ui-designer audit item 1): at <=340px the fixed-width flex row
+   (80px crest + manager-info + 76px ring, 16px gaps) overflows .hub-header's own
+   content box by ~33px with just the default "Manager" name -- .screen has
+   overflow-x:hidden so the ring visibly clips at the viewport edge instead of
+   reflowing. Placed AFTER the base .hub-header/.hub-power-ring/.team-crest rules
+   above (not folded into the earlier #top-bar breakpoint at ~L343) so cascade
+   order — not just the media match — lets these overrides win.
+   Math (verified with live Playwright getBoundingClientRect, not guessed): at
+   320px, .hub-header's content box (border-box 288px minus its own 16px*2
+   padding) is 256px. First pass shrank only the ring to 50px and kept the 80px
+   crest -- that left just 106px for manager-info's flex:1 share (256-80-50-20
+   gap), and "Manager" alone needs ~116px, so the name itself started ellipsizing
+   ("Mana...") -- a regression the brief explicitly said to avoid. Re-measured and
+   also shrank the crest (80->64px, still clearly a portrait, not the identity
+   element at risk here) so the ring can stay at a legible 46px: available for
+   manager-info becomes 256-64-46-20 = 126px, ~10px of headroom over "Manager"'s
+   measured width, confirmed un-truncated in a live screenshot at 320px (also
+   re-verified at 390px, byte-identical layout since this is a fixed mobile-width
+   content column). min-width:0 + ellipsis on the name is a pure safety net for
+   the rare very-long (up to the 20-char input cap) custom name that still
+   wouldn't fit even at this size -- it only engages if a name is long enough to
+   have overflowed anyway; it does not fire for "Manager" or realistic short names. */
+@media (max-width:340px){
+  .hub-header{gap:8px}
+  .hub-header .team-crest{width:62px;height:62px}
+  .hub-header .team-crest svg{width:62px;height:62px}
+  .hub-header .manager-info{min-width:0}
+  .hub-header .manager-name{font-size:23px;letter-spacing:0.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hub-power-ring{width:48px;height:48px}
+  .hub-power-ring svg{width:48px;height:48px}
+  .hub-power-ring .power-val{font-size:15px}
+  .hub-power-ring .power-label{font-size:6px;margin-top:1px}
+}
 
 /* Meters — larger with icon labels. v3 kit: .cu-card on this element supplies the chamfered
    frame + gold spotlight sheen (surface-only, additive — see markup); padding added here since
@@ -2194,12 +2269,31 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-header.cu-card{padding:14px 16px;margin:0 0 10px}
 
 /* Achievement rail — computed-threshold badges (renderHubAchievements()) */
-.hub-achieve-rail{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 10px;padding:1px 1px}
+/* FIX (2026-08-02, ui-designer audit item 3): (a) contrast -- .hub-ach-name was
+   8.5px var(--slip) on var(--glass-bg); computed against the gradient's darkest
+   stop (worst case a badge can sit on) that's ~4.19:1 in light theme and as low
+   as ~3.68:1 in dark theme (top-left stop #232B40), both under WCAG AA's 4.5:1
+   floor for text this small. Moved to var(--white-60) (already the token used
+   elsewhere for "readable secondary text on a card", per this design system --
+   --slip is for body-copy secondary text on the main screen bg, not the smallest
+   label on a small card) + bumped 8.5px->9.5px. Recomputed (relative-luminance
+   WCAG formula, sRGB->linear, worst-case gradient stop each theme):
+     light theme: slip #57687C vs glass-bg darkest stop #E8DCBC = ~4.19:1 (fails)
+                  -> white-60 rgba(26,35,51,.72) composited over same stop = ~5.34:1 (passes)
+     dark theme:  slip #7A8299 vs glass-bg lightest stop #232B40 = ~3.68:1 (fails)
+                  -> white-60 rgba(232,224,212,.6) composited over same stop = ~4.90:1 (passes)
+   Both themes now clear 4.5:1 with margin at the single worst-case pixel, not just
+   on average. (b) scroll affordance -- .hub-achieve-rail scrolls horizontally (6
+   badges, ~4-5 fit at 390px) with zero cue more exist off-screen. Added a
+   right-edge mask fade (mirrors the ticker fix above) instead of a solid-color
+   pseudo-element gradient, since this rail sits directly on the hub screen's own
+   backdrop (no enclosing card color to fade toward) the same as the ticker. */
+.hub-achieve-rail{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 10px;padding:1px 1px;-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
 .hub-achieve-rail::-webkit-scrollbar{display:none}
 .hub-ach-item{flex:0 0 auto;min-width:58px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 10px;background:var(--glass-bg);border:1px solid var(--border);clip-path:var(--clip-10);transition:transform 0.15s,border-color 0.2s}
 .hub-ach-item:active{transform:scale(0.93)}
 .hub-ach-item svg{width:18px;height:18px;stroke:var(--slip);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:0.4}
-.hub-ach-item .hub-ach-name{font-family:var(--font-b);font-size:8.5px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--slip);white-space:nowrap;text-align:center}
+.hub-ach-item .hub-ach-name{font-family:var(--font-b);font-size:9.5px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--white-60);white-space:nowrap;text-align:center}
 .hub-ach-item.earned{border-color:rgba(240,200,80,0.35)}
 .hub-ach-item.earned svg{stroke:var(--gold-bright);opacity:1;filter:drop-shadow(0 0 4px rgba(240,200,80,0.4))}
 .hub-ach-item.earned .hub-ach-name{color:var(--white)}
@@ -3428,6 +3522,10 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <div class="screen" id="match-screen">
       <div class="match-pitch-bg" id="match-pitch-bg">
         <canvas id="match-canvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0"></canvas>
+        <svg id="fielder-field-svg" viewBox="0 0 180 180" aria-hidden="true">
+          <ellipse class="ff-line" cx="90" cy="90" rx="84" ry="80"/>
+          <rect class="ff-line" x="82" y="52" width="16" height="92"/>
+        </svg>
         <div id="fielder-dots" style="display:none"></div>
         <div id="ball-anim-container" style="position:absolute;bottom:40%;left:50%;transform:translateX(-50%);pointer-events:none;z-index:5"></div>
         <div class="match-scoreboard">
