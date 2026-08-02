@@ -15,6 +15,7 @@
 | System | Anchors |
 |---|---|
 | Save/load/analytics | `save` 3131, `trackEvent` 3154, `load` 3491, `exportSaveString` 3520, `cloudBackup` 3569 |
+| In-app browser / WebView warning | `_isInAppBrowser` ~4040, `_checkCrossSessionPersistence` ~4075, `_showInAppBrowserBanner` ~4155 (banner `#inapp-banner` near `#toast`) |
 | Daily login | `processDailyLogin` 3312, `claimDailyLogin` 3362 |
 | Empire/theme | `computeNetWorth` 3394, `applyTheme` 3430 |
 | World init | `initRivalData` 3608, `initFactions` 3619 |

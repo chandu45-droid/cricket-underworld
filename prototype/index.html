@@ -1386,6 +1386,25 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .toast[data-screen="auction"]{top:calc(var(--top-h) + 166px)}
 
 /* ================================================================
+   IN-APP BROWSER / STORAGE-PERSISTENCE BANNER (fix/inapp-browser-warning)
+   Non-blocking, dismissible bar -- NOT a modal, NOT confirm()/alert(). Sits
+   above bottom-nav so it never blocks navigation. Session-only dismissal:
+   the .show class is toggled purely in JS memory, never persisted.
+   ================================================================ */
+.inapp-banner{position:fixed;left:8px;right:8px;bottom:calc(var(--nav-h) + var(--safe-b) + 8px);z-index:410;background:var(--glass-bg);border:1px solid rgba(220,38,38,0.35);clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px);box-shadow:var(--elevation-2),0 0 0 1px rgba(220,38,38,0.08);opacity:0;transform:translateY(140%);pointer-events:none;transition:transform 0.4s var(--spring-bounce),opacity 0.3s ease}
+.inapp-banner.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.inapp-banner-inner{display:flex;align-items:flex-start;gap:10px;padding:12px 10px 12px 14px;position:relative}
+.inapp-banner-inner::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--blood)}
+.inapp-banner-msg{flex:1;font-size:12px;line-height:1.45;color:var(--white);letter-spacing:0.2px}
+.inapp-banner-msg strong{display:block;color:var(--blood);font-family:var(--font-d);font-size:14px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;margin-bottom:3px}
+.inapp-banner-actions{display:flex;flex-direction:column;align-items:stretch;gap:6px;flex-shrink:0}
+.inapp-banner-copy-btn{font-family:var(--font-d);font-size:12px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--gold-ink);background:var(--gold-grad);border:none;padding:8px 12px;cursor:pointer;clip-path:var(--clip-btn-sm);white-space:nowrap}
+.inapp-banner-copy-btn:active{transform:scale(0.96)}
+.inapp-banner-close{align-self:flex-end;width:22px;height:22px;line-height:20px;text-align:center;background:rgba(var(--hl-rgb),0.06);border:1px solid var(--border);color:var(--slip);font-size:15px;cursor:pointer;padding:0;border-radius:2px}
+.inapp-banner-close:active{transform:scale(0.9)}
+html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
+
+/* ================================================================
    EFFECTS
    ================================================================ */
 .vignette{position:fixed;inset:0;pointer-events:none;z-index:50;background:radial-gradient(ellipse at center,transparent 50%,rgba(var(--ov-rgb),0.66) 100%);opacity:0.6}
@@ -3445,6 +3464,24 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 <div id="outcome-flash"></div>
 <div class="toast" id="toast"></div>
 
+<!-- IN-APP BROWSER / STORAGE WARNING -- dismissible banner (session-only), NOT
+     a modal/confirm(). Fires from _showInAppBrowserBanner() when UA sniffing
+     or the cross-session persistence probe detects a WebView that accepts
+     writes but discards them between sessions (confirmed WhatsApp in-app
+     browser playtest failure, 2026-08-02). See JS near _isInAppBrowser(). -->
+<div id="inapp-banner" class="inapp-banner" role="alert">
+  <div class="inapp-banner-inner">
+    <div class="inapp-banner-msg">
+      <strong>Progress won't be saved here</strong>
+      This app's built-in browser can't keep your save. Open the &#8942; or &bull;&bull;&bull; menu at the top and pick "Open in Chrome" (or Safari) to keep playing safely.
+    </div>
+    <div class="inapp-banner-actions">
+      <button type="button" id="inapp-banner-copy" class="inapp-banner-copy-btn">Copy Link</button>
+      <button type="button" id="inapp-banner-dismiss" class="inapp-banner-close" aria-label="Dismiss">&times;</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -3961,6 +3998,13 @@ function _applyStorageNotice() {
       note.textContent = "This browser is blocking saves (common in WhatsApp/Instagram in-app browsers) — your progress will NOT persist here. Open this page in Chrome or Safari instead, or copy a Backup Code below right now.";
     } else if (_loadFailedFlag) {
       note.textContent = 'Your last save could not be read on this device. Nothing was deleted — use "Restore This Save" below with a Backup Code, or Cloud Restore, to recover it.';
+    } else if (_inAppBrowserFlag || _persistBrokenFlag) {
+      // Distinct from both cases above: the boot probe itself passed (writes
+      // succeed), so we're not "blocked" -- this is the quieter, more
+      // dangerous failure where a WebView accepts writes and drops them
+      // between sessions. Detected via UA sniffing and/or the cross-session
+      // persistence check (_isInAppBrowser / _checkCrossSessionPersistence).
+      note.textContent = "This looks like an in-app browser (opened from WhatsApp/Instagram, etc.) — saves can silently vanish here even though this device isn't showing an error. Open this page in Chrome or Safari to be safe, or copy a Backup Code below right now.";
     }
   } catch (e) {}
 }
@@ -3974,6 +4018,152 @@ function _showStorageDiagnostics() {
       toast("This browser is blocking save data — open in Chrome/Safari to keep progress, or back up via Settings → Cloud Save & Backup.", 'error');
     } else if (_loadFailedFlag) {
       toast("Your save couldn't be read but was preserved, not deleted. See Settings → Cloud Save & Backup to recover it.", 'error');
+    }
+  } catch (e) {}
+}
+
+// =============================================
+// IN-APP BROWSER / WEBVIEW DETECTION (fix/inapp-browser-warning, 2026-08-02)
+// Confirmed root cause: both testers opened the game link from inside
+// WhatsApp's in-app browser (an embedded WebView). That WebView ACCEPTS
+// localStorage writes and reads them back fine within the same load --
+// so _probeStorage() above sees nothing wrong -- but discards everything
+// between sessions/reloads. Two independent, best-effort signals below;
+// either one showing the banner is enough. Neither touches save()/load()/
+// _probeStorage() or their flags. Every path try/catch-wrapped: a detection
+// failure must degrade to "no banner", never break boot or gameplay.
+// =============================================
+var _inAppBrowserFlag = false;   // set once at boot by _isInAppBrowser()
+var _persistBrokenFlag = false;  // set once at boot by _checkCrossSessionPersistence()
+var _inAppWarnDismissed = false; // in-memory ONLY -- deliberately never persisted.
+                                  // Persisting it would mean writing to the very
+                                  // storage this whole feature exists because it
+                                  // may not stick; a lost dismissal just re-nags
+                                  // next boot, which is the safe failure direction.
+var _inAppBannerBound = false;   // wire the banner's buttons once
+
+// UA sniffing is inherently imperfect -- WhatsApp's own WebView does not
+// reliably self-identify on every platform (notably iOS WKWebView carries no
+// distinct marker from Safari). Only tokens with well-documented, stable
+// meaning are matched; anything uncertain is deliberately left OUT, because a
+// false positive nagging a real Chrome/Safari user is worse than a miss here.
+// Matched:
+//   FBAN / FBAV   -- Facebook app's embedded browser (Meta's own UA tokens)
+//   "Instagram"   -- Instagram app's embedded browser (self-identifies)
+//   "; wv)"       -- Android's own marker for "this is an embedded WebView
+//                    component, not the Chrome app" (Chromium/Android docs).
+//                    WhatsApp Android uses the system WebView for its in-app
+//                    browser and carries this token; real mobile Chrome never
+//                    does. This is the closest thing to a direct WhatsApp
+//                    signal available on Android. No iOS equivalent exists.
+function _isInAppBrowser() {
+  try {
+    var ua = navigator.userAgent || '';
+    if (/FBAN|FBAV/.test(ua)) return true;
+    if (/Instagram/.test(ua)) return true;
+    if (/; ?wv\)/.test(ua)) return true;
+    return false;
+  } catch (e) { return false; }
+}
+
+// Cross-session persistence check -- the signal that actually PROVES the
+// failure, independent of any UA string. Logic, chosen to minimize false
+// alarms:
+//   - sessionStorage is spec-guaranteed to survive a reload/navigation within
+//     the same tab/WebView instance, and is a SEPARATE storage bucket from
+//     localStorage. We use it purely as an in-memory-for-this-session marker
+//     of "did we already write the durable marker once this session".
+//   - On boot, if sessionStorage says "yes, we wrote it already" but the
+//     durable localStorage marker (cu_persist_v1) is now missing, storage
+//     is not persisting even across a plain in-tab reload -- exactly what
+//     the two testers reported ("opened it, lost everything on refresh").
+//   - On a genuinely first-ever boot (sessionStorage flag unset), nothing is
+//     flagged -- there is nothing to compare against yet; we just seed both
+//     markers. This avoids false-firing for every existing player on the
+//     very first load after this fix ships.
+//   - Honest limitation: this cannot detect loss across a FULL app relaunch
+//     (closing and reopening the WhatsApp browser), because sessionStorage
+//     itself would be gone too in that case -- there is no reliable way to
+//     prove "I definitely wrote this in a prior, now-closed session" without
+//     something durable, which is precisely what's broken. This is a
+//     same-tab-reload detector, not a full-relaunch detector; it is still
+//     the exact case confirmed in the playtest report.
+function _checkCrossSessionPersistence() {
+  try {
+    var MARK_KEY = 'cu_persist_v1';
+    var SESS_FLAG = 'cu_persist_seen_v1';
+    var sawMarkerThisSession = false;
+    try { sawMarkerThisSession = sessionStorage.getItem(SESS_FLAG) === '1'; } catch (e) {}
+    var markerNow = null;
+    try { markerNow = localStorage.getItem(MARK_KEY); } catch (e) {}
+    var broken = !!(sawMarkerThisSession && !markerNow);
+    try { if (!markerNow) localStorage.setItem(MARK_KEY, String(Date.now())); } catch (e) {}
+    try { sessionStorage.setItem(SESS_FLAG, '1'); } catch (e) {}
+    return broken;
+  } catch (e) { return false; }
+}
+
+// Clipboard copy with an execCommand fallback -- many in-app WebViews lack
+// the modern navigator.clipboard API entirely, so the fallback is required,
+// not optional, for the "Copy Link" button to work where it matters most.
+function _copyFallback(text, cb) {
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    if (cb) cb(ok);
+  } catch (e) { if (cb) cb(false); }
+}
+function _copyCurrentLink(btnEl) {
+  try {
+    var href = location.href;
+    var done = function (ok) {
+      try {
+        if (!btnEl) return;
+        var orig = btnEl.textContent;
+        btnEl.textContent = ok ? 'Copied!' : 'Copy failed';
+        setTimeout(function () { try { btnEl.textContent = orig; } catch (e) {} }, 1800);
+      } catch (e) {}
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(href).then(function () { done(true); }, function () { _copyFallback(href, done); });
+    } else {
+      _copyFallback(href, done);
+    }
+  } catch (e) {}
+}
+
+// Shows the dismissible banner (never alert()/confirm()) once, after the
+// loading splash clears -- same timing rationale as _showStorageDiagnostics.
+// No-op if neither new signal fired, or the player already dismissed it
+// this session.
+function _showInAppBrowserBanner() {
+  try {
+    if (_inAppWarnDismissed) return;
+    if (!_inAppBrowserFlag && !_persistBrokenFlag) return;
+    var el = $('inapp-banner');
+    if (!el) return;
+    el.classList.add('show');
+    if (!_inAppBannerBound) {
+      _inAppBannerBound = true;
+      var closeBtn = $('inapp-banner-dismiss');
+      if (closeBtn) closeBtn.addEventListener('click', function () {
+        _inAppWarnDismissed = true;
+        try { el.classList.remove('show'); } catch (e) {}
+      });
+      var copyBtn = $('inapp-banner-copy');
+      if (copyBtn) copyBtn.addEventListener('click', function () { _copyCurrentLink(copyBtn); });
+    }
+    if (typeof trackEvent === 'function') {
+      trackEvent('inapp_browser_detected', { uaMatch: !!_inAppBrowserFlag, persistBroken: !!_persistBrokenFlag });
     }
   } catch (e) {}
 }
@@ -10272,6 +10462,7 @@ function initLoading() {
         // observable after fast first paints (see .hide CSS note)
         if (!GS.tutorialDone) setTimeout(showTutorial, 600);
         _showStorageDiagnostics();
+        _showInAppBrowserBanner();
       }, 500);
     }
   }, 80);
@@ -11124,6 +11315,13 @@ updateHubSponsorTile();
 // =============================================
 try {
   _storageUnavailableFlag = !_probeStorage();
+  try { _inAppBrowserFlag = _isInAppBrowser(); } catch (e) {}
+  try { _persistBrokenFlag = _checkCrossSessionPersistence(); } catch (e) {}
+  // Additive: previously _applyStorageNotice() only ran from inside load()'s
+  // failure branch, so a blocked-but-otherwise-fresh boot (or these two new
+  // signals) never got their Settings note applied. Safe to call here --
+  // it's a no-op unless one of the flags it reads is already true.
+  try { _applyStorageNotice(); } catch (e) {}
   load();
   analyticsSessionStart();
   captureAcquisition();
