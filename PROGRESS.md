@@ -1,5 +1,49 @@
 # Progress — Cricket Underworld
 
+> ### ✅ RECKONING CLIMAX UPGRADED — real branched choice, not a Dismiss card (2026-08-02, commits `4ee6e8c`+`ceddc85`)
+> Founder: *"Upgrade the plot-spine climax"* — the shipped climax (below) was a deliberate thin build,
+> prose-only behind one Dismiss button; the three endings *described* costs nothing in code applied.
+> Built in a worktree (`cu-wt-climax-choice`), merged clean (0 conflict markers), fast-forwarded to
+> master, pushed → **auto-deployed live**.
+> - **Design first** (`docs/underworld-plot-spine.md` addendum, `4ee6e8c`): read the game's own
+>   established choice-card pattern (hafta/election/rival-offer — real buttons, `.onclick` mutates
+>   `GS`, swap-in-place resolution) and speced all 3 branches onto it — exact button ids, exact `GS`
+>   deltas, exact resolution copy, a "why balanced" note per branch. Caught a real exploit risk before
+>   build: without a guard, relegating out of Champions League and re-promoting would re-fire the
+>   climax and let a player farm the accept-button rewards repeatedly (500 blackMoney windfall / debt
+>   wipe, over and over). Fixed with one new persisted field, `GS.reckoningResolved` (boolean), gating
+>   the trigger — the only new state added, deliberately justified in the doc against the plot spine's
+>   own "no new mechanics" rule.
+> - **Built by shilpi** (`ceddc85`) exactly to spec: `uwClimaxCard()` now carries real per-branch button
+>   configs; new `uwClimaxBeatHtml()` renders them (Act II/III promo beats untouched, still
+>   dismiss-only); new `bindUwClimax()` wires all 6 buttons to real deltas via `applyAlignShift()`
+>   (never a raw assignment) + `f.syndicate.rel`/`GS.blackMoney`/`GS.debts`/`GS.fanLoyalty`/`GS.heat`;
+>   `#season-continue-btn` is disabled/greyed while the climax is unresolved, re-enabled the instant a
+>   branch resolves — **the one promo beat in the whole spine that blocks progression**, a deliberate
+>   design call (this is "the payoff," a skippable payoff isn't one) with a no-soft-lock guarantee
+>   (every branch has a zero-cost resolution path; "Cut Ties" deducts `min(coins,400)`, never a hard
+>   gate).
+> - **Verified by read, not run** (testing is founder-gated): `node --check` on extracted script
+>   blocks clean; every button id greped to exactly 2 occurrences (render + bind, no mismatch); every
+>   alignment mutation confirmed routed through `applyAlignShift`; `reckoningResolved` confirmed wired
+>   in defaults + `hydrateGS()` + all 6 handlers + both guard sites; Act II/III promo card bodies
+>   confirmed byte-identical (diff isolated to the climax path only); zero test-suite coupling found
+>   (grepped `tests/*.spec.js` for `uw-promo-beat`/`uwClimaxCard`/`endSeason`/`season-continue-btn` —
+>   no matches; all existing assertions target the single-match flow, never the 14-match season-end
+>   path) — orchestrator independently re-read the full diff before merging, not just trusted the
+>   builder's report (auto-deploy discipline, per the 2026-08-02 `git add`-bundles-dirt case law).
+> - **Two flagged judgment calls** (both reasonable, noted for founder awareness): the design doc's
+>   own prose briefly said "three buttons" for the undecided "Pick, Now" branch while its own table
+>   specified two — builder correctly treated the table as source of truth (2 buttons: "Cut Ties — Go
+>   Clean" / "Go All In"), doc's prose left inconsistent, worth a future 1-line fix. Branch 3's
+>   button styling wasn't specified in the addendum — builder made "Cut Ties" primary (`btn-gold`),
+>   matching the accept/primary-first convention used by every other 2-button choice in the file.
+> - **Next (not started):** founder/browser QA pass of all 3 branches at Champions League promotion
+>   (needs either a real 3-season playthrough or an injected `GS.league='challenger'`+high win-rate
+>   state to trigger `endSeason()` — no shortcut exists yet); full Playwright suite re-run (still
+>   167/167 as of the last run, this change added no new test coverage of its own — flagged in the
+>   addendum's Edge Cases as a good candidate for a future test pass, now that this card is stateful).
+
 > ### ✅ UNDERWORLD PLOT SPINE SHIPPED + suite-verified (2026-08-02) — 3 surfaces live, 167/167 green
 > Founder: *"i feel the main plotpoint of underworld is missing."* Bhairava confirmed by audit — rich
 > systems layer (5-faction Power Web, alignment, cases, debt) but ZERO narrative spine; the tutorial was
