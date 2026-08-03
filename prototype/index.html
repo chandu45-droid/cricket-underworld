@@ -6001,7 +6001,13 @@ function applyAlignShift(raw) {
 }
 
 function processAlignDecay() {
-  if (GS.debts.length > 0 || GS.heat > 30) return;
+  // GDD 1.4 [v2 FIX] specifies THREE block conditions (active debts, heat > 30, under
+  // investigation) "to prevent the exploit of cycling between corrupt bursts and passive decay
+  // to stay safely in the Grey Zone" -- the investigation check was missing here, so a corrupt
+  // player mid-tribunal-countdown (heat already reduced below 30, no debts) could still passively
+  // drift alignment toward a better tribunal defense score while the case was open. (2026-08-03
+  // logic-audit fix.)
+  if (GS.debts.length > 0 || GS.heat > 30 || GS.investigation) return;
   GS.noAlignMatches++;
   if (GS.noAlignMatches >= 3) {
     var drift = GS.alignment > 0 ? -2 : GS.alignment < 0 ? 2 : 0;
@@ -8001,7 +8007,16 @@ function startAuction() {
 function showNextCard() {
   if (auction.idx >= auction.pool.length) { endAuction(); return; }
   var p = auction.pool[auction.idx];
-  var base = { common:80, uncommon:120, rare:180, epic:200, legendary:400 }[p.rarity] || 80;
+  // Auction floor tied to the same stat-based valuation the Transfer Market uses (getPlayerPrice),
+  // not an independent flat-per-rarity table. (2026-08-03 logic-audit fix.) The old table
+  // {common:80,...,legendary:400} was disconnected from getPlayerPrice()'s stat formula, and
+  // sellPlayer() pays 0.6x getPlayerPrice -- so winning almost any epic/legendary card at or
+  // near its auction floor (e.g. floor 200-400 vs. a real sell value of 500-900+) and instantly
+  // reselling it was a guaranteed, uncapped coin-farming exploit. Pricing the floor at the same
+  // 0.6x fraction the market pays out means even winning completely uncontested breaks even on
+  // an immediate flip, and any real bidding competition (which pushes the price above the floor)
+  // makes flipping a loss, same as it would in a real auction-vs-resale market.
+  var base = Math.max(20, Math.round(getPlayerPrice(p) * 0.6));
   auction.bid = base; auction.bidder = null;
   auction.step = Math.max(20, Math.round(base * 0.15));
   auction.timer = auction.maxTimer;
@@ -8287,8 +8302,28 @@ function extractBowlers(xi) {
   return [{name:'Sub',role:'All-Rounder',bat:30,bwl:30,form:50,fld:40}];
 }
 
+// T20's real 4-overs-per-bowler cap (24 legal balls), enforced from the same ball-by-ball
+// scorecard tally simBall() already keeps -- no new state needed. (2026-08-03 logic-audit fix:
+// nothing anywhere previously tracked overs-per-bowler, so a squad carrying just 2 capable
+// bowlers could legally alternate them for the entire innings, one bowling up to 10 of 20 overs.)
+// Returns a {name:true} lookup for the side currently bowling.
+function getBowlersAtOversCap() {
+  var bowlingSide = match.batting === 'you' ? 'opp' : 'you';
+  var bwlStats = (match.scorecard && match.scorecard[bowlingSide]) ? match.scorecard[bowlingSide].bowlers : [];
+  var maxed = {};
+  bwlStats.forEach(function(b) { if (b.balls >= 24) maxed[b.name] = true; });
+  return maxed;
+}
+
 function pickBowler(bowlers, phase, overNum) {
   if (!bowlers || bowlers.length === 0) return {name:'Sub',role:'All-Rounder',bat:30,bwl:30,form:50,fld:40};
+  var maxed = getBowlersAtOversCap();
+  var underCap = bowlers.filter(function(b) { return !maxed[b.name]; });
+  // Only enforce the cap if a legal alternative exists -- a thin bowling squad (min-squad-3
+  // edge case, or a min-2-pace/1-spin XI with no all-rounders) must still be able to finish the
+  // innings even if that means a bowler goes over 4 overs; the cap should restrict choice, not
+  // break the match.
+  if (underCap.length > 0) bowlers = underCap;
   var eligible = bowlers.filter(function(b) { return !match.lastBowler || b.name !== match.lastBowler.name; });
   if (eligible.length === 0) eligible = bowlers;
   if (match.bowlerLineup && match.bowlerLineup.length > 0) {
@@ -8326,8 +8361,16 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   var moraleMod = 0.9 + morale / 500;
   var capBatMod = (batter.id && batter.id === GS.captainId) ? 1.08 : 1.0;
   var capBwlMod = (bowler.id && bowler.id === GS.captainId) ? 1.08 : 1.0;
-  var batStr = batter.bat * formMod(batter.form) * phaseBat * stratBatMod * moraleMod * pm.bat * capBatMod;
-  var bwlStr = bowler.bwl * formMod(bowler.form) * phaseBwl * pitchBwlMod * stratBwlMod * capBwlMod;
+  // NOTE (2026-08-03 logic-audit fix): strategy no longer feeds into batStr/bwlStr here.
+  // It used to multiply straight into the same ratio that also drives wktP below, which made
+  // aggressive batting/bowling strictly dominant -- higher ratio always meant MORE boundaries
+  // AND FEWER wickets conceded, so aggression had zero downside (GDD 6.2 specifies a real
+  // trade-off: "+10% wickets, +15% runs conceded" for aggressive, opposite for defensive).
+  // stratBatMod/stratBwlMod are kept as plain multipliers, reapplied explicitly to wktP/sixP/
+  // fourP after the skill-ratio is computed, so the risk/reward trade-off can't be "solved" by
+  // aggression alone. See the block right after wktP/dotP/sixP/fourP below.
+  var batStr = batter.bat * formMod(batter.form) * phaseBat * moraleMod * pm.bat * capBatMod;
+  var bwlStr = bowler.bwl * formMod(bowler.form) * phaseBwl * pitchBwlMod * capBwlMod;
   if (GS.mafiaBonus) {
     if (GS.mafiaBonus.type==='matchfix' && isYourBatting) batStr *= 1.30;
     if (GS.mafiaBonus.type==='umpire' && !isYourBatting) bwlStr *= 1.25;
@@ -8371,6 +8414,17 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   var dotP = Math.max(0.18, Math.min(0.50, 0.35 / Math.sqrt(ratio)));
   var sixP = Math.max(0.02, Math.min(0.18, 0.07 * Math.pow(ratio, 0.8)));
   var fourP = Math.max(0.04, Math.min(0.20, 0.11 * Math.pow(ratio, 0.5)));
+  // Strategy risk/reward (GDD 6.2: "Aggressive: +10% wickets, +15% runs conceded. Defensive:
+  // opposite."), applied directly and independently of the skill/pitch ratio above. wktP moves
+  // the SAME direction as the boundary probabilities for whichever side chose the strategy --
+  // aggressive batting scores more AND gets out more; aggressive bowling takes more wickets AND
+  // leaks more boundaries when it doesn't come off. Re-clamped to the same bounds as above so
+  // this can't push probabilities outside the ranges the rest of the sim was tuned against.
+  var stratWktRisk = strategy==='aggressive' ? 1.10 : strategy==='defensive' ? 0.90 : 1.0;
+  var stratRunRisk = isYourBatting ? stratBatMod : stratBwlMod;
+  wktP = Math.max(0.02, Math.min(0.15, wktP * stratWktRisk));
+  sixP = Math.max(0.02, Math.min(0.18, sixP * stratRunRisk));
+  fourP = Math.max(0.04, Math.min(0.20, fourP * stratRunRisk));
   var triP = 0.03, dblP = 0.09;
   var fs = match.fieldSetting || 'standard';
   if (!isYourBatting && fs === 'attacking') { wktP *= 1.30; fourP *= 1.15; sixP *= 1.15; dotP *= 0.85; }
@@ -9145,17 +9199,24 @@ function startMatch() {
 
 function showBowlerPicker(bowlers, phase, over) {
   var recommended = pickBowler(bowlers, phase, over);
+  var maxed = getBowlersAtOversCap();
+  var anyUnderCap = bowlers.some(function(b) { return !maxed[b.name]; });
   var html = '';
   for (var i = 0; i < bowlers.length; i++) {
     var b = bowlers[i];
     var isRec = b === recommended;
     var isLast = match.lastBowler && b.name === match.lastBowler.name;
+    // Only disable maxed-out bowlers if a legal alternative exists -- same fallback logic as
+    // pickBowler(), so a thin bowling squad can still finish the innings.
+    var isMaxed = anyUnderCap && !!maxed[b.name];
+    var isDisabled = isLast || isMaxed;
+    var disabledTag = isLast ? ' (just bowled)' : isMaxed ? ' (4 overs bowled)' : '';
     var bg = b.role === 'Spin Bowler' ? 'background:linear-gradient(135deg,var(--purple),#7C3AED)' :
              b.role === 'Fast Bowler' ? 'background:linear-gradient(135deg,var(--green-bright),var(--green))' :
              'background:linear-gradient(135deg,var(--blue-bright),var(--blue))';
-    html += '<div class="bowler-opt' + (isRec ? ' recommended' : '') + (isLast ? ' disabled' : '') + '" data-bidx="' + i + '"' + (isLast ? ' style="opacity:0.3;pointer-events:none"' : '') + '>' +
+    html += '<div class="bowler-opt' + (isRec ? ' recommended' : '') + (isDisabled ? ' disabled' : '') + '" data-bidx="' + i + '"' + (isDisabled ? ' style="opacity:0.3;pointer-events:none"' : '') + '>' +
       '<div class="bo-bwl" style="' + bg + '">' + b.bwl + '</div>' +
-      '<div class="bo-info"><div class="bo-name">' + b.name + (isLast ? ' (just bowled)' : '') + '</div><div class="bo-role">' + b.role + '</div></div>' +
+      '<div class="bo-info"><div class="bo-name">' + b.name + disabledTag + '</div><div class="bo-role">' + b.role + '</div></div>' +
       '<div class="bo-meta">Form ' + b.form + '</div></div>';
   }
   $('bowler-options').innerHTML = html;
@@ -9816,15 +9877,21 @@ function endMatch() {
       GS.squad[fi].form = Math.max(10, Math.min(99, GS.squad[fi].form - 1));
     }
   }
+  // NOTE (2026-08-03 logic-audit fix): the old ">= 90" branch unconditionally fined the player
+  // and dropped heat by 40 BEFORE checkInvestigation() ran below -- so crossing heat 90 landed
+  // heat back around 50-60 by the time the real investigation roll happened, while sitting at
+  // 86-89 (LOWER heat) passed through untouched and correctly hit checkInvestigation()'s
+  // guaranteed (>=86) trigger. That inverted the GDD's heat curve: 86-100 is supposed to be
+  // uniformly the worst, guaranteed-investigation band (GDD 3.4), but 90-100 was actually SAFER
+  // than 86-89 -- a savvy corrupt player would learn to push heat past 90, not stay under it.
+  // Flavor-only text now, gated below the guaranteed-investigation threshold so it can't stack
+  // a confusing duplicate message with the real "FORMAL INVESTIGATION OPENED" one; all heat
+  // consequences at 86+ now flow through checkInvestigation()/resolveTribunal() only.
   var heatEvent = '';
-  if (GS.heat >= 90) {
-    var fine = Math.min(GS.coins, Math.round(GS.coins * 0.25));
-    GS.coins -= fine; GS.heat = Math.max(0, GS.heat - 40);
-    heatEvent = 'INVESTIGATION! Fined ' + fine + ' coins. Heat reduced.';
-  } else if (GS.heat >= 70 && Math.random() < 0.4) {
+  if (GS.heat >= 70 && GS.heat < 86 && Math.random() < 0.4) {
     heatEvent = 'Board inquiry — under scrutiny. Clean up or face consequences.';
     GS.morale = Math.max(20, GS.morale - 10);
-  } else if (GS.heat >= 50) {
+  } else if (GS.heat >= 50 && GS.heat < 70) {
     heatEvent = 'Media rumours about your dealings. Sponsor confidence shaken.';
   }
   if (GS.heat > 0 && !wasFix) GS.heat = Math.max(0, GS.heat - 2);

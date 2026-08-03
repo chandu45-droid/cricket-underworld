@@ -1,5 +1,60 @@
 # Progress — Cricket Underworld
 
+> ### ⚖️ GAME-LOGIC / BALANCE AUDIT (2026-08-03, second pass) — 5 formula-level bugs fixed, browser-verified
+> Founder asked for a "logic-wise" audit of the entire game, distinct from the UI/flow audit
+> earlier the same day. Ran a combined Balance-Tester + Cricket-Consultant style audit against the
+> actual math (not flow/UI), independently re-verified every finding by reading the code myself,
+> fixed the confirmed CRITICAL ones, then browser-tested all 5 (`tests/bugfix-2026-08-03.spec.js`,
+> "LOGIC FIX" tests) plus the full existing suite — **177 tests total, all green, 0 regressions.**
+>
+> 1. **Aggressive batting/bowling strategy was strictly dominant — no downside, ever.**
+>    `calcBallOutcome()`'s strategy modifiers fed straight into the same skill `ratio` that also
+>    drives wicket probability (`wktP = 0.06/ratio`), so raising your own side's ratio via
+>    aggression simultaneously bought MORE boundaries AND FEWER wickets conceded, with zero risk
+>    — Balanced/Defensive were never a correct choice. GDD 6.2 specifies a real trade-off
+>    ("+10% wickets, +15% runs conceded" for aggressive, opposite for defensive). Fixed by
+>    decoupling strategy from the skill ratio entirely and re-applying it as an explicit,
+>    independent multiplier on `wktP`/`sixP`/`fourP` after the ratio-based base is computed, in
+>    the GDD-correct direction for both axes.
+> 2. **Auction floor price and Transfer Market sell price were two unrelated formulas — a
+>    guaranteed buy-low/sell-high coin exploit.** `showNextCard()` priced auctions off a flat
+>    `{common:80,...,legendary:400}` table while `sellPlayer()` pays `0.6 × getPlayerPrice()`
+>    (a stat-based formula). An epic/legendary card won near its auction floor could be instantly
+>    resold for ~2-2.6x its cost, repeatable every auction with no cooldown. Fixed: auction floor
+>    is now `0.6 × getPlayerPrice()` — the same fraction the market pays out — so winning
+>    completely uncontested breaks even on an immediate flip, and any real bidding competition
+>    makes flipping a loss.
+> 3. **`processAlignDecay()` was missing one of the GDD's three documented decay-block
+>    conditions.** GDD 1.4 [v2 FIX] blocks passive alignment decay when the player has active
+>    debts, heat > 30, **or is under investigation** — "to prevent the exploit of cycling between
+>    corrupt bursts and passive decay to stay safely in the Grey Zone." The code only checked the
+>    first two. Fixed: added the missing `|| GS.investigation` guard.
+> 4. **Heat ≥ 90 was safer than heat 86-89 — an inverted risk curve.** `endMatch()` had a
+>    deterministic "heat ≥ 90" branch that fined the player and dropped heat by 40 **before**
+>    `checkInvestigation()` ran — so by the time the real investigation check saw the heat value,
+>    it had already fallen back below the guaranteed-investigation threshold (GDD 3.4: 86-100 =
+>    guaranteed Formal Investigation). A savvy corrupt player would learn to push heat *past* 90
+>    rather than stay under it. Fixed: removed the ad-hoc fine/reduction; all heat ≥ 86
+>    consequences now flow through the real `checkInvestigation()`/`resolveTribunal()` pipeline
+>    only, with the lower-band flavor text capped below 86 so it can't stack with the real
+>    investigation message.
+> 5. **No per-bowler overs cap existed anywhere — a squad with just 2 capable bowlers could
+>    legally alternate them for an entire 20-over innings**, one bowling up to 10 overs — breaking
+>    both game balance (bypasses the squad's bowling-depth constraint entirely) and basic T20
+>    authenticity (real cricket caps a bowler at 4 overs in a 20-over innings). Fixed: added
+>    `getBowlersAtOversCap()`, reusing the ball-by-ball tally `simBall()` already keeps in
+>    `match.scorecard[side].bowlers[].balls` (no new state needed) — a bowler at 24+ balls is
+>    excluded from both the auto-pick (`pickBowler()`) and the manual picker
+>    (`showBowlerPicker()`), UNLESS excluding them would leave zero legal bowlers (thin-squad
+>    edge case still completes the innings).
+>
+> **Flagged, not fixed** (design-consistency questions for game-designer/cricket-consultant, not
+> clear-cut bugs): captain bonus is a flat +8% for any squad member with zero eligibility gating,
+> vs. GDD's stated Captaincy-trait + Leadership-stat model (0-5% max) — a minor squad-building
+> constraint loss, not an exploit. "Match Fix (Lose)" skips the player loyalty check that every
+> other corruption favor rolls — bounded by the existing cooldown/evidence chance so not a
+> runaway exploit, just an inconsistent trust model worth a founder call.
+
 > ### ✅ BROWSER TEST PASS ON THE 2026-08-03 BUG-AUDIT FIXES (founder-requested)
 > Founder explicitly asked to test the 5 fixes below in browser (testing is normally founder-gated).
 > Added `tests/bugfix-2026-08-03.spec.js` — one Playwright test per fix, using the same

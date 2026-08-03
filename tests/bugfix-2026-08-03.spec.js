@@ -205,3 +205,111 @@ test('FIX 5: Impact Player cancel+reopen does not double-fire a substitution', a
   const calls = await page.evaluate(() => window.__momentCalls);
   expect(calls).toBe(1);
 });
+
+// ============================================================
+// GAME-LOGIC AUDIT FIXES (same day, second pass — balance/cricket-authenticity bugs)
+// ============================================================
+
+test('LOGIC FIX 1: aggressive strategy trades higher risk for higher reward, not risk-free', async ({ page }) => {
+  await page.goto('/');
+  await injectState(page);
+  const stats = await page.evaluate(() => {
+    const batter = { id: 1, name: 'B', bat: 70, bwl: 20, form: 70, fld: 60, role: 'Top-Order Batter' };
+    const bowler = { id: 2, name: 'W', bat: 20, bwl: 70, form: 70, fld: 60, role: 'Fast Bowler' };
+    function run(strategy, n) {
+      let wkts = 0, boundaries = 0;
+      for (let i = 0; i < n; i++) {
+        const o = window.calcBallOutcome(batter, bowler, 'FLAT', 1, strategy, 75, true, 1, 0, 0, i);
+        if (o.wicket) wkts++;
+        if (o.runs === 4 || o.runs === 6) boundaries++;
+      }
+      return { wkts, boundaries };
+    }
+    return { agg: run('aggressive', 3000), bal: run('balanced', 3000), def: run('defensive', 3000) };
+  });
+  // Aggressive batting must cost MORE wickets than balanced/defensive, not fewer (the bug made
+  // aggression strictly dominant: more boundaries AND fewer wickets, with no downside).
+  expect(stats.agg.wkts).toBeGreaterThan(stats.bal.wkts);
+  expect(stats.bal.wkts).toBeGreaterThan(stats.def.wkts);
+  expect(stats.agg.boundaries).toBeGreaterThan(stats.bal.boundaries);
+  expect(stats.bal.boundaries).toBeGreaterThan(stats.def.boundaries);
+});
+
+test('LOGIC FIX 2: auction floor no longer guarantees a profitable instant market flip', async ({ page }) => {
+  await page.goto('/');
+  await injectState(page, { coins: 5000, squad: [] });
+  const result = await page.evaluate(() => {
+    window.startAuction();
+    const p = window.auction.pool[window.auction.idx];
+    const floor = window.auction.bid; // base price set by showNextCard()
+    const sellValue = Math.round(window.getPlayerPrice(p) * 0.6); // sellPlayer()'s payout formula
+    window.auction.active = false; if (window.auction.interval) clearInterval(window.auction.interval);
+    return { floor, sellValue };
+  });
+  // Winning at the exact unopposed floor and immediately reselling on the Transfer Market must
+  // not be profitable (previously a flat rarity-only auction table vs. a stat-based market price
+  // meant epic/legendary cards could be won near-floor and flipped for ~2-2.6x).
+  expect(result.sellValue).toBeLessThanOrEqual(result.floor);
+});
+
+test('LOGIC FIX 3: alignment decay is blocked while under investigation', async ({ page }) => {
+  await page.goto('/');
+  await injectState(page, {
+    alignment: -40, heat: 20, debts: [],
+    investigation: { matchesLeft: 3, inspector: 0, bribeTried: false },
+    noAlignMatches: 2
+  });
+  const alignmentAfter = await page.evaluate(() => {
+    window.processAlignDecay();
+    return GS.alignment;
+  });
+  expect(alignmentAfter).toBe(-40); // must NOT drift toward 0 while GS.investigation is open
+});
+
+test('LOGIC FIX 4: heat >= 90 still triggers the guaranteed investigation (no safety-valve exploit)', async ({ page }) => {
+  await page.goto('/');
+  await injectState(page, { heat: 95, matchNum: 3, wins: 1, losses: 1, coins: 1000, investigation: null, mafiaBonus: null });
+  await page.click('#hub-match-btn');
+  await page.waitForTimeout(600);
+  await dismissOverlays(page);
+  const ss = page.locator('.squad-select-overlay.show');
+  if (await ss.count() > 0) {
+    await page.click('#ss-auto-btn');
+    await page.waitForTimeout(300);
+    await page.click('#ss-confirm-btn');
+  }
+  await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
+  await page.click('#start-match-btn');
+  await page.waitForSelector('#match-screen.active', { timeout: 5000 });
+  await page.click('#skip-btn');
+  await page.waitForSelector('.match-result-overlay.show', { timeout: 10000 });
+  const inv = await page.evaluate(() => GS.investigation);
+  // heat 95 - 2 (base decay) = 93, still >= 86 -> checkInvestigation()'s guaranteed band.
+  // Previously a deterministic ad-hoc fine ran first and dropped heat to ~55 before
+  // checkInvestigation() ever saw it, so 90+ heat was SAFER than 86-89.
+  expect(inv).not.toBeNull();
+});
+
+test('LOGIC FIX 5: a bowler cannot bowl more than 4 overs when an alternative exists', async ({ page }) => {
+  await page.goto('/');
+  await injectState(page, { squad: makeSquad() });
+  const result = await page.evaluate(() => {
+    window.match = {
+      batting: 'opp', // opponent batting -> you are bowling -> scorecard.you.bowlers is your tally
+      lastBowler: null,
+      scorecard: { you: { bowlers: [{ name: 'Thunder Arm', runs: 40, balls: 24, wkts: 2 }] }, opp: { bowlers: [] } }
+    };
+    const bowlers = [
+      { name: 'Thunder Arm', role: 'Fast Bowler', bwl: 88, form: 75 },
+      { name: 'Swing King', role: 'Fast Bowler', bwl: 82, form: 68 }
+    ];
+    let neverPickedMaxed = true;
+    for (let i = 0; i < 20; i++) {
+      window.match.lastBowler = null; // ignore the separate "can't bowl consecutive overs" rule here
+      const picked = window.pickBowler(bowlers, 2, i);
+      if (picked.name === 'Thunder Arm') neverPickedMaxed = false;
+    }
+    return neverPickedMaxed;
+  });
+  expect(result).toBe(true);
+});
