@@ -1,5 +1,27 @@
 # Progress — Cricket Underworld
 
+> ### ✅ BROWSER TEST PASS ON THE 2026-08-03 BUG-AUDIT FIXES (founder-requested)
+> Founder explicitly asked to test the 5 fixes below in browser (testing is normally founder-gated).
+> Added `tests/bugfix-2026-08-03.spec.js` — one Playwright test per fix, using the same
+> `injectState`/`dismissOverlays` pattern as `comprehensive.spec.js` — and ran it plus the full
+> existing suite (`smoke.spec.js`, `comprehensive.spec.js`, `features-10k.spec.js`,
+> `p15-visual.spec.js`) against a live local server. **All 172 tests pass, 0 regressions, 0 console
+> errors.**
+>
+> Testing surfaced one more real bug in the same area, found and fixed before it could ship:
+> **`autoSelectXI()` (the "Auto" button) and `showSquadSelect()`'s first-open pre-select fallback
+> only excluded `banned` players** — not `injured`, and not the new `debtHeld` flag either. So even
+> with the Stage-2 hold fix in place, tapping "Auto" (or opening squad-select for the very first
+> time) could still silently draft an injured or mafia-held player into the starting XI. Both
+> filters now exclude `injured` and `debtHeld` too (`prototype/index.html`, `showSquadSelect()` and
+> `autoSelectXI()`).
+>
+> One test-writing note for future agents: a real `Locator.click()` on `.ss-player` rows hangs on
+> Playwright's strict actionability check inside the squad-select overlay (an overlapping
+> decorative element intercepts the computed click point) — use
+> `page.evaluate(() => el.click())` to dispatch a real DOM click instead, which still exercises the
+> exact same delegated listener a genuine tap would.
+
 > ### 🐛 FULL-GAME BUG AUDIT (2026-08-03) — 5 confirmed defects fixed, 2 gaps flagged (not fixed)
 > Founder asked for a ground-up "find the bugs and potential issues and resolve" pass. Ran a full
 > player-advocate-style audit (gap detection + flow integrity + test-suite observation across the

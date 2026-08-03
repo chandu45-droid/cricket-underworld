@@ -8884,7 +8884,7 @@ function showSquadSelect() {
   if (sel.length === 0) {
     // First open (or all picks invalidated): pre-select a legal XI so Confirm
     // is live immediately — new players otherwise face a dead button.
-    var availAuto = GS.squad.filter(function(p){ return !p.banned; });
+    var availAuto = GS.squad.filter(function(p){ return !p.banned && !p.injured && !p.debtHeld; });
     sel = buildPlayingXI(availAuto).map(function(p){ return p.id; });
   }
   var capValid = sel.indexOf(GS.captainId) >= 0;
@@ -8980,7 +8980,7 @@ function getCurrentSSSelection() {
 
 function autoSelectXI() {
   SFX.tap();
-  var available = GS.squad.filter(function(p){return !p.banned;});
+  var available = GS.squad.filter(function(p){return !p.banned && !p.injured && !p.debtHeld;});
   var xi = buildPlayingXI(available);
   var sel = xi.map(function(p){return p.id;});
   if (!GS.captainId || sel.indexOf(GS.captainId) < 0) {
