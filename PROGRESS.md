@@ -1,5 +1,55 @@
 # Progress — Cricket Underworld
 
+> ### 🐛 FULL-GAME BUG AUDIT (2026-08-03) — 5 confirmed defects fixed, 2 gaps flagged (not fixed)
+> Founder asked for a ground-up "find the bugs and potential issues and resolve" pass. Ran a full
+> player-advocate-style audit (gap detection + flow integrity + test-suite observation across the
+> auction→squad→match→economy→save/load core loop), then independently re-verified every
+> CRITICAL/HIGH finding by reading the actual code myself before touching anything (grep + Read,
+> no agent-claim taken on faith). 5 real, reproducible defects fixed:
+>
+> 1. **Debt Stage-2 "held player" was purely cosmetic.** `processDebts()` set a display-only
+>    `heldPlayer` name string on the debt object; nothing ever blocked that player from being
+>    selected/fielded, so the entire mid-tier debt-escalation penalty (one of only two hard
+>    checkpoints in the ladder) had zero mechanical effect. Fixed: real `p.debtHeld` flag on the
+>    player object, checked in `toggleSquadPlayer()`, `renderSquadSelect()`,
+>    `showSquadSelect()`'s selection filter, and `renderPlayerMini()` (new "HELD BY MAFIA" tag on
+>    the Squad/Cards screens). Cleared in `payDebt()`, including the multi-debt-same-player edge
+>    case (only clears if no other open debt still holds that player).
+> 2. **'Auction Leak' / 'Scout Intel' mafia favors cost real B$/heat/alignment/debt for zero
+>    effect** — worse, they occupied the single `GS.mafiaBonus` slot, blocking every other real
+>    favor/bribe until the next match cleared it. Neither "reveal rival budget" nor "reveal hidden
+>    player stats" was implemented anywhere in the auction code. Removed both offer types
+>    (`showMafiaOffer()` + `addEvidence()` maps) rather than fake-implement them — re-add only
+>    alongside a real build. Gully-tier offer filter rebalanced to `injection` + `rivaldossier`
+>    (both real, already-working, similarly low-cost) so early-game players keep two working
+>    options instead of losing 2 of their 3.
+> 3. **`resolveCard()` never saved mid-auction** — only `endAuction()` did. Closing the app
+>    mid-auction (very plausible on mobile) silently lost every card bought that session. Fixed:
+>    `save()` after each won card.
+> 4. **`endMatch()` held the entire match outcome in memory** (coins, alignment, heat, debts,
+>    tribunal verdict, bans, injuries — the single highest-value checkpoint in the game) until the
+>    player tapped Continue/Play Again. Closing from the result screen first discarded it all.
+>    Fixed: `save()` right after the reward/consequence computation block, before the result HTML
+>    is even built.
+> 5. **`showImpactPicker()` Cancel path never removed its click listener.** Every open→Cancel→
+>    reopen cycle stacked another listener on `#scorecard-content`; a later real substitution fired
+>    once per stacked copy (duplicate toasts/commentary/SFX). Fixed: named the handler so Cancel
+>    can remove it too.
+>
+> **Flagged, not fixed (founder/game-designer call, not a code bug):** RTM (Right to Match) has a
+> fully-styled dead CSS/markup stub (`#rtm-banner`) with zero JS wiring — GDD-specified, never
+> built. "Planted Agent" mole mechanic from the GDD auction-corruption layer is entirely unbuilt.
+> Both are content-scope decisions (build vs. formally cut from GDD), not something to
+> unilaterally build or delete in a bug-fix pass.
+>
+> All 5 fixes verified by direct code reading (not agent-report trust) + a Node syntax parse of
+> both inline `<script>` blocks (0 errors). Per this repo's standing rule, Playwright/browser
+> verification was NOT run (testing is founder-gated) — **needs founder test pass**, especially:
+> debt stage-2 lockout, mid-auction app-kill persistence, result-screen app-kill persistence,
+> Impact Player cancel/reopen. Built in an isolated worktree
+> (`.claude/worktrees/cricket-underworld-bugfix`); see `docs/CODEBASE-MAP.md` fix log for the full
+> technical rundown per function.
+
 > ### 🔄 ANON NETLIFY DEMO RE-SYNCED (2026-08-02) — Player Detail pass included (session close-out)
 > `_deploy-anon/index.html` refreshed to pick up the Player Detail wider-scope pass (b303ca9): the
 > `--pd-glow` rarity-tiered hero glow fix and the Fix Success Rate visual bar. This is the final

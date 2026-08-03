@@ -6029,7 +6029,9 @@ function processDebts() {
         if (GS.squad.length > 0) {
           var held = GS.squad[Math.floor(Math.random() * GS.squad.length)];
           d.heldPlayer = held.name;
-          warnings.push('PRESSURE: ' + SYNDICATE_LIEUTENANTS[1].alias + ' seized ' + held.name + ' as collateral for the ' + d.source + ' debt!');
+          d.heldPlayerId = held.id;
+          held.debtHeld = d.source;
+          warnings.push('PRESSURE: ' + SYNDICATE_LIEUTENANTS[1].alias + ' seized ' + held.name + ' as collateral for the ' + d.source + ' debt — unavailable for selection until the debt is paid!');
         }
         applyAlignShift(-5);
       } else if (d.stage >= 3) {
@@ -6058,10 +6060,17 @@ function payDebt(idx) {
   var d = GS.debts[idx];
   if (GS.blackMoney < d.principal) return false;
   GS.blackMoney -= d.principal;
+  GS.debts.splice(idx, 1);
   if (d.heldPlayer) {
     toast(d.heldPlayer + ' released from mafia hold', 'success');
+    if (d.heldPlayerId != null) {
+      var stillHeld = GS.debts.some(function(od) { return od.heldPlayerId === d.heldPlayerId; });
+      if (!stillHeld) {
+        var heldP = GS.squad.find(function(p) { return p.id === d.heldPlayerId; });
+        if (heldP) delete heldP.debtHeld;
+      }
+    }
   }
-  GS.debts.splice(idx, 1);
   initFactions();
   GS.factions.syndicate.rel = Math.min(100, GS.factions.syndicate.rel + 4);
   updateCurrency();
@@ -6395,14 +6404,12 @@ function addEvidence(action) {
     GS.evidence.push({ type: 'Destruction Trail', weight: 3, source: 'evidencedestroy', match: GS.matchNum });
     return 'Destruction Trail';
   }
-  var chances = { matchfix: 0.50, umpire: 0.25, playertap: 0.20, injection: 0.15, auctionleak: 0.10, scoutintel: 0.05, matchfixlose: 0.65, rivaldossier: 0.05 };
+  var chances = { matchfix: 0.50, umpire: 0.25, playertap: 0.20, injection: 0.15, matchfixlose: 0.65, rivaldossier: 0.05 };
   var types = {
     matchfix: { type: 'Communication Intercept', weight: 4 },
     umpire: { type: 'Communication Intercept', weight: 4 },
     playertap: { type: 'Financial Record', weight: 2 },
     injection: { type: 'Financial Record', weight: 2 },
-    auctionleak: { type: 'Financial Record', weight: 2 },
-    scoutintel: { type: 'Financial Record', weight: 1 },
     matchfixlose: { type: 'Communication Intercept', weight: 4 },
     rivaldossier: { type: 'Financial Record', weight: 1 },
   };
@@ -7310,9 +7317,9 @@ function renderPlayerMini(p) {
   // #squad-screen .player-card-mini.rarity-* CSS. Only epic/legendary get extra treatment,
   // matching how the big card only special-cases those two tiers.
   var rarityClass = p.rarity === 'legendary' ? ' rarity-legendary' : p.rarity === 'epic' ? ' rarity-epic' : '';
-  var banTag = p.banned ? '<span style="color:var(--blood);font-size:10px;font-weight:700;margin-left:6px">BANNED ' + p.banned.matchesLeft + 'M</span>' : p.injured ? '<span class="injury-tag">INJ ' + p.injured.matchesLeft + 'M</span>' : '';
+  var banTag = p.banned ? '<span style="color:var(--blood);font-size:10px;font-weight:700;margin-left:6px">BANNED ' + p.banned.matchesLeft + 'M</span>' : p.injured ? '<span class="injury-tag">INJ ' + p.injured.matchesLeft + 'M</span>' : p.debtHeld ? '<span style="color:var(--purple);font-size:10px;font-weight:700;margin-left:6px">HELD BY MAFIA</span>' : '';
   var styleParts = ['--rarity-color:' + rc, '--rarity-glow:' + rg];
-  if (p.banned || p.injured) styleParts.push('opacity:0.5');
+  if (p.banned || p.injured || p.debtHeld) styleParts.push('opacity:0.5');
   return '<div class="player-card-mini cu-card' + rarityClass + '" data-pid="' + p.id + '" style="' + styleParts.join(';') + '">' +
     '<div class="mini-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.4))">' + ovr + '</div>' +
     '<div class="mini-info"><div class="mini-name">' + p.name + banTag + '</div><div class="mini-role">' + p.role + (p.overseas ? ' · OS' : '') + '</div></div>' +
@@ -8158,6 +8165,8 @@ function resolveCard() {
     GS.squad.push(JSON.parse(JSON.stringify(p)));
     SFX.cardWon();
     toast(p.name + ' acquired for ' + auction.bid + '!', 'success');
+    save(); // persist each won card immediately -- previously only endAuction() saved,
+            // so closing the app mid-auction silently lost every card bought that session
   } else { toast(p.name + ' sold to ' + (auction.bidder || 'no one'), 'info'); }
   auction.idx++; updateCurrency();
   setTimeout(function() {
@@ -8485,7 +8494,11 @@ function showImpactPicker() {
   $('scorecard-overlay').classList.add('show');
   var selOut = -1, selIn = -1;
   setTimeout(function() {
-    $('scorecard-content').addEventListener('click', function handler(e) {
+    // Named var (not an inline function expression) so the Cancel handler below can
+    // remove the same listener -- previously Cancel never removed it, so repeated
+    // open/Cancel/reopen cycles stacked duplicate listeners on #scorecard-content
+    // and a later real substitution fired once per stacked copy.
+    var impactClickHandler = function(e) {
       var outEl = e.target.closest('.impact-out');
       if (outEl) {
         selOut = parseInt(outEl.getAttribute('data-iout'));
@@ -8510,10 +8523,14 @@ function showImpactPicker() {
           addMoment('milestone', 'IMPACT PLAYER: ' + newP.name + ' enters the game!');
         }
         $('scorecard-overlay').classList.remove('show');
-        $('scorecard-content').removeEventListener('click', handler);
+        $('scorecard-content').removeEventListener('click', impactClickHandler);
       }
-    });
-    $('impact-cancel-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
+    };
+    $('scorecard-content').addEventListener('click', impactClickHandler);
+    $('impact-cancel-btn').onclick = function() {
+      $('scorecard-overlay').classList.remove('show');
+      $('scorecard-content').removeEventListener('click', impactClickHandler);
+    };
   }, 50);
 }
 
@@ -8862,7 +8879,7 @@ function getTrainingOptions(player) {
 function showSquadSelect() {
   if (GS.squad.length < 3) { toast('Need at least 3 players', 'error'); return; }
   SFX.tap();
-  var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id && !p.banned && !p.injured;}); });
+  var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id && !p.banned && !p.injured && !p.debtHeld;}); });
   if (sel.length > 11) sel = sel.slice(0, 11);
   if (sel.length === 0) {
     // First open (or all picks invalidated): pre-select a legal XI so Confirm
@@ -8908,8 +8925,9 @@ function renderSquadSelect(sel) {
     var rc = RARITY_COLORS[p.rarity] || RARITY_COLORS.common;
     var isBanned = !!p.banned;
     var isInjured = !!p.injured;
-    var unavailable = isBanned || isInjured;
-    var unavailTag = isBanned ? ' · ' + p.banned.matchesLeft + 'M ban' : isInjured ? ' · ' + p.injured.type + ' ' + p.injured.matchesLeft + 'M' : '';
+    var isHeld = !!p.debtHeld;
+    var unavailable = isBanned || isInjured || isHeld;
+    var unavailTag = isBanned ? ' · ' + p.banned.matchesLeft + 'M ban' : isInjured ? ' · ' + p.injured.type + ' ' + p.injured.matchesLeft + 'M' : isHeld ? ' · held by mafia' : '';
     html += '<div class="ss-player' + (isSel ? ' selected' : '') + (isCap ? ' captain' : '') + (p.overseas ? ' overseas' : '') + (unavailable ? ' banned' : '') + '" data-sid="' + p.id + '">' +
       '<div class="ss-cap-badge">C</div>' +
       '<div class="ss-check"></div>' +
@@ -8930,6 +8948,7 @@ function toggleSquadPlayer(id) {
   if (!p) return;
   if (p.banned) { toast(p.name + ' is banned', 'error'); return; }
   if (p.injured) { toast(p.name + ' is injured — ' + p.injured.type, 'error'); return; }
+  if (p.debtHeld) { toast(p.name + ' is held as mafia collateral — pay the debt to free them', 'error'); return; }
   if (idx >= 0) {
     sel.splice(idx, 1);
     if (GS.captainId === id) GS.captainId = null;
@@ -9058,7 +9077,7 @@ function startPreMatch() {
   for (var fi2 = 0; fi2 < fmts.length; fi2++) { fmts[fi2].className = 'strategy-opt' + (fmts[fi2].getAttribute('data-format') === 't20' ? ' selected' : ''); }
   if (GS.mafiaBonus) {
     show('fix-active-banner');
-    var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',matchfixlose:'THROWING MATCH — Earning 300 B$',forcelose:'FORCED LOSS — Mafia debt punishment',auctionleak:'Auction Leak — Intel active',scoutintel:'Scout Intel — Hidden stats revealed',rivalthrow:'RIVAL BRIBED — Opponent Throwing the Match'};
+    var fixNames = {matchfix:'Match Fix Active — Batting +30%',umpire:'Umpire Influenced — Bowling +25%',playertap:'Player Tapped — Opp Batter at 60%',matchfixlose:'THROWING MATCH — Earning 300 B$',forcelose:'FORCED LOSS — Mafia debt punishment',rivalthrow:'RIVAL BRIBED — Opponent Throwing the Match'};
     var rtName = (GS.mafiaBonus.type === 'rivalthrow' && GS.mafiaBonus.rival) ? GS.mafiaBonus.rival + ' is folding — their team weakened' : null;
     $('fix-active-text').textContent = rtName || fixNames[GS.mafiaBonus.type] || 'Fix Active';
   } else { hide('fix-active-banner'); }
@@ -9828,6 +9847,11 @@ function endMatch() {
   var challengeResult = checkDailyChallenge(won, tied, wasFix);
   var passResult = awardPassXP(won, tied, wasFix, challengeResult);
   var standout = computeStandoutPerformer(match.scorecard, won, tied);
+  // Persist the full match outcome (coins/alignment/heat/debts/investigation/bans/injuries,
+  // all computed above) right now -- previously save() only ran inside the Continue/Play
+  // Again button handlers below, so closing the app from the result screen before tapping
+  // either one silently discarded the entire match's outcome on next load.
+  save();
   var rewardsHtml = '<div class="reward-row"><span>Coins</span><span class="val positive">+' + coinR + '</span></div>';
   if (cleanBonus > 0) rewardsHtml += '<div class="reward-row"><span>Clean Streak Bonus</span><span class="val" style="color:var(--green-bright)">+' + cleanBonus + ' (×' + GS.cleanStreak + ')</span></div>';
   if (bmR > 0) rewardsHtml += '<div class="reward-row"><span>Black Money</span><span class="val" style="color:var(--purple)">+' + bmR + '</span></div>';
@@ -10754,14 +10778,18 @@ function showMafiaOffer() {
     {name:'Umpire Influence',desc:'The umpire favors your bowlers next match. +25% bowling effectiveness.',cost:20,heat:10,align:-5,bonus:{type:'umpire'},debt:100,deadline:3},
     {name:'Player Tap',desc:'Opponent star batter plays at 60% next match. An offer they can\'t refuse.',cost:25,heat:8,align:-6,bonus:{type:'playertap'},debt:120,deadline:2},
     {name:'Budget Injection',desc:'500 coins added to your purse. Free upfront — but the debt will come calling.',cost:0,heat:3,align:-4,bonus:{type:'injection'},debt:200,deadline:4},
-    {name:'Auction Leak',desc:'See one rival\'s remaining budget before the next auction round.',cost:50,heat:5,align:-3,bonus:{type:'auctionleak'},debt:100,deadline:3},
-    {name:'Scout Intel',desc:'Reveal hidden stats (loyalty, greed) of 3 players before auction.',cost:30,heat:2,align:-3,bonus:{type:'scoutintel'},debt:60,deadline:5},
     {name:'Match Fix (Lose)',desc:'Deliberately lose the next match. The bookies pay you 300 B$.',cost:0,heat:18,align:-8,bonus:{type:'matchfixlose'},debt:0,deadline:0,earn:300},
     {name:'Evidence Destruction',desc:'Remove 1 piece of evidence from your file. But paper trails are hard to erase.',cost:150,heat:5,align:-4,bonus:{type:'evidencedestroy'},debt:250,deadline:3},
     {name:'Rival Dossier',desc:'Learn a rival\'s alignment, heat, and active debts. Knowledge is power.',cost:40,heat:2,align:-3,bonus:{type:'rivaldossier'},debt:80,deadline:4},
   ];
+  // NOTE (bugfix pass): 'Auction Leak' and 'Scout Intel' offers were removed here.
+  // Both charged real cost (B$, heat, alignment, a debt) and occupied the single
+  // GS.mafiaBonus slot -- blocking every other favor/bribe until cleared -- but
+  // neither effect (reveal rival budget / reveal hidden player stats) was ever
+  // implemented anywhere in the auction code. Full player-advocate audit finding,
+  // 2026-08-03. Re-add only alongside a real implementation, not as cosmetic text.
   var offers = allOffers;
-  if (GS.league === 'gully') { offers = allOffers.filter(function(o) { return o.bonus.type === 'scoutintel' || o.bonus.type === 'auctionleak' || o.bonus.type === 'injection'; }); }
+  if (GS.league === 'gully') { offers = allOffers.filter(function(o) { return o.bonus.type === 'rivaldossier' || o.bonus.type === 'injection'; }); }
   if (GS.mafiaFixLoseCooldown > 0) { offers = offers.filter(function(o) { return o.bonus.type !== 'matchfixlose'; }); }
   if (GS.evidence.length === 0) { offers = offers.filter(function(o) { return o.bonus.type !== 'evidencedestroy'; }); }
   if (offers.length === 0) offers = allOffers.slice(0, 4);
@@ -10790,7 +10818,7 @@ function showMafiaOffer() {
     applyAlignShift(offer.align);
     var ev = addEvidence(offer.bonus.type);
     var lc = loyaltyCheck();
-    var noLoyaltyNeeded = ['injection','auctionleak','scoutintel','rivaldossier','evidencedestroy','matchfixlose'];
+    var noLoyaltyNeeded = ['injection','rivaldossier','evidencedestroy','matchfixlose'];
     var skipLoyalty = noLoyaltyNeeded.indexOf(offer.bonus.type) >= 0;
     if (offer.bonus.type === 'injection') {
       GS.coins += 500;
@@ -10800,10 +10828,6 @@ function showMafiaOffer() {
       GS.mafiaFixLoseCooldown = 5;
     } else if (offer.bonus.type === 'evidencedestroy') {
       if (GS.evidence.length > 0) GS.evidence.splice(Math.floor(Math.random() * GS.evidence.length), 1);
-    } else if (offer.bonus.type === 'auctionleak') {
-      GS.mafiaBonus = offer.bonus;
-    } else if (offer.bonus.type === 'scoutintel') {
-      GS.mafiaBonus = offer.bonus;
     } else if (offer.bonus.type === 'rivaldossier') {
       var nextR = getNextRival();
       GS.rivalIntel[nextR.name] = true;

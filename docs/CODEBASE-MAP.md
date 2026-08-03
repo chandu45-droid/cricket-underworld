@@ -38,3 +38,13 @@
 1. **Map-first**: grep anchors above; read only the region you need. Never read the whole file.
 2. **No auto-testing**: do NOT run Playwright/browser verification unless the founder explicitly asks. Implement, commit, report what needs testing. Founder calls when to test.
 3. Keep this map fresh: if you add/move a major system, update the anchor table (function names, not line numbers, matter most).
+
+## Fix log (2026-08-03 full-game bug audit)
+Line numbers in the table above have drifted noticeably (file has grown past ~12,100 lines) -- function names still hold as anchors, grep them. Confirmed-and-fixed this pass (full player-advocate audit + independent verification, see PROGRESS.md):
+- **Debt Stage-2 "held player" now actually restricts squad selection.** `processDebts()` sets `p.debtHeld` on the real player object (was previously only a display string on the debt), checked in `toggleSquadPlayer()`, `renderSquadSelect()`, `showSquadSelect()`'s selection filter, and `renderPlayerMini()`. Cleared in `payDebt()`.
+- **Removed 'Auction Leak' and 'Scout Intel' mafia offers** (`showMafiaOffer()`) -- both charged real cost and occupied the single `GS.mafiaBonus` slot (blocking every other favor/bribe) but neither effect was ever implemented anywhere. Re-add only alongside a real implementation.
+- **`resolveCard()` now saves after each won auction card** (previously only `endAuction()` saved -- an app kill mid-auction lost every card bought that session).
+- **`endMatch()` now saves immediately after all reward/consequence state is computed**, not only inside the Continue/Play Again button handlers -- previously closing the app from the result screen before tapping either button silently discarded the whole match's outcome.
+- **`showImpactPicker()` Cancel path now removes its click listener** (previously only the successful-substitution path did; repeated open/Cancel/reopen cycles stacked duplicate listeners, causing a real substitution to fire once per stacked copy).
+
+Flagged but NOT touched (founder/game-designer decision needed, not a code bug): RTM (Right to Match) has a fully-styled dead CSS/markup stub (`#rtm-banner`) with zero JS wiring -- GDD-specified but never built. "Planted Agent" mole mechanic from the GDD auction-corruption layer is entirely unbuilt. Both are content/scope decisions, not fixed here.
