@@ -58,10 +58,18 @@
 > **Verification:** independently re-derived the 7-player captaincy selection by hand from the raw
 > `loyalty`/`greed` values in `ALL_PLAYERS` (not taken on the consulting agent's word) — confirmed
 > exactly 7 matches, no more/fewer. Ran a Node syntax parse of both inline `<script>` blocks (0 errors)
-> after all edits. Per this repo's standing rule, **Playwright/browser verification was NOT run**
-> (testing is founder-gated) — needs founder test pass: captain-picker lock UI in both themes, a match
-> played with/without an eligible captain selected, Match Fix (Lose) accept→refuse and accept→success
-> paths, and an old-save (`cu_save_v3`) load with a pre-patch `GS.captainId` to confirm the fallback.
+> after all edits.
+>
+> **✅ FOUNDER-REQUESTED TEST PASS (2026-09-09): 177/177 green, 0 regressions.** Full suite run
+> (`npx playwright test`, 5 workers, 10.4m) came back 176/177 on the first pass — 1 failure,
+> `smoke.spec.js:374 "field placement setting appears in bowler picker"` (a `.bowler-opt` click
+> timeout, `#bowler-options` intercepting the pointer event). This is unrelated code (bowler picker,
+> not captain/loyalty) and matches a pre-existing flaky test already documented in CORE-MEMORY §3 case
+> law since 2026-07-11 ("smoke bowler-picker... pass on isolated re-run — a full-run failure isn't a
+> regression until it fails in isolation"). Re-ran it in isolation (`--grep`, 1 worker): **passed clean,
+> 1/1, 15.7s**. Confirmed not a regression from this session's changes before reporting green. Manual
+> device/UI spot-checks (captain-picker lock rendering in both themes, old-save `cu_save_v3` fallback)
+> still outstanding — founder's call whether those are needed before considering this fully closed.
 >
 > **Still open, not touched this session (founder calls, deferred on purpose):** storefront/billing
 > decision (Play Store TWA+Billing vs PWA+Razorpay, `BILLING_LIVE=false` still gates all real-money
