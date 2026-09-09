@@ -1,5 +1,26 @@
 # Progress — Cricket Underworld
 
+> ### 🎨 LIGHT-THEME LOCK VISIBILITY FIX — same session, closes out the polish note flagged above
+> Founder asked to fix the "locked cap-btn is subtle in light theme" note flagged during the UI test
+> pass above. Root cause: `.ss-cap-btn.locked` only applied `opacity:0.35` on top of the base
+> `.ss-cap-btn` style, which is itself already very faint (`background:rgba(240,200,80,0.04)`,
+> `border:rgba(240,200,80,0.2)`) — dimming an already-faint gold tint doesn't read as "different,"
+> just "slightly fainter gold." Checked this codebase's own existing locked/disabled conventions
+> before inventing a new one: `.btn.disabled` (~L537) and `.pass-cell.locked` (~L2507) both already
+> pair `opacity` with `filter:grayscale(...)` — that combo genuinely desaturates the element into a
+> neutral gray, which contrasts against the surrounding warm gold UI regardless of underlying theme
+> luminance, unlike a pure opacity dim. Matched that established pattern instead of a one-off value:
+> `.ss-cap-btn.locked` is now `opacity:0.4;filter:grayscale(0.65)` (was `opacity:0.35` alone).
+>
+> **Verified, not just assumed:** computed-style check confirmed the filter actually applies
+> (`grayscale(0.65)` on locked, `none` on unlocked) in both themes. Full-page screenshots weren't
+> enough to judge a 28px element, so cropped/zoomed close-ups of just the cap-btn column were taken
+> in both themes — visually confirmed a real, legible difference now (solid-ring "C" for eligible vs.
+> washed-out ghost "C" for locked), sent to founder for their own look. Pure CSS change, one selector
+> — grepped `tests/*.spec.js` for `ss-cap-btn|\.locked`: zero matches, no test-selector risk, so did
+> not re-run the full 177-test suite (already green twice this session; nothing here touches JS
+> behavior). Throwaway verification scripts/screenshots deleted after use per protocol.
+
 > ### 🐛 UI-TESTING FOUND A REAL PRE-EXISTING BUG — squad-select tap-to-toggle was fundamentally
 > ### broken (2026-09-09, same session as the captain/loyalty fixes above)
 > Founder asked for "ui specific tests" on the captain-lock UI. Wrote a throwaway Playwright script
