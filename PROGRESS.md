@@ -1,5 +1,91 @@
 # Progress — Cricket Underworld
 
+> ### 🎨 SENIOR UI/UX DESIGN AUDIT + 4 CONFIRMED FIXES (2026-09-09, same session)
+> Founder asked for a "UI and UX related test suite by a 5 years experienced frontend and product
+> design guy." Clarified this meant a design audit/critique (not literal new Playwright test files),
+> routed to this workspace's `ui-designer` agent — the founder-designated canonical agent for exactly
+> this (2026-07-31 standing instruction) — with the precedent bar set explicitly: match the rigor of
+> the 2026-08-02 ui-designer audit on this same project (real screenshots, computed-style/contrast
+> math, not eyeballing), and read `docs/visual-design-system.md` first so critique is grounded in this
+> game's own stated design intent. ~23min background run, 117 tool calls, 51 screenshots left in
+> `_scratch/audit-shots/` for direct review (deleted after use per protocol, see below).
+>
+> **Per this session's established protocol, independently re-verified every CRITICAL/HIGH finding
+> myself (screenshot review + direct code read) before touching anything — did not fix on the agent's
+> word alone:**
+> - **[CRITICAL] Bowler-picker rendered off-screen with zero scroll cue, every over bowled** —
+>   confirmed both visually (a screenshot of the "waiting for input" state looks identical to an idle
+>   match screen — nothing visible suggests the game needs an action) and in code (`show()` at
+>   `index.html:5874` just flips `display:''`, `showBowlerPicker()` never scrolls). Real. This halts
+>   `simBall()`'s interval every single over a player bowls — core loop, not edge case.
+> - **[HIGH] Hub stat labels ("Align"/"Heat"/"Fans") truncated to 1-2 unreadable characters at 320px**
+>   — confirmed via screenshot ("AI +0", "HEA", "FI 50").
+> - **[HIGH] Player card FORM stat clipped by the card's own `overflow:hidden` at narrow widths** —
+>   confirmed on all 3 cards of a real pack-opening screenshot, each showing a bare "F" with the
+>   number sheared off.
+> - **[HIGH] Auction purse-pacing toast overlapping the player card** — confirmed real overlap, but
+>   pushed back on the agent's severity framing after looking at the actual screenshot: the overlap
+>   grazes the card's decorative portrait art, not the name/stats/bid info a player actually needs to
+>   decide — still fixed, just noted the nuance rather than passing along the stronger claim unchecked.
+> - Also independently caught **two things the agent got wrong** before they were acted on: it claimed
+>   live in-match strategy switching was untested (false — a real test clicks `#tac-aggro` directly,
+>   `comprehensive.spec.js:505-519`) and that mafia Accept/Decline both lacked real-click coverage
+>   (half-true — Decline is tested, only Accept isn't). Not part of this UI pass, carried over as
+>   context from the prior player-advocate audit same session; flagged here because the same
+>   "independently verify, don't take agent claims on faith" discipline applies across both audits.
+>
+> **Founder approved fixing all 4 confirmed items.** Implementation:
+>
+> 1. **Bowler picker**: `$('bowler-picker').scrollIntoView({behavior:'smooth', block:'start'})` added
+>    right after `show('bowler-picker')` in `showBowlerPicker()`. Considered converting the whole
+>    element to a real fixed-position overlay (matching every other decision-point modal in this
+>    codebase) instead — went with the smaller, lower-risk scroll fix given `.bowler-opt` inside this
+>    exact container is where an earlier flaky-test investigation this session already found fragility;
+>    minimized structural changes to it.
+> 2. **Hub meter labels**: shrunk `.meter-icon` (20→16px), `.meter-value` (16→13px font),
+>    `.meter-label` (9→8px font), tightened padding/gaps, inside a NEW `@media(max-width:340px)`
+>    block. **Found a real, independent, pre-existing bug while implementing this**: there was already
+>    an OLDER attempt at this exact fix at `index.html:343` (even sets `meter-icon{display:none}`) —
+>    but it sat BEFORE the unconditional base `.hub-meter`/`.meter-icon` rules later in the file
+>    (`~L2237-2243`). Media queries don't add CSS specificity; with equal specificity, later source
+>    position wins regardless of which rule is conditional — so that older "fix" was silently dead on
+>    arrival and had *never* actually applied at any viewport width. My own first attempt (placed near
+>    the hub-header media query, `~L2201`) made the identical placement mistake and I caught it myself
+>    via a failing verification check before committing — moved the working version to right after the
+>    base rules it needs to override (`~L2247`+), documented the placement trap in a code comment so
+>    it doesn't get reintroduced a third time. Left the dead `~L343` rule alone (out of scope, already
+>    harmlessly inert regardless of what this fix does).
+> 3. **Player card FORM clipping**: `.trait-bar .mini-bar` width 36px→24px, `.loyalty-greed` gap
+>    10px→6px — frees enough room for FRM to fit within the card's `overflow:hidden` bound (real
+>    overflow measured was ~12px; this frees ~24px, comfortable margin). Applies to every
+>    `renderPlayerCard()` context (pack reveal, auction spotlight, etc.) via the single shared rule.
+> 4. **Auction toast overlap**: shortened the purse-pacing toast copy. Measured empirically (not
+>    guessed) that the combined 2-clause message still wrapped to 2 lines (58px tall) even shortened —
+>    only a single short clause renders at 1 line (42px), which actually clears the card. Went with
+>    "Budget lots first." (kept the core actionable half of the original "Budget lots first — the
+>    stars close the show. Pace your purse.").
+>
+> **Verification:** wrote a throwaway Playwright script (deleted after use) covering all 4 fixes with
+> real measurements, not assumptions — caught 3 of 4 failing on the first pass (my own bowler-picker
+> pass-threshold was too strict — the fix actually worked, my check's arbitrary `<200px` bar was wrong;
+> the hub-label fix needed the placement correction above; the toast needed the shorter single-clause
+> copy) and iterated until all 4 genuinely passed: bowler-picker scrolls to top=44px (was fully
+> off-screen), hub labels render fully legible at 320px with 0 truncation, FRM stat unclipped
+> (`frmRight:125` vs `cardRight:140`), toast/card overlap `false`. Also visually confirmed all 3
+> screenshot-based fixes by eye, not just computed-style math. Grepped `tests/*.spec.js` for the
+> exact toast copy string first — no test pins the old text, only checks non-overlap with the
+> back-button (a shorter toast only makes that safer).
+>
+> **Full `npx playwright test` re-run: 176/177, only failure was the same probabilistic
+> "LOGIC FIX 1: aggressive strategy..." test flagged earlier this session.** This time it failed twice
+> in a row (full run + first isolated retry) before a `--repeat-each=5` batch came back 4/5 passing —
+> combined with the 1/1 pass from earlier today, that's 6 passes / 2 fails across 8 total runs (~75%),
+> consistent with genuine RNG variance in a statistical wicket-count comparison, not a deterministic
+> break (which would fail 100% of runs). None of today's UI/CSS changes touch match-sim RNG or
+> strategy logic at all, so there's no plausible mechanism for a real regression here either. Not
+> re-flagging as a new case-law entry since it's the same test/mechanism already logged earlier this
+> session.
+
 > ### 🔍 FRESH GROUND-UP AUDIT + DRS BATTING-ONLY FIX (2026-09-09, same session)
 > Founder asked "any other bugs need to check?" after this session's squad-select fix. Rather than
 > guess, first did a bounded, targeted check: grepped every `getAttribute('data-*')` id-extraction

@@ -595,10 +595,15 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .player-card .stat-val.mid{color:var(--gold-bright);text-shadow:0 0 8px rgba(255,210,63,0.2)}
 .player-card .stat-val.low{color:var(--blood);text-shadow:0 0 8px rgba(239,45,45,0.2)}
 .player-card .card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(var(--hl-rgb),0.05)}
-.player-card .loyalty-greed{display:flex;gap:10px;font-size:11px}
+.player-card .loyalty-greed{display:flex;gap:6px;font-size:11px}
 .player-card .trait-bar{display:flex;align-items:center;gap:3px}
 .player-card .trait-bar .label{color:var(--slip);font-size:9px;text-transform:uppercase;letter-spacing:0.3px}
-.player-card .trait-bar .mini-bar{width:36px;height:3px;background:rgba(136,150,176,0.08);border-radius:2px;overflow:hidden}
+/* 2026-09-09 fix (ui-designer audit): was 36px -- LOY+GRD's combined width left FRM (the
+   card-footer's other flex child, justify-content:space-between) pushed past the card's own
+   right edge at narrow card widths (confirmed clipped on all 3 cards of a live pack reveal,
+   ~140px card width -- the auction-spotlight's wider ~210px card wasn't clipped, which is why
+   this went unnoticed). 24px frees enough room with margin above the ~12px measured overflow. */
+.player-card .trait-bar .mini-bar{width:24px;height:3px;background:rgba(136,150,176,0.08);border-radius:2px;overflow:hidden}
 .player-card .trait-bar .mini-fill{height:100%;border-radius:2px}
 /* Holographic shimmer + premium tilt foil */
 .player-card{--holo-x:50%;--holo-y:50%}
@@ -2228,6 +2233,27 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    theme — near-invisible on the light ivory background). */
 .hub-meter .meter-bar{height:4px;background:var(--track-bg);box-shadow:var(--track-shadow);border-radius:3px;overflow:hidden}
 .hub-meter .meter-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
+/* 2026-09-09 fix (ui-designer audit): .hub-meter's icon (20px fixed) + value (16px bold,
+   flex-shrink:0) together left almost no room for .meter-label's flex:1 share at narrow
+   widths -- measured live at 320px: label clientWidth collapsed to 7-15px against a 23-27px
+   needed width, rendering as "AI +0" / "HEA[T] 0" / "FI 50" instead of ALIGN/HEAT/FANS.
+   IMPORTANT PLACEMENT NOTE: there's an EARLIER @media(max-width:340px) block (~L343) that
+   already tried to fix this (even sets meter-icon{display:none}) and a first attempt at this
+   same fix placed near the hub-header media query (~L2201) -- both sit BEFORE the base
+   .hub-meter rules directly above this comment in source order. Media queries don't add CSS
+   specificity; with equal specificity, LATER source position wins regardless of which rule is
+   conditional -- so both earlier attempts were silently overridden by the unconditional base
+   rules above and never took effect at any viewport width (confirmed via live computed-style
+   check: iconDisplay was "flex" not "none", iconWidth was 20px not smaller, at 320px). This
+   block is placed AFTER the base rules specifically so the cascade actually applies it. */
+@media (max-width:340px){
+  .hub-meter{padding:6px 6px;gap:2px}
+  .hub-meter .meter-icon{width:16px;height:16px}
+  .hub-meter .meter-icon svg{width:10px;height:10px}
+  .hub-meter .meter-value{font-size:13px}
+  .hub-meter .meter-label{font-size:8px;letter-spacing:0.5px}
+  .hub-meters{gap:4px}
+}
 .hub-meter.meter-align{border-color:rgba(255,210,63,0.08)}
 .hub-meter.meter-align .meter-icon{background:rgba(255,210,63,0.12)}
 .hub-meter.meter-align .meter-icon svg{stroke:var(--gold-bright)}
@@ -7999,7 +8025,14 @@ function startAuction() {
     toast('Sponsor Boost active — +300 auction purse', 'success');
   }
   hide('auction-empty-area'); show('auction-active-area');
-  if (GS.squad.length < 4) toast('Budget lots first — the stars close the show. Pace your purse.', 'success');
+  // 2026-09-09 fix (ui-designer audit): the original 2-line copy (74px tall) overlapped the
+  // first player card by ~33px -- the toast's fixed .toast[data-screen="auction"] offset was
+  // already tuned to clear the purse-zone/round-chip above it (see the +166px comment), so
+  // the safe fix is a shorter, single-line message rather than moving the toast and risking
+  // that earlier collision again. Verified empirically (not guessed): the combined 2-clause
+  // version still wrapped to 2 lines (58px tall) even shortened -- only a single short clause
+  // renders at 1 line (42px), which is what actually clears the card.
+  if (GS.squad.length < 4) toast('Budget lots first.', 'success');
   showNextCard();
 }
 
@@ -9265,6 +9298,16 @@ function showBowlerPicker(bowlers, phase, over) {
   $('bowler-options').innerHTML = html;
   updateFieldSettingUI();
   show('bowler-picker');
+  // 2026-09-09 fix (ui-designer audit): simBall() halts the whole match here waiting on a
+  // pick, but show() only flips display:'' -- on phone-height viewports (the game's own
+  // PRIMARY target, docs/visual-design-system.md 7.1) the panel renders far enough down
+  // #match-screen's scroll container that ZERO of it is visible without a manual scroll the
+  // player has no cue to make. Confirmed live: at 390px the panel's bowler options and field
+  // buttons sat entirely below the fold with nothing on-screen suggesting the game was
+  // waiting on anything -- reads as a freeze, not a choice. Real click paths (Playwright
+  // Locator.click()) auto-scroll into view, which is exactly why this survived the existing
+  // test suite; a real touchscreen tap never gets that for-free scroll.
+  $('bowler-picker').scrollIntoView({ behavior: 'smooth', block: 'start' });
   addMoment('over-sum', 'Over ' + over + ' complete. Choose your bowler & field.', '?');
   var opts = $('bowler-picker').querySelectorAll('.bowler-opt:not(.disabled)');
   for (var j = 0; j < opts.length; j++) {
