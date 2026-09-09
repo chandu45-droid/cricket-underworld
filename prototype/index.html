@@ -1385,12 +1385,17 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .league-header-row .lh-record{width:50px;text-align:center}
 .league-header-row .lh-pts{width:36px;text-align:right}
 
-.league-row{display:flex;align-items:center;gap:0;padding:12px 14px;border-radius:4px;margin-bottom:6px;transition:all 0.2s;background:rgba(var(--hl-rgb),0.025);border:1px solid rgba(var(--hl-rgb),0.04)}/* perf: dropped backdrop-filter -- one per league row, always visible, not an overlay */
-.league-row .pos{font-family:var(--font-d);font-size:14px;font-weight:700;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(var(--hl-rgb),0.04);color:var(--slip);flex-shrink:0}
-.league-row .team-info{flex:1;padding-left:12px}
-.league-row .team-info .name{font-family:var(--font-d);font-size:15px;font-weight:600;letter-spacing:0.5px}
-.league-row .form-dots{width:65px;display:flex;gap:4px;justify-content:center}
-.league-row .form-dot{width:9px;height:9px;border-radius:50%}
+.league-row{display:flex;align-items:center;gap:0;padding:4px 8px;border-radius:4px;margin-bottom:2px;transition:all 0.2s;background:rgba(var(--hl-rgb),0.025);border:1px solid rgba(var(--hl-rgb),0.04)}/* perf: dropped backdrop-filter -- one per league row, always visible, not an overlay */
+/* 2026-09-09 fix (no-vertical-scroll redesign): row compressed from 12px/14px padding + 6px margin
+   so all 10 hardcoded league teams (see RIVALS array, 9 rivals + you) fit in one viewport with zero
+   scroll -- was only 4-5 rows visible before the nav. Row height also depended on team names
+   wrapping to 2 lines (no white-space:nowrap on .name below), which inflated height unpredictably;
+   fixed alongside this since both changes hit the same row. */
+.league-row .pos{font-family:var(--font-d);font-size:13px;font-weight:700;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(var(--hl-rgb),0.04);color:var(--slip);flex-shrink:0}
+.league-row .team-info{flex:1;min-width:0;padding-left:8px}
+.league-row .team-info .name{font-family:var(--font-d);font-size:14px;font-weight:600;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.league-row .form-dots{width:56px;display:flex;gap:3px;justify-content:center}
+.league-row .form-dot{width:7px;height:7px;border-radius:50%}
 .league-row .form-dot.w{background:var(--green-bright);box-shadow:0 0 6px rgba(34,212,126,0.4)}
 .league-row .form-dot.l{background:var(--blood);box-shadow:0 0 6px rgba(220,38,38,0.4)}
 .league-row .form-dot.d{background:var(--slip)}
@@ -1777,11 +1782,19 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 #league-screen .section-title{color:#EAFBF3}
 #league-screen .section-title .accent-line{background:linear-gradient(90deg,rgba(52,211,153,0.55),transparent 80%)}
 #league-screen>.glass{border-top:2px solid rgba(52,211,153,0.4);background:linear-gradient(160deg,rgba(52,211,153,0.05) 0%,rgba(var(--hl-rgb),0.015) 55%,rgba(5,150,105,0.03) 100%)}
-#league-screen .league-header-row{border-bottom:1px solid rgba(52,211,153,0.16);padding-bottom:8px;margin-bottom:8px}
+#league-screen .league-header-row{border-bottom:1px solid rgba(52,211,153,0.16);padding-bottom:4px;margin-bottom:4px}
+#league-screen>.glass{padding-top:8px;padding-bottom:8px;margin-bottom:0}
 #league-screen .league-header-row .lh-pts{color:var(--green-bright)}
 #league-screen #season-stats-btn{border-color:rgba(52,211,153,0.32);color:#7EE7C0;position:relative;overflow:hidden}
 #league-screen #season-stats-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green-bright)}
 #league-screen #season-stats-btn:active{background:rgba(52,211,153,0.08)}
+/* 2026-09-09 fix (no-vertical-scroll redesign): compact icon-button variant, scoped to this screen
+   only -- overrides .btn's default padding:14px 32px/min-height:48px (a 48px-tall full-width block
+   was the single biggest reclaimable chunk of League's fixed chrome). 36px sits under the ideal
+   44px tap-target floor -- accepted deliberately for a low-frequency secondary action (view stats),
+   not a primary CTA; revisit if this specific tradeoff turns out to cause real mis-taps. */
+#league-ribbon-row{align-items:center}
+#league-ribbon-row #season-stats-btn{min-height:36px;width:36px;padding:0;margin-left:auto;font-size:16px}
 #league-screen .league-row .form-dot.w{box-shadow:0 0 7px rgba(52,211,153,0.55)}
 /* v3 kit B4: position-movement indicator on Pts — cu-delta's color-as-status language
    (--green-bright up / --blood down) applied via CSS only, updateLeagueTable() JS untouched */
@@ -3727,8 +3740,13 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <!-- LEAGUE -->
     <div class="screen" id="league-screen">
       <!-- v3 kit B4: section header banner (was .section-title) -->
-      <div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>League Table</span></div></div>
-      <div class="btn btn-outline full mb-16" id="season-stats-btn" style="padding:10px">Season Stats & Leaderboard</div>
+      <!-- 2026-09-09 fix (no-vertical-scroll redesign): #season-stats-btn moved from a full-width
+           48px-tall block in the vertical stack into this ribbon row as a compact icon-button --
+           it's a secondary action (view season stats), not core content, and reclaiming its height
+           was needed to fit all 10 hardcoded league teams with zero page scroll at the PRIMARY
+           360-390px device target (docs/visual-design-system.md 7.1). Same #season-stats-btn id,
+           same click handler (showSeasonLeaderboard) -- only markup/position/styling changed. -->
+      <div class="cu-ribbon-wrap" id="league-ribbon-row"><div class="cu-ribbon"><span>League Table</span></div><div class="btn btn-outline" id="season-stats-btn" title="Season Stats & Leaderboard">&#128202;</div></div>
       <!-- v3 kit B4: cu-card adds the chamfered frame + gold spotlight sheen; .glass stays so the
            #league-screen>.glass zone-reskin (green top border) keeps applying underneath it -->
       <div class="glass cu-card">
@@ -7997,10 +8015,10 @@ function updateLeagueTable() {
     }
     var crestHtml = '';
     if (teams[t].you) {
-      crestHtml = '<div class="crest-xs" style="flex-shrink:0">' + generateCrest(GS.teamName, GS.teamColor, 24) + '</div>';
+      crestHtml = '<div class="crest-xs" style="flex-shrink:0">' + generateCrest(GS.teamName, GS.teamColor, 20) + '</div>';
     } else {
       var rivalObj = RIVALS.find(function(rv){return rv.name === teams[t].name;});
-      crestHtml = rivalObj ? '<div class="crest-xs" style="flex-shrink:0">' + generateRivalCrest(rivalObj, 24) + '</div>' : '<div class="pos">' + (t+1) + '</div>';
+      crestHtml = rivalObj ? '<div class="crest-xs" style="flex-shrink:0">' + generateRivalCrest(rivalObj, 20) + '</div>' : '<div class="pos">' + (t+1) + '</div>';
     }
     var bannedTag = '';
     if (!teams[t].you && rivalObj && rivalObj.banned) bannedTag = ' <span class="text-red text-xs">[BAN]</span>';

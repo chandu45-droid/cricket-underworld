@@ -1,5 +1,63 @@
 # Progress — Cricket Underworld
 
+> ### 📐 NO-VERTICAL-SCROLL REDESIGN — LEAGUE SCREEN COMPLETE (2026-09-09, 1/6 screens)
+> Founder directive: the whole game should not rely on vertical scrolling anywhere. Given the real
+> scope (measured: every major screen overflows one mobile viewport, Hub by up to 2844px with drawers
+> open), routed to a `ui-designer` proposal pass first rather than freehanding a redesign of this size
+> — two rounds: (1) initial per-screen proposal with real overflow measurements, (2) a follow-up round
+> after the founder locked two open questions (**strict interpretation — zero scroll on every element,
+> not just page-level**; and keep all 4 Hub quick-tiles, just shrink them) to get a concrete,
+> implementable spec for the list-shaped screens (Squad/Cards/League) the first pass had left as a
+> flagged fallback. Independently verified the spec's load-bearing claims before implementing anything
+> (confirmed the 10-team league hardcap in code, confirmed a real Hub-ledger/Power-Web data duplicate
+> the spec flagged). One open judgment call — keep the XI-picker overlay scrollable as a deliberate
+> exception, since it's a selection task not a browse list — was explicitly routed back to the founder
+> rather than decided silently; **founder chose full consistency, no exceptions, paginate that too.**
+>
+> Implementing one screen at a time (WIP=1), verified + tested + committed before moving to the next.
+> **League is done — the first fully shipped piece.**
+>
+> **What changed:** the design proposal recommended AGAINST pagination for a league table specifically
+> — a table's whole value is seeing rank relative to the full field in one glance (promotion/
+> relegation zones are a gestalt read across all rows), so paginating it removes the screen's reason
+> to exist rather than just reformatting it. Instead: compress the row (single-line ellipsis team
+> names — were wrapping to 2 lines unpredictably, inflating row height; tighter padding/margins/crest
+> size) and move the "Season Stats & Leaderboard" button from a 48px full-width block in the vertical
+> stack into a compact icon-button in the ribbon row (same id, same click handler, only markup/
+> position/styling changed) — reclaiming its height entirely. Verified the 10-team count is genuinely
+> hardcoded (`RIVALS` array, 9 rivals + you, not something that grows), so a fixed-row-budget approach
+> is safe, not fragile.
+>
+> **Iterated empirically against real measurements, not just implemented-and-assumed-done** — same
+> discipline as this session's earlier CSS fixes: first pass closed the gap at the PRIMARY device
+> target (390px, per `docs/visual-design-system.md`'s own device-priority table) to exactly 0
+> overflow, but 375px/320px still showed 83px/188px of measured "overflow." Investigated rather than
+> assumed a bigger fix was needed — turned out the raw scrollHeight-vs-clientHeight comparison was
+> misleading (it counts reserved bottom-nav-clearance padding as "overflow" even when no real row
+> content is hidden). Measured the ACTUAL thing that matters — does the last row's bottom edge clear
+> the bottom nav's top edge — and found 375px was already fully clean (36px of real clearance, not the
+> 83px "overflow" number suggested) while 320px had a real 20px clip on row 10. One more small trim
+> closed that too: **all three widths (320/375/390) now show zero real clipping**, confirmed via exact
+> geometry checks, not just the aggregate scroll-height number. Also visually confirmed legible in
+> both themes at the tightest width (320px) — crests, form dots, W-L, points all readable, no cramping.
+>
+> Note: 320px isn't in this game's own documented device-priority table at all (only 375px+ has a
+> stated requirement) — closing it anyway was extra rigor, not a compromise on the required tiers.
+>
+> **Test impact:** none. `test.describe('League', ...)` asserts `.league-row` count (10, unaffected)
+> and `textContent()` containing the team name (unaffected by the new CSS ellipsis — the underlying
+> DOM text is unchanged, only its visual rendering truncates). No test references `#season-stats-btn`
+> at all (grepped `tests/` first, confirmed zero hits, before moving it).
+>
+> **Full `npx playwright test`: 194/194, clean.**
+>
+> **Remaining in this redesign** (not yet built): Hub (persistent band + Play/Club tabs + drawer→
+> destination conversion for 2 drawers + the confirmed ledger-duplicate cut), Squad Selection overlay
+> pagination, Squad base-screen pagination, Cards pagination, Cards' Packs&amp;Shop drawer→destination
+> conversion, plus a real architecture decision on the swipe-gesture conflict (existing screen-swipe-
+> navigation vs. new in-page pagination swipe) that the design spec explicitly flagged as needing
+> resolution before build, not something to silently pick.
+
 > ### 🧹 4 REMAINING NO-DECISION-NEEDED BACKLOG ITEMS CLOSED (2026-09-09, same session)
 > Continuing "pick and deploy what doesn't need approval, one by one" — closed the rest of the
 > backlog that didn't require a founder call, all clear-cut fixes with a concrete direction already
