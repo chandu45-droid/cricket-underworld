@@ -631,12 +631,18 @@ test.describe('Auction', () => {
 // 9. CARDS & PACKS
 // ============================================================
 test.describe('Cards & Packs', () => {
-  test('cards screen shows squad cards', async ({ page }) => {
+  test('cards screen shows squad cards, paginated 3 per page', async ({ page }) => {
+    // 2026-09-09 no-vertical-scroll redesign: was asserting all 11 cards rendered at once (count=11)
+    // -- the Cards grid is now paginated (CARDS_PER_PAGE=3) so it fits the viewport with zero scroll
+    // at every target device width. Updated to assert the new, deliberate behavior: 3 cards on the
+    // first page, and the full 11-card squad still reachable via ceil(11/3)=4 pager dots.
     await page.goto('/');
     await injectState(page);
     await navigateTo(page, 'cards');
-    const cards = await page.locator('.player-card').count();
-    expect(cards).toBe(11);
+    const cardsPage1 = await page.locator('.player-card').count();
+    expect(cardsPage1).toBe(3);
+    const dots = await page.locator('.page-dot').count();
+    expect(dots).toBe(4);
   });
 
   test('card filter works', async ({ page }) => {

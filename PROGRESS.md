@@ -1,5 +1,58 @@
 # Progress — Cricket Underworld
 
+> ### 📐 NO-VERTICAL-SCROLL REDESIGN — CARDS SCREEN COMPLETE (2026-09-09, 2/6 pieces)
+> Founder confirmed the last open architecture question before this piece: in-page pagination
+> (Squad/Cards) uses a **tap-only pager (dots + prev/next arrows), no swipe** — this game already has
+> a horizontal swipe-between-screens gesture, and a second swipe gesture for pagination risked the
+> same finger motion being captured by the wrong listener. Built a shared `renderPager()` helper (new
+> `.page-pager`/`.page-dot`/`.page-arrow` CSS, visual language borrowed from the existing `.tut-dot`
+> component) meant to be reused across Cards/Squad/Squad-Select rather than styled once per screen.
+>
+> **Cards grid**: was rendering the full filtered squad into a 3-col grid with no pagination (measured
+> pre-fix: only 2 of however-many rows visible before the nav). Added `cardsPage`/`CARDS_PER_PAGE`
+> state, sliced the filtered `players` array to the current page before rendering, wired the shared
+> pager, and reset to page 1 on filter change (per spec: avoids landing on an empty page if a new
+> filter has fewer pages than the previous scroll position). Pager auto-hides (`.hidden`) when a
+> filtered view already fits in one page — verified via the "Keepers" filter (1-2 players in the test
+> fixture), confirmed the pager control disappears rather than showing a single useless dot.
+>
+> **Real, mid-flight discovery that changed the page-size plan:** the spec's original "6/page (2×3
+> grid, matches what's already visible today)" didn't fully account for the NEW pager control's own
+> footprint eating into the same budget. First implementation hit exactly 0 overflow at 390px
+> (PRIMARY) but real clipping remained at 375px/320px even after real chrome trims (Collection-
+> progress card padding, filter-row margin, and — this took a wrong turn worth recording — an attempt
+> to shrink the "Packs & Shop" drawer's inline-expand body, which turned out to reclaim **zero** space
+> in the baseline state: `.hub-drawer__body{display:none}` when collapsed already contributes 0px, so
+> converting inline-expand to a destination-overlay wouldn't have helped this specific problem at all
+> — caught this via direct measurement before implementing the conversion, not after). What actually
+> helped: shrinking the drawer's own **entry-point row** (same principle as League's stats-button
+> move, scoped CSS only, not touching the shared `.hub-drawer`/`.hub-drawer__toggle` base classes used
+> by Hub's drawers). Closed ~45px this way but still had a real 62-89px gap at 320/375px — continuing
+> to shave chrome pixel-by-pixel risked real card legibility (portraits/stats are already dense at the
+> existing size). **Decision: dropped `CARDS_PER_PAGE` from 6 to 3 (one full grid row)** rather than
+> keep chasing diminishing-returns trims — verified this closes the gap with real margin at all three
+> widths (80-285px of spare clearance, not a borderline fit). Trade-off named explicitly: more pages
+> to browse a full collection (15 cards → 5 pages instead of 3), accepted because reliable zero-scroll
+> across every target width was the founder's stated priority over minimizing tap count, and the
+> dot-pager makes jumping between pages fast regardless of page count.
+>
+> **Broke and properly fixed one existing test, not just tweaked its assertion:**
+> `comprehensive.spec.js` "cards screen shows squad cards" asserted `.player-card` count === 11 (the
+> full squad, un-paginated). This is a real, deliberate behavior change — only the current page
+> renders into the DOM now — so the test was rewritten to assert what actually matters under the new
+> design: 3 cards on page 1, and the full 11-card squad still reachable via 4 pager dots
+> (`ceil(11/3)`), not just forced back to green with a weaker check.
+>
+> **Full `npx playwright test`: 194/194, clean** (the flaky bowler-picker test that failed on the
+> first post-change run was independently unrelated — same pre-existing, already-documented mechanism
+> from earlier this session, confirmed not caused by this change since re-running the whole suite
+> came back fully clean).
+>
+> **Remaining in this redesign** (not yet built): Hub (persistent band + Play/Club tabs + the
+> confirmed ledger-duplicate cut), Squad base-screen pagination, Squad Selection XI-picker overlay
+> pagination (now confirmed in scope, no exception — reusing the same `renderPager()` helper built
+> for Cards).
+
 > ### 📐 NO-VERTICAL-SCROLL REDESIGN — LEAGUE SCREEN COMPLETE (2026-09-09, 1/6 screens)
 > Founder directive: the whole game should not rely on vertical scrolling anywhere. Given the real
 > scope (measured: every major screen overflows one mobile viewport, Hub by up to 2844px with drawers

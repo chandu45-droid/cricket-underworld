@@ -1314,12 +1314,12 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* ================================================================
    CARDS / COLLECTION
    ================================================================ */
-.coll-progress{position:relative;margin-bottom:14px;padding:12px 14px;background:var(--glass-bg);border:var(--glass-border);border-left:3px solid var(--gold);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);box-shadow:0 2px 14px rgba(0,0,0,0.25)}
-.coll-progress .cp-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.coll-progress{position:relative;margin-bottom:8px;padding:8px 14px;background:var(--glass-bg);border:var(--glass-border);border-left:3px solid var(--gold);clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);box-shadow:0 2px 14px rgba(0,0,0,0.25)}
+.coll-progress .cp-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
 .coll-progress .cp-label{font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--slip)}
 .coll-progress .cp-count{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--gold-bright);text-shadow:0 0 14px rgba(240,200,80,0.25);line-height:1}
 .coll-progress .cp-count span{font-size:13px;color:var(--slip);text-shadow:none;font-weight:600}
-.coll-progress .cp-bar{height:5px;background:rgba(var(--hl-rgb),0.05);clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%);overflow:hidden;margin-bottom:9px}
+.coll-progress .cp-bar{height:5px;background:rgba(var(--hl-rgb),0.05);clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%);overflow:hidden;margin-bottom:6px}
 .coll-progress .cp-fill{height:100%;background:linear-gradient(90deg,var(--gold) 0%,var(--gold-bright) 60%,#FFE9A8 100%);box-shadow:0 0 12px rgba(240,200,80,0.5);transition:width 0.8s var(--spring);position:relative}
 .coll-progress .cp-rarities{display:flex;gap:12px;flex-wrap:wrap}
 .coll-progress .cp-r{display:flex;align-items:center;gap:5px;font-family:var(--font-d);font-size:12px;font-weight:700;color:var(--slip)}
@@ -1328,7 +1328,17 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* Edge fade = scroll affordance: the row already scrolls (overflow-x:auto)
    but nothing signaled that to players, so the last tab (e.g. "All-Round")
    just read as clipped/broken at the screen edge (playtest 2026-07-15, item 4). */
-.card-filters{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(to right,transparent 0,black 12px,black calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 12px,black calc(100% - 20px),transparent 100%)}
+.card-filters{display:flex;gap:8px;margin-bottom:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(to right,transparent 0,black 12px,black calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,black 12px,black calc(100% - 20px),transparent 100%)}
+/* 2026-09-09 no-vertical-scroll redesign: shrunk the Packs & Shop drawer's entry-point row for the
+   Cards screen specifically (scoped, not touching the shared .hub-drawer/.hub-drawer__toggle base
+   used by Hub's own drawers). Note: converting the drawer's INLINE-EXPAND body to a destination
+   overlay would NOT reclaim any of this row's height -- .hub-drawer__body is display:none when
+   collapsed, contributing 0px in the baseline state pagination needs to fit; only the toggle row's
+   OWN size matters here, which is what's actually being shrunk below. */
+#cards-screen .hub-drawer{margin-bottom:6px}
+#cards-screen .hub-drawer__toggle{padding:8px 10px}
+#cards-screen .hd-ico{width:22px;height:22px}
+#cards-screen .hd-title{font-size:13px}
 .card-filter{position:relative;padding:8px 16px;border:1px solid var(--border);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--slip);cursor:pointer;transition:all 0.25s var(--spring);white-space:nowrap;text-transform:uppercase;letter-spacing:1.2px;background:linear-gradient(160deg,rgba(var(--hl-rgb),0.045),rgba(var(--hl-rgb),0.015))}
 .card-filter:active{transform:scale(0.94)}
 .card-filter .cf-count{margin-left:6px;font-size:11px;color:var(--slip);opacity:0.7}
@@ -1344,6 +1354,22 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .cards-grid .player-card:nth-child(6){animation-delay:0.25s}
 .cards-grid .player-card:nth-child(n+7){animation-delay:0.3s}
 @keyframes cardDealIn{0%{opacity:0;transform:translateY(22px) rotateX(7deg) scale(0.95)}100%{opacity:1;transform:translateY(0) rotateX(0) scale(1)}}
+/* 2026-09-09 no-vertical-scroll redesign: shared tap-only pager (dots + prev/next arrows), reused
+   across Cards/Squad/Squad-Select wherever a list got paginated instead of left to page-scroll.
+   Tap-only deliberately -- this game already has a horizontal swipe-between-screens gesture
+   (screensEl touchstart handler); adding a second swipe for in-page pagination risked the same
+   finger gesture being captured by the wrong listener. Visual language borrowed from the existing
+   .tut-dot component (same 8px/gold-active treatment) for consistency, new class names since this
+   isn't tutorial-specific. */
+.page-pager{display:flex;align-items:center;justify-content:center;gap:14px;padding:10px 0}
+.page-pager.hidden{display:none}
+.page-dots{display:flex;gap:6px}
+.page-dot{width:8px;height:8px;border-radius:50%;background:rgba(var(--hl-rgb),0.12);transition:all 0.25s;cursor:pointer;flex-shrink:0}
+.page-dot.active{background:var(--gold-bright);box-shadow:0 0 8px rgba(240,200,80,0.4);width:20px;border-radius:4px}
+.page-arrow{width:32px;height:32px;border-radius:50%;background:rgba(var(--hl-rgb),0.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--slip);transition:all 0.2s}
+.page-arrow:active{transform:scale(0.9)}
+.page-arrow.disabled{opacity:0.3;pointer-events:none}
+.page-arrow svg{width:16px;height:16px}
 /* Collection thumbnails — dense 3-col grid; tap opens full detail overlay.
    Scoped to .cards-grid so #auction-spotlight .player-card stays full-size. */
 .cards-grid .player-card .card-body{padding:8px 8px 9px}
@@ -3799,6 +3825,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="card-filter" data-filter="keeper">Keepers<span class="cf-count"></span></div>
       </div>
       <div class="cards-grid" id="cards-grid"></div>
+      <div class="page-pager hidden" id="cards-pager"></div>
     </div>
   </div>
 
@@ -7944,15 +7971,55 @@ function updateSquadScreen() {
 }
 
 // =============================================
+// PAGINATION HELPER (no-vertical-scroll redesign, 2026-09-09)
+// Shared by Cards/Squad/Squad-Select -- renders a tap-only dot+arrow pager into containerId,
+// wired to call gotoFn(newPage) on tap. Hides itself (adds .hidden) when totalPages<=1, since a
+// pager control with nothing to page through is clutter, not a feature (matches the Cards-grid
+// filter-view spec: "hide the page-dots/arrows entirely when a filtered view fits in 1 page").
+// =============================================
+function renderPager(containerId, page, totalPages, gotoFn) {
+  var el = $(containerId);
+  if (!el) return;
+  if (totalPages <= 1) { el.className = 'page-pager hidden'; el.innerHTML = ''; return; }
+  el.className = 'page-pager';
+  var dotsHtml = '';
+  for (var i = 0; i < totalPages; i++) {
+    dotsHtml += '<div class="page-dot' + (i === page ? ' active' : '') + '" data-goto="' + i + '"></div>';
+  }
+  var prevDisabled = page <= 0 ? ' disabled' : '';
+  var nextDisabled = page >= totalPages - 1 ? ' disabled' : '';
+  el.innerHTML =
+    '<div class="page-arrow' + prevDisabled + '" data-goto="' + (page - 1) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg></div>' +
+    '<div class="page-dots">' + dotsHtml + '</div>' +
+    '<div class="page-arrow' + nextDisabled + '" data-goto="' + (page + 1) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"/></svg></div>';
+  var targets = el.querySelectorAll('[data-goto]');
+  for (var t = 0; t < targets.length; t++) {
+    targets[t].addEventListener('click', function() {
+      var g = parseInt(this.getAttribute('data-goto'), 10);
+      if (g >= 0 && g < totalPages) { SFX.tap(); gotoFn(g); }
+    });
+  }
+}
+
+// =============================================
 // CARDS
 // =============================================
+var cardsPage = 0;
+var CARDS_PER_PAGE = 3;
 function updateCardsScreen() {
   var filterEl = document.querySelector('.card-filter.active');
   var filter = filterEl ? filterEl.getAttribute('data-filter') : 'all';
   var players = GS.squad;
   if (filter !== 'all') players = players.filter(function(p) { return ROLE_FILTER[p.role] === filter; });
-  $('cards-grid').innerHTML = players.length
-    ? players.map(renderPlayerCard).join('')
+  // 2026-09-09 no-vertical-scroll redesign: paginate instead of letting the grid overflow the
+  // screen (measured pre-fix: only 2 of however-many rows visible before the nav). 3-col grid x 2
+  // rows = 6/page, matching what was already visible today -- zero layout change, just a fold.
+  var totalPages = Math.max(1, Math.ceil(players.length / CARDS_PER_PAGE));
+  if (cardsPage >= totalPages) cardsPage = totalPages - 1;
+  if (cardsPage < 0) cardsPage = 0;
+  var pageItems = players.slice(cardsPage * CARDS_PER_PAGE, cardsPage * CARDS_PER_PAGE + CARDS_PER_PAGE);
+  $('cards-grid').innerHTML = pageItems.length
+    ? pageItems.map(renderPlayerCard).join('')
     : (GS.squad.length === 0
         ? '<div class="empty-state">' +
             '<div class="es-tile"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="15" rx="1"/><path d="M7 3h11a1 1 0 0 1 1 1v13"/><path d="M7 11h5M7 15h5"/></svg></div>' +
@@ -7985,6 +8052,7 @@ function updateCardsScreen() {
     var span = cfs[c].querySelector('.cf-count');
     if (span) span.textContent = n;
   }
+  renderPager('cards-pager', cardsPage, totalPages, function(g) { cardsPage = g; updateCardsScreen(); });
 }
 
 // =============================================
@@ -11545,6 +11613,8 @@ function bindEvents() {
     filters[f].addEventListener('click', function() {
       for (var k = 0; k < filters.length; k++) filters[k].classList.remove('active');
       this.classList.add('active');
+      cardsPage = 0; // no-vertical-scroll redesign: filtering resets to page 1, avoids landing on
+      // an empty page if the new filtered set has fewer pages than the previous scroll position
       updateCardsScreen();
     });
   }
