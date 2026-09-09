@@ -1,5 +1,43 @@
 # Progress — Cricket Underworld
 
+> ### 📐 NO-VERTICAL-SCROLL REDESIGN — SQUAD SCREEN COMPLETE (2026-09-09, 3/5 pieces)
+> Reused the `renderPager()` helper built for Cards, no new component work needed. Per the design
+> spec: 5 players/page, and the 3 role-group ribbon headers (Batters/All-Rounders/Bowlers) removed
+> entirely — under pagination a page could open mid-way through a group, which reads worse than no
+> header; each row's own `.mini-role-chip` already shows the role (BAT/WK/AR/PACE/SPIN), so no role
+> information is actually lost, only the section chunking. Sort order kept (still roughly clusters by
+> role even without visible headers).
+>
+> Same empirical iterate-and-measure pattern as League/Cards: first pass hit 0 overflow at 390px
+> (PRIMARY, 114px clearance) but real clipping at 375px (-63px) and 320px (-90px). Trimmed chrome in
+> small, verified steps rather than one large guess — squad-header, team-stats-row tile padding,
+> morale-bar, and row padding/margin, re-measuring after each change: 375px closed first (12px
+> clearance), then 320px closed last with one more row-level trim (4px clearance — tight but real,
+> confirmed via exact geometry not just the aggregate scroll-height number, same discipline as
+> League). Unlike Cards, **5-per-page held at all three widths** — no need to drop to a smaller page
+> size this time, just tighter chrome.
+>
+> Visually confirmed legible in both the mechanics (all 15 test-squad players reachable across pages
+> via real clicks, no dupes/none missing) and appearance (screenshot at the tightest width — stats,
+> names, roles, OVR badges all readable, no cramping) before considering this done.
+>
+> **Broke and properly fixed one existing test**, same honest-fix approach as Cards: `comprehensive.
+> spec.js` "shows all squad members" asserted count===11 (unpaginated). Rewritten to assert the real
+> new behavior — 5 rows on page 1, full 11-player squad reachable via 3 pager dots (`ceil(11/5)`).
+> Grepped every other test file for squad-list-count assumptions first — none found, no other breaks.
+>
+> **Full `npx playwright test`: 192/194 — both failures the same two already-well-documented flaky
+> tests from earlier this session** (probabilistic strategy test, RNG-dependent bowler-picker test),
+> neither touching Squad/pagination code at all. Re-ran both in isolation to confirm no new pattern:
+> bowler-picker passed clean, strategy test failed again — consistent with its established ~65-70%
+> pass rate, not a regression.
+>
+> **Remaining in this redesign** (not yet built): Squad Selection XI-picker overlay pagination (same
+> `renderPager()` helper, but more complex — must preserve live checkbox-selection/captain-assignment
+> state across page flips, unlike the read-only Squad/Cards/League screens), and Hub (persistent band
+> + Play/Club tabs + 2 drawer conversions + the confirmed ledger-duplicate cut) — the largest single
+> piece left.
+
 > ### 📐 NO-VERTICAL-SCROLL REDESIGN — CARDS SCREEN COMPLETE (2026-09-09, 2/6 pieces)
 > Founder confirmed the last open architecture question before this piece: in-page pagination
 > (Squad/Cards) uses a **tap-only pager (dots + prev/next arrows), no swipe** — this game already has

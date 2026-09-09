@@ -1278,7 +1278,14 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .squad-role-group{margin-bottom:4px}
 .squad-role-label{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--white-40);text-transform:uppercase;letter-spacing:2.5px;padding:10px 0 4px;display:flex;align-items:center;gap:8px}
 .squad-role-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--white-06),transparent)}
-#squad-screen .player-card-mini{border-left:3px solid var(--green-bright);margin-bottom:6px}
+#squad-screen .player-card-mini{border-left:3px solid var(--green-bright);margin-bottom:2px;padding:5px 10px}
+/* 2026-09-09 no-vertical-scroll redesign: trimmed chrome above the paginated list so 5 rows/page
+   fit with zero clipping at every target width, same empirical iterate-and-measure approach as
+   the League/Cards screens (see PROGRESS.md for the full before/after numbers). */
+#squad-screen .squad-header{margin-bottom:6px;padding:2px 0}
+#squad-screen .team-stats-row{margin-bottom:6px}
+#squad-screen .team-stats-row .team-stat{padding:6px 6px 5px}
+#squad-screen .squad-morale-bar{margin-bottom:5px;padding:6px 12px}
 #squad-screen .player-card-mini[style*="opacity"]{border-left-color:var(--blood)}
 
 /* Cinematic pass: header-zone atmosphere — 2-3 sweeping light beams + a few
@@ -3748,6 +3755,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="morale-track"><div class="morale-fill" id="morale-bar-fill" style="width:75%"></div></div>
       </div>
       <div id="squad-list"></div>
+      <div class="page-pager hidden" id="squad-pager"></div>
       <!-- WIDER SCOPE (2026-08-02): persistent bottom CTA, real GS.squad.length/GS.maxSquad data --
            only shown once the squad has 1+ players AND slots remain open; empty-state keeps its own
            existing CTA below untouched. Reuses the exact same goScreen('auction')+startAuction() action
@@ -7922,6 +7930,8 @@ function renderHubLedger() {
 // =============================================
 // SQUAD
 // =============================================
+var squadPage = 0;
+var SQUAD_PER_PAGE = 5;
 function updateSquadScreen() {
   $('squad-count').textContent = GS.squad.length + '/' + GS.maxSquad;
   if (GS.squad.length === 0) {
@@ -7939,26 +7949,19 @@ function updateSquadScreen() {
   var m = GS.morale || 75;
   if ($('morale-bar-val')) $('morale-bar-val').textContent = m;
   if ($('morale-bar-fill')) $('morale-bar-fill').style.width = m + '%';
-  var roleGroups = [
-    {label:'Batters',roles:['Top-Order Batter','Middle-Order Batter']},
-    {label:'All-Rounders',roles:['All-Rounder','Wicket-Keeper']},
-    {label:'Bowlers',roles:['Fast Bowler','Spin Bowler']}
-  ];
   var roleOrder = ['Top-Order Batter','Middle-Order Batter','All-Rounder','Wicket-Keeper','Fast Bowler','Spin Bowler'];
   var sorted = GS.squad.slice().sort(function(a,b) { return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role); });
-  var html = '';
-  for (var g = 0; g < roleGroups.length; g++) {
-    var group = roleGroups[g];
-    var players = sorted.filter(function(p) { return group.roles.indexOf(p.role) >= 0; });
-    if (players.length === 0) continue;
-    // WIDER SCOPE (2026-08-02): section-header count chip -- real data (players.length within
-    // this already-computed role group), not an interactive filter. Reads closer to the mockup's
-    // filter-row without adding click-to-filter behavior (see PROGRESS.md decision log).
-    html += '<div class="squad-role-group"><div class="cu-ribbon-wrap"><div class="cu-ribbon"><span>' + group.label + '</span></div><div class="sq-role-count">' + players.length + '</div></div>';
-    html += players.map(renderPlayerMini).join('');
-    html += '</div>';
-  }
-  $('squad-list').innerHTML = html;
+  // 2026-09-09 no-vertical-scroll redesign: the 3 role-group ribbon headers (Batters/All-Rounders/
+  // Bowlers) are gone -- under pagination a page could open mid-way through a group, which reads
+  // worse than no header at all. Each row's own .mini-role-chip (renderPlayerMini) already shows
+  // BAT/WK/AR/PACE/SPIN per-row, so no role information is actually lost, just the section chunking.
+  // Sort order is kept (still roughly clusters by role even without the visible headers).
+  var totalSquadPages = Math.max(1, Math.ceil(sorted.length / SQUAD_PER_PAGE));
+  if (squadPage >= totalSquadPages) squadPage = totalSquadPages - 1;
+  if (squadPage < 0) squadPage = 0;
+  var pageSquad = sorted.slice(squadPage * SQUAD_PER_PAGE, squadPage * SQUAD_PER_PAGE + SQUAD_PER_PAGE);
+  $('squad-list').innerHTML = pageSquad.map(renderPlayerMini).join('');
+  renderPager('squad-pager', squadPage, totalSquadPages, function(g) { squadPage = g; updateSquadScreen(); });
   // WIDER SCOPE (2026-08-02): persistent "fill the squad" CTA once roster has 1+ players --
   // real GS.squad.length/GS.maxSquad data, reuses #squad-go-auction's exact nav action.
   var openSlots = GS.maxSquad - GS.squad.length;

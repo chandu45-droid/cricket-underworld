@@ -210,12 +210,18 @@ test.describe('Navigation', () => {
 // 4. SQUAD SCREEN
 // ============================================================
 test.describe('Squad', () => {
-  test('shows all squad members', async ({ page }) => {
+  test('shows squad members, paginated 5 per page', async ({ page }) => {
+    // 2026-09-09 no-vertical-scroll redesign: was asserting all 11 rows render at once (count=11)
+    // -- the squad list is now paginated (SQUAD_PER_PAGE=5) so it fits the viewport with zero scroll
+    // at every target device width. Updated to assert the new, deliberate behavior: 5 rows on the
+    // first page, and the full 11-player squad still reachable via ceil(11/5)=3 pager dots.
     await page.goto('/');
     await injectState(page);
     await navigateTo(page, 'squad');
     const cards = await page.locator('.player-card-mini').count();
-    expect(cards).toBe(11);
+    expect(cards).toBe(5);
+    const dots = await page.locator('.page-dot').count();
+    expect(dots).toBe(3);
   });
 
   test('shows team stats', async ({ page }) => {
