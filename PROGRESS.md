@@ -1,5 +1,43 @@
 # Progress — Cricket Underworld
 
+> ### 🧪 REGRESSION TESTS FOR TODAY'S 7 OTHER FIXES (2026-09-09, same session)
+> Founder asked to pick and deploy items from the pending backlog that don't need approval, one by
+> one — started with the highest-value item from the earlier test-planning menu: permanent regression
+> coverage for the fixes shipped earlier today that only ever existed as now-deleted throwaway
+> verification scripts. New file `tests/bugfix-2026-09-09.spec.js` (mirrors the established
+> `bugfix-2026-08-03.spec.js` naming/structure convention), 9 tests:
+>
+> - **CAPTAIN FIX 1/2**: real-click rejection of a non-eligible captain pick + the old-captainId
+>   null-out on squad-select open, and real-click acceptance of an eligible pick.
+> - **CAPTAIN FIX 3**: a formula-level statistical test (same style as the existing "LOGIC FIX 1"
+>   aggressive-strategy test) proving the leadership-stat bonus has a real, measurable effect on
+>   batting output, not just correct UI gating. Needed a much larger sample (n=30,000 vs. the
+>   existing test's n=3,000) since a ±4.5% leadership modifier is a far smaller effect size than
+>   aggressive-vs-defensive strategy — stress-tested with `--repeat-each=8` before trusting it (8/8).
+> - **TOGGLE FIX**: squad-select tap-to-toggle decrements correctly (6→5→4) instead of collapsing to 1.
+> - **DRS FIX**: active+clickable while batting, greyed+inert while bowling via a real click, AND a
+>   direct `useDRS()` call while bowling still rejected (the defense-in-depth guard).
+> - **UI FIX 1-4**: bowler-picker auto-scrolls into view, hub meter labels aren't truncated at 320px,
+>   FRM stat isn't clipped at pack-reveal card width, auction toast doesn't overlap the card.
+>
+> **Deliberately did NOT write a regression test for the Match Fix (Lose) loyalty-check fix** — traced
+> why: `showMafiaOffer()` picks a random offer via `Math.floor(Math.random()*offers.length)`, and
+> forcing a specific offer type (matchfixlose) deterministically would require either hardcoding its
+> array index (fragile — a future edit to `allOffers`' order would silently break the test's premise
+> without erroring) or a multi-call stateful `Math.random` mock sequencing 3+ separate rolls (offer
+> select, evidence-generation, loyalty-check) with high risk of getting the sequencing subtly wrong
+> and shipping something that LOOKS like it tests the right thing but doesn't. Per this session's own
+> case law (a test that only sometimes passes is worse than no test), skipped rather than force it —
+> flagged here as a deliberate gap, not an oversight.
+>
+> **Verification:** every test run individually first, then the whole new file together (9/9, no
+> cross-test interference), then the full suite. Two background run attempts got killed by the
+> environment mid-flight with `browserType.launch: Target page...closed` / `worker process exited
+> unexpectedly` errors — recognized as infrastructure noise (external kill terminating Chromium
+> mid-run), not real failures, and re-ran via the foreground-with-auto-continue pattern that worked
+> reliably earlier this session. **Full `npx playwright test`: 194/194 (was 185), clean — zero
+> failures, not even the usual flaky one.**
+
 > ### 🧪 REAL-CLICK TEST COVERAGE ADDED — the 5 systems the player-advocate audit found untested
 > ### (2026-09-09, same session)
 > Founder asked what kinds of tests could still be planned; given the menu (regression tests for
