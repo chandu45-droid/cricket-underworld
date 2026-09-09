@@ -94,7 +94,25 @@ test('CAPTAIN FIX 2: setCaptain accepts an eligible pick via real click', async 
   await dismissOverlays(page);
   const ssOverlay = page.locator('.squad-select-overlay.show');
   if (await ssOverlay.count() > 0) {
-    const eligibleBtn = page.locator('.ss-cap-btn:not(.locked)').first();
+    // 2026-09-09 no-vertical-scroll follow-up: with the XI-picker now paginated, the eligible
+    // captain's row isn't necessarily on the page that's visible by default -- the pre-existing
+    // (unchanged) role sort order in renderSquadSelect() happens to place this fixture's id:1 near
+    // the end of the 11-player list, which lands it on page 2, not page 1. Navigate to whichever
+    // page actually contains it first, same as a real player would tap through pages to find their
+    // own eligible captain, instead of assuming DOM-first-order == visible-on-first-page.
+    const targetPage = await page.evaluate(() => {
+      var btn = document.querySelector('.ss-cap-btn[data-capid="1"]:not(.locked)');
+      var pg = btn ? btn.closest('.ss-page') : null;
+      return pg ? parseInt(pg.getAttribute('data-page'), 10) : null;
+    });
+    expect(targetPage).not.toBeNull();
+    if (targetPage > 0) {
+      for (let i = 0; i < targetPage; i++) {
+        await page.locator('.page-arrow').nth(1).evaluate((el) => el.click()); // next arrow
+        await page.waitForTimeout(200);
+      }
+    }
+    const eligibleBtn = page.locator('.ss-cap-btn[data-capid="1"]:not(.locked)');
     await expect(eligibleBtn).toBeVisible();
     await eligibleBtn.evaluate((el) => el.click());
     await page.waitForTimeout(300);

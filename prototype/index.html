@@ -954,7 +954,12 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .ss-roles{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap}
 .ss-role-tag{font-family:var(--font-b);font-size:10px;font-weight:700;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:0.5px;background:rgba(var(--hl-rgb),0.04);color:var(--slip);border:1px solid rgba(var(--hl-rgb),0.06)}
 .ss-role-tag.has{color:var(--green-bright);border-color:rgba(34,212,126,0.15);background:rgba(34,212,126,0.05)}
-.ss-player-list{flex:1;overflow-y:auto;padding:12px 16px;-webkit-overflow-scrolling:touch}
+.ss-player-list{flex:1;overflow-y:auto;padding:6px 16px;-webkit-overflow-scrolling:touch}
+/* 2026-09-09 no-vertical-scroll redesign: trimmed vertical padding 12px->6px -- with only one
+   .ss-page's 5 rows visible at a time, this container's own top/bottom padding was enough on its
+   own to keep scrollHeight > clientHeight by a small margin at 320px, meaning a tiny residual
+   scroll was still technically possible even with pagination in place. Closed via direct
+   measurement (scrollHeight vs clientHeight), not assumed fixed by adding the pager alone. */
 .ss-player{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border-radius:3px;border:1.5px solid rgba(var(--hl-rgb),0.06);background:rgba(var(--hl-rgb),0.02);cursor:pointer;transition:all 0.2s;position:relative}
 .ss-player:active{transform:scale(0.98)}
 .ss-player.selected{border-color:rgba(34,212,126,0.4);background:rgba(34,212,126,0.06)}
@@ -3865,6 +3870,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <div class="ss-roles" id="ss-roles"></div>
   </div>
   <div class="ss-player-list" id="ss-player-list"></div>
+  <div class="page-pager hidden" id="ss-pager"></div>
   <div class="ss-footer">
     <div class="btn btn-outline" id="ss-auto-btn">Auto</div>
     <div class="btn btn-hero disabled" id="ss-confirm-btn">Confirm XI</div>
@@ -9105,9 +9111,22 @@ function getTrainingOptions(player) {
   return options;
 }
 
+// 2026-09-09 no-vertical-scroll redesign: SS_PER_PAGE players visible per "page" of the XI-picker.
+// CRITICAL ARCHITECTURE NOTE -- unlike Squad/Cards (read-only browse lists, safe to DOM-window by
+// slicing the array and only rendering the current page), this overlay has LIVE SELECTABLE STATE
+// (checkbox-style .selected / .captain classes) that getCurrentSSSelection() reads straight back
+// out of the DOM via querySelectorAll('.ss-player.selected'). If only the current page's rows were
+// rendered, selecting a player on page 1 then flipping to page 2 would silently lose that pick --
+// their DOM node (and its .selected class) simply wouldn't exist anymore. Fix: render EVERY
+// player's row always (unchanged from before), just wrap them into .ss-page groups and toggle
+// display per page -- querySelectorAll still matches display:none elements, so selection state
+// survives page flips for free. See showSSPage() below.
+var ssPage = 0;
+var SS_PER_PAGE = 5;
 function showSquadSelect() {
   if (GS.squad.length < 3) { toast('Need at least 3 players', 'error'); return; }
   SFX.tap();
+  ssPage = 0; // fresh open always starts at page 1
   var sel = GS.selectedXI.filter(function(id) { return GS.squad.some(function(p){return p.id===id && !p.banned && !p.injured && !p.debtHeld;}); });
   if (sel.length > 11) sel = sel.slice(0, 11);
   if (sel.length === 0) {
@@ -9147,8 +9166,13 @@ function renderSquadSelect(sel) {
   $('ss-roles').innerHTML = roleHtml;
   var order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
   var sorted = GS.squad.slice().sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
+  var totalSSPages = Math.max(1, Math.ceil(sorted.length / SS_PER_PAGE));
+  if (ssPage >= totalSSPages) ssPage = totalSSPages - 1;
+  if (ssPage < 0) ssPage = 0;
   var html = '';
-  sorted.forEach(function(p) {
+  sorted.forEach(function(p, idx) {
+    var pageNum = Math.floor(idx / SS_PER_PAGE);
+    if (idx % SS_PER_PAGE === 0) html += '<div class="ss-page" data-page="' + pageNum + '">';
     var isSel = sel.indexOf(p.id) >= 0;
     var isCap = GS.captainId === p.id;
     var ovr = Math.round((p.bat + p.bwl) / 2);
@@ -9166,9 +9190,24 @@ function renderSquadSelect(sel) {
       '<div class="ss-stats">B <span>' + p.bat + '</span> · W <span>' + p.bwl + '</span></div>' +
       '<div class="ss-cap-btn' + (p.captaincy ? '' : ' locked') + '" data-capid="' + p.id + '"' + (p.captaincy ? '' : ' title="Needs the Captaincy trait"') + '>C</div>' +
       '</div>';
+    var isLastOnPage = (idx % SS_PER_PAGE === SS_PER_PAGE - 1) || idx === sorted.length - 1;
+    if (isLastOnPage) html += '</div>';
   });
   $('ss-player-list').innerHTML = html;
+  showSSPage(ssPage);
   $('ss-confirm-btn').className = 'btn btn-hero' + (sel.length >= 3 && sel.length <= 11 && osCount <= 4 ? '' : ' disabled');
+}
+
+// Toggles which .ss-page group is visually shown -- every player's row already exists in the DOM
+// (see the CRITICAL ARCHITECTURE NOTE above ssPage's declaration), this only ever changes CSS
+// display, never re-renders or removes anything, so selection/captain state can't be lost by it.
+function showSSPage(page) {
+  var pages = document.querySelectorAll('#ss-player-list .ss-page');
+  for (var i = 0; i < pages.length; i++) {
+    pages[i].style.display = (parseInt(pages[i].getAttribute('data-page'), 10) === page) ? '' : 'none';
+  }
+  var totalPages = pages.length || 1;
+  renderPager('ss-pager', page, totalPages, function(g) { ssPage = g; showSSPage(g); });
 }
 
 function toggleSquadPlayer(id) {

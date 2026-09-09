@@ -1,5 +1,58 @@
 # Progress — Cricket Underworld
 
+> ### 📐 NO-VERTICAL-SCROLL REDESIGN — XI-PICKER OVERLAY COMPLETE (2026-09-09, 4/5 pieces)
+> The most architecturally different piece of this redesign. Founder had already confirmed no
+> exception for this screen (paginate it too, full consistency) — but it genuinely couldn't use the
+> same technique as Squad/Cards.
+>
+> **Why:** `getCurrentSSSelection()` reads selection state straight out of the live DOM
+> (`document.querySelectorAll('.ss-player.selected')`) — this overlay has real interactive state
+> (checkbox-style selection, captain assignment) that Squad/Cards' read-only browse lists don't. If
+> only the current page's rows were rendered (Squad/Cards' approach), selecting a player on page 1
+> then flipping to page 2 would silently lose that pick — the DOM node carrying its `.selected` class
+> simply wouldn't exist anymore. **Fix: render every player's row always** (unchanged from before),
+> wrap them into `.ss-page` groups, and toggle CSS `display` per page instead of re-rendering a slice.
+> `display:none` elements are still matched by `querySelectorAll` — selection/captain state survives
+> page flips for free. New `showSSPage()` helper does only the visibility toggle, never touches
+> selection state; `renderSquadSelect()` still rebuilds full HTML on every mutation (toggle/captain
+> pick) but re-applies the current page's visibility at the end so the view doesn't jump.
+>
+> 5 players/page, same `renderPager()` component. Unlike the other three screens, this one needed
+> almost no manual chrome-trimming iteration — `.ss-player-list{flex:1;overflow-y:auto}` was already
+> designed to fill available space, so pagination mostly "just fit." One small real gap found by
+> direct measurement (not assumed away): even with only one page's 5 rows visible, the container's
+> own padding alone was enough to keep `scrollHeight` slightly above `clientHeight` at 320px — a tiny
+> but real residual scroll capability despite pagination being in place. Closed by trimming the
+> container's own padding (12px→6px); confirmed `scrollHeight === clientHeight` (zero scroll
+> capability, not just "looks fine in a screenshot") at all three widths afterward.
+>
+> **Verification went further than a visibility/geometry check** given the stakes — this is the
+> single check that actually validates the different-architecture decision was right, not just that
+> pagination "looks" like it works: confirmed all 15 test-fixture rows exist in the DOM simultaneously
+> (not DOM-windowed), that toggling a player then flipping pages preserves the exact same selection
+> set, that a NEW selection made on page 2 correctly adds to the running total rather than resetting
+> it, that flipping back to page 1 shows the earlier deselect as still persisted rather than reverted,
+> that captain assignment survives a page flip, and that Confirm XI still produces a valid squad size
+> end-to-end through the paginated flow. All independently verified, not asserted from the
+> implementation's own logic.
+>
+> **Found and properly fixed one real test breakage** — not a bug in the new pagination logic, but a
+> genuine pre-existing (unchanged) blind spot the pagination exposed: this session's own earlier
+> `CAPTAIN FIX 2` test used `.locator('.ss-cap-btn:not(.locked)').first()`, assuming DOM-first-order
+> meant visible-on-the-first-page. The `order` map used by `renderSquadSelect()`'s role sort (a
+> *different*, separate order than `updateSquadScreen()`'s own `roleOrder` array for the base Squad
+> screen — traced and confirmed both exist independently, not a typo) happens to place this test
+> fixture's eligible captain near the end of an 11-player sort, which lands them on page 2 — invisible
+> by default, exactly where a real player would need to tap the pager to find them too. Rewrote the
+> test to locate which page actually contains the eligible player and navigate there first, same as a
+> real player would, rather than assuming first-in-DOM is always visible.
+>
+> **Full `npx playwright test`: 193/194 — only the same already-documented flaky probabilistic
+> strategy test, unrelated to this change.**
+>
+> **Remaining in this redesign** (not yet built): Hub — the largest single piece (persistent status
+> band, Play/Club tabs, 2 drawer-to-destination conversions, the confirmed ledger-duplicate cut).
+
 > ### 📐 NO-VERTICAL-SCROLL REDESIGN — SQUAD SCREEN COMPLETE (2026-09-09, 3/5 pieces)
 > Reused the `renderPager()` helper built for Cards, no new component work needed. Per the design
 > spec: 5 players/page, and the 3 role-group ribbon headers (Batters/All-Rounders/Bowlers) removed
