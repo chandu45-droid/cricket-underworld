@@ -1,5 +1,92 @@
 # Progress — Cricket Underworld
 
+> ### 🔍 FRESH GROUND-UP AUDIT + DRS BATTING-ONLY FIX (2026-09-09, same session)
+> Founder asked "any other bugs need to check?" after this session's squad-select fix. Rather than
+> guess, first did a bounded, targeted check: grepped every `getAttribute('data-*')` id-extraction
+> site in the file for the exact string-vs-number mismatch class that broke squad-select. **Confirmed
+> that specific bug class is fully contained** — every other numeric-id site already `parseInt()`s at
+> extraction, every string-keyed site (staff/scout/favor/screen names) doesn't need to. Reported this
+> back with the honest caveat that it doesn't rule out OTHER bug classes. Founder asked for a full
+> fresh ground-up audit, repeating the 2026-08-03 player-advocate methodology.
+>
+> Routed through the `player-advocate` persona (project agent not registered as an invokable type in
+> this session, same workaround as `game-designer` earlier — ran via `general-purpose` with the full
+> persona embedded verbatim) as a background agent, ~500s runtime, 66 tool calls. Explicitly briefed
+> it on today's lead: the test suite's structural blind spot (177 tests, but every single one injects
+> `GS` state directly rather than clicking through the real DOM) is exactly what let the squad-select
+> bug hide in plain sight — told it to hunt for the same *class* of gap elsewhere, not just re-report
+> today's fix.
+>
+> **Per this repo's own established audit protocol ("no agent-claim taken on faith"), independently
+> re-verified every finding before acting on any of it — and this caught real inaccuracies in the
+> agent's own report:**
+> - Agent claimed "live in-match strategy switching has never been verified via a real tap" — **false**.
+>   `tests/comprehensive.spec.js:505-519` starts an actual match and clicks `#tac-aggro` directly,
+>   asserting both the `.active` class and `GS.strategy`. Fully covered; the agent's underlying
+>   observation (the ambiguous `[data-strat="aggressive"]` selector matches 2 different DOM elements —
+>   the prematch picker AND the live match button) was real and worth noting, but the conclusion drawn
+>   from it was wrong.
+> - Agent claimed "mafia offer Accept/Decline both have zero real-click coverage" — **half true**.
+>   `tests/comprehensive.spec.js:843-855` clicks `#decline-mafia-btn` via a real Hub→banner→overlay
+>   path and asserts the alignment delta. Decline is genuinely covered; only **Accept**
+>   (`#accept-mafia-btn`) has zero hits anywhere in `tests/` (confirmed via grep myself).
+> - Confirmed via my own grep (not just trusting the agent's read): staff hiring (`data-staff`), scout
+>   intel (`data-scout`), heat actions (`data-heatact`), and transfer market buy/sell/refresh
+>   (`data-buyid`/`data-sellid`/`market-refresh-btn`) all genuinely have **zero test coverage of any
+>   kind** — not even state-injection tests, let alone real clicks. These are coverage gaps in code
+>   that reads correctly on inspection, not confirmed bugs — logged, not fixed this session (a real
+>   test-writing effort, not something to barrel into unscoped).
+> - Confirmed the one dead-code LOW finding: `data-buy-id` (hyphenated) on the market-item container
+>   (`index.html:11011`) is genuinely unused — the real, functioning attribute is the differently-named
+>   `data-buyid` (no hyphen) on the nested Buy button. Harmless, not fixed (cosmetic/maintenance note).
+>
+> **One real, confirmed bug, independently verified by reading the code myself before proposing
+> anything: DRS was tappable throughout the ENTIRE match (no gating on `match.batting`), but
+> `useDRS()` always targets whichever side is currently batting and only ever DECREASES their wicket
+> count.** While batting, that's correct (real-cricket "review your own out call"). While bowling, the
+> exact same code path takes away the wicket you just took, with zero "review overturns not-out to
+> given-out" branch for the fielding side ever existing. A player instinctively reaching for DRS during
+> their own bowling innings — the real-cricket use case a cricket fan would expect — was silently
+> sabotaging their own scorecard, with no way to ever benefit from it while bowling. Verified myself by
+> reading `useDRS()` (`index.html:8498-8524`) and the button markup/wiring (`index.html:3609`,
+> `11421-11424`) directly — confirmed real, not agent noise.
+>
+> **Founder chose the simpler of two fix directions: disable DRS while bowling** (vs. building a new
+> bowling-side "review for a wicket" branch — bigger, more speculative, a real game-design addition
+> rather than a fix). Implemented:
+> - New `syncDrsAvailability()` (`index.html`, next to `useDRS()`): greys out + disables `#drs-btn`
+>   (new `.tactic-btn.drs.unavailable` CSS — opacity 0.35, `pointer-events:none`, no
+>   `text-decoration:line-through` so it reads as "not right now" rather than "already spent," visually
+>   distinct from the existing `.used` state) whenever `match.batting !== 'you'`; adds a `title`
+>   tooltip explaining why. Called from both `startMatch()` and `switchInnings()` (the only two places
+>   `match.batting` can change during a live match — confirmed Super Over resolves synchronously via
+>   direct `calcBallOutcome()` calls with no live DRS button interaction possible, so it needed no
+>   third hook).
+> - `useDRS()` itself now early-returns on `match.batting !== 'you'` too — defense-in-depth guard so
+>   the block holds even if the button is ever reached directly, same pattern as the `BILLING_LIVE`
+>   grant guard (CORE-MEMORY case law).
+>
+> **Verification:** zero existing tests touch DRS at all (grepped `tests/` for `drs|DRS`, confirmed
+> before editing — no test-selector risk). Wrote a throwaway Playwright script (deleted after use):
+> forced a live match into batting and bowling states, confirmed the button is active+clickable while
+> batting (real click flips `match.drsUsed`), greyed-out+inert while bowling (real click has zero
+> effect, blocked by CSS `pointer-events:none`), AND confirmed the defense-in-depth guard by calling
+> `useDRS()` directly while bowling (bypassing the DOM entirely) — rejected, `drsUsed` stays false,
+> `oppWkts` unchanged. 5/5 checks passed.
+>
+> **Full `npx playwright test` re-run: 175/177 first pass, 2 failures — both independently confirmed
+> pre-existing/flaky, NOT regressions from this fix.** (1) The already-documented "smoke bowler-picker"
+> flaky test (CORE-MEMORY case law since 2026-07-11) — this time actually narrowed down its root
+> cause while investigating: `tests/smoke.spec.js:400`'s `.bowler-opt.first()` doesn't filter out
+> `.disabled` bowler options, and depending on random squad/overs-cap state that first-rendered option
+> can legitimately be over the 2026-08-03 overs-cap and thus disabled, blocking the click. Confirmed
+> genuinely intermittent, not deterministic: ran it 4 more times total (1 solo + 3 via `--repeat-each`)
+> and got 3 passes / 2 fails — a real regression from my change would fail 100% of runs, not ~40-50%.
+> (2) `bugfix-2026-08-03.spec.js` "LOGIC FIX 1: aggressive strategy..." — a probabilistic/statistical
+> test (simulates many balls, checks a risk/reward distribution), unrelated to anything touched this
+> session (strategy/aggression formula code untouched); re-ran in isolation and passed clean, 1/1.
+> Neither failure touches DRS, `match.batting`, `startMatch()`, or `switchInnings()`'s other logic.
+
 > ### ✂️ RTM + PLANTED AGENT FORMALLY CUT FROM GDD (2026-09-09, same session) — the last of the
 > ### "flagged, not fixed" items from the 2026-08-03 audits
 > Founder asked to "check the other flagged items" — the 2 gaps from the FULL-GAME BUG AUDIT entry

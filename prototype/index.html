@@ -1153,6 +1153,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* DRS + Impact buttons */
 .tactic-btn.drs{background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.25);color:var(--purple);font-size:11px;padding:6px 10px;box-shadow:0 0 10px rgba(167,139,250,0.08)}
 .tactic-btn.drs.used{opacity:0.3;pointer-events:none;text-decoration:line-through;box-shadow:none}
+.tactic-btn.drs.unavailable{opacity:0.35;pointer-events:none;box-shadow:none}
 .tactic-btn.impact{background:rgba(34,211,238,0.12);border-color:rgba(34,211,238,0.25);color:var(--cyan);font-size:11px;padding:6px 10px;box-shadow:0 0 10px rgba(34,211,238,0.08)}
 .tactic-btn.impact.used{opacity:0.3;pointer-events:none;text-decoration:line-through;box-shadow:none}
 /* Injury indicator */
@@ -8495,8 +8496,30 @@ function checkRainInterrupt() {
 // =============================================
 // DRS SYSTEM
 // =============================================
+// 2026-09-09 fix (player-advocate audit): DRS was tappable and always ACTIVE during your
+// bowling innings too, but useDRS() below only ever REMOVES a wicket from whichever side is
+// currently batting -- there is no "review overturns not-out to given-out" branch for the
+// bowling side. A player tapping DRS while bowling (the real-cricket instinct: review a bad
+// not-out call against your own bowling) was silently undoing the wicket they'd just taken,
+// with zero way to ever help themselves. Founder chose: DRS stays a batting-only mechanic
+// (matches what's actually built) rather than adding a new bowling-side outcome branch.
+// syncDrsAvailability() greys out + disables the button (CSS pointer-events:none) whenever
+// match.batting !== 'you'; the guard inside useDRS() below is defense-in-depth in case the
+// button is ever reached directly (same pattern as the BILLING_LIVE grant guard).
+function syncDrsAvailability() {
+  var btn = $('drs-btn');
+  if (!btn || match.drsUsed) return; // .used styling/state already takes precedence
+  if (match.batting === 'you') {
+    btn.classList.remove('unavailable');
+    btn.removeAttribute('title');
+  } else {
+    btn.classList.add('unavailable');
+    btn.setAttribute('title', 'DRS is available while batting');
+  }
+}
+
 function useDRS() {
-  if (match.drsUsed) return;
+  if (match.drsUsed || match.batting !== 'you') return;
   match.drsUsed = true;
   $('drs-btn').classList.add('used');
   $('drs-btn').textContent = 'DRS USED';
@@ -9183,7 +9206,8 @@ function startMatch() {
   match.bhaiCrowd = !!(GS.bhaiBonus && GS.bhaiBonus.type === 'crowd');
   match.bhaiTamper = !!(GS.bhaiBonus && GS.bhaiBonus.type === 'pitchtamper');
   $('boost-btn').classList.remove('used', 'active-boost');
-  $('drs-btn').classList.remove('used'); $('drs-btn').textContent = 'DRS';
+  $('drs-btn').classList.remove('used', 'unavailable'); $('drs-btn').textContent = 'DRS';
+  syncDrsAvailability();
   $('impact-btn').classList.remove('used'); $('impact-btn').textContent = 'IMPACT'; $('impact-btn').style.display = 'none';
   $('tac-aggro').classList.remove('active'); $('tac-defense').classList.remove('active');
   $('tac-balanced').classList.add('active');
@@ -9678,6 +9702,7 @@ function switchInnings() {
   match.curBatter = match.batXI[0];
   match.curBowler = pickBowler(match.bowlers, 0, 0);
   match.overRuns = 0; match.bowlerSelected = false; match.fieldSetting = 'standard'; match.lastBowler = null;
+  syncDrsAvailability();
   hide('bowler-picker');
   updateBBStrip(match.curBatter, match.curBowler);
   $('you-status').textContent = match.batting === 'you' ? 'YOU ARE BATTING' : 'YOU ARE BOWLING';
