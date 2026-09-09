@@ -818,9 +818,6 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .empty-state .es-sub{color:var(--slip);font-size:13px;line-height:1.5;max-width:250px;margin-bottom:22px}
 .empty-state .btn{min-width:190px}
 
-/* RTM banner — slides down from top */
-.rtm-banner{position:absolute;top:0;left:0;right:0;z-index:10;padding:10px 16px;background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:var(--void);font-family:var(--font-d);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;text-align:center;transform:translateY(-100%);transition:transform 0.4s var(--spring);clip-path:polygon(0 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px))}
-.rtm-banner.show{transform:translateY(0)}
 
 /* Old timer bar — hidden, kept for JS compatibility */
 #timer-fill{display:none}
@@ -2701,7 +2698,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    LOOK ONLY, scoped to #auction-screen's own selectors/generated markup.
    Every wired hook (auction-purse, round-info, auction-spotlight,
    current-bid, bidder-name, timer-circle, timer-bar-fill, timer-sec,
-   bid-btn, pass-btn, bid-log, auction-intel-panel/-text, rtm-banner,
+   bid-btn, pass-btn, bid-log, auction-intel-panel/-text,
    start-auction-btn, auction-empty-area, ad-purse-btn/-sub) keeps its id —
    only the surfaces/frames around them pick up kit classes. B2 stays B2.
    ================================================================ */
@@ -3404,7 +3401,6 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <!-- AUCTION -->
     <div class="screen" id="auction-screen">
       <div class="back-btn" id="auction-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Hub</div>
-      <div class="rtm-banner" id="rtm-banner"></div>
       <div id="auction-active-area" style="display:none">
         <div class="auction-purse-zone">
           <div class="purse-label">Purse Remaining</div>

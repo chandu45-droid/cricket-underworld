@@ -1,5 +1,68 @@
 # Progress — Cricket Underworld
 
+> ### ✂️ RTM + PLANTED AGENT FORMALLY CUT FROM GDD (2026-09-09, same session) — the last of the
+> ### "flagged, not fixed" items from the 2026-08-03 audits
+> Founder asked to "check the other flagged items" — the 2 gaps from the FULL-GAME BUG AUDIT entry
+> below (RTM dead stub, Planted Agent unbuilt), explicitly called out at the time as "founder/
+> game-designer call, not something to unilaterally build or delete." Investigated both properly
+> before proposing anything — this turned out bigger than "wire up a stub":
+>
+> - **RTM (Right to Match):** GDD premise is a season-boundary squad wipe where RTM lets you retain 2
+>   favorites. Read the actual `endSeason()` function (~L10675) line by line: it resets league
+>   position, matchNum, wins/losses, season pass, morale, purse, sponsor, and decays fan
+>   loyalty/rival relationships — **`GS.squad` is never touched.** There's no season-boundary
+>   re-auction for RTM to apply to; the squad just persists continuously. Building RTM as specced
+>   means retrofitting a full squad-wipe-and-reauction cycle into a shipped, tested, continuous-squad
+>   game loop — a much bigger structural change than the feature itself.
+> - **Planted Agent:** GDD premise is a mole that "leaks rival's strategy to you for 3 matches."
+>   Checked `GS.rivalData` and the match-sim code: rival opponents have no persisted strategy value
+>   anywhere — only a fixed archetype personality (Purist/Pragmatist/Shark/Coward/Politician) that
+>   drives auction bidding behavior, nothing per-match to leak. The favor's entire stated payoff has
+>   no data behind it in the shipped architecture.
+>
+> Presented both findings to the founder with three options (cut from GDD / route to game-designer
+> for a scoped-down redesign that fits the existing architecture / leave flagged for later). **Founder
+> chose: cut both from GDD.**
+>
+> **Code changes:** removed the dead `.rtm-banner`/`.rtm-banner.show` CSS and the empty
+> `<div id="rtm-banner">` markup from `prototype/index.html` (was never wired to any JS — confirmed
+> via grep before removing). Also dropped `rtm-banner` from a stale "wired hooks" comment in the same
+> file that had been listing it as if it were live.
+>
+> **GDD changes** (`docs/core-systems-gdd.md`): §5.2 RTM paragraph replaced with a cut note explaining
+> why (with a revival path: only makes sense bundled with a from-scratch season-squad-reset redesign).
+> §5.4's corruption-layer table: Planted Agent row struck through with the same reasoning + a revival
+> note (needs a real rival-AI strategy system built first — bigger than the favor itself). §5.5 and
+> §9.2's Clean-vs-Corrupt comparison tables: removed "planted agents" mentions, §9.2's row backfilled
+> with the real built mechanic in that slot (rival outgoing bribes / throw-the-match, shipped as part
+> of Underworld Core increment 3). §8.5's IPL Challenger tier-unlock description: dropped "Planted
+> agents available." §10's monetization table: removed the "Extra RTM Slot" IAP row (100 gems) — was
+> never sellable since RTM never existed to need a slot.
+>
+> **Bonus find while in the same table (not a new decision, just doc catch-up on an already-shipped
+> fact):** §5.4 also still listed **Auction Leak** as a live corrupt action — but that was already cut
+> from the actual code back on 2026-08-03 (the "5 confirmed defects fixed" bug-audit entry below,
+> fix #2: "cost real B$/heat/alignment/debt for zero effect... removed both offer types"). The GDD
+> table was simply never updated after that cut. Fixed it alongside since it's the exact table already
+> being edited and the fact was already decided/shipped, not a new call.
+>
+> **Also caught and fixed a real factual error in §8.4's "What Resets vs Carries Forward" table,
+> independent of the RTM decision:** it claimed "Player cards in squad: No — new auction each season"
+> — but per the `endSeason()` read above, that's simply false against the shipped code (squad always
+> persists). Corrected to "Yes — persists continuously" with a note explaining the correction. The
+> §8.4 "Card upgrades... via RTM" row was also reworded since upgrades now persist via the squad's own
+> natural persistence, not an RTM mechanic that no longer exists.
+>
+> **Verification:** grepped `tests/*.spec.js` for `rtm|RTM` — zero matches, no test-selector risk from
+> the markup removal. Node syntax parse of both inline `<script>` blocks (0 errors) and confirmed
+> `rtm-banner` string appears 0 times anywhere in `prototype/index.html` after the edit. **Full
+> `npx playwright test` re-run: 177/177, clean, 10.1m, zero failures.**
+>
+> This closes out the last "flagged, not fixed" item from the 2026-08-03 audits — both game-logic
+> gaps (captain bonus, Match Fix Lose loyalty check) and this GDD-cut are now resolved this session,
+> plus the two bugs this session's own UI testing surfaced along the way (squad-select tap-to-toggle,
+> light-theme lock visibility).
+
 > ### 🎨 LIGHT-THEME LOCK VISIBILITY FIX — same session, closes out the polish note flagged above
 > Founder asked to fix the "locked cap-btn is subtle in light theme" note flagged during the UI test
 > pass above. Root cause: `.ss-cap-btn.locked` only applied `opacity:0.35` on top of the base

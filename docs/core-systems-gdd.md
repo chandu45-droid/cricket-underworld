@@ -587,7 +587,7 @@ Purse is modified by **sponsor tier** (see Section 1.3) and **budget injections*
 - **Full Auction mode (opt-in):** Watch every bid in real-time. 10-15 minutes. For players who enjoy the auction drama.
 - **Auto-Draft mode:** AI builds your squad based on priorities you set (batting-heavy, bowling-heavy, balanced). Instant. For players who just want to play matches.
 
-**RTM (Right to Match):** Before the auction, each manager can tag **up to 2 players from their previous season's squad** as RTM candidates. When that player comes up in auction, after bidding concludes, the RTM holder can **match the winning bid** to retain the player. Costs the winning bid amount from their purse. RTM is announced publicly (rivals know which players you're protecting).
+**RTM (Right to Match) — CUT (2026-09-09):** Was specced as: before the auction, each manager tags up to 2 players from their previous season's squad as RTM candidates, then can match the winning bid to retain them when they come up. This assumed a season structure where the squad gets wiped and re-auctioned each season. **The shipped game never wipes the squad — it carries forward continuously across seasons** (see §8.4 What Resets vs What Carries Forward, corrected below; `endSeason()` only resets league position, purse, sponsor, and pass progress). There's no season-boundary re-auction event for RTM to apply to, so the mechanic has no context to exist in without first building that squad-wipe structure — a much bigger change than RTM itself. Formally cut rather than left as a dead UI stub (`#rtm-banner` removed from `prototype/index.html`). Revival path if ever wanted: only makes sense bundled with a from-scratch "season squad reset" redesign, not as a standalone add.
 
 **[v2] Offline Grace:** If a player loses connection mid-auction, the game auto-bids on their behalf using a simple heuristic: bid up to 1.5x base price on cards matching squad gaps, pass on others. The player sees a summary of auto-bids when they reconnect.
 
@@ -607,18 +607,20 @@ Rivals bid according to their **squad needs** and **personality**:
 
 | Corrupt Action | Mechanic | Detection Risk |
 |----------------|----------|----------------|
-| **Auction Leak** | See one rival's remaining purse before a round. Shown as a tooltip. | Low (5% evidence chance) |
+| ~~Auction Leak~~ | **CUT 2026-08-03** (bug-audit pass): cost real black money/heat/alignment/debt for zero effect — "reveal rival budget" was never actually implemented. Removed rather than fake-built; documented in code at the removal site. This doc entry was stale until 2026-09-09. | — |
 | **Bid Manipulation** | Force a rival to overbid on a card you don't want (you bid, they counter, you drop — they've spent more than planned). Not a favor; just strategy. | None (legitimate tactic) |
-| **Planted Agent** | A card in the auction is secretly loyal to you. If a rival buys them, that player has a hidden "mole" tag — leaks rival's strategy to you for 3 matches, then gets "injured" (removed from rival's squad). Costs 200 black money. | 15% evidence chance when mole activates |
+| ~~Planted Agent~~ | **CUT 2026-09-09.** Was specced to "leak rival's strategy" for 3 matches — but rival opponents have no persisted strategy value anywhere in the shipped game (`GS.rivalData` only tracks relationship bookkeeping: rel/winsVs/lossesVs/fixedAgainst). The mechanic's entire payoff has no data behind it in this architecture. Never built (confirmed zero code references). See §5.4 revival note below. | — |
 | **Insider Info** | Part of Scout Intel favor. See hidden stats (loyalty, greed) before bidding. | 5% evidence chance |
 | **Budget Injection** | +500 coins to purse from mafia. Must throw a match later. | 15% evidence chance |
+
+**Revival note (Planted Agent):** would need a real rival-AI "strategy" system built first (rivals currently have no per-match strategy state at all, only a fixed archetype personality) — a bigger feature than the favor itself. Not worth building solely to give this one favor a payoff; reconsider only alongside a broader rival-AI depth pass.
 
 ### 5.5 Clean vs Corrupt Auction Strategy
 
 | Path | Advantage | Disadvantage |
 |------|-----------|--------------|
 | **Clean** | Better sponsor purse (+15-30%). Retain high-loyalty players easily. High-loyalty overseas players prefer clean managers. | Smaller total budget. No intel advantage. |
-| **Corrupt** | Mafia injections. Intel on rivals. Planted agents. | Purse penalty from sponsor tier. Debts created. High-loyalty players may refuse to join. |
+| **Corrupt** | Mafia injections. Intel on rivals (Scout Intel). | Purse penalty from sponsor tier. Debts created. High-loyalty players may refuse to join. |
 
 **Design intent:** Neither path is strictly better for auctions. Clean managers have more reliable but smaller budgets. Corrupt managers have volatile but potentially larger budgets with hidden costs.
 
@@ -1024,7 +1026,6 @@ The original design had coins accumulating with no meaningful sink between aucti
 | Legendary Pack (5 cards, guaranteed Epic+, 10% Legendary) | 400 gems | |
 | **Season Pass** | **250 gems** | 30-day pass, daily rewards, exclusive cosmetic. **Premium track includes 80 gems back.** |
 | Cooldown Reset (any favor/fixer) | 20 gems | |
-| Extra RTM Slot | 100 gems | 3rd RTM for next auction |
 | Cosmetic: Team Kit | 80 gems | Visual only |
 | Cosmetic: Stadium Theme | 120 gems | Visual only |
 | Cosmetic: Manager Avatar | 50 gems | Visual only |
@@ -1115,7 +1116,7 @@ A **season** = 1 league cycle. Length: **14 matches** (each rival played once ho
 
 | Element | Carries Forward? | Notes |
 |---------|-----------------|-------|
-| Player cards in squad | No — new auction each season | RTM allows retaining 2 |
+| Player cards in squad | **Yes — persists continuously** | **Corrected 2026-09-09: `endSeason()` never wipes `GS.squad`; there is no season-boundary re-auction. (Was previously documented as wiping with RTM retaining 2 — that never matched the shipped code; RTM cut, see §5.2.)** |
 | Coins | Yes | Full carry-forward |
 | Gems | Yes | Full carry-forward |
 | Black money | Yes | But risky to stockpile |
@@ -1131,7 +1132,7 @@ A **season** = 1 league cycle. Length: **14 matches** (each rival played once ho
 | Player form | Reset | 50 +/- 10 random each season |
 | Season pass progress | No | Resets each season |
 | Staff cards (fixers, etc.) | Yes | Persistent collection |
-| **[v2] Card upgrades** | **Yes** | Upgrades persist on cards you retain via RTM |
+| **[v2] Card upgrades** | **Yes** | Upgrades persist on your squad naturally, since the squad itself persists (RTM cut — see above, not needed for this to hold true) |
 | **[v2] Pity counter** | **Yes** | Persists across seasons |
 
 ### 8.5 League Tiers & Progression
@@ -1140,7 +1141,7 @@ A **season** = 1 league cycle. Length: **14 matches** (each rival played once ho
 |------|------|------------------|-----------------|----------------|
 | **4** | **Gully Cricket** | Default starting tier | Weak squads, predictable AI, low corruption | Tutorial-like. Only 2 favor types available (Scout Intel, Auction Leak). Squad salary cap: 700. |
 | **3** | **Syed Mushtaq Ali** | Finish top 4 in Gully Cricket | Moderate squads, 2-3 rivals take favors | Full favor table unlocked. First exposure to rival collusion. Squad salary cap: 850. |
-| **2** | **IPL Challenger** | Finish top 4 in SMA | Strong squads, 4-5 corrupt rivals, aggressive bidding | Planted agents available. Rival exposure/collusion mechanics fully active. Media story investigations possible. Squad salary cap: 1000. |
+| **2** | **IPL Challenger** | Finish top 4 in SMA | Strong squads, 4-5 corrupt rivals, aggressive bidding | Rival exposure/collusion mechanics fully active. Media story investigations possible. Squad salary cap: 1000. |
 | **1** | **Champions League** | Finish top 2 in IPL Challenger | Elite squads, all rivals are dangerous, mafia is aggressive | All mechanics at maximum intensity. Tribunal consequences are harshest. But rewards are highest. **No squad salary cap.** |
 
 **[v2] Tier names changed** from Bronze/Silver/Gold/Diamond to cricket-authentic names. "Ranji" (red-ball cricket) was wrong for a T20 game. "Gully Cricket" → "Syed Mushtaq Ali" (India's real domestic T20) → "IPL Challenger" → "Champions League" maps to recognizable Indian cricket hierarchy.
@@ -1208,7 +1209,7 @@ Quests rotate daily and provide engagement hooks between matches:
 | System Area | Corrupt Player | Clean Player |
 |------------|---------------|-------------|
 | Squad building | Mafia intel + injections | Sponsor purse + academy + mentorship |
-| Opponent disruption | Player tap, planted agents | Expose rivals, integrity shield |
+| Opponent disruption | Player tap, rival outgoing bribes (throw-the-match) | Expose rivals, integrity shield |
 | Recovery from setbacks | Favors, fixes | Fan loyalty bonuses, sponsor events |
 | Long-term power | Black money hoard | Mentored players, loyal squads |
 | Engagement depth | Debt management, heat management, tribunal | Mentorship, fan votes, sponsor events, academy |
