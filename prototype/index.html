@@ -9036,9 +9036,15 @@ function setCaptain(id) {
 }
 
 function getCurrentSSSelection() {
+  // 2026-09 fix: getAttribute() always returns a string, but every caller (toggleSquadPlayer,
+  // setCaptain, confirmSquadSelect) compares/pushes against the NUMERIC player ids used
+  // everywhere else in GS.squad/ALL_PLAYERS. The un-parsed string broke indexOf() matches on
+  // every tap after the first -- selection appeared to collapse to a single row instead of
+  // toggling, because a just-tapped player got pushed as a real Number while every
+  // already-selected id round-tripped through the DOM as a String that no longer matched.
   var sel = [];
   var items = document.querySelectorAll('.ss-player.selected');
-  for (var i = 0; i < items.length; i++) { sel.push(items[i].getAttribute('data-sid')); }
+  for (var i = 0; i < items.length; i++) { sel.push(parseInt(items[i].getAttribute('data-sid'), 10)); }
   return sel;
 }
 

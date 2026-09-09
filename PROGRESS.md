@@ -1,5 +1,67 @@
 # Progress — Cricket Underworld
 
+> ### 🐛 UI-TESTING FOUND A REAL PRE-EXISTING BUG — squad-select tap-to-toggle was fundamentally
+> ### broken (2026-09-09, same session as the captain/loyalty fixes above)
+> Founder asked for "ui specific tests" on the captain-lock UI. Wrote a throwaway Playwright script
+> (deleted after use) that actually clicked the real UI (not state-injection) to verify the new
+> captain-eligibility gating — and it surfaced a severe, **pre-existing, untouched-by-this-session**
+> bug: **tapping a player row (or the captain button) in Squad Select only ever worked for the first
+> tap.** Every subsequent tap collapsed the whole selection down to just the just-tapped row instead
+> of toggling normally. Empirically verified: 6 auto-selected rows → tap row 1 → selection drops to 1
+> (not 5, as a real deselect would give) → tap row 2 → still 1 (now row 2 only; row 1 silently lost).
+>
+> **Root cause:** `getCurrentSSSelection()` (`prototype/index.html`, was ~L9039) read selection out of
+> the DOM via `.getAttribute('data-sid')`, which always returns a **string**. Every consumer
+> (`toggleSquadPlayer`, `setCaptain`, `confirmSquadSelect`) compares/pushes that against the
+> **numeric** player ids used everywhere else (`GS.squad`/`ALL_PLAYERS`, and the `parseInt(...)`'d id
+> at the click-binding). `["2"].indexOf(2)` is `-1` in JS — so `indexOf` never matched, every tap was
+> treated as a fresh "add" (never a toggle), and the previously-selected ids silently dropped out of
+> the next render once they round-tripped through the DOM as strings.
+>
+> **Confirmed pre-existing, not introduced this session:** `getCurrentSSSelection`/`toggleSquadPlayer`
+> are code I never touched for the captain/loyalty fix (only `setCaptain`, `capValid`, `autoSelectXI`,
+> `confirmSquadSelect`'s auto-pick, and `renderSquadSelect`'s markup were edited). Grepped
+> `tests/*.spec.js` for `ss-cap-btn|setCaptain|captainId` — **zero existing tests click the real UI
+> path**; all 5 spec files inject `captainId`/`selectedXI` directly into state, bypassing this bug
+> entirely, which is exactly why 177/177 tests were green earlier today despite this being broken.
+> **Practical impact if this had shipped as-is:** manually customizing your Playing XI or picking a
+> captain by tapping — a marketed, tutorial-taught feature (`docs/core-systems-gdd.md` "Captain
+> Choice", the in-game tutorial copy at ~L11221) — likely never worked past the first tap, in the live
+> game, for as long as this code has existed. Casual play probably never surfaced it because the
+> default auto-picked XI is usable without ever touching a row.
+>
+> **Founder was asked before fixing** (this was a real scope decision, not part of the requested
+> captain/loyalty task) — approved fixing it immediately since it's a one-line root cause in the exact
+> screen already under test. **Fix:** `getCurrentSSSelection()` now does
+> `parseInt(items[i].getAttribute('data-sid'), 10)` instead of pushing the raw string. This single
+> change fixes all three downstream consumers at once (no changes needed to `toggleSquadPlayer`,
+> `setCaptain`, or `confirmSquadSelect` themselves — they were already written assuming numeric ids).
+>
+> **Verification:** Node syntax parse of both inline `<script>` blocks (0 errors). Wrote a second
+> throwaway script isolating just the toggle behavior: confirmed 6→5→4 (correct decrement) post-fix,
+> vs. 6→1→1 (broken) pre-fix — same script, same assertions, only the fix applied/reverted between
+> runs. Re-ran the captain-lock verification script end-to-end (8/8 checks): locked-button rejection,
+> eligible-button acceptance via a REAL DOM click (not synthetic state), the `.ss-player.captain`
+> class + gold styling applying correctly, and the old-save fallback nulling a stale non-eligible
+> `captainId` on squad-select open. Two of my own test-script bugs surfaced and were fixed along the
+> way (documented for whoever writes the next squad-select test): (1) `Locator.click()` inside this
+> overlay hits an overlapping decorative element instead of the target — this exact gotcha is already
+> documented in this file's 2026-08-03 entry; use `elementHandle.evaluate(el => el.click())` instead;
+> (2) `showSquadSelect()` hard-requires `GS.squad.length >= 3` and silently no-ops below that — a
+> test squad of 1 silently skipped the very capValid logic it was meant to exercise. Screenshotted the
+> real rendered UI in both themes (sent to founder, not committed — screenshots live in the deleted
+> throwaway `_scratch/` output, consistent with this repo's "screenshots left out of the repo by
+> design" convention): dark theme clearly shows the gold captain glow + badge on an eligible pick and
+> a readable red rejection toast ("Needs the Captaincy trait — this player can't lead the side") on a
+> locked attempt; light theme confirmed the feature renders but the locked-vs-unlocked visual
+> distinction (opacity 0.35 dim) is fairly subtle before a captain is actually picked — flagged as a
+> minor polish note, not fixed (out of scope, founder's call whether it's worth a follow-up pass).
+>
+> **Full regression suite re-run after this second fix** (needed since this touches a shared helper
+> function, not just the two originally-scoped design gaps): **177/177 green, 10.2m, clean run** —
+> this time not even the usual flaky bowler-picker smoke test failed. Zero regressions from the
+> `getCurrentSSSelection()` fix.
+
 > ### 🎖️ DESIGN-CONSISTENCY FIXES — captain trait gating + Match Fix (Lose) loyalty gap (2026-09-09, needs testing)
 > Resumed after a ~5-week gap. Verified the memory's "NEXT" pointer (tutorial-overlay fix, LOOK pass,
 > D1/D7 cohorts) was stale — both the tutorial fix and the full LOOK/wider-scope pass already shipped
