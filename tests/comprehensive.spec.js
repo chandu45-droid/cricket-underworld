@@ -1413,3 +1413,145 @@ test.describe('Edge Cases', () => {
     await expect(page.locator('#hub-screen.active')).toBeVisible();
   });
 });
+
+// ============================================================
+// 22. REAL-CLICK COVERAGE — mafia accept, staff, scout, heat
+// actions, market buy/sell/refresh
+//
+// Added 2026-09-09 after a full player-advocate audit found these 5
+// systems had ZERO test coverage of any kind (not even state-injection),
+// discovered via the same session's squad-select bug: a real, live,
+// pre-existing tap-to-toggle bug that 177 passing tests never caught
+// because every one of them injects GS state directly instead of
+// clicking through the real DOM. These tests specifically drive the
+// actual button click path (Hub -> drawer -> button, or Hub -> overlay
+// -> button) rather than calling the underlying JS function directly,
+// so a future regression in the click-wiring itself (not just the
+// logic) would actually be caught.
+// ============================================================
+test.describe('Real-Click Coverage', () => {
+  test('mafia offer: accepting via real click applies real effects', async ({ page }) => {
+    await page.goto('/');
+    // league:'gully' (injectState default) restricts offers to injection/rivaldossier only --
+    // both skip the loyalty-check roll (see the 2026-09-09 Match Fix Lose fix's noLoyaltyNeeded
+    // list), so acceptance is deterministic here, not RNG-gated. blackMoney generous so the
+    // "not enough black money" early-return in the accept handler can never block this test.
+    await injectState(page, { alignment: -10, matchNum: 3, blackMoney: 1000 });
+    await dismissOverlays(page);
+    await page.click('#mafia-banner');
+    await page.waitForTimeout(500);
+    await expect(page.locator('#mafia-overlay.show')).toBeVisible();
+    const before = await page.evaluate(() => ({ heat: window.GS.heat, favors: window.GS.consecutiveFavors || 0 }));
+    await page.click('#accept-mafia-btn');
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => ({ heat: window.GS.heat, favors: window.GS.consecutiveFavors || 0 }));
+    // Every offer type in the accept handler adds heat unconditionally before any type-specific
+    // branch runs, and increments consecutiveFavors unconditionally too -- true regardless of
+    // which of the two possible offers this test happens to roll.
+    expect(after.heat).toBeGreaterThan(before.heat);
+    expect(after.favors).toBeGreaterThan(before.favors);
+    await expect(page.locator('#mafia-overlay.show')).toBeHidden();
+  });
+
+  test('staff: hiring a coins-cost item via real click deducts coins and marks it hired', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 2000 });
+    await page.click('#drawer-club-toggle');
+    await page.waitForTimeout(300);
+    // 'legit' tab is the default staffTab -- physio (300 coins) is always visible on it.
+    const before = await page.evaluate(() => window.GS.coins);
+    await page.click('[data-staff="physio"]');
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => ({ coins: window.GS.coins, hired: !!window.GS.staff.physio }));
+    expect(after.coins).toBe(before - 300);
+    expect(after.hired).toBe(true);
+  });
+
+  test('staff: hiring a black-money fixer via real click deducts black money, not coins', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 2000, blackMoney: 500 });
+    await page.click('#drawer-club-toggle');
+    await page.waitForTimeout(300);
+    await page.click('[data-stafftab="fixer"]');
+    await page.waitForTimeout(300);
+    const before = await page.evaluate(() => ({ coins: window.GS.coins, blackMoney: window.GS.blackMoney }));
+    await page.click('[data-staff="pr_manager"]'); // 80 black money, currency:'black'
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => ({ coins: window.GS.coins, blackMoney: window.GS.blackMoney, hired: !!window.GS.staff.pr_manager }));
+    expect(after.blackMoney).toBe(before.blackMoney - 80);
+    expect(after.coins).toBe(before.coins); // must NOT touch the coins currency
+    expect(after.hired).toBeTruthy();
+  });
+
+  test('scout: purchasing intel via real click deducts coins and opens the report', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 2000 });
+    await page.click('#drawer-club-toggle');
+    await page.waitForTimeout(300);
+    const before = await page.evaluate(() => window.GS.coins);
+    await page.click('[data-scout="basic"]'); // 100 coins, no analyst discount by default
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => window.GS.coins);
+    expect(after).toBe(before - 100);
+    await expect(page.locator('#scorecard-overlay.show')).toBeVisible();
+  });
+
+  test('heat action: real click raises heat and shifts alignment', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { heat: 20, alignment: 10 });
+    await page.click('#drawer-underworld-toggle');
+    await page.waitForTimeout(300);
+    const before = await page.evaluate(() => ({ heat: window.GS.heat, alignment: window.GS.alignment }));
+    await page.click('[data-heatact="trash_talk"]'); // free, +5 heat, -2 align, always available
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => ({ heat: window.GS.heat, alignment: window.GS.alignment }));
+    expect(after.heat).toBe(before.heat + 5);
+    expect(after.alignment).toBeLessThan(before.alignment);
+  });
+
+  test('market: buying a player via real click deducts coins and adds to squad', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 5000, squad: makeSquad().slice(0, 5) });
+    await page.click('#hub-market-btn');
+    await page.waitForTimeout(500);
+    const buyBtn = page.locator('[data-buyid]').first();
+    await expect(buyBtn).toBeVisible();
+    const before = await page.evaluate(() => ({ coins: window.GS.coins, squadLen: window.GS.squad.length }));
+    await buyBtn.click();
+    await page.waitForTimeout(400);
+    const after = await page.evaluate(() => ({ coins: window.GS.coins, squadLen: window.GS.squad.length }));
+    expect(after.coins).toBeLessThan(before.coins);
+    expect(after.squadLen).toBe(before.squadLen + 1);
+  });
+
+  test('market: selling a player via real click adds coins and removes from squad', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page); // default 11-player squad, well above the 3-player sell floor
+    await page.click('#hub-market-btn');
+    await page.waitForTimeout(500);
+    await page.click('#market-tab-sell');
+    await page.waitForTimeout(300);
+    const sellBtn = page.locator('[data-sellid]').first();
+    await expect(sellBtn).toBeVisible();
+    const before = await page.evaluate(() => ({ coins: window.GS.coins, squadLen: window.GS.squad.length }));
+    await sellBtn.click();
+    await page.waitForTimeout(400);
+    const after = await page.evaluate(() => ({ coins: window.GS.coins, squadLen: window.GS.squad.length }));
+    expect(after.coins).toBeGreaterThan(before.coins);
+    expect(after.squadLen).toBe(before.squadLen - 1);
+  });
+
+  test('market: refresh listings via real click costs 100 coins and regenerates', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 2000, squad: makeSquad().slice(0, 5) });
+    await page.click('#hub-market-btn');
+    await page.waitForTimeout(500);
+    const before = await page.evaluate(() => window.GS.coins);
+    await page.click('#market-refresh-btn');
+    await page.waitForTimeout(400);
+    const after = await page.evaluate(() => window.GS.coins);
+    expect(after).toBe(before - 100);
+    const items = await page.locator('.market-item').count();
+    expect(items).toBeGreaterThan(0);
+  });
+});

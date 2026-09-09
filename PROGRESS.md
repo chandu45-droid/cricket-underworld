@@ -1,5 +1,48 @@
 # Progress — Cricket Underworld
 
+> ### 🧪 REAL-CLICK TEST COVERAGE ADDED — the 5 systems the player-advocate audit found untested
+> ### (2026-09-09, same session)
+> Founder asked what kinds of tests could still be planned; given the menu (regression tests for
+> today's fixes / real-click coverage for the 5 confirmed-untested systems / structural real-click
+> gap / cross-system tests / accessibility / visual regression), **chose real-click coverage for the
+> 5 systems** flagged zero-coverage by the earlier player-advocate audit: mafia offer Accept, staff
+> hiring, scout intel, heat actions, transfer market buy/sell/refresh.
+>
+> New section 22 in `tests/comprehensive.spec.js`, `describe('Real-Click Coverage')`, 8 tests — one
+> extra for staff (coins-cost item AND black-money fixer separately, since the currency-type branch
+> — `st.currency === 'black'` — is exactly the kind of logic a real click needs to exercise, not a
+> state-injection test) and market gets 3 (buy/sell/refresh are functionally independent). Every test
+> drives the ACTUAL click path (Hub → drawer-toggle → button, or Hub → banner → overlay → button) —
+> none of them call the underlying JS function directly — matching this file's existing
+> `injectState`/`dismissOverlays` conventions exactly rather than inventing a new pattern.
+>
+> **Traced each system's real code path before writing anything** (not guessed at selectors):
+> `showMafiaOffer()`/`#accept-mafia-btn` (mafia), `STAFF_TYPES`/`updateStaffPanel()`'s `data-staff`
+> click binding (staff — confirmed `physio` is a plain-coins item, `pr_manager` is a black-money
+> fixer via `currency:'black'`), `SCOUT_OPTIONS`/`updateScoutPanel()`'s `data-scout` binding (scout),
+> `getHeatActions()`/`executeHeatAction()`'s `data-heatact` binding inside the `#drawer-underworld`
+> collapsible (heat actions), `buyPlayer()`/`sellPlayer()`/`#market-refresh-btn`'s click delegation
+> (market). Picked test cases that are **deterministic, not RNG-luck-dependent**: the mafia test
+> relies on `injectState`'s default `league:'gully'`, which restricts the random offer pool to just
+> `injection`/`rivaldossier` — both already in the `noLoyaltyNeeded` skip-list (post today's earlier
+> Match Fix Lose fix), so acceptance never depends on a loyalty-check dice roll; the heat-action test
+> uses `trash_talk` specifically because it's the one action with `condition:true` (always available,
+> no alignment/heat threshold to accidentally miss).
+>
+> **Verification, not just "wrote tests and moved on":** ran the 8 new tests alone first (8/8 pass,
+> ~53s), then `--repeat-each=4` (32/32 pass across 5 total runs) specifically to rule out hidden
+> flakiness from the market tests' random listing generation or the mafia test's random offer pick
+> before trusting them as permanent regression coverage — a test that only *sometimes* passes is worse
+> than no test (case law from this session's own flaky-test investigations).
+>
+> **Full `npx playwright test` re-run: 185/185, clean — not even the usual flaky failure this time.**
+> Suite is now 185 tests, up from 177 at the start of this session.
+>
+> **Remaining test-planning items from the menu presented, not built this session:** regression tests
+> for today's other 7 fixes (currently only verified via now-deleted throwaway scripts), the
+> structural real-click gap in the rest of the suite, cross-system interaction tests, an accessibility
+> pass, and visual regression/screenshot diffing. Founder's call which (if any) come next.
+
 > ### 🎨 SENIOR UI/UX DESIGN AUDIT + 4 CONFIRMED FIXES (2026-09-09, same session)
 > Founder asked for a "UI and UX related test suite by a 5 years experienced frontend and product
 > design guy." Clarified this meant a design audit/critique (not literal new Playwright test files),
