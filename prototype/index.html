@@ -949,6 +949,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .ss-stats span{color:var(--white)}
 .ss-cap-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(240,200,80,0.2);background:rgba(240,200,80,0.04);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--slip);cursor:pointer;transition:all 0.2s;flex-shrink:0}
 .ss-cap-btn:active{transform:scale(0.9)}
+.ss-cap-btn.locked{opacity:0.35;cursor:not-allowed}
+.ss-cap-btn.locked:active{transform:none}
 .ss-player.captain .ss-cap-btn{background:linear-gradient(135deg,var(--gold-bright),var(--gold));color:var(--void);border-color:var(--gold-bright);box-shadow:0 0 10px rgba(240,200,80,0.3)}
 .ss-cap-badge{display:none;position:absolute;top:-4px;left:-4px;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--gold-bright),var(--gold));align-items:center;justify-content:center;font-family:var(--font-d);font-size:10px;font-weight:700;color:var(--void);box-shadow:0 2px 8px rgba(240,200,80,0.4);z-index:2}
 .ss-footer{padding:10px 16px 20px;flex-shrink:0;display:flex;gap:10px}
@@ -4828,9 +4830,9 @@ var ALL_PLAYERS = [
   {id:1,name:'Rajesh Sharma',role:'Top-Order Batter',bat:87,bwl:12,fld:65,fit:78,form:72,loyalty:82,greed:28,rarity:'epic',overseas:false,stars:4},
   {id:2,name:'Vikram Rathore',role:'Top-Order Batter',bat:82,bwl:8,fld:70,fit:80,form:65,loyalty:45,greed:68,rarity:'rare',overseas:false,stars:3},
   {id:18,name:'Prithvi Joshi',role:'Top-Order Batter',bat:70,bwl:10,fld:68,fit:72,form:62,loyalty:55,greed:50,rarity:'common',overseas:false,stars:2},
-  {id:19,name:'Manish Patel',role:'Top-Order Batter',bat:65,bwl:8,fld:58,fit:68,form:55,loyalty:88,greed:12,rarity:'common',overseas:false,stars:2},
+  {id:19,name:'Manish Patel',role:'Top-Order Batter',bat:65,bwl:8,fld:58,fit:68,form:55,loyalty:88,greed:12,rarity:'common',overseas:false,stars:2,captaincy:true,leadership:88},
   {id:21,name:'Devraj Padmanabhan',role:'Top-Order Batter',bat:76,bwl:5,fld:62,fit:82,form:68,loyalty:72,greed:30,rarity:'rare',overseas:false,stars:3},
-  {id:22,name:'Rohan Gavaskar',role:'Top-Order Batter',bat:80,bwl:6,fld:64,fit:76,form:74,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3},
+  {id:22,name:'Rohan Gavaskar',role:'Top-Order Batter',bat:80,bwl:6,fld:64,fit:76,form:74,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3,captaincy:true,leadership:80},
   {id:23,name:'Yashpal Sawant',role:'Top-Order Batter',bat:74,bwl:4,fld:66,fit:84,form:70,loyalty:65,greed:35,rarity:'uncommon',overseas:false,stars:3},
   {id:24,name:'Dane Mitchell',role:'Top-Order Batter',bat:78,bwl:3,fld:72,fit:75,form:66,loyalty:58,greed:42,rarity:'rare',overseas:true,stars:3},
   {id:25,name:'Abhishek Nair',role:'Top-Order Batter',bat:68,bwl:12,fld:60,fit:70,form:58,loyalty:62,greed:48,rarity:'common',overseas:false,stars:2},
@@ -4840,12 +4842,12 @@ var ALL_PLAYERS = [
   {id:4,name:'David Pretorius',role:'Middle-Order Batter',bat:80,bwl:5,fld:55,fit:68,form:78,loyalty:38,greed:72,rarity:'rare',overseas:true,stars:3},
   {id:5,name:'Karthik Narayan',role:'Middle-Order Batter',bat:78,bwl:25,fld:62,fit:75,form:70,loyalty:55,greed:50,rarity:'epic',overseas:false,stars:4},
   {id:27,name:'Tarun Varma',role:'Middle-Order Batter',bat:73,bwl:18,fld:58,fit:80,form:72,loyalty:68,greed:32,rarity:'uncommon',overseas:false,stars:3},
-  {id:28,name:'Rinku Mehra',role:'Middle-Order Batter',bat:70,bwl:5,fld:55,fit:74,form:76,loyalty:82,greed:18,rarity:'uncommon',overseas:false,stars:3},
+  {id:28,name:'Rinku Mehra',role:'Middle-Order Batter',bat:70,bwl:5,fld:55,fit:74,form:76,loyalty:82,greed:18,rarity:'uncommon',overseas:false,stars:3,captaincy:true,leadership:82},
   {id:29,name:'Farhan Khan',role:'Middle-Order Batter',bat:77,bwl:3,fld:48,fit:65,form:80,loyalty:70,greed:40,rarity:'rare',overseas:false,stars:3},
   {id:30,name:'Noel Perreira',role:'Middle-Order Batter',bat:82,bwl:2,fld:60,fit:72,form:68,loyalty:35,greed:65,rarity:'epic',overseas:true,stars:4},
-  {id:31,name:'Dhruv Juneja',role:'Middle-Order Batter',bat:64,bwl:8,fld:70,fit:78,form:56,loyalty:78,greed:20,rarity:'common',overseas:false,stars:2},
+  {id:31,name:'Dhruv Juneja',role:'Middle-Order Batter',bat:64,bwl:8,fld:70,fit:78,form:56,loyalty:78,greed:20,rarity:'common',overseas:false,stars:2,captaincy:true,leadership:78},
   // Wicket-Keepers (4)
-  {id:6,name:'Dinesh Kulkarni',role:'Wicket-Keeper',bat:68,bwl:3,fld:88,fit:70,form:55,loyalty:85,greed:20,rarity:'uncommon',overseas:false,stars:3},
+  {id:6,name:'Dinesh Kulkarni',role:'Wicket-Keeper',bat:68,bwl:3,fld:88,fit:70,form:55,loyalty:85,greed:20,rarity:'uncommon',overseas:false,stars:3,captaincy:true,leadership:85},
   {id:7,name:'Rahul Bisht',role:'Wicket-Keeper',bat:72,bwl:5,fld:82,fit:65,form:62,loyalty:60,greed:45,rarity:'common',overseas:false,stars:2},
   {id:32,name:'Ishaan Kapoor',role:'Wicket-Keeper',bat:75,bwl:2,fld:78,fit:72,form:58,loyalty:52,greed:55,rarity:'rare',overseas:false,stars:3},
   {id:33,name:'Sanjay Menon',role:'Wicket-Keeper',bat:80,bwl:1,fld:85,fit:74,form:72,loyalty:70,greed:38,rarity:'epic',overseas:false,stars:4},
@@ -4870,10 +4872,10 @@ var ALL_PLAYERS = [
   {id:42,name:'Rahul Chawla',role:'Spin Bowler',bat:12,bwl:70,fld:46,fit:68,form:58,loyalty:58,greed:45,rarity:'common',overseas:false,stars:2},
   {id:43,name:'Noor Ahmadi',role:'Spin Bowler',bat:5,bwl:76,fld:42,fit:72,form:68,loyalty:40,greed:58,rarity:'uncommon',overseas:true,stars:3},
   // All-Rounders (10)
-  {id:15,name:'Suresh Venkatesh',role:'All-Rounder',bat:72,bwl:70,fld:75,fit:82,form:76,loyalty:90,greed:15,rarity:'legendary',overseas:false,stars:5},
+  {id:15,name:'Suresh Venkatesh',role:'All-Rounder',bat:72,bwl:70,fld:75,fit:82,form:76,loyalty:90,greed:15,rarity:'legendary',overseas:false,stars:5,captaincy:true,leadership:90},
   {id:16,name:'Hardik Tiwari',role:'All-Rounder',bat:65,bwl:68,fld:60,fit:70,form:55,loyalty:40,greed:65,rarity:'uncommon',overseas:false,stars:3},
   {id:17,name:'Vijay Krishnamurthy',role:'All-Rounder',bat:60,bwl:62,fld:72,fit:88,form:65,loyalty:75,greed:28,rarity:'uncommon',overseas:false,stars:3},
-  {id:44,name:'Akash Parmar',role:'All-Rounder',bat:58,bwl:74,fld:60,fit:76,form:68,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3},
+  {id:44,name:'Akash Parmar',role:'All-Rounder',bat:58,bwl:74,fld:60,fit:76,form:68,loyalty:80,greed:22,rarity:'rare',overseas:false,stars:3,captaincy:true,leadership:80},
   {id:45,name:'Wasim Siddiqui',role:'All-Rounder',bat:55,bwl:70,fld:58,fit:74,form:62,loyalty:72,greed:28,rarity:'uncommon',overseas:false,stars:3},
   {id:46,name:'Venkat Iyer',role:'All-Rounder',bat:68,bwl:58,fld:55,fit:72,form:60,loyalty:60,greed:42,rarity:'uncommon',overseas:false,stars:3},
   {id:47,name:'Shardul Deshmukh',role:'All-Rounder',bat:52,bwl:72,fld:50,fit:70,form:64,loyalty:78,greed:24,rarity:'uncommon',overseas:false,stars:3},
@@ -8359,8 +8361,13 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   if (isYourBatting) { stratBatMod = strategy==='aggressive'?1.15:strategy==='defensive'?0.85:1.0; }
   else { stratBwlMod = strategy==='aggressive'?1.10:strategy==='defensive'?0.90:1.0; }
   var moraleMod = 0.9 + morale / 500;
-  var capBatMod = (batter.id && batter.id === GS.captainId) ? 1.08 : 1.0;
-  var capBwlMod = (bowler.id && bowler.id === GS.captainId) ? 1.08 : 1.0;
+  // Captain bonus (2026-09 GDD-alignment fix): was a flat +8% for whoever GS.captainId
+  // pointed at, with zero eligibility gating -- GDD 6.2/7.1/7.2 specifies a rare Captaincy
+  // trait + Leadership stat (0-99) giving a variable 0-5% bonus (leadership/20 = %). The
+  // captaincy/captaincy-check guard also protects older save games where GS.captainId may
+  // still point at a player who predates this trait (falls back to 1.0, never crashes).
+  var capBatMod = (batter.id && batter.id === GS.captainId && batter.captaincy) ? 1 + (batter.leadership || 0) / 2000 : 1.0;
+  var capBwlMod = (bowler.id && bowler.id === GS.captainId && bowler.captaincy) ? 1 + (bowler.leadership || 0) / 2000 : 1.0;
   // NOTE (2026-08-03 logic-audit fix): strategy no longer feeds into batStr/bwlStr here.
   // It used to multiply straight into the same ratio that also drives wktP below, which made
   // aggressive batting/bowling strictly dominant -- higher ratio always meant MORE boundaries
@@ -8941,7 +8948,8 @@ function showSquadSelect() {
     var availAuto = GS.squad.filter(function(p){ return !p.banned && !p.injured && !p.debtHeld; });
     sel = buildPlayingXI(availAuto).map(function(p){ return p.id; });
   }
-  var capValid = sel.indexOf(GS.captainId) >= 0;
+  var capP0 = GS.squad.find(function(p){return p.id===GS.captainId;});
+  var capValid = sel.indexOf(GS.captainId) >= 0 && !!(capP0 && capP0.captaincy);
   if (!capValid) GS.captainId = null;
   renderSquadSelect(sel);
   $('squad-select-overlay').classList.add('show');
@@ -8988,7 +8996,7 @@ function renderSquadSelect(sel) {
       '<div class="ss-ovr" style="background:' + rc + '">' + ovr + '</div>' +
       '<div class="ss-info"><div class="ss-name">' + p.name + '</div><div class="ss-role">' + p.role + unavailTag + '</div></div>' +
       '<div class="ss-stats">B <span>' + p.bat + '</span> · W <span>' + p.bwl + '</span></div>' +
-      '<div class="ss-cap-btn" data-capid="' + p.id + '">C</div>' +
+      '<div class="ss-cap-btn' + (p.captaincy ? '' : ' locked') + '" data-capid="' + p.id + '"' + (p.captaincy ? '' : ' title="Needs the Captaincy trait"') + '>C</div>' +
       '</div>';
   });
   $('ss-player-list').innerHTML = html;
@@ -9020,6 +9028,8 @@ function toggleSquadPlayer(id) {
 function setCaptain(id) {
   var sel = getCurrentSSSelection();
   if (sel.indexOf(id) < 0) { toast('Select player first', 'error'); return; }
+  var p = GS.squad.find(function(q){return q.id===id;});
+  if (!p || !p.captaincy) { toast('Needs the Captaincy trait — this player can\'t lead the side', 'error'); return; }
   SFX.reveal();
   GS.captainId = GS.captainId === id ? null : id;
   renderSquadSelect(sel);
@@ -9037,9 +9047,13 @@ function autoSelectXI() {
   var available = GS.squad.filter(function(p){return !p.banned && !p.injured && !p.debtHeld;});
   var xi = buildPlayingXI(available);
   var sel = xi.map(function(p){return p.id;});
-  if (!GS.captainId || sel.indexOf(GS.captainId) < 0) {
-    var best = xi.reduce(function(a,b){return (a.bat+a.bwl) > (b.bat+b.bwl) ? a : b;});
-    GS.captainId = best.id;
+  var curCap = xi.find(function(p){return p.id===GS.captainId;});
+  if (!curCap || !curCap.captaincy) {
+    var eligible = xi.filter(function(p){return p.captaincy;});
+    var pool = eligible.length ? eligible : null;
+    // No eligible (Captaincy-trait) player in this XI -- leave captainless rather than force
+    // a non-eligible pick; capBatMod/capBwlMod fall back to 1.0 (never blocks match start).
+    GS.captainId = pool ? pool.reduce(function(a,b){return (a.bat+a.bwl) > (b.bat+b.bwl) ? a : b;}).id : null;
   }
   renderSquadSelect(sel);
 }
@@ -9051,13 +9065,16 @@ function confirmSquadSelect() {
   var osCount = 0;
   sel.forEach(function(id) { var p = GS.squad.find(function(q){return q.id===id;}); if (p && p.overseas) osCount++; });
   if (osCount > 4) { toast('Max 4 overseas', 'error'); return; }
-  if (!GS.captainId || sel.indexOf(GS.captainId) < 0) {
+  var curCapP = GS.squad.find(function(p){return p.id===GS.captainId;});
+  if (!GS.captainId || sel.indexOf(GS.captainId) < 0 || !curCapP || !curCapP.captaincy) {
     var bestP = null, bestOvr = 0;
     sel.forEach(function(id) {
       var p = GS.squad.find(function(q){return q.id===id;});
-      if (p && (p.bat+p.bwl) > bestOvr) { bestP = p; bestOvr = p.bat+p.bwl; }
+      if (p && p.captaincy && (p.bat+p.bwl) > bestOvr) { bestP = p; bestOvr = p.bat+p.bwl; }
     });
-    if (bestP) GS.captainId = bestP.id;
+    // No eligible (Captaincy-trait) player selected -- leave captainless, don't force a
+    // non-eligible pick. Match calc's capBatMod/capBwlMod default to 1.0 with no captain.
+    GS.captainId = bestP ? bestP.id : null;
   }
   GS.selectedXI = sel;
   save();
@@ -10885,14 +10902,14 @@ function showMafiaOffer() {
     applyAlignShift(offer.align);
     var ev = addEvidence(offer.bonus.type);
     var lc = loyaltyCheck();
-    var noLoyaltyNeeded = ['injection','rivaldossier','evidencedestroy','matchfixlose'];
+    // 2026-09 fix: 'matchfixlose' used to sit in noLoyaltyNeeded alongside injection/
+    // rivaldossier/evidencedestroy -- but unlike those three (no squad complicity needed),
+    // throwing the match for pay requires the SAME squad buy-in as matchfix/umpire/playertap,
+    // which all DO roll loyaltyCheck(). Removed from the skip-list so it's gated consistently.
+    var noLoyaltyNeeded = ['injection','rivaldossier','evidencedestroy'];
     var skipLoyalty = noLoyaltyNeeded.indexOf(offer.bonus.type) >= 0;
     if (offer.bonus.type === 'injection') {
       GS.coins += 500;
-    } else if (offer.bonus.type === 'matchfixlose') {
-      GS.blackMoney += (offer.earn || 300);
-      GS.mafiaBonus = offer.bonus;
-      GS.mafiaFixLoseCooldown = 5;
     } else if (offer.bonus.type === 'evidencedestroy') {
       if (GS.evidence.length > 0) GS.evidence.splice(Math.floor(Math.random() * GS.evidence.length), 1);
     } else if (offer.bonus.type === 'rivaldossier') {
@@ -10901,6 +10918,10 @@ function showMafiaOffer() {
       toast(nextR.name + ': Align ' + nextR.alignment + ', Heat ' + nextR.heat + ', Debts ' + nextR.debts, 'info');
     } else if (skipLoyalty || lc.success) {
       GS.mafiaBonus = offer.bonus;
+      if (offer.bonus.type === 'matchfixlose') {
+        GS.blackMoney += (offer.earn || 300);
+        GS.mafiaFixLoseCooldown = 5;
+      }
     }
     if (offer.debt > 0) {
       GS.debts.push({ source: offer.name, principal: offer.debt, matchesLeft: offer.deadline, stage: 0, heldPlayer: null });

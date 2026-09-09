@@ -1,5 +1,76 @@
 # Progress — Cricket Underworld
 
+> ### 🎖️ DESIGN-CONSISTENCY FIXES — captain trait gating + Match Fix (Lose) loyalty gap (2026-09-09, needs testing)
+> Resumed after a ~5-week gap. Verified the memory's "NEXT" pointer (tutorial-overlay fix, LOOK pass,
+> D1/D7 cohorts) was stale — both the tutorial fix and the full LOOK/wider-scope pass already shipped
+> back in July/early August; the only genuinely open items were the storefront/billing decision (still
+> deferred, founder call) and the two "flagged, not fixed" design-consistency gaps from the 2026-08-03
+> game-logic audit below. Founder chose to resolve those two. Routed through a `game-designer`-persona
+> consult (the project's own `.claude/agents/game-designer.md` isn't registered as an invokable agent
+> type in this session — ran it via `general-purpose` with the persona instructions embedded verbatim)
+> for a verdict, independently verified the agent's file/line claims against the actual code and GDD
+> before implementing, then implemented directly.
+>
+> **1. Captain bonus was a flat +8% for ANY squad member — GDD specifies a rare Captaincy trait +
+> variable Leadership stat.** GDD (`docs/core-systems-gdd.md` lines 644-645/725/836-837): only players
+> with a boolean `Captaincy` trait (~15% of cards) can captain, bonus = `leadership/20`% (max 5%). Code
+> had neither field on any of the 50 `ALL_PLAYERS` entries and let `setCaptain()` accept anyone for a
+> flat `1.08` multiplier. Fixed:
+> - Added `captaincy:true, leadership:<N>` to **7 of 50 players (14%)** via a re-derivable rule (loyalty
+>   ≥78 AND greed ≤22, `leadership` set equal to `loyalty`): id 6 Dinesh Kulkarni (uncommon, 85), id 15
+>   Suresh Venkatesh (legendary, 90), id 19 Manish Patel (common, 88), id 22 Rohan Gavaskar (rare, 80),
+>   id 28 Rinku Mehra (uncommon, 82), id 31 Dhruv Juneja (common, 78), id 44 Akash Parmar (rare, 80).
+>   Deliberately checked this spans common→legendary (2 commons included) specifically so a F2P player's
+>   starter pulls aren't locked out of captaincy — Hard Constraint #5 ("free players can reach every
+>   tier") would be violated by a rarity-gated trait.
+> - Match calc (`capBatMod`/`capBwlMod`, ~L8362): flat `1.08` → `1 + leadership/2000` (3.9%–4.5% for the
+>   7 above, matches GDD's `leadership/20`% formula and 0-5% cap). Guarded with `&& batter.captaincy`/
+>   `&& bowler.captaincy` so an old save (`cu_save_v3`) with a pre-patch `GS.captainId` pointing at a
+>   non-eligible player falls back to `1.0` instead of applying a bonus or crashing.
+> - Gating added at every path that can set `GS.captainId`: `setCaptain()` now rejects non-eligible picks
+>   with a toast; the squad-select `capValid` check (~L8944) now also requires `.captaincy`; `autoSelectXI()`
+>   and `confirmSquadSelect()`'s auto-pick fallback now filter to `captaincy===true` and leave the squad
+>   **captainless** (not force a non-eligible pick) when the selected XI has zero eligible players — the
+>   match-calc guard means a captainless XI just plays at the pre-existing 1.0 baseline, never blocks
+>   starting a match.
+> - UI: `.ss-cap-btn` on non-eligible squad-select rows gets a new `.locked` class (opacity 0.35,
+>   `cursor:not-allowed`, `title="Needs the Captaincy trait"`) rather than being hidden — kept
+>   discoverable per the "advise, don't obscure" pattern already used elsewhere (debtHeld/injured/banned
+>   tags), backed by the real JS-level rejection in `setCaptain()` (defense-in-depth, same pattern as the
+>   `BILLING_LIVE` guard).
+>
+> **2. "Match Fix (Lose)" skipped the loyalty check every other corruption favor uses.** Confirmed this
+> was the code diverging from the GDD, not an ambiguous call: the GDD's own Fixed-Moments table
+> (`core-systems-gdd.md` lines 735-739, 748) already lists **Match Fix (Lose) with its own 5% failure
+> chance** and a general "Player refuses (loyalty check)" row covering fix types broadly — the GDD never
+> intended this favor to be risk-free. `noLoyaltyNeeded` (~L10905, the array of favor types that skip
+> `loyaltyCheck()`) had `matchfixlose` grouped in with `injection`/`rivaldossier`/`evidencedestroy` even
+> though, unlike those three (no squad complicity needed), throwing the match for pay asks the same
+> squad buy-in `matchfix`/`umpire`/`playertap` do — and those three DO roll the check. Fixed: removed
+> `'matchfixlose'` from the skip-list; moved its payout/cooldown effect (`GS.blackMoney += earn`,
+> `GS.mafiaFixLoseCooldown = 5`) inside the existing `else if (skipLoyalty || lc.success)` branch so it
+> only fires on a successful loyalty roll, same as `matchfix`/`umpire`/`playertap`. Refusal now falls
+> into the existing generic "Players refused the fix!" toast + 10%-report/+25-heat path — no new UI/
+> copy needed, it was already type-agnostic. Existing guardrails (5-match cooldown, 65% evidence
+> chance — highest of any favor, 18 heat, -8 alignment) are unchanged and still apply regardless of
+> success/failure.
+>
+> **Verification:** independently re-derived the 7-player captaincy selection by hand from the raw
+> `loyalty`/`greed` values in `ALL_PLAYERS` (not taken on the consulting agent's word) — confirmed
+> exactly 7 matches, no more/fewer. Ran a Node syntax parse of both inline `<script>` blocks (0 errors)
+> after all edits. Per this repo's standing rule, **Playwright/browser verification was NOT run**
+> (testing is founder-gated) — needs founder test pass: captain-picker lock UI in both themes, a match
+> played with/without an eligible captain selected, Match Fix (Lose) accept→refuse and accept→success
+> paths, and an old-save (`cu_save_v3`) load with a pre-patch `GS.captainId` to confirm the fallback.
+>
+> **Still open, not touched this session (founder calls, deferred on purpose):** storefront/billing
+> decision (Play Store TWA+Billing vs PWA+Razorpay, `BILLING_LIVE=false` still gates all real-money
+> grants); real D1/D7 cohort read (analytics pipeline is built and wired, just has no real user traffic
+> yet — needs distribution, not more dev work). Also noticed but not touched: 4 untracked files in
+> `prototype/_scratch/` (`_premium-review.html`, `hub-premium-dark.png`, `hub-premium-light.png`,
+> `hub-premium.html`) sitting in the working tree since before this session — flagged to founder,
+> left alone since scope was the two design gaps only.
+
 > ### ⚖️ GAME-LOGIC / BALANCE AUDIT (2026-08-03, second pass) — 5 formula-level bugs fixed, browser-verified
 > Founder asked for a "logic-wise" audit of the entire game, distinct from the UI/flow audit
 > earlier the same day. Ran a combined Balance-Tester + Cricket-Consultant style audit against the
