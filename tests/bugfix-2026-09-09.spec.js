@@ -195,20 +195,25 @@ test('DRS FIX: active while batting, greyed + inert while bowling, guarded even 
   expect(beforeBatClick).toBe(false);
   expect(afterBatClick).toBe(true); // a real click while batting actually works
 
-  // Fresh match, force bowling side -- button must be greyed out and a real click must have no effect.
+  // Fresh match, force bowling side -- button must be greyed out; a real click must have no
+  // game-state effect but MUST still surface feedback (2026-09-09 follow-up fix: the .unavailable
+  // state no longer uses pointer-events:none, since that silently swallowed the tap with zero
+  // feedback -- the click now reaches useDRS()'s own guard, which shows a toast instead).
   await page.evaluate(() => { window.startMatch(); window.match.batting = 'opp'; window.syncDrsAvailability(); });
   const bowlingState = await page.evaluate(() => {
     const btn = document.getElementById('drs-btn');
     return { unavailable: btn.classList.contains('unavailable'), pointerEvents: getComputedStyle(btn).pointerEvents };
   });
   expect(bowlingState.unavailable).toBe(true);
-  expect(bowlingState.pointerEvents).toBe('none');
+  expect(bowlingState.pointerEvents).not.toBe('none'); // reachable, so the guard can give real feedback
   const beforeBowlClick = await page.evaluate(() => window.match.drsUsed);
   await page.locator('#drs-btn').evaluate((el) => el.click());
-  await page.waitForTimeout(200);
+  await page.waitForSelector('#toast.show', { timeout: 3000 });
+  const toastText = await page.locator('#toast').textContent();
+  expect(toastText).toContain('only available while batting');
   const afterBowlClick = await page.evaluate(() => window.match.drsUsed);
   expect(beforeBowlClick).toBe(false);
-  expect(afterBowlClick).toBe(false); // CSS-blocked click has no effect
+  expect(afterBowlClick).toBe(false); // click reached the handler but the guard blocked the effect
 
   // Defense-in-depth: call useDRS() directly, bypassing the DOM/CSS block entirely.
   const directCall = await page.evaluate(() => {

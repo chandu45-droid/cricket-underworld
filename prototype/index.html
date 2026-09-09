@@ -269,6 +269,26 @@ html,body{height:100%;overflow:hidden;background:var(--void);color:var(--white);
    and below mobile widths (max content width in the wild is 430px "must work"). === */
 @media (min-width:481px){
   #app{left:50%;right:auto;width:100%;max-width:480px;transform:translateX(-50%);box-shadow:0 0 60px rgba(0,0,0,0.5)}
+  /* 2026-09-09 fix (ui-designer audit): every base .screen inherits the framed-card treatment above
+     because #app itself gets the transform, which becomes the containing block for any FIXED
+     descendant of #app -- but these 8 overlays are position:fixed;inset:0 SIBLINGS of #app (direct
+     children of body, not #app), so their inset:0 resolves against the full viewport instead,
+     stretching edge-to-edge at tablet widths while every base screen stays framed. Targeting by ID
+     (not class) so specificity alone wins regardless of source order relative to each overlay's own
+     base rule -- avoids the exact placement trap the hub-meter-label fix hit earlier this session,
+     where a class-specificity override lost simply by sitting earlier in the file. */
+  #squad-select-overlay,#market-overlay,#pack-overlay,#mafia-overlay,#scorecard-overlay,
+  #player-detail-overlay,#match-result,#tut-overlay{
+    left:50%;right:auto;width:100%;max-width:480px;transform:translateX(-50%);
+  }
+  /* 2026-09-09 fix (ui-designer audit): the 0.5-alpha shadow above is genuinely applied in light
+     theme too, but computed-style confirmation isn't the same as visibility -- the margin (body bg)
+     and the app card's own edge are only ~8-16 RGB units apart in light theme (#F4EFE6 vs #EDE7DA),
+     so the floating-card effect reads as a flat, undifferentiated join. Dark theme doesn't need this
+     override since its margin/card tones are already separated enough on their own. Raising alpha
+     (not changing hue/blur) specifically for light theme so the shadow itself gets dark enough to
+     register against a light backdrop, matching what dark theme already gets "for free". */
+  html[data-theme="light"] #app{box-shadow:0 0 60px rgba(0,0,0,0.8)}
 }
 /* === PER-SCREEN COLOR GRADING (v2 port) — spotlight tint keyed to active screen === */
 #app:has(#auction-screen.active){background:radial-gradient(circle at 50% 15%, #241318 0%, var(--pitch) 60%)}
@@ -1158,7 +1178,7 @@ html[data-theme="light"] .auction-purse-zone .purse{
 /* DRS + Impact buttons */
 .tactic-btn.drs{background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.25);color:var(--purple);font-size:11px;padding:6px 10px;box-shadow:0 0 10px rgba(167,139,250,0.08)}
 .tactic-btn.drs.used{opacity:0.3;pointer-events:none;text-decoration:line-through;box-shadow:none}
-.tactic-btn.drs.unavailable{opacity:0.35;pointer-events:none;box-shadow:none}
+.tactic-btn.drs.unavailable{opacity:0.35;box-shadow:none;cursor:not-allowed}
 .tactic-btn.impact{background:rgba(34,211,238,0.12);border-color:rgba(34,211,238,0.25);color:var(--cyan);font-size:11px;padding:6px 10px;box-shadow:0 0 10px rgba(34,211,238,0.08)}
 .tactic-btn.impact.used{opacity:0.3;pointer-events:none;text-decoration:line-through;box-shadow:none}
 /* Injury indicator */
@@ -8552,7 +8572,14 @@ function syncDrsAvailability() {
 }
 
 function useDRS() {
-  if (match.drsUsed || match.batting !== 'you') return;
+  if (match.drsUsed) return;
+  // 2026-09-09 fix (ui-designer audit): the .unavailable state used pointer-events:none to block
+  // the tap, which meant a player who instinctively reached for DRS while bowling got literally
+  // no feedback -- no toast, no shake, nothing, unlike the captain-lock button elsewhere in this
+  // same codebase which explains itself in one tap. Removed pointer-events:none from the CSS (see
+  // .tactic-btn.drs.unavailable) and moved the reachability guard here instead, matching the
+  // captain-lock pattern exactly.
+  if (match.batting !== 'you') { toast('DRS is only available while batting', 'error'); return; }
   match.drsUsed = true;
   $('drs-btn').classList.add('used');
   $('drs-btn').textContent = 'DRS USED';
@@ -11076,7 +11103,7 @@ function renderMarket() {
         var ovr = Math.round((p.bat + p.bwl) / 2);
         var rc = RARITY_COLORS[p.rarity] || RARITY_COLORS.common;
         var roleShort = ROLE_SHORT[p.role] || 'AR';
-        html += '<div class="market-item" data-buy-id="' + p.id + '">' +
+        html += '<div class="market-item">' +
           '<div class="mi-ovr" style="background:' + rc + '">' + ovr + '</div>' +
           '<div class="mi-info"><div class="mi-name">' + p.name + (p.overseas ? ' <span style="color:var(--amber);font-size:9px">OS</span>' : '') + '</div>' +
           '<div class="mi-role">' + p.role + '</div>' +

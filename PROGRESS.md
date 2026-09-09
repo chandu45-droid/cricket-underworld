@@ -1,5 +1,51 @@
 # Progress — Cricket Underworld
 
+> ### 🧹 4 REMAINING NO-DECISION-NEEDED BACKLOG ITEMS CLOSED (2026-09-09, same session)
+> Continuing "pick and deploy what doesn't need approval, one by one" — closed the rest of the
+> backlog that didn't require a founder call, all clear-cut fixes with a concrete direction already
+> established (either by the audit's own suggested fix, or by an existing pattern elsewhere in the
+> codebase):
+>
+> 1. **DRS silent-tap feedback** (MEDIUM, ui-designer audit). `.tactic-btn.drs.unavailable` used
+>    `pointer-events:none`, which blocked the tap before any handler could run — zero feedback for a
+>    player who reflexively reaches for DRS while bowling. Removed `pointer-events:none` from the CSS,
+>    moved the reachability guard into `useDRS()` itself with a toast ("DRS is only available while
+>    batting"), matching the captain-lock button's exact pattern elsewhere in this codebase. Updated
+>    the `DRS FIX` regression test added earlier this session (its old assertion —
+>    `pointerEvents.toBe('none')` — was now testing the WRONG behavior; caught and fixed before
+>    trusting green).
+> 2. **Dead `data-buy-id` attribute** (LOW). Confirmed zero references anywhere (grep, both
+>    `prototype/index.html` and `tests/`) before removing — genuinely inert leftover markup, the real
+>    functioning attribute is the differently-spelled `data-buyid` on the nested Buy button.
+> 3. **Overlay tablet-frame inconsistency** (MEDIUM, ui-designer audit). 8 overlays
+>    (squad-select/market/pack/mafia/scorecard/player-detail/match-result/tutorial) are `position:
+>    fixed;inset:0` *siblings* of `#app`, not descendants — so `#app`'s own tablet-width transform
+>    (which becomes the containing block for any FIXED descendant) never applied to them, leaving them
+>    stretched edge-to-edge at 768px+ while every base screen stayed framed. Added a matching
+>    `left:50%;right:auto;max-width:480px;transform:translateX(-50%)` rule targeting all 8 by ID.
+>    Deliberately used ID selectors (not class) so specificity alone guarantees the override wins
+>    regardless of source-order placement — avoiding the exact trap the hub-meter-label fix hit earlier
+>    this session, where a class-specificity override silently lost by sitting before its base rule.
+>    Verified no overlay animates its OWN `transform` for open/close (checked all 8 `.show` states —
+>    only nested children like `.modal`/`.tut-card` animate transform), so this couldn't collide with
+>    any existing animation. Confirmed via computed-style check (all 8 render at exactly 480px,
+>    centered) and a real screenshot.
+> 4. **Light-theme tablet shadow imperceptible** (LOW, ui-designer audit). The 0.5-alpha box-shadow
+>    was genuinely applied in light theme (confirmed via computed style) but didn't read as a floating
+>    card because the margin and card-edge tones are only ~8-16 RGB units apart in light theme. Raised
+>    the light-theme-specific alpha to 0.8 (hue/blur unchanged) so the shadow itself gets dark enough
+>    to register — dark theme's existing 0.5 stays as-is since its tones are already separated enough.
+>    Confirmed via computed style + a real screenshot showing a clearly visible drop shadow now.
+>
+> **Verification:** all 4 syntax-checked, browser-verified (computed styles + real screenshots for the
+> 2 visual fixes, the updated regression test re-run for the DRS follow-up). Full suite: 193/194 —
+> only failure was the already-well-documented flaky probabilistic strategy test (7 total observations
+> across this session now, ~70% pass rate, consistent with genuine RNG variance in a small-effect-size
+> statistical comparison; zero plausible connection to CSS/attribute/toast changes). This closes every
+> item from the "doesn't need founder approval" backlog — remaining open items (storefront decision,
+> untracked `_scratch` files, the broader test-planning menu beyond what was built) all genuinely need
+> founder input.
+
 > ### 🧪 REGRESSION TESTS FOR TODAY'S 7 OTHER FIXES (2026-09-09, same session)
 > Founder asked to pick and deploy items from the pending backlog that don't need approval, one by
 > one — started with the highest-value item from the earlier test-planning menu: permanent regression
