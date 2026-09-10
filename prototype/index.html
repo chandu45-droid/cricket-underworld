@@ -712,7 +712,14 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .action-tile.match .tile-sub{color:rgba(255,255,255,0.85)}
 
 .quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
-.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:0 5px;min-height:26px;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
+.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:0 5px;min-height:30px;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
+/* 2026-09-10 design-review fix: 26px -> 30px, a conservative partial bump toward the ~44px mobile
+   tap-target guideline (player-experience finding). This element already sets overflow:hidden (kit
+   shine-sweep effect), which rules out the zero-height-cost ::before hit-slop trick used on
+   .page-dot/.page-arrow above -- so this DOES add 4px to a row that Hub's Play tab fought hard to
+   trim to genuine 0px overflow (see PROGRESS.md "no-vertical-scroll redesign"). Kept deliberately
+   small rather than jumping straight to 44px because of that. Needs a Playwright re-check before
+   trusting this didn't reopen overflow -- not run here, founder-gated on this project. */
 .quick-tile::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;transition:background 0.2s}
 .quick-tile:active{transform:scale(0.90);background:rgba(var(--hl-rgb),0.08);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 .quick-tile:active::after{background:var(--align-accent)}
@@ -1418,9 +1425,18 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .page-pager{display:flex;align-items:center;justify-content:center;gap:14px;padding:10px 0}
 .page-pager.hidden{display:none}
 .page-dots{display:flex;gap:6px}
-.page-dot{width:8px;height:8px;border-radius:50%;background:rgba(var(--hl-rgb),0.12);transition:all 0.25s;cursor:pointer;flex-shrink:0}
+.page-dot{width:8px;height:8px;border-radius:50%;background:rgba(var(--hl-rgb),0.12);transition:all 0.25s;cursor:pointer;flex-shrink:0;position:relative}
 .page-dot.active{background:var(--gold-bright);box-shadow:0 0 8px rgba(240,200,80,0.4);width:20px;border-radius:4px}
-.page-arrow{width:32px;height:32px;border-radius:50%;background:rgba(var(--hl-rgb),0.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--slip);transition:all 0.2s}
+/* 2026-09-10 design-review fix: visible dot stays tiny by design (it's a progress indicator, not
+   meant to look button-sized) but the tap target itself was under the ~44px mobile guideline --
+   invisible ::before hit-slop extends the actual hit area without touching visual size or layout
+   height (position:relative on .page-pager's children only, no flow impact). Neither .page-pager
+   nor .page-dot/.page-arrow set overflow:hidden, so this trick is safe here (unlike .quick-tile). */
+/* Horizontal inset kept small (dots sit only 6px apart via .page-dots gap) so adjacent dots'
+   invisible hit-areas meet at the gap midpoint instead of overlapping and stealing each other's taps. */
+.page-dot::before{content:'';position:absolute;top:-14px;bottom:-14px;left:-3px;right:-3px}
+.page-arrow{width:32px;height:32px;border-radius:50%;background:rgba(var(--hl-rgb),0.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--slip);transition:all 0.2s;position:relative}
+.page-arrow::before{content:'';position:absolute;top:-6px;bottom:-6px;left:-6px;right:-6px}
 .page-arrow:active{transform:scale(0.9)}
 .page-arrow.disabled{opacity:0.3;pointer-events:none}
 .page-arrow svg{width:16px;height:16px}
@@ -2596,7 +2612,10 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hlp-day .hd-tick{position:absolute;top:-5px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--green-bright);color:#04140b;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .hlp-foot{display:flex;align-items:center;gap:10px;margin-top:2px}
 .hlp-streak{flex:1;min-width:0;font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--green-bright);letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hlp-claim{flex:0 0 auto;text-align:center;padding:4px 12px;min-height:20px;font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;clip-path:var(--clip-6);cursor:pointer;transition:all 0.2s;background:var(--gold-grad);box-shadow:var(--bevel-top);color:var(--gold-ink);border:none}
+.hlp-claim{flex:0 0 auto;text-align:center;padding:4px 12px;min-height:24px;font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;clip-path:var(--clip-6);cursor:pointer;transition:all 0.2s;background:var(--gold-grad);box-shadow:var(--bevel-top);color:var(--gold-ink);border:none}
+/* 2026-09-10 design-review fix: 20px -> 24px, same conservative-bump reasoning as .quick-tile above
+   -- this is the retention-critical daily-login claim button, also on the razor-thin Play tab, also
+   needs a Playwright re-check before trusting it didn't reopen overflow. */
 .hlp-claim:active{transform:scale(0.97)}
 .hlp-claim.done{background:rgba(255,255,255,0.05);color:var(--slip);cursor:default;border:1px solid rgba(255,255,255,0.08)}
 /* ===== F3 — Hub monetization strip ===== */
