@@ -744,7 +744,7 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 #hub-persistent-band .section-title.sm{margin-bottom:6px}
 /* 2026-09-10: Play tab's own content pass (its own sections, not the shared band above) --
    both "Primary Loop"/"Daily Bonus" ribbons trimmed same as Club's "The Underworld" ribbon. */
-#hub-tab-play .cu-ribbon.cu-ribbon-sub{padding:2px 16px 2px 9px}
+#hub-tab-play .cu-ribbon.cu-ribbon-sub, #hub-tab-club .cu-ribbon.cu-ribbon-sub{padding:2px 16px 2px 9px}
 
 /* ================================================================
    AUCTION SCREEN — Premium Bid Arena
@@ -2449,9 +2449,9 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    right-edge mask fade (mirrors the ticker fix above) instead of a solid-color
    pseudo-element gradient, since this rail sits directly on the hub screen's own
    backdrop (no enclosing card color to fade toward) the same as the ticker. */
-.hub-achieve-rail{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 3px;padding:1px 1px;-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
+.hub-achieve-rail{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 1px;padding:1px 1px;-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
 .hub-achieve-rail::-webkit-scrollbar{display:none}
-.hub-ach-item{flex:0 0 auto;min-width:54px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:3px 7px;background:var(--glass-bg);border:1px solid var(--border);clip-path:var(--clip-10);transition:transform 0.15s,border-color 0.2s}
+.hub-ach-item{flex:0 0 auto;min-width:52px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:1px 6px;background:var(--glass-bg);border:1px solid var(--border);clip-path:var(--clip-10);transition:transform 0.15s,border-color 0.2s}
 .hub-ach-item:active{transform:scale(0.93)}
 .hub-ach-item svg{width:16px;height:16px;stroke:var(--slip);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:0.4}
 .hub-ach-item .hub-ach-name{font-family:var(--font-b);font-size:9.5px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--white-60);white-space:nowrap;text-align:center}
@@ -2466,20 +2466,20 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    now carries cu-card (background/border/shadow, added in markup) plus its own padding; the two
    inner .hub-desk-col children are plain flex columns with no card styling of their own -- removes
    one full duplicate border/padding/shadow layer versus the previous 2-card version. */
-.hub-desk-row{display:flex;align-items:stretch;gap:10px;margin:0 0 3px;padding:5px 10px 6px}
+.hub-desk-row{display:flex;align-items:stretch;gap:10px;margin:0 0 0;padding:2px 10px 3px}
 .hub-desk-col{flex:1 1 0;min-width:0}
 .hub-desk-col.hub-desk-squad{flex-grow:1.25}
 .hd-col-divider{width:1px;background:var(--border);flex-shrink:0}
 .hd-lbl{font-family:var(--font-d);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--slip)}
-.hd-val{font-family:var(--font-d);font-size:18px;font-weight:700;line-height:1;color:var(--white);margin-top:1px}
+.hd-val{font-family:var(--font-d);font-size:16px;font-weight:700;line-height:1;color:var(--white);margin-top:1px}
 .hd-val .hd-of{font-size:14px;color:var(--slip);font-weight:600}
 .hd-delta{font-size:9.5px;font-weight:700;margin-top:1px}
 .hd-delta.up{color:var(--green-bright)}
 .hd-delta.down{color:var(--blood)}
 .hd-sub{font-size:10px;color:var(--slip);margin-top:1px}
-.hd-stand{margin-top:3px;display:flex;flex-direction:column;gap:1px}
-.hd-stand-row{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;font-size:11px}
-.hd-stand-row .hd-pos{font-family:var(--font-d);font-weight:700;color:var(--slip);font-size:11px}
+.hd-stand{margin-top:2px;display:flex;flex-direction:column;gap:0}
+.hd-stand-row{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;font-size:10px}
+.hd-stand-row .hd-pos{font-family:var(--font-d);font-weight:700;color:var(--slip);font-size:10px}
 .hd-stand-row .hd-nm{font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hd-stand-row .hd-pts{font-weight:700;color:var(--white)}
 .hd-stand-row.me .hd-nm,.hd-stand-row.me .hd-pts{color:var(--gold-bright)}
@@ -2488,12 +2488,12 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hd-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-bright));transition:width 0.8s var(--spring)}
 
 /* Manager's Ledger — real underworld data surfaced (renderHubLedger()) */
-.hub-ledger{padding:5px 13px 6px;margin:0 0 3px}
-.hub-ledger-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.hub-ledger{padding:2px 13px 2px;margin:0 0 1px}
+.hub-ledger-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
 .hll-title{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--white)}
 .hll-heat{font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:0.5px;color:var(--slip)}
 .hub-ledger-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.hlg-stat{background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.06);padding:3px 8px;clip-path:var(--clip-6)}
+.hlg-stat{background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.06);padding:1px 8px;clip-path:var(--clip-6)}
 .hlg-lbl{font-size:8px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--slip)}
 .hlg-val{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--white);margin-top:1px;line-height:1}
 .hlg-val.good{color:var(--green-bright)}
@@ -2619,7 +2619,20 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    this comment's sibling rule. 3 stacked collapsed drawers is the single biggest remaining chunk
    of Club tab's overflow (138px of collapsed-toggle height alone before this trim), so it gets its
    own tighter pass rather than shrinking the shared base further (which would also touch Cards). */
-#hub-tab-club .hub-drawer{margin-bottom:3px}
+#hub-tab-club .hub-drawer{margin-bottom:2px}
+/* 2026-09-10: narrow-width (<=340px) top-up -- Club tab hit true 0px overflow at 375/390px, but
+   320px still had ~36px left, split between a legitimate content-driven cost (the mafia-banner's
+   longest flavor message only wraps to 2 lines at this width -- real, expected variance, not a bug,
+   see PROGRESS.md) and ordinary chrome that simply had more room to give at this one width. Reuses
+   the existing max-width:340px breakpoint pattern from #top-bar/.hub-meters above rather than
+   inventing a new one. */
+@media (max-width:340px){
+  #hub-tab-club .hub-desk-row{padding:1px 8px 2px}
+  #hub-tab-club .hub-ledger{padding:1px 12px 0}
+  #hub-tab-club .hub-achieve-rail{margin-bottom:0}
+  .mafia-banner{padding:7px 12px 6px 14px;margin-bottom:4px}
+  .mafia-banner .mb-text{font-size:14px}
+}
 #hub-tab-club .hub-drawer__toggle{padding:6px 14px;gap:9px}
 #hub-tab-club .hd-ico{width:20px;height:20px}
 #hub-tab-club .hd-ico svg{width:13px;height:13px}
@@ -2627,11 +2640,16 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    before #drawer-rewards for the reasoning. Whichever drawer has .open breaks to its own full-width
    line (flex-basis:100%, order pushed last) so its body still renders full-width same as before;
    the other two collapsed toggles stay in the compact row above it. */
-.hub-drawer-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.hub-drawer-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1px}
 .hub-drawer-row .hub-drawer{flex:1 1 0;min-width:0;margin-bottom:0}
 .hub-drawer-row .hub-drawer.open{flex:1 1 100%;order:9}
-.hub-drawer-row .hub-drawer__toggle{flex-direction:column;text-align:center;gap:4px;padding:8px 4px}
-.hub-drawer-row .hub-drawer.open .hub-drawer__toggle{flex-direction:row;text-align:left;gap:9px;padding:6px 14px}
+/* #hub-tab-club prefix needed here: without it, #hub-tab-club .hub-drawer__toggle{padding:6px 14px}
+   (an ID selector, (1,1,0)) beats this rule's (0,2,0) specificity on the padding property alone,
+   even though the OTHER declarations here (flex-direction/gap/text-align) still won since that ID
+   rule doesn't touch them -- found via direct computed-style measurement, not assumed. The intended
+   compact-tile padding was silently never applying. */
+#hub-tab-club .hub-drawer-row .hub-drawer__toggle{flex-direction:column;text-align:center;gap:3px;padding:5px 3px}
+#hub-tab-club .hub-drawer-row .hub-drawer.open .hub-drawer__toggle{flex-direction:row;text-align:left;gap:9px;padding:6px 14px}
 .hub-drawer-row .hd-text{width:100%}
 .hub-drawer-row .hd-title{font-size:9.5px;letter-spacing:0.6px;line-height:1.15;white-space:normal}
 .hub-drawer-row .hub-drawer.open .hd-title{font-size:13px;letter-spacing:1.5px}

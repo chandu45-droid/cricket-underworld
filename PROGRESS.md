@@ -300,6 +300,44 @@
 > animations killed + worst-case mafia message forced before trusting any number, including old ones
 > in this very file.
 >
+> **UPDATE 5 (2026-09-10, same session) — 🎉 Club tab reaches genuine 0px overflow at all 3 widths.**
+>
+> Continued the section-by-section micro-trim loop from Update 4 (desk-row/ledger/achieve-rail/
+> drawer-row padding+font shaves, one property at a time, re-measuring after each). Two things worth
+> recording beyond "kept trimming":
+>
+> - **Found and fixed a real specificity bug from the Update 3 drawer-row merge**: the intended
+>   compact-tile padding (`.hub-drawer-row .hub-drawer__toggle{padding:8px 4px}`, 2 classes) was
+>   silently never applying — `#hub-tab-club .hub-drawer__toggle{padding:6px 14px}` (1 ID + 1 class)
+>   beat it on the padding property specifically, even though the *other* declarations in the same
+>   rule (flex-direction, gap, text-align) still applied fine since the ID rule doesn't touch those
+>   properties. CSS cascade conflicts resolve per-property, not per-rule — easy to miss. Found by
+>   directly reading `getComputedStyle()` on a real toggle rather than assuming the rule I wrote was
+>   the one winning. Fixed by adding the `#hub-tab-club` prefix so the compact-row rule's specificity
+>   wins outright; corrected the actual applied value at the same time now that the true computed
+>   baseline was known. This alone dropped Club tab another ~6px.
+> - **320px's last ~36px was split into a real content cost and ordinary chrome slack**: the mafia-
+>   banner's longest flavor message provably cannot fit on 1 line at 320px regardless of reasonable
+>   font size (did the arithmetic: content width ≈264px, the 48-char message needs ~264-360px even
+>   down to 12px font) — accepted that as genuine, expected variance, not something to eliminate. Added
+>   a scoped `@media (max-width:340px)` top-up (reusing the file's existing narrow-breakpoint pattern
+>   from `#top-bar`/`.hub-meters`) to shrink desk-row/ledger padding and the mafia-banner further
+>   *only* at this width, absorbing the rest.
+>
+> **Result: `#hub-screen.scrollHeight === clientHeight` exactly at 320px, 375px, and 390px** — worst-
+> case mafia message forced, animations killed, confirmed reproducible across 2 repeated runs.
+> Screenshot-verified in both dark and light themes at 375px (`_scratch/measure/club-{dark,light}.png`)
+> — clean render, no clipping, no overlap, drawer-row tiles read well as compact icon buttons, both
+> themes visually distinct and correct (the first screenshot attempt used the wrong theme-toggle
+> method and rendered identically in both — fixed by calling the real `applyTheme()`/`GS.darkTheme`
+> path instead of hacking the `data-theme` attribute directly).
+>
+> **Club tab is genuinely done.** Full suite run in progress to confirm before committing; not yet
+> committed as of this entry.
+>
+> **Play tab is NOT done — still ~158-180px, entirely untouched since Update 4.** That's the next
+> and last piece of the whole 5-screen no-vertical-scroll redesign.
+>
 > **Corrected next steps (superseded twice now — this is the current version, from Update 3):**
 > 1. Play tab needs its own dedicated trim/structural pass against its real ~341-356px overflow —
 >    `action-tiles` (132px), `hub-next-rival-ribbon`+`hub-next-rival` (215px), `hub-login-panel`
