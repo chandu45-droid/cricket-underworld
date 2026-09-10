@@ -88,57 +88,29 @@
 > balance-tester leaned GO — nothing fundamentally broken, zero-scroll goal intact, but real fixable
 > regressions shipped alongside it).
 >
-> **Fixed already (`efec8bf`, zero layout/geometry risk — pure JS, doesn't touch the invariant this
-> whole redesign was protecting):**
-> - Club Management overlay could reopen showing a blank/stale view — `showHubDrawerOverlay()` never
->   reset `scrollTop`, and the overlay div is never removed from the DOM, so scrolling down then
->   backing out then reopening (after content re-renders shorter, e.g. mentorship/social-feed panels
->   changing) could land past the end of the now-shorter content. Found independently by 2 of 5
->   reviewers (balance-tester + player-experience) from different angles — same root cause, same fix.
->   Fix: `el.scrollTop = 0` before adding `.show`.
+> **All 8 fixable findings were implemented same day, later in the session (commits `efec8bf` through
+> `e973040`, 8 commits, WIP=1, each committed+pushed individually).** None of this has been
+> Playwright-verified — testing is founder-gated on this project, so every commit below was
+> implemented, committed, and reported as needs-testing per the project's own stated workflow, not
+> silently assumed safe. **Run the suite before trusting anything past the scroll-reset fix.**
 >
-> **Confirmed real, NOT yet fixed (ground-truthed directly in code, settling a dispute between two
-> reviewers' reads — ask before touching, geometry risk):**
-> - The 3 converted Hub Club-tab tiles (`#drawer-rewards`/`#drawer-club`/`#drawer-underworld`) never
->   get `.open` added anymore (their `onclick` calls `showHubDrawerOverlay(...)` directly, never
->   `classList.toggle('open')` — confirmed via grep, only Cards screen's `#drawer-packs` still uses the
->   old accordion pattern). Because `.hub-drawer-row .hd-sub{display:none}` /
->   `.hub-drawer-row .hd-chev{display:none}` (lines 2684/2686) only flip to `display:block` under
->   `.hub-drawer.open`, all 3 tiles permanently show **bare icon + title only** — no subtitle preview
->   text, no chevron/go-to arrow at all. Real, visible regression (game-designer's read was correct;
->   balance-tester's "just cosmetic, chevron points right" read was wrong — verified directly, the
->   chevron is fully hidden, not just static). **Why not auto-fixed:** the tiles' current
->   `flex-direction:column;text-align:center` compact layout (line 2679) was sized for a
->   3-tiles-in-a-row collapsed state that could still expand; making subtitle+chevron always-visible
->   means adding content back into a tile that was part of the zero-scroll trimming pass — needs
->   Playwright measurement to confirm it doesn't reopen overflow, which is founder-gated here.
+> | Commit | Fix | Risk |
+> |---|---|---|
+> | `efec8bf` | Club Management overlay reopening at a stale scroll position (`scrollTop` never reset) — found independently by 2 of 5 reviewers, same root cause | None — pure JS, zero layout impact |
+> | `77ec704` | Restored subtitle + go-to chevron on the 3 converted drawer tiles, permanently lost when `.open` stopped being added — ground-truthed directly in code (ripe subtitle+chevron both `display:none`, confirmed the more severe of two reviewers' conflicting reads) | Geometry — new content added to a trimmed tile |
+> | `f2ad16b` | Undersized tap targets: `.page-dot`/`.page-arrow` via invisible hit-slop (zero visual/height cost); `.quick-tile`/`.hlp-claim` via a conservative direct bump (26→30px, 20→24px, not the full 44px guideline) since the hit-slop trick isn't available there (`overflow:hidden` already in use) | Geometry — `.quick-tile`/`.hlp-claim` sit on the razor-thin Play tab |
+> | `0777045` | Removed the now-provably-dead `.hub-drawer.open` CSS (only ever matched the 3 converted tiles) | None — deleting unreachable rules |
+> | `3590342` | Restored aggregate role-count view on Squad screen, reusing the XI-picker's existing `#ss-roles`/`.ss-role-tag` pattern verbatim | Geometry — new element on Squad screen |
+> | `a53e966` | "Reward ready" badge on the collapsed Store & Rewards tile, driven by the existing `adAvailable('pack')` check | None — absolutely positioned, zero flow height |
+> | `3ca1fa6` | Role-group divider labels in the XI-picker list (partial mitigation for role clusters splitting across pages — did NOT restructure `SS_PER_PAGE`/page-grouping itself, that's load-bearing for the selection-survives-page-flip fix) | Geometry — small, but inside the per-page height budget |
+> | `e973040` | Season Pass tier surfaced on the same tile's subtitle instead of a 3rd `#hub-desk-row` column (that card was deliberately merged tight in the prior session) | None — reused existing element |
 >
-> **Flagged, not yet actioned (product/design decisions, not bugs — founder call):**
-> - Sponsor Break (rewarded ad, the game's only rewarded-ad entry point) and Season Pass tier/XP both
->   moved from a same-screen accordion peek to a full-screen navigate-and-back, with **no "reward
->   ready" badge or signal** on the collapsed tile — runs against the economy design principle that
->   rewarded ads should feel like a bonus, not a tax (economy-architect). Proposed fix: a small
->   dot/pulse badge on `drawer-rewards` driven by `adAvailable('pack')`.
-> - Facilities' Scout Report ("See Rival XI") is a pre-match-timing-sensitive action now buried one
->   full overlay + scroll-past-8-other-panels deep inside Club Management, with no hint from the Hub
->   that it's in there (game-designer). Consider promoting near match-prep on the Play tab instead.
-> - Squad screen lost its aggregate per-role count chips (Batters/All-Rounders/Bowlers) — the commit
->   message frames this as "no information lost" but that's only true per-row, not in aggregate
->   (cricket-consultant). A fan wants "how many bowlers do I have" in one glance.
-> - XI-picker's 5-per-page pagination can split a role group across a page boundary (e.g. 6 openers →
->   5 on page 1, 1 alone on page 2 next to a keeper) — weakens side-by-side comparison during team
->   selection, the exact use case pagination is meant to support (cricket-consultant).
-> - Two tap-targets are under the ~44px mobile guideline at every width (not just 320px): Play tab's
->   4 quick-nav shortcuts (26px) and the Daily Bonus claim button (20px, retention-critical);
->   XI-picker's pager arrows (32px) and dots (8-20px) (player-experience).
-> - `.hub-drawer-row .hub-drawer.open` CSS block (lines 2673, 2680, 2683, 2685, 2687) plus the 3
->   drawer tiles' now-decorative chevron SVGs are dead code post-conversion — not broken, just
->   confusing for whoever touches this CSS next (balance-tester, 🟢 polish).
->
-> All of the above (except the shipped scroll-reset fix) involve either a geometry/sizing change that
-> needs Playwright verification against the zero-scroll invariant (founder-gated), or a product
-> decision (badge, promote a panel, restore a summary line) that isn't clearly "just fix it." Left for
-> founder triage rather than auto-implemented.
+> **Deliberately NOT auto-implemented — genuine product/design decisions, not bugs:**
+> - Facilities' Scout Report ("See Rival XI") sits one full overlay + 8 other panels deep inside Club
+>   Management with no hint it's there (game-designer). Fixing this means deciding *where* it should
+>   live instead (e.g. promoted near match-prep on the Play tab) — a placement call, not a bug fix.
+> - Debt "Owed" count on the Ledger tile could show a one-line hint instead of a bare integer
+>   (economy-architect) — flagged by that same reviewer as "none required urgently," left alone.
 >
 > ---
 
