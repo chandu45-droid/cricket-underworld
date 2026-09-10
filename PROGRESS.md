@@ -245,6 +245,61 @@
 >   this is a reasonable checkpoint-commit point per this project's "commit early and often" case
 >   law — check git status/diff before assuming what's staged.
 >
+> **UPDATE 4 (2026-09-10, same session) — Play tab's own content trimmed hard. Real progress,
+> still not zero.**
+>
+> Founder said "continue trimming Play tab to zero overflow." Worked through its own sections in
+> descending size order, same empirical iterate-and-measure discipline as every other screen:
+>
+> - **Found and removed a literal duplicate label**, no CSS trimming needed: `#hub-next-rival-ribbon`
+>   (a "Next Match" section ribbon sitting above the battle card) duplicated the battle card's own
+>   internal `.battle-label` which already reads "NEXT MATCH". Removed the standalone ribbon entirely
+>   (markup only; its `show()`/`hide()` calls in `updateHub()` are null-safe no-ops now, left in place
+>   rather than ripped out). Zero content lost, ~30px+margin recovered for free.
+> - **`.hub-battle-card`** (the next-match preview): padding/margin trimmed, crest/VS-diamond shrunk
+>   moderately (30→22px / 36→32px), and its 3-stat footer (Relationship/H2H/Fixes) **restructured
+>   from 3 stacked 2-line label+value blocks into 1 line of "label value" pairs** — same 3 element
+>   ids untouched so `updateHub()`'s JS needed zero changes, just less markup height for the same data.
+> - **`.action-tile`** (Auction/Match CTAs): 2nd trim round on top of an earlier-session pass that had
+>   explicitly called these tiles "the last lever" against Club tab's much smaller gap — Play tab's
+>   real gap turned out to be a different order of magnitude, so they got trimmed further this round
+>   too (icon 46→30px, min-height 112→74px, title font 22→17px via the winning v3-kit override).
+>   Icon+title+subtitle all still present.
+> - **Hub identity header** (crest/power-ring/manager name stack, shared with Club tab too): an
+>   earlier-session comment had established that the *text stack* (name/league/tag/star-pips), not
+>   the crest/ring, was the header's real height driver — true at the time, but after trimming that
+>   stack further this round (name 23→20px, tighter margins throughout), the **balance flipped**: the
+>   80px crest and 76px power-ring became the tallest elements. Re-measured to confirm before acting,
+>   then shrunk both to 64px (still clearly the visual centerpiece, just no longer oversized relative
+>   to the now-shorter text next to it).
+> - `.hub-empire-line` (Net Worth + rank row, shared band element): value/rank font 19→16px, padding
+>   trimmed.
+> - `.hub-login-panel`, `.quick-tiles`, both Play-tab section ribbons: further padding/min-height
+>   trims on top of Update 2/3's band work.
+>
+> **Net effect** (worst-case mafia message forced, animations killed, all 3 widths): **Play tab
+> 397-401px → 158-180px** (a ~55-60% cut). Club tab, which shares the header/band with Play, also
+> benefited from the header/empire-line trims even though this round's focus was Play: **79-119px →
+> 50-97px**.
+>
+> **Verified no regression from a transient environment issue, not a real one**: a `--grep`-filtered
+> Hub-focused run (39 tests) failed across the board with `ERR_CONNECTION_REFUSED` on the first
+> attempt — Playwright's own auto-started dev server (port 8080, separate from this session's own
+> measurement server on 8090) failed to bind in time, most likely from system load with several node
+> processes running concurrently this session. Immediate retry: all 39 passed clean. Full suite run
+> initiated after that to confirm before considering this a checkpoint.
+>
+> **Still remaining:** Play tab is not at zero — ~158-180px left, roughly evenly spread across
+> `hub-next-rival` (140px), `action-tiles` (92px), `hub-login-panel` (81px), `hub-stadium-backdrop`
+> (~201-210px, shared with Club), and the mafia-banner's width-dependent 1-line/2-line variance
+> (80.4px vs 98.8px) which is real, expected content variance, not something to eliminate. Club tab
+> similarly not yet at zero (50-97px). Next session should keep working section-by-section on
+> whichever tab has the largest remaining single item, same method as this whole entry — check
+> PROGRESS.md's live numbers before assuming anything above is still current, this redesign has had
+> multiple false "done" claims corrected already and the discipline going forward is: re-measure with
+> animations killed + worst-case mafia message forced before trusting any number, including old ones
+> in this very file.
+>
 > **Corrected next steps (superseded twice now — this is the current version, from Update 3):**
 > 1. Play tab needs its own dedicated trim/structural pass against its real ~341-356px overflow —
 >    `action-tiles` (132px), `hub-next-rival-ribbon`+`hub-next-rival` (215px), `hub-login-panel`

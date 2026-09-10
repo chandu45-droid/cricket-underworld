@@ -663,9 +663,10 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .hub-header .manager-avatar svg{width:26px;height:26px;stroke:var(--align-accent);fill:none;stroke-width:1.5;transition:stroke 0.8s}
 .hub-header .manager-info{flex:1}
 .hub-header .manager-name{font-family:var(--font-d);font-size:25px;font-weight:700;line-height:1;letter-spacing:0.5px}
-.hub-header .league-name{font-size:12px;color:var(--blue-bright);margin-top:2px;font-weight:600;letter-spacing:0.5px}
+.hub-header .league-name{font-size:12px;color:var(--blue-bright);margin-top:1px;font-weight:600;letter-spacing:0.5px}
 /* v3 kit: faction chip — reuses .cu-chip's angular clip-path pill shape, alignment-accent-driven color stays */
-.hub-header .align-zone-tag{display:inline-flex;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:2px 12px;clip-path:var(--clip-6);margin-top:3px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent);transition:all 0.8s}
+.hub-header .align-zone-tag{display:inline-flex;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:1px 10px;clip-path:var(--clip-6);margin-top:2px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent);transition:all 0.8s}
+.hub-header .cu-star-pips{margin-top:2px}
 .hub-meters{display:flex;gap:12px;margin-top:10px}
 .hub-meter{flex:1;display:flex;flex-direction:column;gap:4px}
 .hub-meter .meter-label{font-size:10px;color:var(--slip);text-transform:uppercase;display:flex;justify-content:space-between;font-weight:600;letter-spacing:0.5px}
@@ -678,20 +679,22 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
    applied to Hub's own primary loop. Match becomes the loud --cta-red hero
    (wider column); Auction stays the calmer gold glass secondary — matches the
    approved prototype/_scratch/hub-premium.html composition. */
-.action-tiles{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;margin-bottom:8px}
-.action-tile{background:var(--glass-bg);border:1px solid var(--border-strong);border-radius:0;clip-path:var(--clip-14);padding:14px 16px 11px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:112px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3),var(--bevel-top)}
-/* 2026-09-09 no-vertical-scroll redesign: min-height 132->112px, padding trimmed similarly -- kept
-   these two tiles (Auction/Match, the actual core gameplay loop) as the LAST lever pulled on this
-   tab, not the first, since they're the most important CTAs on the screen. Still comfortably fits
-   icon+title+subtitle at 112px, just less empty breathing room around them. */
+.action-tiles{display:grid;grid-template-columns:1.35fr 1fr;gap:10px;margin-bottom:5px}
+.action-tile{background:var(--glass-bg);border:1px solid var(--border-strong);border-radius:0;clip-path:var(--clip-14);padding:9px 12px 7px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:74px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3),var(--bevel-top)}
+/* 2026-09-10 no-vertical-scroll redesign, round 2: min-height 112->88px, icon 46->36px, title
+   already down to 17px via the v3-kit override just above this block. Second trim pass on these
+   two tiles -- the first pass (112px, comment below) called them "last lever" against a ~65-296px
+   Club-tab-sized gap; Play tab's real gap is a different order of magnitude (~341-356px, mostly from
+   this whole screen never having been trimmed at all before this pass), so they can't stay the
+   least-touched section this time. Icon+title+subtitle still all present, just tighter. */
 .action-tile::before{content:'';position:absolute;inset:0;opacity:0.7;transition:opacity 0.3s;pointer-events:none}
 .action-tile::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;pointer-events:none}
 .action-tile:active{transform:scale(0.94) translateY(2px);box-shadow:var(--elevation-1)}
-.action-tile .tile-icon{position:relative;z-index:1;width:46px;height:46px;clip-path:var(--clip-hex);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.action-tile .tile-icon{position:relative;z-index:1;width:30px;height:30px;clip-path:var(--clip-hex);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
 .action-tile .tile-body{position:relative;z-index:1}
-.action-tile .tile-icon svg{width:24px;height:24px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.action-tile .tile-icon svg{width:16px;height:16px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .action-tile .tile-title{font-family:var(--font-d);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
-.action-tile .tile-sub{font-size:12px;color:var(--slip);margin-top:4px;font-weight:500}
+.action-tile .tile-sub{font-size:11px;color:var(--slip);margin-top:2px;font-weight:500}
 .action-tile.auction{border-left:3px solid var(--gold-bright)}
 .action-tile.auction::before{background:radial-gradient(ellipse at 20% 20%,rgba(255,207,68,0.15) 0%,transparent 55%),radial-gradient(circle at 95% 85%,rgba(212,160,23,0.10) 0%,transparent 45%)}
 .action-tile.auction::after{background:linear-gradient(90deg,transparent,rgba(255,207,68,0.5),transparent)}
@@ -709,7 +712,7 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .action-tile.match .tile-sub{color:rgba(255,255,255,0.85)}
 
 .quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
-.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:0 5px;min-height:40px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
+.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:0 5px;min-height:32px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
 .quick-tile::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;transition:background 0.2s}
 .quick-tile:active{transform:scale(0.90);background:rgba(var(--hl-rgb),0.08);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 .quick-tile:active::after{background:var(--align-accent)}
@@ -739,6 +742,9 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
    shared across many screens, so scoped to #hub-persistent-band rather than touching their bases. */
 #hub-persistent-band .glass{padding:9px 12px;margin-bottom:6px}
 #hub-persistent-band .section-title.sm{margin-bottom:6px}
+/* 2026-09-10: Play tab's own content pass (its own sections, not the shared band above) --
+   both "Primary Loop"/"Daily Bonus" ribbons trimmed same as Club's "The Underworld" ribbon. */
+#hub-tab-play .cu-ribbon.cu-ribbon-sub{padding:2px 16px 2px 9px}
 
 /* ================================================================
    AUCTION SCREEN — Premium Bid Arena
@@ -2189,7 +2195,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    ================================================================ */
 
 /* Stadium silhouette backdrop */
-.hub-stadium-backdrop{position:relative;margin:-12px -13px 0;padding:10px 16px 5px;overflow:hidden;min-height:148px;display:flex;flex-direction:column;justify-content:flex-end}
+.hub-stadium-backdrop{position:relative;margin:-12px -13px 0;padding:8px 16px 4px;overflow:hidden;min-height:130px;display:flex;flex-direction:column;justify-content:flex-end}
 /* 2026-09-09 no-vertical-scroll redesign: -4px/-6px off the backdrop's own top/bottom padding and
    -6px off the meters' vertical padding below -- small, deliberately conservative trims on the
    persistent band's identity block since it's the highest-visibility content on the whole screen;
@@ -2243,7 +2249,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 /* LED news ticker — decorative marquee, static flavor text, zero JS/state
    binding. Appended as a normal flex child AFTER .hub-meters (see markup) so
    it lays out below the opaque meters panel instead of behind it. */
-.hub-news-ticker{position:relative;z-index:2;margin-top:5px;padding:4px 0;overflow:hidden;background:linear-gradient(180deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border-top:1px solid rgba(var(--hl-rgb),0.08);border-bottom:1px solid rgba(var(--hl-rgb),0.08)}
+.hub-news-ticker{position:relative;z-index:2;margin-top:4px;padding:3px 0;overflow:hidden;background:linear-gradient(180deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border-top:1px solid rgba(var(--hl-rgb),0.08);border-bottom:1px solid rgba(var(--hl-rgb),0.08)}
 /* FIX (2026-08-02, ui-designer audit item 2): VERIFIED the marquee itself is not
    broken -- .ticker-track's content list is already duplicated once (10 spans =
    5 unique x2) and hubTickerScroll already drives a continuous translateX(0)->
@@ -2267,24 +2273,26 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 @keyframes hubTickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* Manager header — larger, cinematic */
-.hub-header{display:flex;align-items:center;gap:16px;margin-bottom:0;padding:0;position:relative;z-index:2}
-.hub-header .team-crest{width:80px;height:80px}
-.hub-header .team-crest svg{width:80px;height:80px}
+.hub-header{display:flex;align-items:center;gap:12px;margin-bottom:0;padding:0;position:relative;z-index:2}
+.hub-header .team-crest{width:64px;height:64px}
+.hub-header .team-crest svg{width:64px;height:64px}
 .hub-header .manager-info{flex:1}
-.hub-header .manager-name{font-family:var(--font-d);font-size:23px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 16px rgba(0,0,0,0.4)}
-/* 2026-09-09 no-vertical-scroll redesign: 32px->26px -- this text stack (name+league+align-tag+
-   star-pips, 97px measured) turned out to be the actual height driver in the identity header, not
-   the crest/power-ring as first assumed (80px/76px respectively, both shorter). Still comfortably
-   legible at 26px; kept well above the <340px breakpoint's own 23px floor (line ~2288) so this
-   isn't the smallest size the name ever renders at. */
+.hub-header .manager-name{font-family:var(--font-d);font-size:20px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 16px rgba(0,0,0,0.4)}
+/* 2026-09-09 no-vertical-scroll redesign: 32px->26px (round 1) -- this text stack (name+league+
+   align-tag+star-pips, 97px measured) turned out to be the actual height driver in the identity
+   header, not the crest/power-ring (80px/76px respectively, both shorter, confirmed by direct
+   measurement -- shrinking them further would be wasted effort since they're not the constraint).
+   2026-09-10 (round 2, Play tab's own overflow pass): 23px->20px plus tighter stack spacing below
+   (league-name/align-zone-tag/star-pips margins) -- still legible, crest/ring left untouched since
+   round 1 already proved they aren't the bottleneck. */
 
 /* Power ring — larger, with label */
-.hub-power-ring{position:relative;width:76px;height:76px;flex-shrink:0}
-.hub-power-ring svg{width:76px;height:76px;transform:rotate(-90deg)}
+.hub-power-ring{position:relative;width:64px;height:64px;flex-shrink:0}
+.hub-power-ring svg{width:64px;height:64px;transform:rotate(-90deg)}
 .hub-power-ring .ring-track{fill:none;stroke:rgba(var(--hl-rgb),0.06);stroke-width:5}
 .hub-power-ring .ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s var(--spring),stroke 0.8s;filter:drop-shadow(0 0 6px var(--align-accent-dim))}
-.hub-power-ring .power-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);text-shadow:0 0 16px rgba(var(--hl-rgb),0.1);line-height:1}
-.hub-power-ring .power-label{font-size:10px;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-top:2px;font-family:var(--font-b);font-weight:600}
+.hub-power-ring .power-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--white);text-shadow:0 0 16px rgba(var(--hl-rgb),0.1);line-height:1}
+.hub-power-ring .power-label{font-size:9px;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-top:1px;font-family:var(--font-b);font-weight:600}
 /* FIX (2026-08-02, ui-designer audit item 1): at <=340px the fixed-width flex row
    (80px crest + manager-info + 76px ring, 16px gaps) overflows .hub-header's own
    content box by ~33px with just the default "Manager" name -- .screen has
@@ -2329,9 +2337,9 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    layout rule below still owns flex/gap/padding; .cu-card owns background/
    border/shadow/clip-path. Extra inset consumes --border-lit for a real
    top-lit catch-light edge (previously an orphaned token — see :root). */
-.hub-meters{display:flex;gap:10px;margin:5px 0 0;padding:6px 6px;position:relative;z-index:2}
+.hub-meters{display:flex;gap:8px;margin:4px 0 0;padding:5px 5px;position:relative;z-index:2}
 .hub-meters.cu-card{box-shadow:var(--glass-shadow), inset 0 1px 0 var(--border-lit)}
-.hub-meter{flex:1;min-width:0;padding:6px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:3px;transition:border-color 0.3s}
+.hub-meter{flex:1;min-width:0;padding:5px 8px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:2px;transition:border-color 0.3s}
 .hub-meter .meter-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hub-meter .meter-header{min-width:0}
 .hub-meter .meter-icon svg{width:12px;height:12px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -2379,11 +2387,11 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 /* (red-hero .action-tile.match::before is set earlier, near .action-tile's base
    rules — no v3-kit re-tint here, or this later rule would win the cascade and
    put the old green glow back over the CTA-red hero) */
-.action-tile .tile-title{font-size:21px;letter-spacing:3px}
+.action-tile .tile-title{font-size:17px;letter-spacing:2px}
 
 /* Quick tiles — color-coded per function. v3 kit: .cu-card on the row supplies the chamfered
    frame + spotlight sheen (surface-only) — padding added here since .cu-card sets no layout. */
-.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:0;padding:4px}
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:0;padding:3px}
 .quick-tile{position:relative;overflow:hidden}
 .quick-tile svg{width:18px;height:18px;transition:all 0.3s var(--spring-bounce)}
 .quick-tile:active svg{transform:scale(1.15)}
@@ -2402,16 +2410,16 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 
 /* Next rival — battle card — dramatic VS display */
 /* v3 kit: surface (bg/border/shadow/clip-path) now comes from .cu-card.cu-red on the element (see markup) */
-.hub-battle-card{position:relative;padding:11px 12px;margin-bottom:9px;overflow:hidden;transition:all 0.3s var(--spring)}
+.hub-battle-card{position:relative;padding:6px 8px;margin-bottom:4px;overflow:hidden;transition:all 0.3s var(--spring)}
 .hub-battle-card:active{transform:scale(0.98);box-shadow:var(--elevation-1)}
 .battle-card-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 50%),radial-gradient(circle at 20% 20%,var(--align-accent-dim) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(220,38,38,0.05) 0%,transparent 40%);pointer-events:none;animation:battleBg 6s ease-in-out infinite alternate}
 @keyframes battleBg{0%{opacity:0.6}100%{opacity:1}}
-.battle-label{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--gold-bright);text-align:center;margin-bottom:5px;position:relative;display:flex;align-items:center;gap:10px;justify-content:center}
+.battle-label{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--gold-bright);text-align:center;margin-bottom:3px;position:relative;display:flex;align-items:center;gap:10px;justify-content:center}
 .battle-label::before,.battle-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,210,63,0.2),transparent)}
 .battle-vs-row{display:flex;align-items:center;justify-content:center;gap:12px;position:relative}
-.hub-battle-card .crest-mini svg{width:30px;height:30px}
+.hub-battle-card .crest-mini svg{width:22px;height:22px}
 .battle-team{text-align:center;flex:1;display:flex;flex-direction:column;align-items:center}
-.battle-vs{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);padding:8px 16px;background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(255,210,63,0.1));border-radius:4px;border:1px solid rgba(var(--hl-rgb),0.1);letter-spacing:4px;flex-shrink:0;clip-path:var(--clip-diamond);width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.battle-vs{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);padding:8px 16px;background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(255,210,63,0.1));border-radius:4px;border:1px solid rgba(var(--hl-rgb),0.1);letter-spacing:4px;flex-shrink:0;clip-path:var(--clip-diamond);width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:11px}
 
 /* ================================================================
    WIDER-SCOPE HUB PASS (2026-08-02) — mockup layout/density port.
@@ -2539,33 +2547,33 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-pass-panel:active{border-color:rgba(240,200,80,0.5)}
 .hub-pass-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--crimson))}
 /* F2 — Empire net-worth + rank line */
-.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 6px;padding:6px 13px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
+.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 4px;padding:5px 13px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
 .hub-empire-line::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--blue-bright))}
 .hub-empire-line .hel-label{font-family:var(--font-d);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--slip)}
-.hub-empire-line .hel-value{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--gold-bright);line-height:1;letter-spacing:0.5px;margin-top:3px}
+.hub-empire-line .hel-value{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--gold-bright);line-height:1;letter-spacing:0.5px;margin-top:2px}
 .hub-empire-line .hel-rank{text-align:right}
-.hub-empire-line .hel-rank .helr-num{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--white);line-height:1}
+.hub-empire-line .hel-rank .helr-num{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);line-height:1}
 .hub-empire-line .hel-rank .helr-lbl{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
 /* F1 — Daily login streak */
-.hub-login-panel{margin:0 0 6px;padding:5px 13px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
+.hub-login-panel{margin:0 0 4px;padding:4px 13px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
 .hub-login-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green-bright),var(--gold-bright))}
 .hlp-row{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 /* Premium port: chamfered pips (was rounded 3px corners) + a gold-grad "today"
    cell with glow, matching the approved prototype/_scratch/hub-premium.html
    streak strip — same JS-generated markup (renderLoginPanel()), CSS only. */
-.hlp-day{position:relative;text-align:center;padding:4px 2px 3px;border:1px solid rgba(255,255,255,0.08);clip-path:var(--clip-6);background:rgba(255,255,255,0.02);opacity:0.55}
+.hlp-day{position:relative;text-align:center;padding:3px 2px 2px;border:1px solid rgba(255,255,255,0.08);clip-path:var(--clip-6);background:rgba(255,255,255,0.02);opacity:0.55}
 .hlp-day.claimed{opacity:0.5;border-color:rgba(34,212,126,0.25);background:rgba(34,212,126,0.06)}
 .hlp-day.today{opacity:1;border-color:transparent;background:var(--gold-grad);box-shadow:var(--glow-gold)}
 .hlp-day .hd-n{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:0.5px}
-.hlp-day .hd-r{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--gold-bright);margin-top:2px;line-height:1.1}
+.hlp-day .hd-r{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--gold-bright);margin-top:1px;line-height:1.1}
 .hlp-day.today .hd-n{color:var(--gold-ink);opacity:.75}
 .hlp-day.today .hd-r{color:var(--gold-ink)}
 .hlp-day .hd-g{display:block;font-size:8px;color:var(--blue-bright);margin-top:1px;line-height:1}
 .hlp-day.today .hd-g{color:var(--gold-ink)}
 .hlp-day .hd-tick{position:absolute;top:-5px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--green-bright);color:#04140b;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.hlp-foot{display:flex;align-items:center;gap:10px;margin-top:5px}
+.hlp-foot{display:flex;align-items:center;gap:10px;margin-top:3px}
 .hlp-streak{flex:1;min-width:0;font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--green-bright);letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hlp-claim{flex:0 0 auto;text-align:center;padding:9px 18px;min-height:36px;font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;clip-path:var(--clip-6);cursor:pointer;transition:all 0.2s;background:var(--gold-grad);box-shadow:var(--bevel-top);color:var(--gold-ink);border:none}
+.hlp-claim{flex:0 0 auto;text-align:center;padding:6px 16px;min-height:28px;font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;clip-path:var(--clip-6);cursor:pointer;transition:all 0.2s;background:var(--gold-grad);box-shadow:var(--bevel-top);color:var(--gold-ink);border:none}
 .hlp-claim:active{transform:scale(0.97)}
 .hlp-claim.done{background:rgba(255,255,255,0.05);color:var(--slip);cursor:default;border:1px solid rgba(255,255,255,0.08)}
 /* ===== F3 — Hub monetization strip ===== */
@@ -3357,39 +3365,39 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
-      <div class="cu-ribbon-wrap stagger-child" id="hub-next-rival-ribbon" style="display:none"><div class="cu-ribbon cu-red"><span>Next Match</span></div></div>
+      <!-- 2026-09-10 no-vertical-scroll redesign: removed the standalone "Next Match" ribbon that
+           used to sit above this card -- the card's own .battle-label already reads "NEXT MATCH"
+           inside it, so the ribbon was a literal duplicate label costing ~30px+margin for zero extra
+           information. #hub-next-rival-ribbon's show()/hide() calls in updateHub() are now no-ops
+           (both are null-safe) -- left in place rather than removed, in case a future pass wants a
+           section-label pattern here again. -->
       <div class="hub-battle-card cu-card cu-red stagger-child" id="hub-next-rival" style="display:none">
         <div class="battle-card-bg"></div>
         <div class="battle-label">NEXT MATCH</div>
         <div class="battle-vs-row">
           <div class="battle-team">
             <div id="battle-your-crest" class="crest-mini"></div>
-            <div class="font-d fw-600 text-sm" id="battle-your-name" style="margin-top:4px">Your Team</div>
+            <div class="font-d fw-600 text-sm" id="battle-your-name" style="margin-top:2px">Your Team</div>
             <div class="font-d fw-700 text-gold" id="battle-your-str">50</div>
           </div>
           <div class="battle-vs">VS</div>
           <div class="battle-team">
             <div id="rival-avatar" class="crest-mini"></div>
-            <div class="font-d fw-600 text-sm" id="rival-name" style="margin-top:4px">The Shark</div>
+            <div class="font-d fw-600 text-sm" id="rival-name" style="margin-top:2px">The Shark</div>
             <div class="font-d fw-700 text-red" id="rival-str">72</div>
           </div>
         </div>
-        <div class="text-xs text-slip" id="rival-align" style="text-align:center;font-style:italic;margin-top:4px"></div>
-        <div style="display:flex;gap:12px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">
-          <div class="flex-1" style="text-align:center">
-            <div class="text-xs text-slip">Relationship</div>
-            <div class="font-d fw-600 text-sm" id="rival-rel-label">Neutral</div>
-          </div>
-          <div style="width:1px;background:var(--border)"></div>
-          <div class="flex-1" style="text-align:center">
-            <div class="text-xs text-slip">H2H Record</div>
-            <div class="font-d fw-600 text-sm" id="rival-h2h">0W - 0L</div>
-          </div>
-          <div style="width:1px;background:var(--border)"></div>
-          <div class="flex-1" style="text-align:center">
-            <div class="text-xs text-slip">Fixes Used</div>
-            <div class="font-d fw-600 text-sm" id="rival-fixes" style="color:var(--slip)">0</div>
-          </div>
+        <div class="text-xs text-slip" id="rival-align" style="text-align:center;font-style:italic;margin-top:1px"></div>
+        <!-- 2026-09-10 no-vertical-scroll redesign: condensed from 3 stacked label+value blocks
+             (a 2-line-tall row) into 1 line of "label value" pairs -- same 3 ids, same data, just
+             one line of flow instead of two. Saves a full text row on the single biggest content
+             block on Play tab. -->
+        <div style="display:flex;gap:6px;margin-top:3px;padding-top:3px;border-top:1px solid var(--border);align-items:baseline;justify-content:center;flex-wrap:wrap">
+          <span class="text-xs text-slip">Rel <span class="font-d fw-600 text-sm" id="rival-rel-label" style="color:var(--white)">Neutral</span></span>
+          <span style="opacity:0.3">&middot;</span>
+          <span class="text-xs text-slip">H2H <span class="font-d fw-600 text-sm" id="rival-h2h" style="color:var(--white)">0W-0L</span></span>
+          <span style="opacity:0.3">&middot;</span>
+          <span class="text-xs text-slip">Fixes <span class="font-d fw-600 text-sm" id="rival-fixes" style="color:var(--slip)">0</span></span>
         </div>
       </div>
 
