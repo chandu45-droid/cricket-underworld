@@ -1,5 +1,61 @@
 # Progress — Cricket Underworld
 
+> ### 📐 NO-VERTICAL-SCROLL REDESIGN — FINAL PIECE: drawer destination-overlay conversion (2026-09-10)
+> The one loose end left after the "ALL 5 SCREENS COMPLETE" milestone (see that entry further down):
+> Hub's 3 Club-tab drawers (Store & Rewards, Club Management, The Underworld) still pushed Club tab's
+> own `scrollHeight` up whenever one was inline-expanded — measured directly before touching anything:
+> **drawer-rewards 168px, drawer-club 1302px, drawer-underworld 594px** of real overflow when open.
+> Club Management alone (9 sub-panels: sponsor/hooks/facilities/staff/scout/mentorship/academy/
+> social-feed/season-progress) was the actual size of the "1600-2221px" figure earlier entries had
+> been citing as one lump number for all 3 combined.
+>
+> **Fix: converted all 3 from inline-expand to destination overlays** — tapping a drawer tile now
+> navigates to its own full-screen overlay (`#rewards-overlay`/`#club-mgmt-overlay`/
+> `#underworld-overlay`) instead of pushing content into the Club tab's own document flow. This
+> reuses the exact pattern `.market-overlay`/`.custom-overlay` already established elsewhere in this
+> game (fixed, blurred backdrop, back button, `overflow-y:auto` — genuinely scrollable internally).
+> That's a deliberate, precedented choice, not a compromise: the zero-scroll bar this whole redesign
+> has been holding to applies to the 5 screens reachable from the bottom nav (League/Cards/Squad/
+> XI-picker/Hub), not to every full-screen destination layered on top of them — Market and Customise
+> already scroll internally and were never part of this redesign's scope. Club Management's 9
+> sub-panels are exactly the kind of content that's fine to scroll through on its own dedicated
+> screen, the same way Market's player list already does.
+>
+> All moved content kept its original id/class verbatim (relocated, not rebuilt), so every render
+> function that targets it by id (`renderPowerWeb`, `updateStaffPanel`, `updateScoutPanel`, etc.)
+> needed zero changes — same discipline this whole Hub restructuring has followed since the original
+> 2026-08-02 pass. Chevron changed from a downward "expand" arrow to a rightward "go to" arrow since
+> tapping now navigates rather than expands; `aria-expanded` removed from the toggles since there's no
+> expand/collapse state anymore.
+>
+> **A real, self-inflicted bug found and fixed during verification**: the drawer-row markup
+> replacement dropped one closing `</div>` for `#hub-tab-club`. Nothing looked wrong in a live-eyeball
+> check (browsers silently auto-correct malformed nesting per the HTML spec), but it cascaded:
+> `#hub-tab-club` stayed open through `#hub-screen`'s intended closing tag, which then closed
+> `#hub-tab-club` instead, which pulled `#bottom-nav` (a sibling of `#screens`, not a descendant) up
+> inside `#screens` — landing it at `top:52/bottom:116` instead of pinned to the viewport bottom, and
+> silently broke `.theme-quick-btn`'s click target in the process (a real, reproducible test failure,
+> not flaky — confirmed by re-running twice). Found by tracing exactly why `#theme-quick-btn` was
+> being intercepted by a `.nav-item`, not by assuming it was environmental flakiness (this session's
+> other real flake, the bowler-picker test, was confirmed flaky by isolation-retry first — this one
+> wasn't, so it got the full trace instead). Fixed with the one missing `</div>`; `#bottom-nav`
+> confirmed back at its correct position and the theme test confirmed passing on re-run.
+>
+> **Verification**: both tabs re-confirmed at genuine 0px overflow after the fix (collapsed state
+> unaffected, as expected — the drawer bodies are now entirely outside the Club tab's DOM subtree).
+> All 3 overlays functionally verified (open → content visible → back button closes) via a dedicated
+> script. Screenshot-verified: collapsed Club tab unchanged/clean, Club Management overlay opens to a
+> complete, well-formatted scrollable screen. Test suite: the existing 14 test call-sites that click a
+> `#drawer-*-toggle` needed **zero changes** — `.show`-driven opacity/pointer-events visibility
+> produces the same Playwright-actionability outcome as the old `.open`-driven `display:block` did.
+> Ran in chunks (same kill-avoidance method as the previous two commits): Hub-focused subset (60
+> tests, including every Facilities/Underworld Core/Theme test that exercises a drawer), smoke+bugfix+
+> features-10k+p15-visual (84 tests), comprehensive.spec.js in full — all green.
+>
+> **This closes the entire no-vertical-scroll redesign end-to-end** — collapsed state AND
+> drawer-open state both accounted for, not just the default view. Nothing deferred remains from the
+> original scope.
+
 > ### 📐 NO-VERTICAL-SCROLL REDESIGN — HUB SCREEN IN PROGRESS, NOT COMMITTED (2026-09-09/10, 5th piece, incomplete)
 > **Current status as of Update 3 below (read that one first, it supersedes everything else in this
 > entry): NEITHER tab is done. Play tab's earlier "0px confirmed" claim (this line, originally) was
