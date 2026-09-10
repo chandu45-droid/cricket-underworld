@@ -205,12 +205,17 @@ test.describe('F2 — Empire Net-Worth + Rank', () => {
 // F3 — MONETIZATION SURFACING + PUBLISHED DROP RATES
 // ============================================================
 test.describe('F3 — Monetization surfaces & drop rates', () => {
-  test('all 3 monetization surfaces are reachable from the hub in <=2 taps', async ({ page }) => {
+  test('all 3 monetization surfaces are reachable from the hub in <=3 taps', async ({ page }) => {
+    // NOTE: was "<=2 taps" until the Hub Play/Club tab split (no-vertical-scroll redesign, 2026-09) --
+    // Store & Rewards moved behind the Club tab, adding one unavoidable tap (Club tab -> drawer ->
+    // tile). Flagged in PROGRESS.md as a real, founder-approved-tradeoff side effect of that split,
+    // not silently absorbed here.
     await page.goto('/');
     await injectState(page, {});
     await assertNoBootError(page);
 
     // Store & Rewards drawer holds all monetization surfaces (demoted into it)
+    await page.click('.hub-tab[data-htab="club"]'); // Store & Rewards now lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-rewards-toggle');
 
     // Vault — 1 tap on hub tile opens the store overlay
@@ -231,6 +236,7 @@ test.describe('F3 — Monetization surfaces & drop rates', () => {
     await page.goto('/');
     await injectState(page, {});
 
+    await page.click('.hub-tab[data-htab="club"]'); // Store & Rewards now lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-rewards-toggle');
     await page.click('#hub-odds-link');
     await expect(page.locator('#odds-overlay')).toHaveClass(/show/);
@@ -257,6 +263,7 @@ test.describe('F3 — Monetization surfaces & drop rates', () => {
     await injectState(page, { squad: makeSquad(5), maxSquad: 15 });
     const before = await page.evaluate(() => window.GS.squad.length);
 
+    await page.click('.hub-tab[data-htab="club"]'); // Store & Rewards now lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-rewards-toggle');
     await page.click('#hub-sponsor-tile');
     await expect(page.locator('#ad-overlay')).toHaveClass(/show/);
@@ -275,6 +282,7 @@ test.describe('F3 — Monetization surfaces & drop rates', () => {
     const before = await page.evaluate(() => ({ c: window.GS.coins, g: window.GS.gems }));
 
     // Real UI path: open the Vault and tap a real coin pack tile.
+    await page.click('.hub-tab[data-htab="club"]'); // Store & Rewards now lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-rewards-toggle');
     await page.click('#hub-vault-tile');
     await expect(page.locator('#store-overlay')).toHaveClass(/show/);

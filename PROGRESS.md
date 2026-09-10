@@ -1,5 +1,274 @@
 # Progress — Cricket Underworld
 
+> ### 📐 NO-VERTICAL-SCROLL REDESIGN — HUB SCREEN IN PROGRESS, NOT COMMITTED (2026-09-09/10, 5th piece, incomplete)
+> **Current status as of Update 3 below (read that one first, it supersedes everything else in this
+> entry): NEITHER tab is done. Play tab's earlier "0px confirmed" claim (this line, originally) was
+> retracted in Update 2 — real overflow ~341-356px, its own content not yet touched. Club tab is down
+> to ~79-119px (from a real starting point of ~234-296px, not the "65px" this entry originally
+> chased) after a shared-band redesign + further Club-specific trims, full suite green.** The rest of
+> this entry (below) is kept for the historical trail of how the 65px number turned out to be wrong
+> and what was learned about measurement methodology along the way — Update 3 has the current numbers
+> and next steps; don't act on anything above it without checking it's not already superseded.
+>
+> **What was built this piece:**
+> - New `#hub-persistent-band` wrapper around crest/meters/ticker/empire-line/investigation-panel/
+>   debt-panel/mafia-banner/ban-panel/injury-panel (unchanged content, just grouped).
+> - New `.hub-tabs` Play/Club switcher (`data-htab="play"|"club"`) splitting the old single long Hub
+>   into `#hub-tab-play` (primary loop / action tiles / next match / daily bonus / quick tiles) and
+>   `#hub-tab-club` (achievement rail / desk row / underworld ledger / 3 drawers, inline-expand
+>   mechanism unchanged). Tab-switch JS bound near the other event wiring.
+> - `renderHubLedger()`: removed the `debtHtml` block (confirmed genuine duplicate of the dedicated
+>   debt panel elsewhere in the persistent band), kept the 4-tile stat grid only.
+> - `renderHubDeskRow()` + markup + CSS: merged the 2 separate `cu-card` desk-row tiles (Squad
+>   Strength, Season Progress) into 1 shared card — `.hub-desk-col`/`.hd-col-divider` flex layout
+>   replacing the old `grid-template-columns` 2-tile layout. Reasoning: `getTeamStrength()`'s headline
+>   number duplicates the Squad screen's own "Overall" stat (confirmed genuine dupe), but the
+>   mini-standings list and Season Progress content are NOT duplicated elsewhere, so content was kept,
+>   only the wrapping card chrome was merged — this was the founder-approved "structural change"
+>   response to a 65px residual that plain CSS trimming couldn't close (down from 272px via ~25
+>   individual property trims across `.hub-stadium-backdrop`, `.hub-meters`, `.hub-header`,
+>   `.action-tile`, `.hub-login-panel`, `.hub-empire-line`, `.quick-tiles`, `.hub-news-ticker`,
+>   `.hub-tabs`, `.cu-ribbon-wrap`, `#hub-screen` bottom padding, `.hub-drawer*`, `.hub-ach-item`,
+>   `.hub-achieve-rail`, `.hd-val`, `.hub-ledger*`, `.hlg-*`, `.hd-stand`, `.hd-prog-bar` — see prior
+>   session's edits, not yet individually logged as a separate entry since the piece as a whole isn't
+>   done).
+>
+> **UNRESOLVED — the actual blocker:** after the desk-row merge (which removes one full `cu-card`'s
+> worth of border/padding/shadow overhead — should be a real, measurable height saving), re-measuring
+> Club tab's overflow via a Playwright script (click Club tab, read `#hub-screen`'s
+> `scrollHeight - clientHeight`) still returns **exactly 65px — byte-for-byte identical to the
+> pre-merge number.** This is not a rounding coincidence; a structural change that should have saved
+> real vertical space produced *zero* measured improvement. Two syntax-check passes (`new Function()`
+> on both inline `<script>` blocks) came back clean, so the merge isn't silently erroring out of the
+> render path — but that only rules out a JS crash, not a CSS/layout mistake. **Never investigated
+> before the session paused:**
+> - Never measured `#hub-desk-row`'s own `getBoundingClientRect().height` before vs. after the merge
+>   directly — only ever measured the *page-level* aggregate overflow, which can't distinguish
+>   "the merge saved nothing" from "the merge saved height but something else on the page grew by the
+>   same amount at the same time" (e.g. a margin-collapse change, or the new `.hd-col-divider`/flex
+>   `gap:12px` consuming what the removed card-chrome freed up).
+> - Never took a screenshot of the merged desk-row — visual correctness (does it actually render as
+>   one card with a divider, or did something silently fail to apply) is unverified.
+> - Possible causes not yet ruled in or out: (a) the removed `cu-card` border/shadow overhead was
+>   smaller in practice than assumed when planning the merge; (b) `gap:12px` between the two
+>   `.hub-desk-col`s plus the 1px divider nets out close to what two separate card margins used to
+>   cost; (c) some *other* unrelated element in Club tab grew in the same edit pass and is masking the
+>   real saving; (d) the merge's CSS didn't actually apply (specificity/cascade miss — same trap
+>   documented earlier this session for League/Squad) and the browser is still rendering old-style
+>   tile spacing some other way.
+>
+> **Next session should start here, in this order:**
+> 1. Measure `#hub-desk-row` height directly (not page aggregate) to isolate whether the merge itself
+>    saved anything.
+> 2. Screenshot the Club tab in both themes to confirm the merge rendered as intended at all.
+> 3. If the merge really saved 0px, don't trim further blindly — find the actual 65px culprit by
+>    binary-searching Club tab's remaining sections (achievement rail / desk row / ledger / drawer
+>    toggles) the same way League/Squad's real-vs-apparent-overflow trap was resolved earlier this
+>    session (measure section-by-section, don't trust the aggregate number alone).
+> 4. Once Club tab hits genuine 0px (`scrollHeight===clientHeight`, not just visually-fine), visually
+>    verify both tabs in both themes, run full `npx playwright test`, fix any breaks honestly (not by
+>    patching assertions), grep tests for `hub-` ids affected by the tab split (not yet done),
+>    THEN commit — nothing from this Hub piece is committed yet, all of it is uncommitted working-tree
+>    state.
+> 5. Write the real PROGRESS.md completion entry for Hub once actually done (this entry is a status/
+>    handoff note, not that entry — replace or supplement it, don't leave both as if redundant).
+> 6. Separate remaining piece, not started: convert Hub's 3 drawers (Store & Rewards, Club Management,
+>    Underworld) from inline-expand to a destination-overlay pattern — needed because collapsed-state
+>    CSS trims don't touch the ~1600-2221px overflow that occurs when a drawer is actually opened;
+>    this is a different problem from the collapsed-state 65px gap and was explicitly scoped as a
+>    separate step by the founder earlier in this redesign, still pending.
+> 7. After Hub is fully done (collapsed AND drawer-open states both zero-scroll) and committed, the
+>    no-vertical-scroll redesign as a whole (League/Cards/Squad/XI-picker/Hub = all 5 pieces) is
+>    complete — that's the point to do a final full-suite run and a closing summary entry.
+>
+> **Session ended here on context ceiling, not on a natural stopping point** — Hub is genuinely
+> mid-repair, not paused at a clean boundary. Treat the working tree as WIP, verify what's actually on
+> disk before assuming the description above is 100% current (it reflects the last tool output seen,
+> not a fresh re-read).
+>
+> **UPDATE (2026-09-10) — root cause of the "65px unchanged" reading found: it was measurement noise,
+> not a dead merge.** Reconstructed the exact pre-merge state (took the committed HEAD version — which
+> predates all Hub work — and manually reverted *only* the desk-row merge hunk from `git diff` back
+> onto a copy of the current working tree, so the comparison is apples-to-apples: tabs already split,
+> only the desk-row markup/CSS differs) and re-measured `#hub-desk-row.getBoundingClientRect().height`
+> directly, per the plan from the last entry. First pass reproduced the same "no change" illusion —
+> then traced it to the Hub's `stagger-child` fade/slide-in CSS animation: the measurement script's
+> 400ms wait after clicking the Club tab wasn't reliably past the animation's settle point, so
+> consecutive runs of the *same* file returned different heights (e.g. one AFTER run read 113.20px,
+> a re-run read 113.15px — small, but enough to make a real 6-10px difference look absent depending on
+> exactly when each of the two pages happened to be sampled). Fixed by injecting
+> `*{animation:none!important;transition:none!important}` before measuring and waiting 1200ms; results
+> became exactly reproducible across repeated runs and across all 3 tested widths (320/375/390):
+>
+> | | MID (pre-merge, tabs split) | AFTER (post-merge) | delta |
+> |---|---|---|---|
+> | `#hub-desk-row` height | 119.0px | 113.0px | **-6px** |
+> | Club tab total overflow @320 | 296px | 286px | -10px |
+> | Club tab total overflow @375 | 264px | 254px | -10px |
+> | Club tab total overflow @390 | 264px | 254px | -10px |
+>
+> So the merge **did** work — a real, consistent 10px reduction in total overflow at every tested
+> width, not zero. The earlier "identical 65px" conclusion was wrong; retract it. **Also important:**
+> the actual overflow number at all 3 widths (254-296px) is far larger than the "65px residual" this
+> whole investigation was trying to explain — meaning the 65px figure itself was very likely *also* a
+> product of the same unkilled-animation timing noise (measured mid-animation, catching Club tab at a
+> transient partially-collapsed height rather than its settled one), not a trustworthy baseline. **Do
+> not carry the "65px" number forward into further work — it's discredited.** The trustworthy number,
+> measured with animations forced off and confirmed reproducible, is **~254-296px of real overflow
+> still remaining on Club tab**, substantially more work than previously believed.
+>
+> **Lesson for this whole redesign, not just Hub:** any screen using `.stagger-child` (Hub is the only
+> one that does, per grep — League/Cards/Squad/XI-picker don't use this animation class) needs
+> animations forced off before trusting a `scrollHeight`/`getBoundingClientRect` measurement, or needs
+> a wait comfortably past the stagger animation's total duration+delay. Add this to the standard
+> measurement method for the rest of Hub's work, not just this one investigation.
+>
+> **UPDATE 2 (2026-09-10, same session) — Club tab trimmed further via a real structural change
+> (drawer-row merge), AND a much bigger cross-cutting bug found: the earlier "Play tab is done, 0px
+> confirmed" claim is WRONG.**
+>
+> **Club tab progress (the actual ask this round):** applied CSS-only trims across desk-row/ledger/
+> achieve-rail (padding/margin/gap shaves, all content-preserving, ~4-10px each), then a structural
+> change to the 3 stacked drawers — same escalation pattern as the desk-row merge: wrapped
+> `#drawer-rewards`/`#drawer-club`/`#drawer-underworld` in a new `.hub-drawer-row` flex container so
+> their COLLAPSED toggles sit side-by-side as compact icon+title tiles instead of 3 full-width bars
+> stacked vertically (was 126px of the 234px total just from 3× border+padding+icon+title+subtitle
+> rows). Content-preserving: titles still shown (wrap to 2 lines), subtitles hidden only in the
+> collapsed-row view via CSS `display:none` (still in the DOM, shown again once a drawer is
+> `.open`, which breaks that one drawer out to its own full-width line via `flex-basis:100%` so its
+> body still renders full-width exactly as before — collapsed siblings stay in the compact row).
+> Result: Club tab overflow dropped from ~234px to ~159px @375/390 (worst-case measurement, see
+> below) — real, substantial progress, but **not yet zero**.
+>
+> **The bigger finding — root-caused the exact 22px flakiness from Update 1's table, and it wasn't
+> noise at all:** it's `#mafia-banner`, a persistent-band element shared by BOTH Play and Club tabs.
+> `updateHub()`'s flavor-text picks one of 3 messages via `Math.random()` regardless of whether
+> `GS.mafiaBonus` is set — the longest message wraps to 2 lines (129.7px), the shorter two fit on 1
+> (107.8px), a genuine and expected **21.9px swing that will happen in real play**, not a test
+> artifact. Forced it deterministically for measurement (`Math.random = () => 0` via
+> `page.addInitScript`, selecting the longest/worst-case message) instead of leaving it to chance —
+> this made every subsequent Club tab measurement exactly reproducible (180px@320, 159px@375/390,
+> zero variance across repeated runs).
+>
+> **Using that same worst-case-forcing method on Play tab — which the previous entry claimed was
+> "done, 0px overflow, confirmed" — found it is NOT zero: 397-401px of real overflow across all 3
+> widths.** Section breakdown: the persistent band's `mafia-banner` (129.7px worst-case) plus
+> `hub-next-rival-ribbon`+`hub-next-rival` (215px, shown because the test state has a scheduled next
+> match — `GS.matchNum=3`, the same default used throughout this whole redesign's test harness)
+> account for most of it. **The earlier "0px confirmed" verification was almost certainly done under
+> a narrower game state that happened to hide one or both of these** (no scheduled match, and/or a
+> lucky short mafia message, and/or the banner's `hubZone.mafiaAccess`/`GS.investigation` gate
+> happening to hide it) — not a true worst-case check. That claim should be treated as **retracted**,
+> not just "needs re-verification." Play tab has real, substantial, previously-unreported overflow.
+>
+> **This changes the shape of what's left in Hub, and arguably in every earlier "done" screen too:**
+> every prior zero-scroll verification in this whole redesign (League/Cards/Squad/XI-picker, plus
+> Hub's Play tab) was done by injecting one fixed representative `GS` state via the same
+> `injectState()` helper from `tests/comprehensive.spec.js` — none of them appear to have
+> specifically stress-tested state-conditional persistent-band elements (mafia-banner's random
+> message, a scheduled-vs-no-next-match toggle, active investigation/debt/ban/injury panels, which
+> all live in the shared `#hub-persistent-band` used by both Hub tabs). **Nothing about League/Cards/
+> Squad/XI-picker's own screen-specific content is known to be affected** — this band is Hub-only —
+> but Hub's Play tab genuinely needs to be redone, and Club tab's remaining trim work should be
+> planned against this newly-honest 159-180px baseline, not the stale 65px/234px numbers.
+>
+> **Not yet done this session:** getting Club tab the rest of the way to true 0px; re-fixing Play tab
+> from scratch against its real 397-401px overflow; deciding whether the persistent band itself
+> (crest/meters backdrop, empire-line, mafia-banner, the 4 conditional panels) needs its own
+> worst-case-safe redesign since it's shared infrastructure both tabs sit on top of, which would be
+> the more durable fix than trimming each tab's own content further while the band underneath keeps
+> silently growing under real game states. Founder has not yet weighed in on which to prioritize.
+>
+> **UPDATE 3 (2026-09-10, same session) — founder chose "redesign the shared band first."
+> Real, verified progress on both the band and Club tab; Play tab's own content is the next
+> remaining piece, not yet started.**
+>
+> **Shared `#hub-persistent-band` fixes (the actual root-cause work):**
+> - `.mafia-banner`/`.mb-title`/`.mb-text`/`.mb-action`: this banner had never been touched by any
+>   earlier trimming pass in this whole redesign (it's `display:none` by default, so it was invisible
+>   to whatever GS state those passes measured against) despite showing in most non-clean alignment
+>   zones — genuinely common, not a rare edge case. Padding cut ~40%, margin-bottom 16px→6px, title/
+>   action font shrunk. `.mb-text` (the flavor-text quote) was trimmed moderately (19px→16px), not
+>   collapsed to base size, specifically to respect `docs/visual-design-system.md` §3.1's documented
+>   "Dramatic/Mafia/Quotes → Teko, oversized" rule — a real design-system constraint, not just a
+>   number to hit zero.
+> - `#hub-persistent-band .glass` (investigation/debt/ban/injury panels) and `.section-title.sm`
+>   scoped-trimmed (both are shared classes used everywhere else, so scoped rather than touching
+>   base — same discipline as every other cross-screen class this whole redesign). `.hub-ban-item`
+>   and `.hub-bans` (single-use-site classes, safe to edit directly) trimmed too. Investigation
+>   panel's inline-styled icon box (40px→30px) and evidence-count digit (24px→18px) shrunk directly
+>   in markup since those were inline styles, not CSS classes.
+> - Verified with a deterministic worst-case method (`Math.random = () => 0` via
+>   `page.addInitScript`, forcing the mafia-banner's longest flavor message instead of leaving it to
+>   chance) rather than trusting whatever random message happened to render — this is now the
+>   standing method for measuring anything touching this band, documented in the scratch script.
+>
+> **Effect measured on both tabs** (worst-case mafia message, animations killed, 320/375/390 all
+> tested): Club tab **234px → 99px** from the band fixes alone; Play tab **397-401px → 341-356px**
+> from the same band fixes (no Play-tab-specific content touched yet — this delta is 100% the shared
+> band getting smaller under both tabs).
+>
+> **Then continued Club-tab-specific trimming** (the original ask before the Play-tab regression was
+> found) on top of the now-honest baseline: desk-row padding/gap tightened further, `.hd-val` font
+> 21px→18px, `.hub-ledger` padding tightened, `.hll-title` 15px→13px, `.hlg-stat` padding trimmed,
+> `.hub-achieve-rail`/`.hub-ach-item` padding/icon/gap tightened again. **Club tab: 99px → 79px
+> @375/390 (119px @320)** — down from the original 234-296px this whole investigation started from.
+> **Not yet zero, but the closest it's been.**
+>
+> **Full regression run: 191-194/194 passed** (2 full-suite runs; the 3 timeout-style failures on the
+> first run — a corrupt-save test, a 0-coins edge case, and the already-documented flaky probabilistic
+> strategy test — all passed cleanly in isolation, confirming environmental flakiness from running 6
+> parallel workers alongside this session's own background node/serve processes, not a real
+> regression from the CSS/markup changes). **Also found and fixed a separate, real, pre-existing
+> break**: 14 call sites across `smoke.spec.js`/`features-10k.spec.js`/`comprehensive.spec.js` clicked
+> a `#drawer-*-toggle` directly without first switching to the Club tab — broken by the earlier
+> (already-uncommitted) Play/Club tab split, never caught because Hub's tests hadn't been run since
+> that split happened. Fixed all 14 by adding `.hub-tab[data-htab="club"]` click first, matching real
+> user behavior. **Flagging one real product-level side effect this surfaced, not just a test
+> artifact**: reaching Store & Rewards (Vault/Sponsor Break/Syndicate Contract) now takes 3 taps from
+> Hub instead of the 2 the test used to assert — renamed that test's title/assertion to match reality
+> rather than silently keeping the old "<=2 taps" claim. This is a direct, foreseeable consequence of
+> the Play/Club split itself (already founder-approved earlier in this redesign), not something new
+> introduced this session — flagging it here since it touches monetization reachability, a real
+> business concern per this project's F2P constraints, not just layout.
+>
+> **Still remaining, unchanged in kind from before, just re-baselined to honest numbers:**
+> - Club tab: ~79-119px left to close (was chasing a false "65px", the real number was always bigger).
+> - Play tab: **~341-356px still unaddressed** — its own content (`action-tiles` 132px, `hub-next-
+>   rival`+ribbon 215px, `hub-login-panel` 95px, `quick-tiles` 50px) hasn't been touched this round;
+>   only the shared band underneath it got smaller. This is the next full piece of work, not a small
+>   follow-up — comparable in size to what Club tab needed.
+> - Drawer inline-expand → destination-overlay conversion (the ~1600-2221px drawer-OPEN overflow,
+>   separate from the collapsed-state numbers above) still not started.
+> - Uncommitted: everything in this update, Update 1, and Update 2 is still sitting as working-tree
+>   changes. Given this update closes with a green full-suite run and real (if incomplete) progress,
+>   this is a reasonable checkpoint-commit point per this project's "commit early and often" case
+>   law — check git status/diff before assuming what's staged.
+>
+> **Corrected next steps (superseded twice now — this is the current version, from Update 3):**
+> 1. Play tab needs its own dedicated trim/structural pass against its real ~341-356px overflow —
+>    `action-tiles` (132px), `hub-next-rival-ribbon`+`hub-next-rival` (215px), `hub-login-panel`
+>    (95px), `quick-tiles` (50px) are the untouched content sections; the band underneath it is
+>    already fixed. Use the same worst-case-forcing measurement method (`Math.random=()=>0` for the
+>    mafia-banner, animations killed, 320/375/390) — script is `_scratch/measure/club-overflow.js`
+>    (pass `'play'` as the 2nd arg to `measure()`).
+> 2. Club tab: ~79-119px left. Achievement rail/desk-row/ledger have all had 2 rounds of trims now —
+>    check for diminishing returns before a 3rd CSS-only round; the drawer-row structural merge is
+>    the template if another structural change turns out to be needed (unlikely to need one more,
+>    given how much smaller the remaining gap is now).
+> 3. Once both tabs hit genuine 0px (confirmed reproducibly, worst-case band content, all 3 widths):
+>    screenshot both tabs in both themes, run full suite once more, then this whole 5-piece redesign
+>    (League/Cards/Squad/XI-picker/Hub) is complete — that's the point for a final closing summary.
+> 4. Drawer inline-expand → destination-overlay conversion (the separate ~1600-2221px drawer-OPEN
+>    overflow case) still not started — unchanged scope from every earlier entry.
+> 5. Scratch verification files live in `_scratch/measure/` (`before/`, `mid/`, `after/` throwaway
+>    index.html copies, `measure-desk-row.js`, `club-overflow.js`), not committed, to be deleted once
+>    Hub's redesign is fully done and committed.
+> 6. This session ended with a green full-suite run (191-194/194, remaining failures confirmed
+>    environmental-flaky in isolation) and real progress on both the band and Club tab — a legitimate
+>    point to checkpoint-commit per this project's case law, even though neither tab is at true zero
+>    yet. Check git status before assuming what's staged when resuming.
+
 > ### 📐 NO-VERTICAL-SCROLL REDESIGN — XI-PICKER OVERLAY COMPLETE (2026-09-09, 4/5 pieces)
 > The most architecturally different piece of this redesign. Founder had already confirmed no
 > exception for this screen (paginate it too, full consistency) — but it genuinely couldn't use the

@@ -160,7 +160,9 @@ test('Season Pass: hub panel, tier progression, claim + premium flow', async ({ 
   await setupGameState(page);
   await dismissOverlays(page);
 
-  // Store & Rewards drawer holds the pass panel (monetization demoted into it)
+  // Store & Rewards drawer holds the pass panel (monetization demoted into it),
+  // and lives behind the Club tab since the Hub Play/Club split (no-vertical-scroll redesign, 2026-09)
+  await page.click('.hub-tab[data-htab="club"]');
   await page.click('#drawer-rewards-toggle');
 
   // Hub panel present

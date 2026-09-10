@@ -159,6 +159,7 @@ test.describe('Hub', () => {
   test('clean streak tag visible at 3+ matches', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { cleanStreak: 5 });
+    await page.click('.hub-tab[data-htab="club"]'); // Club Management lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-club-toggle');
     await expect(page.locator('#clean-streak-tag')).toBeVisible();
     const text = await page.locator('#clean-streak-tag').textContent();
@@ -765,6 +766,7 @@ test.describe('Facilities', () => {
   test('pep talk boosts morale', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 1000, morale: 50 });
+    await page.click('.hub-tab[data-htab="club"]'); // Club Management lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-club-toggle');
     await page.click('#morale-boost-btn');
     await page.waitForTimeout(500);
@@ -775,6 +777,7 @@ test.describe('Facilities', () => {
   test('pep talk fails without coins', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 50 });
+    await page.click('.hub-tab[data-htab="club"]'); // Club Management lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-club-toggle');
     await page.click('#morale-boost-btn');
     await page.waitForTimeout(500);
@@ -785,6 +788,7 @@ test.describe('Facilities', () => {
   test('media bribe reduces heat', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 1000, heat: 50 });
+    await page.click('.hub-tab[data-htab="club"]'); // Club Management lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-club-toggle');
     await page.click('#heat-bribe-btn');
     await page.waitForTimeout(500);
@@ -948,6 +952,7 @@ test.describe('Underworld Core', () => {
   test('power web panel visible on hub', async ({ page }) => {
     await page.goto('/');
     await injectState(page, {});
+    await page.click('.hub-tab[data-htab="club"]'); // The Underworld lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-underworld-toggle');
     await expect(page.locator('#power-web-panel')).toBeVisible();
     const rows = await page.locator('#power-web-rows .pw-row').count();
@@ -1468,6 +1473,7 @@ test.describe('Real-Click Coverage', () => {
   test('staff: hiring a coins-cost item via real click deducts coins and marks it hired', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 2000 });
+    await page.click('.hub-tab[data-htab="club"]'); // Club Management lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-club-toggle');
     await page.waitForTimeout(300);
     // 'legit' tab is the default staffTab -- physio (300 coins) is always visible on it.
@@ -1482,6 +1488,7 @@ test.describe('Real-Click Coverage', () => {
   test('staff: hiring a black-money fixer via real click deducts black money, not coins', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 2000, blackMoney: 500 });
+    await page.click('.hub-tab[data-htab="club"]'); // Club Management lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-club-toggle');
     await page.waitForTimeout(300);
     await page.click('[data-stafftab="fixer"]');
@@ -1498,6 +1505,7 @@ test.describe('Real-Click Coverage', () => {
   test('scout: purchasing intel via real click deducts coins and opens the report', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { coins: 2000 });
+    await page.click('.hub-tab[data-htab="club"]'); // Club Management lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-club-toggle');
     await page.waitForTimeout(300);
     const before = await page.evaluate(() => window.GS.coins);
@@ -1511,6 +1519,7 @@ test.describe('Real-Click Coverage', () => {
   test('heat action: real click raises heat and shifts alignment', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { heat: 20, alignment: 10 });
+    await page.click('.hub-tab[data-htab="club"]'); // The Underworld lives behind the Club tab (no-vertical-scroll redesign, 2026-09)
     await page.click('#drawer-underworld-toggle');
     await page.waitForTimeout(300);
     const before = await page.evaluate(() => ({ heat: window.GS.heat, alignment: window.GS.alignment }));

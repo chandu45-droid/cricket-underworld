@@ -398,6 +398,11 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
    ================================================================ */
 #screens{flex:1;overflow:hidden;position:relative}
 .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:12px 13px calc(var(--nav-h) + var(--safe-b) + 14px);opacity:0;transform:translateX(0) scale(0.96);transition:opacity 0.4s var(--spring),transform 0.5s var(--spring-bounce);pointer-events:none;-webkit-overflow-scrolling:touch;will-change:opacity,transform}
+/* 2026-09-09 no-vertical-scroll redesign: trimmed just #hub-screen's own bottom-clearance buffer
+   (14px->4px, still clears the nav + safe-area by design, just less pure margin beyond that) as the
+   final small lever after every other component-level trim on this tab -- scoped so it doesn't
+   touch the shared .screen rule every other screen also uses. */
+#hub-screen{padding-bottom:calc(var(--nav-h) + var(--safe-b) + 4px)}
 .screen.active{opacity:1;transform:translateX(0) scale(1);pointer-events:auto}
 .screen.swipe-exit-left{opacity:0;transform:translateX(-30%) scale(0.94);pointer-events:none}
 .screen.swipe-exit-right{opacity:0;transform:translateX(30%) scale(0.94);pointer-events:none}
@@ -658,9 +663,9 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .hub-header .manager-avatar svg{width:26px;height:26px;stroke:var(--align-accent);fill:none;stroke-width:1.5;transition:stroke 0.8s}
 .hub-header .manager-info{flex:1}
 .hub-header .manager-name{font-family:var(--font-d);font-size:25px;font-weight:700;line-height:1;letter-spacing:0.5px}
-.hub-header .league-name{font-size:12px;color:var(--blue-bright);margin-top:4px;font-weight:600;letter-spacing:0.5px}
+.hub-header .league-name{font-size:12px;color:var(--blue-bright);margin-top:2px;font-weight:600;letter-spacing:0.5px}
 /* v3 kit: faction chip — reuses .cu-chip's angular clip-path pill shape, alignment-accent-driven color stays */
-.hub-header .align-zone-tag{display:inline-flex;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:3px 12px;clip-path:var(--clip-6);margin-top:5px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent);transition:all 0.8s}
+.hub-header .align-zone-tag{display:inline-flex;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:2px 12px;clip-path:var(--clip-6);margin-top:3px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent);transition:all 0.8s}
 .hub-meters{display:flex;gap:12px;margin-top:10px}
 .hub-meter{flex:1;display:flex;flex-direction:column;gap:4px}
 .hub-meter .meter-label{font-size:10px;color:var(--slip);text-transform:uppercase;display:flex;justify-content:space-between;font-weight:600;letter-spacing:0.5px}
@@ -673,8 +678,12 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
    applied to Hub's own primary loop. Match becomes the loud --cta-red hero
    (wider column); Auction stays the calmer gold glass secondary — matches the
    approved prototype/_scratch/hub-premium.html composition. */
-.action-tiles{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;margin-bottom:12px}
-.action-tile{background:var(--glass-bg);border:1px solid var(--border-strong);border-radius:0;clip-path:var(--clip-14);padding:18px 16px 15px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:132px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3),var(--bevel-top)}
+.action-tiles{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;margin-bottom:8px}
+.action-tile{background:var(--glass-bg);border:1px solid var(--border-strong);border-radius:0;clip-path:var(--clip-14);padding:14px 16px 11px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:112px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3),var(--bevel-top)}
+/* 2026-09-09 no-vertical-scroll redesign: min-height 132->112px, padding trimmed similarly -- kept
+   these two tiles (Auction/Match, the actual core gameplay loop) as the LAST lever pulled on this
+   tab, not the first, since they're the most important CTAs on the screen. Still comfortably fits
+   icon+title+subtitle at 112px, just less empty breathing room around them. */
 .action-tile::before{content:'';position:absolute;inset:0;opacity:0.7;transition:opacity 0.3s;pointer-events:none}
 .action-tile::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;pointer-events:none}
 .action-tile:active{transform:scale(0.94) translateY(2px);box-shadow:var(--elevation-1)}
@@ -708,15 +717,28 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .quick-tile:active svg{stroke:var(--align-accent)}
 .quick-tile .qt-label{font-family:var(--font-d);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--white-60);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.mafia-banner{background:linear-gradient(145deg,rgba(15,13,26,0.95),rgba(26,26,46,0.85));border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;padding:16px 16px 16px 18px;cursor:pointer;position:relative;overflow:hidden;animation:mafiaGlow 4s ease-in-out infinite;margin-bottom:16px}/* perf: dropped backdrop-filter -- persistent hub banner, not an overlay; bg already 85-95% opaque */
+/* 2026-09-10 no-vertical-scroll redesign: this banner was never touched by the earlier Hub trimming
+   passes because it's conditional (display:none by default) and happened to be hidden or short in
+   whatever GS state those passes measured against -- discovered it's actually one of the biggest
+   single contributors to Hub's real-world overflow (shows in most non-clean alignment zones, not a
+   rare edge case) once a Playwright script forced Math.random() deterministically to catch its
+   worst-case 2-line message. Padding/margin trimmed hard; mb-text's size is trimmed moderately, not
+   collapsed to base body size, to respect docs/visual-design-system.md §3.1's "Dramatic/Mafia/Quotes
+   -> Teko, oversized" rule (still visibly bigger than mb-title/mb-action, just not 19px). */
+.mafia-banner{background:linear-gradient(145deg,rgba(15,13,26,0.95),rgba(26,26,46,0.85));border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;padding:10px 14px 10px 16px;cursor:pointer;position:relative;overflow:hidden;animation:mafiaGlow 4s ease-in-out infinite;margin-bottom:6px}/* perf: dropped backdrop-filter -- persistent hub banner, not an overlay; bg already 85-95% opaque */
 .mafia-banner::before{content:'';position:absolute;top:0;left:3px;right:0;height:1px;background:linear-gradient(90deg,rgba(220,38,38,0.5),transparent 80%)}
 .mafia-banner::after{content:'';position:absolute;top:0;right:0;bottom:0;width:100px;background:radial-gradient(ellipse at right center,rgba(220,38,38,0.08) 0%,transparent 70%);pointer-events:none}
-.mafia-banner .mb-title{font-family:var(--font-d);font-size:15px;font-weight:600;color:var(--blood);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.mafia-banner .mb-title{font-family:var(--font-d);font-size:12px;font-weight:600;color:var(--blood);text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
 /* docs/visual-design-system.md §3.1: "Dramatic / Mafia / Quotes -> Teko" — this
    was rendering in body-font Rajdhani italic, the one typographic rule the doc
    calls out by name that Hub wasn't following. */
-.mafia-banner .mb-text{font-family:var(--font-d);font-size:19px;font-weight:600;letter-spacing:.3px;color:var(--white);font-style:normal;line-height:1.15}
-.mafia-banner .mb-action{font-family:var(--font-d);font-size:12px;color:var(--gold-bright);text-transform:uppercase;margin-top:10px;letter-spacing:1px}
+.mafia-banner .mb-text{font-family:var(--font-d);font-size:16px;font-weight:600;letter-spacing:.3px;color:var(--white);font-style:normal;line-height:1.15}
+.mafia-banner .mb-action{font-family:var(--font-d);font-size:10px;color:var(--gold-bright);text-transform:uppercase;margin-top:6px;letter-spacing:1px}
+/* 2026-09-10: same worst-case-band pass as mafia-banner above, applied to the band's 4 other
+   conditional panels (investigation/debt/ban/injury) -- .glass and .section-title.sm are both
+   shared across many screens, so scoped to #hub-persistent-band rather than touching their bases. */
+#hub-persistent-band .glass{padding:9px 12px;margin-bottom:6px}
+#hub-persistent-band .section-title.sm{margin-bottom:6px}
 
 /* ================================================================
    AUCTION SCREEN — Premium Bid Arena
@@ -1030,6 +1052,13 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .market-tabs{display:flex;gap:0;margin:12px 16px 0;border-radius:3px;overflow:hidden;border:1px solid rgba(var(--hl-rgb),0.06)}
 .market-tab{flex:1;padding:10px;text-align:center;font-family:var(--font-d);font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--slip);cursor:pointer;background:rgba(var(--hl-rgb),0.02);transition:all 0.2s}
 .market-tab.active{color:var(--gold-bright);background:rgba(240,200,80,0.08);border-bottom:2px solid var(--gold-bright)}
+/* 2026-09-09 no-vertical-scroll redesign: Hub's Play/Club tab switcher -- new classes rather than
+   reusing .market-tab directly (this codebase's established convention: match an existing visual
+   LANGUAGE for a new component rather than share class names across unrelated screens, same as
+   .page-pager/.page-dot being new classes even though .tut-dot already had the same look). */
+.hub-tabs{display:flex;gap:0;margin:4px 0;border-radius:3px;overflow:hidden;border:1px solid rgba(var(--hl-rgb),0.06)}
+.hub-tab{flex:1;padding:9px;text-align:center;font-family:var(--font-d);font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--slip);cursor:pointer;background:rgba(var(--hl-rgb),0.02);transition:all 0.2s}
+.hub-tab.active{color:var(--gold-bright);background:rgba(240,200,80,0.08);border-bottom:2px solid var(--gold-bright)}
 .market-list{flex:1;overflow-y:auto;padding:12px 16px;-webkit-overflow-scrolling:touch}
 .market-item{display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px;border-radius:3px;border:1px solid rgba(var(--hl-rgb),0.06);background:rgba(var(--hl-rgb),0.02);transition:all 0.2s}
 .market-item .mi-ovr{width:40px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:17px;font-weight:700;color:#fff;flex-shrink:0}
@@ -1211,8 +1240,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .ban-event{padding:10px 14px;margin:6px 0;border-radius:3px;border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--blood);background:rgba(220,38,38,0.04)}
 .ban-event .be-title{font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blood);margin-bottom:2px}
 .ban-event .be-desc{font-size:11px;color:var(--slip);line-height:1.4}
-.hub-bans{margin-bottom:14px}
-.hub-ban-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid rgba(220,38,38,0.15);border-radius:3px;margin-bottom:6px;background:rgba(220,38,38,0.03)}
+.hub-bans{margin-bottom:6px}
+.hub-ban-item{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid rgba(220,38,38,0.15);border-radius:3px;margin-bottom:4px;background:rgba(220,38,38,0.03)}
 .hub-ban-item .hb-name{font-family:var(--font-d);font-size:13px;font-weight:600;color:var(--white);flex:1}
 .hub-ban-item .hb-reason{font-size:11px;color:var(--slip)}
 .hub-ban-item .hb-left{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--blood)}
@@ -2160,7 +2189,11 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    ================================================================ */
 
 /* Stadium silhouette backdrop */
-.hub-stadium-backdrop{position:relative;margin:-12px -13px 0;padding:16px 16px 14px;overflow:hidden;min-height:148px;display:flex;flex-direction:column;justify-content:flex-end}
+.hub-stadium-backdrop{position:relative;margin:-12px -13px 0;padding:10px 16px 5px;overflow:hidden;min-height:148px;display:flex;flex-direction:column;justify-content:flex-end}
+/* 2026-09-09 no-vertical-scroll redesign: -4px/-6px off the backdrop's own top/bottom padding and
+   -6px off the meters' vertical padding below -- small, deliberately conservative trims on the
+   persistent band's identity block since it's the highest-visibility content on the whole screen;
+   preferred several small cuts across less-critical spacing over one large cut here. */
 .hub-stadium-backdrop::before{content:'';position:absolute;inset:0;background:
   radial-gradient(ellipse 140% 50% at 50% 10%,rgba(255,210,63,0.06) 0%,transparent 60%),
   radial-gradient(ellipse 80% 40% at 20% 30%,var(--align-accent-dim) 0%,transparent 50%),
@@ -2210,7 +2243,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 /* LED news ticker — decorative marquee, static flavor text, zero JS/state
    binding. Appended as a normal flex child AFTER .hub-meters (see markup) so
    it lays out below the opaque meters panel instead of behind it. */
-.hub-news-ticker{position:relative;z-index:2;margin-top:8px;padding:6px 0;overflow:hidden;background:linear-gradient(180deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border-top:1px solid rgba(var(--hl-rgb),0.08);border-bottom:1px solid rgba(var(--hl-rgb),0.08)}
+.hub-news-ticker{position:relative;z-index:2;margin-top:5px;padding:4px 0;overflow:hidden;background:linear-gradient(180deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border-top:1px solid rgba(var(--hl-rgb),0.08);border-bottom:1px solid rgba(var(--hl-rgb),0.08)}
 /* FIX (2026-08-02, ui-designer audit item 2): VERIFIED the marquee itself is not
    broken -- .ticker-track's content list is already duplicated once (10 spans =
    5 unique x2) and hubTickerScroll already drives a continuous translateX(0)->
@@ -2238,7 +2271,12 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-header .team-crest{width:80px;height:80px}
 .hub-header .team-crest svg{width:80px;height:80px}
 .hub-header .manager-info{flex:1}
-.hub-header .manager-name{font-family:var(--font-d);font-size:32px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 16px rgba(0,0,0,0.4)}
+.hub-header .manager-name{font-family:var(--font-d);font-size:23px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 16px rgba(0,0,0,0.4)}
+/* 2026-09-09 no-vertical-scroll redesign: 32px->26px -- this text stack (name+league+align-tag+
+   star-pips, 97px measured) turned out to be the actual height driver in the identity header, not
+   the crest/power-ring as first assumed (80px/76px respectively, both shorter). Still comfortably
+   legible at 26px; kept well above the <340px breakpoint's own 23px floor (line ~2288) so this
+   isn't the smallest size the name ever renders at. */
 
 /* Power ring — larger, with label */
 .hub-power-ring{position:relative;width:76px;height:76px;flex-shrink:0}
@@ -2291,9 +2329,9 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    layout rule below still owns flex/gap/padding; .cu-card owns background/
    border/shadow/clip-path. Extra inset consumes --border-lit for a real
    top-lit catch-light edge (previously an orphaned token — see :root). */
-.hub-meters{display:flex;gap:10px;margin:10px 0 0;padding:9px 6px;position:relative;z-index:2}
+.hub-meters{display:flex;gap:10px;margin:5px 0 0;padding:6px 6px;position:relative;z-index:2}
 .hub-meters.cu-card{box-shadow:var(--glass-shadow), inset 0 1px 0 var(--border-lit)}
-.hub-meter{flex:1;min-width:0;padding:8px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:4px;transition:border-color 0.3s}
+.hub-meter{flex:1;min-width:0;padding:6px 10px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:3px;transition:border-color 0.3s}
 .hub-meter .meter-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hub-meter .meter-header{min-width:0}
 .hub-meter .meter-icon svg{width:12px;height:12px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -2345,7 +2383,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 
 /* Quick tiles — color-coded per function. v3 kit: .cu-card on the row supplies the chamfered
    frame + spotlight sheen (surface-only) — padding added here since .cu-card sets no layout. */
-.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;padding:7px}
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:0;padding:4px}
 .quick-tile{position:relative;overflow:hidden}
 .quick-tile svg{width:18px;height:18px;transition:all 0.3s var(--spring-bounce)}
 .quick-tile:active svg{transform:scale(1.15)}
@@ -2403,11 +2441,11 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    right-edge mask fade (mirrors the ticker fix above) instead of a solid-color
    pseudo-element gradient, since this rail sits directly on the hub screen's own
    backdrop (no enclosing card color to fade toward) the same as the ticker. */
-.hub-achieve-rail{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 10px;padding:1px 1px;-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
+.hub-achieve-rail{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 3px;padding:1px 1px;-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)}
 .hub-achieve-rail::-webkit-scrollbar{display:none}
-.hub-ach-item{flex:0 0 auto;min-width:58px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 10px;background:var(--glass-bg);border:1px solid var(--border);clip-path:var(--clip-10);transition:transform 0.15s,border-color 0.2s}
+.hub-ach-item{flex:0 0 auto;min-width:54px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:3px 7px;background:var(--glass-bg);border:1px solid var(--border);clip-path:var(--clip-10);transition:transform 0.15s,border-color 0.2s}
 .hub-ach-item:active{transform:scale(0.93)}
-.hub-ach-item svg{width:18px;height:18px;stroke:var(--slip);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:0.4}
+.hub-ach-item svg{width:16px;height:16px;stroke:var(--slip);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:0.4}
 .hub-ach-item .hub-ach-name{font-family:var(--font-b);font-size:9.5px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--white-60);white-space:nowrap;text-align:center}
 .hub-ach-item.earned{border-color:rgba(240,200,80,0.35)}
 .hub-ach-item.earned svg{stroke:var(--gold-bright);opacity:1;filter:drop-shadow(0 0 4px rgba(240,200,80,0.4))}
@@ -2415,34 +2453,41 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-ach-item.locked svg{opacity:0.25}
 
 /* Desk row — Squad Strength (+mini standings) & Season Progress (renderHubDeskRow()) */
-.hub-desk-row{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;margin:0 0 10px}
-.hub-desk-tile{padding:11px 12px 12px}
+/* 2026-09-09 no-vertical-scroll redesign: merged from 2 side-by-side cu-cards into 1 shared card
+   (see the JS comment in renderHubDeskRow() for the content-preservation reasoning). The row itself
+   now carries cu-card (background/border/shadow, added in markup) plus its own padding; the two
+   inner .hub-desk-col children are plain flex columns with no card styling of their own -- removes
+   one full duplicate border/padding/shadow layer versus the previous 2-card version. */
+.hub-desk-row{display:flex;align-items:stretch;gap:10px;margin:0 0 3px;padding:5px 10px 6px}
+.hub-desk-col{flex:1 1 0;min-width:0}
+.hub-desk-col.hub-desk-squad{flex-grow:1.25}
+.hd-col-divider{width:1px;background:var(--border);flex-shrink:0}
 .hd-lbl{font-family:var(--font-d);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--slip)}
-.hd-val{font-family:var(--font-d);font-size:26px;font-weight:700;line-height:1;color:var(--white);margin-top:3px}
+.hd-val{font-family:var(--font-d);font-size:18px;font-weight:700;line-height:1;color:var(--white);margin-top:1px}
 .hd-val .hd-of{font-size:14px;color:var(--slip);font-weight:600}
-.hd-delta{font-size:9.5px;font-weight:700;margin-top:2px}
+.hd-delta{font-size:9.5px;font-weight:700;margin-top:1px}
 .hd-delta.up{color:var(--green-bright)}
 .hd-delta.down{color:var(--blood)}
-.hd-sub{font-size:10px;color:var(--slip);margin-top:2px}
-.hd-stand{margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.hd-sub{font-size:10px;color:var(--slip);margin-top:1px}
+.hd-stand{margin-top:3px;display:flex;flex-direction:column;gap:1px}
 .hd-stand-row{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;font-size:11px}
 .hd-stand-row .hd-pos{font-family:var(--font-d);font-weight:700;color:var(--slip);font-size:11px}
 .hd-stand-row .hd-nm{font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hd-stand-row .hd-pts{font-weight:700;color:var(--white)}
 .hd-stand-row.me .hd-nm,.hd-stand-row.me .hd-pts{color:var(--gold-bright)}
-.hd-empty{font-size:10px;color:var(--slip);margin-top:8px;line-height:1.4}
-.hd-prog-bar{height:5px;background:var(--track-bg);box-shadow:var(--track-shadow);overflow:hidden;margin-top:9px}
+.hd-empty{font-size:10px;color:var(--slip);margin-top:6px;line-height:1.4}
+.hd-prog-bar{height:5px;background:var(--track-bg);box-shadow:var(--track-shadow);overflow:hidden;margin-top:3px}
 .hd-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-bright));transition:width 0.8s var(--spring)}
 
 /* Manager's Ledger — real underworld data surfaced (renderHubLedger()) */
-.hub-ledger{padding:11px 13px 12px;margin:0 0 9px}
-.hub-ledger-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
-.hll-title{font-family:var(--font-d);font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--white)}
+.hub-ledger{padding:5px 13px 6px;margin:0 0 3px}
+.hub-ledger-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.hll-title{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--white)}
 .hll-heat{font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:0.5px;color:var(--slip)}
 .hub-ledger-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.hlg-stat{background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.06);padding:7px 8px;clip-path:var(--clip-6)}
+.hlg-stat{background:rgba(var(--hl-rgb),0.04);border:1px solid rgba(var(--hl-rgb),0.06);padding:3px 8px;clip-path:var(--clip-6)}
 .hlg-lbl{font-size:8px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--slip)}
-.hlg-val{font-family:var(--font-d);font-size:17px;font-weight:700;color:var(--white);margin-top:1px;line-height:1}
+.hlg-val{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--white);margin-top:1px;line-height:1}
 .hlg-val.good{color:var(--green-bright)}
 .hlg-val.warn{color:var(--blood)}
 .hlg-val.mid{color:var(--amber)}
@@ -2494,7 +2539,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-pass-panel:active{border-color:rgba(240,200,80,0.5)}
 .hub-pass-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--crimson))}
 /* F2 — Empire net-worth + rank line */
-.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding:8px 13px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
+.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 6px;padding:6px 13px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
 .hub-empire-line::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--blue-bright))}
 .hub-empire-line .hel-label{font-family:var(--font-d);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--slip)}
 .hub-empire-line .hel-value{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--gold-bright);line-height:1;letter-spacing:0.5px;margin-top:3px}
@@ -2502,13 +2547,13 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-empire-line .hel-rank .helr-num{font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--white);line-height:1}
 .hub-empire-line .hel-rank .helr-lbl{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
 /* F1 — Daily login streak */
-.hub-login-panel{margin:0 0 9px;padding:7px 13px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
+.hub-login-panel{margin:0 0 6px;padding:5px 13px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
 .hub-login-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green-bright),var(--gold-bright))}
 .hlp-row{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 /* Premium port: chamfered pips (was rounded 3px corners) + a gold-grad "today"
    cell with glow, matching the approved prototype/_scratch/hub-premium.html
    streak strip — same JS-generated markup (renderLoginPanel()), CSS only. */
-.hlp-day{position:relative;text-align:center;padding:6px 2px 5px;border:1px solid rgba(255,255,255,0.08);clip-path:var(--clip-6);background:rgba(255,255,255,0.02);opacity:0.55}
+.hlp-day{position:relative;text-align:center;padding:4px 2px 3px;border:1px solid rgba(255,255,255,0.08);clip-path:var(--clip-6);background:rgba(255,255,255,0.02);opacity:0.55}
 .hlp-day.claimed{opacity:0.5;border-color:rgba(34,212,126,0.25);background:rgba(34,212,126,0.06)}
 .hlp-day.today{opacity:1;border-color:transparent;background:var(--gold-grad);box-shadow:var(--glow-gold)}
 .hlp-day .hd-n{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:0.5px}
@@ -2518,7 +2563,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hlp-day .hd-g{display:block;font-size:8px;color:var(--blue-bright);margin-top:1px;line-height:1}
 .hlp-day.today .hd-g{color:var(--gold-ink)}
 .hlp-day .hd-tick{position:absolute;top:-5px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--green-bright);color:#04140b;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.hlp-foot{display:flex;align-items:center;gap:10px;margin-top:7px}
+.hlp-foot{display:flex;align-items:center;gap:10px;margin-top:5px}
 .hlp-streak{flex:1;min-width:0;font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--green-bright);letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hlp-claim{flex:0 0 auto;text-align:center;padding:9px 18px;min-height:36px;font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;clip-path:var(--clip-6);cursor:pointer;transition:all 0.2s;background:var(--gold-grad);box-shadow:var(--bevel-top);color:var(--gold-ink);border:none}
 .hlp-claim:active{transform:scale(0.97)}
@@ -2542,14 +2587,18 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hms-odds-link:active{color:var(--gold-bright)}
 .hms-odds-link u{text-decoration-color:rgba(240,200,80,0.4)}
 /* ===== Density pass (2026-07-11) — hub progressive-disclosure drawers ===== */
-.hub-drawer{margin-bottom:12px}
-.hub-drawer__toggle{display:flex;align-items:center;gap:11px;width:100%;padding:13px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;background:linear-gradient(120deg,rgba(var(--hl-rgb),0.05),rgba(var(--ov-rgb),0.38) 65%);border:1px solid var(--border-strong);clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,13px 100%,0 calc(100% - 13px));transition:border-color 0.25s,background 0.25s,transform 0.12s}
+.hub-drawer{margin-bottom:4px}
+/* 2026-09-09 no-vertical-scroll redesign: -5px/-4px off padding, matches the same trim already
+   applied to #cards-screen's own drawer toggle earlier this redesign (that one is scoped higher-
+   specificity and still wins there; this base-rule edit only actually reaches Hub's 3 drawers now
+   since Cards' 1 drawer is already protected by its own override). */
+.hub-drawer__toggle{display:flex;align-items:center;gap:11px;width:100%;padding:8px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;background:linear-gradient(120deg,rgba(var(--hl-rgb),0.05),rgba(var(--ov-rgb),0.38) 65%);border:1px solid var(--border-strong);clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,13px 100%,0 calc(100% - 13px));transition:border-color 0.25s,background 0.25s,transform 0.12s}
 .hub-drawer.open .hub-drawer__toggle{border-color:rgba(240,200,80,0.30);background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.40) 65%)}
 .hub-drawer__toggle:active{transform:scale(0.99)}
-.hd-ico{flex-shrink:0;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:rgba(240,200,80,0.09);border:1px solid rgba(240,200,80,0.24);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.hd-ico{flex-shrink:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;background:rgba(240,200,80,0.09);border:1px solid rgba(240,200,80,0.24);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
 .hd-ico svg{width:15px;height:15px;stroke:var(--gold-bright);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hd-text{flex:1;min-width:0;text-align:left}
-.hd-title{font-family:var(--font-d);font-size:15px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--white);line-height:1.1}
+.hd-title{font-family:var(--font-d);font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--white);line-height:1.1}
 .hd-sub{font-size:9.5px;letter-spacing:0.4px;color:var(--slip);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hd-chev{flex-shrink:0;width:16px;height:16px;stroke:var(--slip);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform 0.28s ease,stroke 0.25s}
 .hub-drawer.open .hd-chev{transform:rotate(180deg);stroke:var(--gold-bright)}
@@ -2557,6 +2606,31 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-drawer.open .hub-drawer__body{display:block;animation:hubDrawerIn 0.3s ease}
 .hub-drawer__body > .glass:last-child,.hub-drawer__body > div:last-child{margin-bottom:0}
 @keyframes hubDrawerIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+/* 2026-09-10 no-vertical-scroll redesign: Club tab-scoped further trim on top of the base rule
+   above -- same scoping pattern already used by #cards-screen's own drawer override just below
+   this comment's sibling rule. 3 stacked collapsed drawers is the single biggest remaining chunk
+   of Club tab's overflow (138px of collapsed-toggle height alone before this trim), so it gets its
+   own tighter pass rather than shrinking the shared base further (which would also touch Cards). */
+#hub-tab-club .hub-drawer{margin-bottom:3px}
+#hub-tab-club .hub-drawer__toggle{padding:6px 14px;gap:9px}
+#hub-tab-club .hd-ico{width:20px;height:20px}
+#hub-tab-club .hd-ico svg{width:13px;height:13px}
+/* 2026-09-10: collapsed-row layout for the 3 Club-tab drawers -- see the markup comment right
+   before #drawer-rewards for the reasoning. Whichever drawer has .open breaks to its own full-width
+   line (flex-basis:100%, order pushed last) so its body still renders full-width same as before;
+   the other two collapsed toggles stay in the compact row above it. */
+.hub-drawer-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.hub-drawer-row .hub-drawer{flex:1 1 0;min-width:0;margin-bottom:0}
+.hub-drawer-row .hub-drawer.open{flex:1 1 100%;order:9}
+.hub-drawer-row .hub-drawer__toggle{flex-direction:column;text-align:center;gap:4px;padding:8px 4px}
+.hub-drawer-row .hub-drawer.open .hub-drawer__toggle{flex-direction:row;text-align:left;gap:9px;padding:6px 14px}
+.hub-drawer-row .hd-text{width:100%}
+.hub-drawer-row .hd-title{font-size:9.5px;letter-spacing:0.6px;line-height:1.15;white-space:normal}
+.hub-drawer-row .hub-drawer.open .hd-title{font-size:13px;letter-spacing:1.5px}
+.hub-drawer-row .hd-sub{display:none}
+.hub-drawer-row .hub-drawer.open .hd-sub{display:block}
+.hub-drawer-row .hd-chev{display:none}
+.hub-drawer-row .hub-drawer.open .hd-chev{display:block}
 /* ===== F3 — Drop-rates (gacha odds) overlay ===== */
 .odds-overlay{position:fixed;inset:0;z-index:216;background:rgba(var(--ov-rgb),0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);/* perf: true overlay, blur radius trimmed 18->12 */display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.32s;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .odds-overlay.show{opacity:1;pointer-events:auto}
@@ -2675,7 +2749,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .cu-card.cu-green::after{background:linear-gradient(90deg,transparent,var(--green-bright),transparent)}
 
 /* v3 kit: .cu-ribbon — diagonal angular section-header banner */
-.cu-ribbon-wrap{display:flex;padding-left:1px;margin:2px 0}
+.cu-ribbon-wrap{display:flex;padding-left:1px;margin:1px 0}
 .cu-ribbon{position:relative;padding:6px 22px 6px 13px;background:var(--gold-grad);clip-path:polygon(0 0,100% 0,86% 100%,0 100%);box-shadow:var(--elevation-1)}
 .cu-ribbon span{display:block;font-family:var(--font-d);font-size:12.5px;font-weight:700;letter-spacing:2.5px;color:var(--gold-ink);text-transform:uppercase;white-space:nowrap}
 .cu-ribbon.cu-red{background:linear-gradient(160deg,#E4523A,var(--blood))}
@@ -2705,7 +2779,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .cu-avatar svg{width:100%;height:100%;display:block}
 
 /* v3 kit: .cu-star-pips — 5-star rating row */
-.cu-star-pips{display:flex;gap:3px;margin-top:6px}
+.cu-star-pips{display:flex;gap:3px;margin-top:3px}
 .cu-star-pips svg{width:12px;height:12px}
 .cu-star-pips svg.filled{fill:var(--gold-bright);stroke:var(--gold-bright);stroke-width:1}
 .cu-star-pips svg.empty{fill:none;stroke:var(--border-strong);stroke-width:1.5}
@@ -3124,6 +3198,20 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="settings-btn" id="settings-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
       <div class="theme-quick-btn" id="theme-quick-btn" role="button" tabindex="0" aria-label="Toggle theme"></div>
 
+      <!-- ===============================================================
+           2026-09-09 no-vertical-scroll redesign: Hub split into a always-
+           visible PERSISTENT BAND (identity/status + any active alert) plus
+           2 tabs (Play/Club). See PROGRESS.md for the full design-spec
+           writeup and the implementation-judgment-call notes (ticker kept
+           in the persistent band's stadium backdrop rather than split into
+           the Play tab as originally speced -- see that entry for why).
+           Every element below keeps its EXACT existing id/class; this is a
+           pure DOM reorganization via new wrapper containers, not a
+           rewrite -- updateHub() and every render function it calls
+           (renderHubLedger, renderPowerWeb, updateStaffPanel, etc.) target
+           elements by id and needed zero changes.
+           =============================================================== -->
+      <div id="hub-persistent-band">
       <div class="hub-stadium-backdrop">
         <div class="floodlight"></div>
         <div class="floodlight"></div>
@@ -3205,10 +3293,56 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
 
-      <!-- Wider-scope pass (2026-08-02): achievement rail — computed-threshold badges,
-           zero new GS fields (see renderHubAchievements()). -->
-      <div class="hub-achieve-rail stagger-child" id="hub-achieve-rail"></div>
+      <!-- 2026-09-09 no-vertical-scroll redesign: investigation/debt/mafia/ban/injury alert panels
+           moved up into the persistent band, unconditionally visible regardless of which tab is
+           active. Deliberate: these are time-pressured, consequence-bearing states (a debt due
+           next match, an active tribunal countdown) -- burying them behind a tab risks a player
+           missing a real deadline because it wasn't on the tab they happened to be looking at.
+           Each already defaults to display:none and is toggled by the SAME updateHub() logic as
+           before (unmodified) -- a clean playthrough pays zero extra vertical cost for this. -->
+      <div class="glass investigation" id="investigation-panel" style="display:none">
+        <div class="flex items-center gap-10">
+          <div style="width:30px;height:30px;border-radius:4px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div>
+          <div class="flex-1">
+            <div class="font-d fw-700 text-amber text-sm" style="text-transform:uppercase;letter-spacing:2px">Under Investigation</div>
+            <div class="text-xs text-slip" id="investigation-info">5 matches until tribunal</div>
+          </div>
+          <div class="text-right">
+            <div class="font-d fw-700 text-amber" style="font-size:18px" id="evidence-count">0</div>
+            <div class="text-xs text-slip">Evidence</div>
+          </div>
+        </div>
+        <div class="pw-case-stages" id="case-stage-track" style="margin-top:6px"></div>
+        <div id="case-actions"></div>
+      </div>
 
+      <div class="glass cu-card cu-red" id="debt-panel" style="display:none">
+        <div class="cu-ribbon-wrap" style="margin-bottom:5px"><div class="cu-ribbon cu-red"><span>Active Debts</span></div></div>
+        <div id="debt-list"></div>
+      </div>
+
+      <div class="mafia-banner" id="mafia-banner" style="display:none">
+        <div class="mb-title">Incoming Message</div>
+        <div class="mb-text" id="mafia-msg">"I have information that could help you..."</div>
+        <div class="mb-action">View Offer &#8594;</div>
+      </div>
+
+      <div class="glass accent-red" id="ban-panel" style="display:none">
+        <div class="section-title sm" style="color:var(--blood)">Player Bans<span class="accent-line"></span></div>
+        <div id="ban-list" class="hub-bans"></div>
+      </div>
+
+      <div class="glass accent-red" id="injury-panel" style="display:none"></div>
+      </div>
+      <!-- ===== end #hub-persistent-band ===== -->
+
+      <div class="hub-tabs" id="hub-tabs">
+        <div class="hub-tab active" data-htab="play">Play</div>
+        <div class="hub-tab" data-htab="club">Club</div>
+      </div>
+
+      <!-- ===== TAB: Play (default) ===== -->
+      <div class="hub-tab-content" id="hub-tab-play">
       <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon cu-ribbon-sub"><span>Primary Loop</span></div></div>
       <div class="action-tiles stagger-child">
         <div class="action-tile auction cu-herocard" id="hub-auction-btn">
@@ -3286,43 +3420,33 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="qt-label">Market</div>
         </div>
       </div>
+      </div>
+      <!-- ===== end TAB: Play ===== -->
+
+      <!-- ===== TAB: Club ===== -->
+      <div class="hub-tab-content" id="hub-tab-club" style="display:none">
+      <!-- Wider-scope pass (2026-08-02): achievement rail — computed-threshold badges,
+           zero new GS fields (see renderHubAchievements()). -->
+      <div class="hub-achieve-rail stagger-child" id="hub-achieve-rail"></div>
 
       <!-- Wider-scope pass (2026-08-02): desk row (Squad Strength + Season Progress)
            and Manager's Ledger — both JS-rendered from existing GS fields, see
            renderHubDeskRow()/renderHubLedger(). No new persisted state. -->
-      <div class="hub-desk-row stagger-child" id="hub-desk-row"></div>
+      <div class="hub-desk-row cu-card stagger-child" id="hub-desk-row"></div>
 
       <div class="cu-ribbon-wrap stagger-child"><div class="cu-ribbon cu-ribbon-sub"><span>The Underworld</span></div></div>
       <div class="hub-ledger cu-card stagger-child" id="hub-ledger"></div>
 
-      <!-- Wider-scope pass (2026-08-02b): investigation-panel + debt-panel moved up to sit
-           right after the ledger, ahead of the Store & Rewards drawer / mafia-banner. This
-           replaces the original "Deals screen" ask -- a player-experience consult recommended
-           against a new nav tab (would shrink every tab's thumb-target) and against the
-           mockup's fabricated "Initiate a Deal" mechanic; founder approved the narrower
-           badge+reorder instead. Blocks below are unmodified, pure DOM-position move --
-           ids/bindings/updateHub() logic untouched. See #hub-nav-dot for the paired nav badge. -->
-      <div class="glass investigation" id="investigation-panel" style="display:none">
-        <div class="flex items-center gap-10">
-          <div style="width:40px;height:40px;border-radius:4px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div>
-          <div class="flex-1">
-            <div class="font-d fw-700 text-amber text-sm" style="text-transform:uppercase;letter-spacing:2px">Under Investigation</div>
-            <div class="text-xs text-slip" id="investigation-info">5 matches until tribunal</div>
-          </div>
-          <div class="text-right">
-            <div class="font-d fw-700 text-amber" style="font-size:24px" id="evidence-count">0</div>
-            <div class="text-xs text-slip">Evidence</div>
-          </div>
-        </div>
-        <div class="pw-case-stages" id="case-stage-track"></div>
-        <div id="case-actions"></div>
-      </div>
-
-      <div class="glass cu-card cu-red" id="debt-panel" style="display:none">
-        <div class="cu-ribbon-wrap" style="margin-bottom:8px"><div class="cu-ribbon cu-red"><span>Active Debts</span></div></div>
-        <div id="debt-list"></div>
-      </div>
-
+      <!-- 2026-09-10 no-vertical-scroll redesign: the 3 drawers below are wrapped in a shared
+           row so their collapsed toggles sit side-by-side as compact icon tiles instead of 3
+           stacked full-width bars (was the single biggest remaining chunk of Club tab's overflow --
+           3x full border+padding+icon+title+subtitle rows). Content-preserving: titles are still
+           shown (wrapping to 2 lines where needed), subtitles are hidden only in this collapsed row
+           view (CSS display:none, not removed from the DOM) since they're just a preview of what's
+           inside and the drawer body itself is one tap away. Whichever drawer is .open breaks out to
+           its own full-width row (flex-basis:100%) so its body still renders at full width, same as
+           before -- see .hub-drawer-row rules near the shared .hub-drawer/__toggle block. -->
+      <div class="hub-drawer-row">
       <!-- ===== Drawer: Store & Rewards (collapsed by default) ===== -->
       <div class="hub-drawer" id="drawer-rewards">
         <div class="hub-drawer__toggle" id="drawer-rewards-toggle" role="button" tabindex="0" aria-expanded="false" onclick="this.parentNode.classList.toggle('open');this.setAttribute('aria-expanded',this.parentNode.classList.contains('open'))">
@@ -3361,19 +3485,6 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 
         </div>
       </div>
-
-      <div class="mafia-banner" id="mafia-banner" style="display:none">
-        <div class="mb-title">Incoming Message</div>
-        <div class="mb-text" id="mafia-msg">"I have information that could help you..."</div>
-        <div class="mb-action">View Offer &#8594;</div>
-      </div>
-
-      <div class="glass accent-red" id="ban-panel" style="display:none">
-        <div class="section-title sm" style="color:var(--blood)">Player Bans<span class="accent-line"></span></div>
-        <div id="ban-list" class="hub-bans"></div>
-      </div>
-
-      <div class="glass accent-red" id="injury-panel" style="display:none"></div>
 
       <!-- ===== Drawer: Club Management (collapsed by default) ===== -->
       <div class="hub-drawer" id="drawer-club">
@@ -3494,6 +3605,10 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         </div>
       </div>
       <!-- ===== end Drawer: The Underworld ===== -->
+      </div>
+      <!-- ===== end .hub-drawer-row ===== -->
+      </div>
+      <!-- ===== end TAB: Club ===== -->
     </div>
 
     <!-- AUCTION -->
@@ -7890,13 +8005,21 @@ function renderHubDeskRow() {
     standHtml += '</div>';
   }
   var progressPct = Math.min(100, Math.max(0, (GS.matchNum - 1) / 14 * 100));
+  // 2026-09-09 no-vertical-scroll redesign: merged from 2 separate cu-card tiles into 1 shared card
+  // (structural change, not just another CSS trim -- founder-approved after chrome-trimming alone
+  // hit diminishing returns). Zero content lost: Squad Strength's headline number duplicates the
+  // Squad screen's own "Overall" stat (both read getTeamStrength()) but the mini strength-ranked
+  // standings list is unique to this view; Season Progress's match-count/W-L/bar aren't shown
+  // anywhere else in this exact form either. What's actually removed is one full card's worth of
+  // duplicate border/padding/shadow overhead from having 2 cu-cards side by side instead of 1.
   wrap.innerHTML =
-    '<div class="hub-desk-tile hub-desk-squad cu-card">' +
+    '<div class="hub-desk-col hub-desk-squad">' +
       '<div class="hd-lbl">Squad Strength</div>' +
       '<div class="hd-val">' + ovr + '</div>' + deltaHtml +
       standHtml +
     '</div>' +
-    '<div class="hub-desk-tile hub-desk-season cu-card">' +
+    '<div class="hd-col-divider"></div>' +
+    '<div class="hub-desk-col hub-desk-season">' +
       '<div class="hd-lbl">Season Progress</div>' +
       '<div class="hd-val">' + GS.matchNum + '<span class="hd-of">/14</span></div>' +
       '<div class="hd-sub">' + GS.wins + 'W ' + GS.losses + 'L</div>' +
@@ -7915,14 +8038,14 @@ function renderHubLedger() {
   var repLabel = getAlignmentZone(GS.alignment).name;
   var repCls = GS.alignment >= 45 ? 'good' : GS.alignment <= -31 ? 'warn' : 'mid';
   var owed = GS.debts.length;
-  var debtHtml;
-  if (owed > 0) {
-    var d0 = GS.debts[0];
-    var dueTxt = d0.matchesLeft >= 0 ? 'due in ' + d0.matchesLeft + ' match' + (d0.matchesLeft === 1 ? '' : 'es') : Math.abs(d0.matchesLeft) + ' overdue';
-    debtHtml = '<div class="hub-ledger-debt"><span class="hld-who">' + d0.source + '</span><span class="hld-amt">' + d0.principal + ' B$ &middot; ' + dueTxt + '</span></div>';
-  } else {
-    debtHtml = '<div class="hub-ledger-debt clean"><span class="hld-who">No outstanding debts</span><span class="hld-amt">&#10003; Clear</span></div>';
-  }
+  // 2026-09-09 no-vertical-scroll redesign: dropped the debt DETAIL line (source/amount/due-date)
+  // that used to render below the stat grid. Confirmed real duplicate before cutting -- the Power
+  // Web Syndicate row (renderPowerWeb()/getFactionRows(), same GS.debts array) already shows a debt
+  // count in its status text and routes straight into showSyndicateScreen() where the debt can
+  // actually be paid, which is more actionable than this ledger's read-only detail ever was. The
+  // "Owed" count tile below is kept -- it's the one piece of this that wasn't duplicated elsewhere
+  // on the Hub itself (Power Web's own count only shows once you're already in the Underworld
+  // drawer/tab).
   wrap.innerHTML =
     '<div class="hub-ledger-head"><div class="hll-title">Manager&#39;s Ledger</div><div class="hll-heat">Heat ' + GS.heat + '</div></div>' +
     '<div class="hub-ledger-grid">' +
@@ -7930,7 +8053,7 @@ function renderHubLedger() {
       '<div class="hlg-stat"><div class="hlg-lbl">Risk</div><div class="hlg-val ' + riskCls + '">' + riskLabel + '</div></div>' +
       '<div class="hlg-stat"><div class="hlg-lbl">Rep</div><div class="hlg-val ' + repCls + '">' + repLabel + '</div></div>' +
       '<div class="hlg-stat"><div class="hlg-lbl">Owed</div><div class="hlg-val' + (owed > 0 ? ' warn' : '') + '">' + owed + '</div></div>' +
-    '</div>' + debtHtml;
+    '</div>';
 }
 
 // =============================================
@@ -11660,6 +11783,19 @@ function bindEvents() {
       updateCardsScreen();
     });
   }
+  // 2026-09-09 no-vertical-scroll redesign: Hub Play/Club tab switcher. Play is the default (both
+  // markup .active and #hub-tab-play visible with no JS needed on load) so switching tabs never
+  // touches the core loop's zero-added-tap path -- only clicking into Club costs a tap.
+  document.querySelectorAll('.hub-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      SFX.tap();
+      document.querySelectorAll('.hub-tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      var target = this.getAttribute('data-htab');
+      $('hub-tab-play').style.display = target === 'play' ? '' : 'none';
+      $('hub-tab-club').style.display = target === 'club' ? '' : 'none';
+    });
+  });
   $('season-stats-btn').addEventListener('click', showSeasonLeaderboard);
   $('hub-market-btn').addEventListener('click', showMarket);
   $('market-back-btn').addEventListener('click', function() { $('market-overlay').classList.remove('show'); });
