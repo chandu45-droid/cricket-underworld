@@ -11420,7 +11420,7 @@ function generateMarketListings() {
 function showHubDrawerOverlay(id) {
   SFX.tap();
   var el = $(id);
-  if (el) el.classList.add('show');
+  if (el) { el.scrollTop = 0; el.classList.add('show'); }
 }
 function hideHubDrawerOverlay(id) {
   var el = $(id);
