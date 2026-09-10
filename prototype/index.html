@@ -2676,7 +2676,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    even though the OTHER declarations here (flex-direction/gap/text-align) still won since that ID
    rule doesn't touch them -- found via direct computed-style measurement, not assumed. The intended
    compact-tile padding was silently never applying. */
-#hub-tab-club .hub-drawer-row .hub-drawer__toggle{flex-direction:column;text-align:center;gap:3px;padding:5px 3px}
+#hub-tab-club .hub-drawer-row .hub-drawer__toggle{flex-direction:column;text-align:center;gap:3px;padding:5px 3px;position:relative}
 #hub-tab-club .hub-drawer-row .hub-drawer.open .hub-drawer__toggle{flex-direction:row;text-align:left;gap:9px;padding:6px 14px}
 .hub-drawer-row .hd-text{width:100%}
 .hub-drawer-row .hd-title{font-size:9.5px;letter-spacing:0.6px;line-height:1.15;white-space:normal}
@@ -2685,6 +2685,16 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-drawer-row .hub-drawer.open .hd-sub{display:block}
 .hub-drawer-row .hd-chev{display:none}
 .hub-drawer-row .hub-drawer.open .hd-chev{display:block}
+/* 2026-09-10 design-review fix: the 3 converted Hub drawer tiles (rewards/club/underworld) now
+   navigate on tap instead of expanding -- they never get .open added anymore, so the two rules
+   above never fire for them and they silently lost both their subtitle preview AND any go-to
+   affordance (confirmed: bare icon+title only). Restore both, but WITHOUT reusing the .open sizing
+   (that was built for the full-width single-open-tile state, not this compact 3-across one) --
+   subtitle stays single-line/tiny to minimize added row height, chevron is absolutely positioned
+   (zero flow height cost) rather than laid out inline. Needs a Playwright re-check that this doesn't
+   reopen Club tab overflow -- not run here, founder-gated on this project.*/
+#hub-tab-club .hub-drawer-row .hd-sub{display:block;font-size:7.5px;line-height:1.1;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hub-tab-club .hub-drawer-row .hd-chev{display:block;position:absolute;top:4px;right:4px;width:9px;height:9px;stroke:var(--slip)}
 /* ===== F3 — Drop-rates (gacha odds) overlay ===== */
 .odds-overlay{position:fixed;inset:0;z-index:216;background:rgba(var(--ov-rgb),0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);/* perf: true overlay, blur radius trimmed 18->12 */display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.32s;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .odds-overlay.show{opacity:1;pointer-events:auto}
