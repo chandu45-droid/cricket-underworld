@@ -2684,34 +2684,29 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 #hub-tab-club .hd-ico{width:20px;height:20px}
 #hub-tab-club .hd-ico svg{width:13px;height:13px}
 /* 2026-09-10: collapsed-row layout for the 3 Club-tab drawers -- see the markup comment right
-   before #drawer-rewards for the reasoning. Whichever drawer has .open breaks to its own full-width
-   line (flex-basis:100%, order pushed last) so its body still renders full-width same as before;
-   the other two collapsed toggles stay in the compact row above it. */
+   before #drawer-rewards for the reasoning. These tiles navigate to a full-screen overlay on tap
+   (showHubDrawerOverlay) rather than expanding in place, so they never receive/need a .open state
+   any more -- the old accordion .open rules (flex-basis:100% breakout, larger open-title size, etc.)
+   were removed as dead code in the design-review cleanup pass below; #drawer-packs on the Cards
+   screen is the only drawer left that still uses the real expand/collapse .open toggle. */
 .hub-drawer-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1px}
 .hub-drawer-row .hub-drawer{flex:1 1 0;min-width:0;margin-bottom:0}
-.hub-drawer-row .hub-drawer.open{flex:1 1 100%;order:9}
 /* #hub-tab-club prefix needed here: without it, #hub-tab-club .hub-drawer__toggle{padding:6px 14px}
    (an ID selector, (1,1,0)) beats this rule's (0,2,0) specificity on the padding property alone,
    even though the OTHER declarations here (flex-direction/gap/text-align) still won since that ID
    rule doesn't touch them -- found via direct computed-style measurement, not assumed. The intended
    compact-tile padding was silently never applying. */
 #hub-tab-club .hub-drawer-row .hub-drawer__toggle{flex-direction:column;text-align:center;gap:3px;padding:5px 3px;position:relative}
-#hub-tab-club .hub-drawer-row .hub-drawer.open .hub-drawer__toggle{flex-direction:row;text-align:left;gap:9px;padding:6px 14px}
 .hub-drawer-row .hd-text{width:100%}
 .hub-drawer-row .hd-title{font-size:9.5px;letter-spacing:0.6px;line-height:1.15;white-space:normal}
-.hub-drawer-row .hub-drawer.open .hd-title{font-size:13px;letter-spacing:1.5px}
-.hub-drawer-row .hd-sub{display:none}
-.hub-drawer-row .hub-drawer.open .hd-sub{display:block}
-.hub-drawer-row .hd-chev{display:none}
-.hub-drawer-row .hub-drawer.open .hd-chev{display:block}
-/* 2026-09-10 design-review fix: the 3 converted Hub drawer tiles (rewards/club/underworld) now
-   navigate on tap instead of expanding -- they never get .open added anymore, so the two rules
-   above never fire for them and they silently lost both their subtitle preview AND any go-to
-   affordance (confirmed: bare icon+title only). Restore both, but WITHOUT reusing the .open sizing
-   (that was built for the full-width single-open-tile state, not this compact 3-across one) --
+/* 2026-09-10 design-review fix: the 3 converted Hub drawer tiles (rewards/club/underworld) never
+   get .open added anymore (confirmed via grep -- their onclick calls showHubDrawerOverlay directly),
+   so the old .hub-drawer.open-gated subtitle/chevron rules could never fire -- tiles silently
+   regressed to bare icon+title only, no preview text, no go-to affordance. Restored both here,
+   WITHOUT reusing the old .open sizing (that was built for a different, full-width layout state):
    subtitle stays single-line/tiny to minimize added row height, chevron is absolutely positioned
    (zero flow height cost) rather than laid out inline. Needs a Playwright re-check that this doesn't
-   reopen Club tab overflow -- not run here, founder-gated on this project.*/
+   reopen Club tab overflow -- not run here, founder-gated on this project. */
 #hub-tab-club .hub-drawer-row .hd-sub{display:block;font-size:7.5px;line-height:1.1;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #hub-tab-club .hub-drawer-row .hd-chev{display:block;position:absolute;top:4px;right:4px;width:9px;height:9px;stroke:var(--slip)}
 /* ===== F3 — Drop-rates (gacha odds) overlay ===== */
