@@ -3552,7 +3552,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <span class="hd-badge" id="drawer-rewards-badge"></span>
           <div class="hd-text">
             <div class="hd-title">Store &amp; Rewards</div>
-            <div class="hd-sub">Vault &middot; Sponsor break &middot; Contract &middot; Drop rates</div>
+            <div class="hd-sub" id="drawer-rewards-sub">Vault &middot; Sponsor break &middot; Contract &middot; Drop rates</div>
           </div>
           <svg class="hd-chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -12377,6 +12377,13 @@ function updatePassPanel() {
   $('hub-pass-xp').textContent = tier >= PASS_MAX_TIER
     ? 'Contract complete — all tiers unlocked'
     : intoTier + ' / ' + PASS_TIER_XP + ' XP to Tier ' + (tier + 1);
+  // 2026-09-10 design-review fix (economy-architect, MEDIUM): Syndicate Contract tier/XP moved from a
+  // same-screen accordion peek to a full-screen navigate-and-back, same discoverability regression as
+  // Sponsor Break. Rather than restructuring #hub-desk-row (already a deliberately-merged, tight
+  // 2-column card from the 2026-09-09 pass -- a 3rd column is a bigger layout change than this
+  // warrants), lead the collapsed drawer-rewards tile's own subtitle with the live tier instead.
+  var rewardsSub = $('drawer-rewards-sub');
+  if (rewardsSub) rewardsSub.textContent = 'Tier ' + tier + ' · Vault · Sponsor Break';
 }
 
 function renderPass() {
