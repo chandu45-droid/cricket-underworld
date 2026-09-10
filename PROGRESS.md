@@ -69,24 +69,76 @@
 > resurfaces next session, use the same chunking approach (by spec file, or by `--grep` on describe
 > block names) instead of retrying one giant run repeatedly.
 >
-> ### Next actions
-> 1. **Nothing is currently blocking or in-progress.** `feature_list.json` shows 46/46 features
->    passing (last touched 2026-07-11, predates this whole redesign — the redesign was a layout/UX
->    pass across existing screens, not a new feature, so it didn't need new entries there; the file's
->    stale test-count in its `summary` field was refreshed as part of this update, see below).
-> 2. **No founder-flagged design-consistency items remain open** — the two from the 2026-08-03 audit
->    (captain bonus eligibility gating, Match Fix Lose's loyalty-check skip) were both fixed earlier
->    in this same multi-day session (see the "🎖️ DESIGN-CONSISTENCY FIXES" entry below). RTM and the
->    Planted Agent mole mechanic were formally cut from the GDD (see "✂️ RTM + PLANTED AGENT" entry).
-> 3. **Optional, not urgent**: the leftover `_scratch/measure/` directory (throwaway Playwright
->    verification scripts + screenshots used throughout this redesign) is untracked/gitignored and
->    harmless to leave, but could be deleted for tidiness — a sandbox permission blocked `rm -rf` from
->    this session; a manual delete or a differently-scoped removal would clear it.
-> 4. **Natural next step for this project, if the founder wants to keep building**: no specific item
->    is queued. This would be a good point to either (a) run a fresh `/design-review` pass now that
->    Hub's whole layout has changed significantly, to catch anything the redesign might have missed
->    visually, or (b) pick up whatever the founder's actual next priority is — nothing in this file
->    implies a specific next feature is expected.
+> ### Next actions (superseded — see 🔍 DESIGN REVIEW entry immediately below for current punch list)
+> 1. ~~Nothing currently blocking~~ — **superseded**, see below.
+> 2. No founder-flagged design-consistency items remain open (captain bonus/Match Fix Lose fixed
+>    earlier same session; RTM + Planted Agent formally cut).
+> 3. `_scratch/` cleanup — **done, later session (2026-09-10, `38cc5a9`)**. It turned out NOT to be
+>    untracked/harmless as this entry claimed — 4 files under `prototype/_scratch/` were actually
+>    tracked in git (2485 lines). Deleted and pushed.
+> 4. `/design-review` — **done, later session (2026-09-10), see entry directly below.**
+>
+> ---
+
+> ### 🔍 DESIGN REVIEW — no-vertical-scroll redesign, Hub focus (2026-09-10, later same day)
+> Ran `/design-review`'s 5-agent panel (game-designer, economy-architect, cricket-consultant,
+> player-experience, balance-tester) against the completed redesign, focused on the Hub drawer→overlay
+> conversion (the biggest interaction-pattern change). All 5 read the real code (line numbers, not
+> guesses); no browser/Playwright was run (founder-gated). **Verdict: REVISE** (4/5 leaned REVISE,
+> balance-tester leaned GO — nothing fundamentally broken, zero-scroll goal intact, but real fixable
+> regressions shipped alongside it).
+>
+> **Fixed already (`efec8bf`, zero layout/geometry risk — pure JS, doesn't touch the invariant this
+> whole redesign was protecting):**
+> - Club Management overlay could reopen showing a blank/stale view — `showHubDrawerOverlay()` never
+>   reset `scrollTop`, and the overlay div is never removed from the DOM, so scrolling down then
+>   backing out then reopening (after content re-renders shorter, e.g. mentorship/social-feed panels
+>   changing) could land past the end of the now-shorter content. Found independently by 2 of 5
+>   reviewers (balance-tester + player-experience) from different angles — same root cause, same fix.
+>   Fix: `el.scrollTop = 0` before adding `.show`.
+>
+> **Confirmed real, NOT yet fixed (ground-truthed directly in code, settling a dispute between two
+> reviewers' reads — ask before touching, geometry risk):**
+> - The 3 converted Hub Club-tab tiles (`#drawer-rewards`/`#drawer-club`/`#drawer-underworld`) never
+>   get `.open` added anymore (their `onclick` calls `showHubDrawerOverlay(...)` directly, never
+>   `classList.toggle('open')` — confirmed via grep, only Cards screen's `#drawer-packs` still uses the
+>   old accordion pattern). Because `.hub-drawer-row .hd-sub{display:none}` /
+>   `.hub-drawer-row .hd-chev{display:none}` (lines 2684/2686) only flip to `display:block` under
+>   `.hub-drawer.open`, all 3 tiles permanently show **bare icon + title only** — no subtitle preview
+>   text, no chevron/go-to arrow at all. Real, visible regression (game-designer's read was correct;
+>   balance-tester's "just cosmetic, chevron points right" read was wrong — verified directly, the
+>   chevron is fully hidden, not just static). **Why not auto-fixed:** the tiles' current
+>   `flex-direction:column;text-align:center` compact layout (line 2679) was sized for a
+>   3-tiles-in-a-row collapsed state that could still expand; making subtitle+chevron always-visible
+>   means adding content back into a tile that was part of the zero-scroll trimming pass — needs
+>   Playwright measurement to confirm it doesn't reopen overflow, which is founder-gated here.
+>
+> **Flagged, not yet actioned (product/design decisions, not bugs — founder call):**
+> - Sponsor Break (rewarded ad, the game's only rewarded-ad entry point) and Season Pass tier/XP both
+>   moved from a same-screen accordion peek to a full-screen navigate-and-back, with **no "reward
+>   ready" badge or signal** on the collapsed tile — runs against the economy design principle that
+>   rewarded ads should feel like a bonus, not a tax (economy-architect). Proposed fix: a small
+>   dot/pulse badge on `drawer-rewards` driven by `adAvailable('pack')`.
+> - Facilities' Scout Report ("See Rival XI") is a pre-match-timing-sensitive action now buried one
+>   full overlay + scroll-past-8-other-panels deep inside Club Management, with no hint from the Hub
+>   that it's in there (game-designer). Consider promoting near match-prep on the Play tab instead.
+> - Squad screen lost its aggregate per-role count chips (Batters/All-Rounders/Bowlers) — the commit
+>   message frames this as "no information lost" but that's only true per-row, not in aggregate
+>   (cricket-consultant). A fan wants "how many bowlers do I have" in one glance.
+> - XI-picker's 5-per-page pagination can split a role group across a page boundary (e.g. 6 openers →
+>   5 on page 1, 1 alone on page 2 next to a keeper) — weakens side-by-side comparison during team
+>   selection, the exact use case pagination is meant to support (cricket-consultant).
+> - Two tap-targets are under the ~44px mobile guideline at every width (not just 320px): Play tab's
+>   4 quick-nav shortcuts (26px) and the Daily Bonus claim button (20px, retention-critical);
+>   XI-picker's pager arrows (32px) and dots (8-20px) (player-experience).
+> - `.hub-drawer-row .hub-drawer.open` CSS block (lines 2673, 2680, 2683, 2685, 2687) plus the 3
+>   drawer tiles' now-decorative chevron SVGs are dead code post-conversion — not broken, just
+>   confusing for whoever touches this CSS next (balance-tester, 🟢 polish).
+>
+> All of the above (except the shipped scroll-reset fix) involve either a geometry/sizing change that
+> needs Playwright verification against the zero-scroll invariant (founder-gated), or a product
+> decision (badge, promote a panel, restore a summary line) that isn't clearly "just fix it." Left for
+> founder triage rather than auto-implemented.
 >
 > ---
 
