@@ -2709,6 +2709,11 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    reopen Club tab overflow -- not run here, founder-gated on this project. */
 #hub-tab-club .hub-drawer-row .hd-sub{display:block;font-size:7.5px;line-height:1.1;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #hub-tab-club .hub-drawer-row .hd-chev{display:block;position:absolute;top:4px;right:4px;width:9px;height:9px;stroke:var(--slip)}
+/* "Reward ready" badge -- see markup comment at #drawer-rewards for why. Opposite corner from the
+   chevron so the two never collide; display:none default so a bare 0x0 dot never flashes before JS
+   runs. Reuses --gold-bright, the game's existing "something's ready for you" color language. */
+.hd-badge{display:none;position:absolute;top:3px;left:3px;width:7px;height:7px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 6px rgba(240,200,80,0.6)}
+.hd-badge.show{display:block}
 /* ===== F3 — Drop-rates (gacha odds) overlay ===== */
 .odds-overlay{position:fixed;inset:0;z-index:216;background:rgba(var(--ov-rgb),0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);/* perf: true overlay, blur radius trimmed 18->12 */display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.32s;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .odds-overlay.show{opacity:1;pointer-events:auto}
@@ -3535,8 +3540,14 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
            3 overlay blocks after market-overlay for where everything actually lives now. -->
       <div class="hub-drawer-row">
       <div class="hub-drawer" id="drawer-rewards">
+        <!-- 2026-09-10 design-review fix (economy-architect, HIGH): Sponsor Break is the game's only
+             rewarded-ad entry point and moved from a same-screen accordion peek to a full-screen
+             navigate-and-back with no way to tell from here whether a reward is actually available --
+             directly against the "rewarded ads should feel like a bonus, not a tax" principle. Badge
+             driven by the same adAvailable('pack') check updateHubSponsorTile() already runs. -->
         <div class="hub-drawer__toggle" id="drawer-rewards-toggle" role="button" tabindex="0" onclick="showHubDrawerOverlay('rewards-overlay')">
           <div class="hd-ico"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="1"/><path d="M7 8V6a5 5 0 0110 0v2"/><circle cx="12" cy="14" r="2"/></svg></div>
+          <span class="hd-badge" id="drawer-rewards-badge"></span>
           <div class="hd-text">
             <div class="hd-title">Store &amp; Rewards</div>
             <div class="hd-sub">Vault &middot; Sponsor break &middot; Contract &middot; Drop rates</div>
@@ -12670,8 +12681,13 @@ window.showOdds = showOdds; window.renderOdds = renderOdds; window.poolRarityPct
 function updateHubSponsorTile() {
   adReset();
   var tile = $('hub-sponsor-tile'), sub = $('hub-sponsor-sub');
+  var ready = adAvailable('pack');
+  // 2026-09-10 design-review fix: mirror availability onto the collapsed drawer-rewards tile's badge
+  // too, not just the overlay's own sub-label -- see markup comment at #drawer-rewards-badge.
+  var badge = $('drawer-rewards-badge');
+  if (badge) badge.classList.toggle('show', ready);
   if (!tile || !sub) return;
-  if (!adAvailable('pack')) { tile.classList.add('used'); sub.textContent = 'Free pack claimed — back tomorrow'; }
+  if (!ready) { tile.classList.add('used'); sub.textContent = 'Free pack claimed — back tomorrow'; }
   else { tile.classList.remove('used'); sub.textContent = 'Watch a spot — free pack, 2 cards'; }
 }
 window.updateHubSponsorTile = updateHubSponsorTile;
