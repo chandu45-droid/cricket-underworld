@@ -338,6 +338,56 @@
 > **Play tab is NOT done — still ~158-180px, entirely untouched since Update 4.** That's the next
 > and last piece of the whole 5-screen no-vertical-scroll redesign.
 >
+> ### 🏁 NO-VERTICAL-SCROLL REDESIGN — ALL 5 SCREENS COMPLETE (2026-09-10)
+> **Play tab reaches genuine `scrollHeight === clientHeight` at 320px, 375px, and 390px — confirmed
+> reproducible across repeated runs, worst-case mafia-banner message forced, animations killed. Club
+> tab already hit the same bar in Update 5. That's League, Cards, Squad, XI-picker, and now both Hub
+> tabs — the entire redesign the founder asked for ("I don't want to put scrolling option vertically")
+> is done at true zero, not "looks fine" or "close enough."**
+>
+> Finished Play tab in one continuous push from ~158-180px down to 0, same section-by-section method
+> as everything else this session, plus one important find:
+>
+> - **Found a second, bigger hidden specificity bug — the same category as the drawer-row one, but
+>   worth much more**: `.hub-header.cu-card{padding:14px 16px;margin:0 0 10px}`, a leftover from the
+>   original 2026-08-02 wider-scope Hub pass, had been silently beating the v3-kit's intended
+>   `.hub-header{padding:0;margin-bottom:0}` on those two properties this entire redesign — 38px of
+>   invisible padding/margin that every earlier "shrink the header" edit in this whole session (crest,
+>   power-ring, text stack, twice each) was fighting blind. Found the same way as the drawer-row bug:
+>   stopped trusting the aggregate backdrop height and read `.hub-header`'s own `getComputedStyle()`
+>   directly. Fixing it alone dropped Play tab 130px→92px in one edit, more than any single content
+>   trim all session. **Lesson banked for next time: when a section's size doesn't move the amount an
+>   edit should produce, or plateaus for no visible reason, check computed style on the specific
+>   element before doing another round of "trim harder" on the same rule.**
+> - Also fixed a real, silent visual bug introduced earlier this session: the battle-card footer
+>   restructure (Update 4) had put an inline `style="color:var(--white)"` on `#rival-rel-label`,
+>   permanently overriding the JS's relationship color-coding (`text-green`/`text-amber`/`text-red`
+>   for friendly/neutral/hostile) with white regardless of actual state. No test caught it (no
+>   coverage on this element's color) — found by reading the JS that sets `className` on that element
+>   and noticing the inline style would always win. Removed the inline override; JS-driven coloring
+>   works again.
+> - After the header fix, closed the remaining ~92px the same way as Club tab: `hub-next-rival`
+>   (crest/name/str fonts shrunk further, footer padding/margins tightened), `.action-tile` (3rd trim
+>   round — icon 46px→22px, title 22px→15px total across all rounds, min-height 112px→52px, still
+>   icon+title+subtitle all present), `.hub-login-panel` (day-pip padding/fonts, claim button size,
+>   kept above reasonable touch-target size unlike other decorative elements), `quick-tiles` (min-
+>   height 40px→26px — deliberately NOT pushed further than this, since these are real tap targets,
+>   not decoration, and touch-target size has its own floor separate from "can I make this 2px
+>   shorter"), `hub-empire-line`, `hub-meters`, `hub-news-ticker`, mafia-banner (one more notch).
+> - Same `@media(max-width:340px)` top-up pattern as Club tab, extended with `#hub-tab-play`-scoped
+>   rules for the last ~7-18px at 320px specifically.
+>
+> **Screenshot-verified in both themes at all 3 widths** (`_scratch/measure/play-{dark,light}-
+> {320,375,390}.png`) — clean, legible, no clipping, no cramping, real breathing room even at the
+> tightest width. This is not a "technically zero but ugly" result.
+>
+> **Full suite run in progress to confirm before committing.** Once green: this closes the entire
+> no-vertical-scroll redesign that started with League. Next session (or later this one) should do a
+> final closing summary entry once the drawer-open destination-overlay conversion (the one piece
+> explicitly deferred throughout — the ~1600-2221px overflow when a Club-tab drawer is expanded, a
+> different problem from anything measured in this whole entry) is also done, since that's the one
+> loose end left from the original redesign scope.
+>
 > **Corrected next steps (superseded twice now — this is the current version, from Update 3):**
 > 1. Play tab needs its own dedicated trim/structural pass against its real ~341-356px overflow —
 >    `action-tiles` (132px), `hub-next-rival-ribbon`+`hub-next-rival` (215px), `hub-login-panel`

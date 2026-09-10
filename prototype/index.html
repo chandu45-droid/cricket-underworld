@@ -663,10 +663,10 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .hub-header .manager-avatar svg{width:26px;height:26px;stroke:var(--align-accent);fill:none;stroke-width:1.5;transition:stroke 0.8s}
 .hub-header .manager-info{flex:1}
 .hub-header .manager-name{font-family:var(--font-d);font-size:25px;font-weight:700;line-height:1;letter-spacing:0.5px}
-.hub-header .league-name{font-size:12px;color:var(--blue-bright);margin-top:1px;font-weight:600;letter-spacing:0.5px}
+.hub-header .league-name{font-size:11px;color:var(--blue-bright);margin-top:1px;font-weight:600;letter-spacing:0.5px}
 /* v3 kit: faction chip — reuses .cu-chip's angular clip-path pill shape, alignment-accent-driven color stays */
-.hub-header .align-zone-tag{display:inline-flex;font-family:var(--font-d);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:1px 10px;clip-path:var(--clip-6);margin-top:2px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent);transition:all 0.8s}
-.hub-header .cu-star-pips{margin-top:2px}
+.hub-header .align-zone-tag{display:inline-flex;font-family:var(--font-d);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;padding:1px 9px;clip-path:var(--clip-6);margin-top:1px;background:var(--align-accent-dim);color:var(--align-accent);border:1px solid var(--align-accent);transition:all 0.8s}
+.hub-header .cu-star-pips{margin-top:1px}
 .hub-meters{display:flex;gap:12px;margin-top:10px}
 .hub-meter{flex:1;display:flex;flex-direction:column;gap:4px}
 .hub-meter .meter-label{font-size:10px;color:var(--slip);text-transform:uppercase;display:flex;justify-content:space-between;font-weight:600;letter-spacing:0.5px}
@@ -679,8 +679,8 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
    applied to Hub's own primary loop. Match becomes the loud --cta-red hero
    (wider column); Auction stays the calmer gold glass secondary — matches the
    approved prototype/_scratch/hub-premium.html composition. */
-.action-tiles{display:grid;grid-template-columns:1.35fr 1fr;gap:10px;margin-bottom:5px}
-.action-tile{background:var(--glass-bg);border:1px solid var(--border-strong);border-radius:0;clip-path:var(--clip-14);padding:9px 12px 7px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:74px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3),var(--bevel-top)}
+.action-tiles{display:grid;grid-template-columns:1.35fr 1fr;gap:10px;margin-bottom:3px}
+.action-tile{background:var(--glass-bg);border:1px solid var(--border-strong);border-radius:0;clip-path:var(--clip-14);padding:5px 8px 4px;cursor:pointer;transition:all 0.35s var(--spring-bounce);position:relative;overflow:hidden;min-height:52px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--elevation-3),var(--bevel-top)}
 /* 2026-09-10 no-vertical-scroll redesign, round 2: min-height 112->88px, icon 46->36px, title
    already down to 17px via the v3-kit override just above this block. Second trim pass on these
    two tiles -- the first pass (112px, comment below) called them "last lever" against a ~65-296px
@@ -690,9 +690,9 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .action-tile::before{content:'';position:absolute;inset:0;opacity:0.7;transition:opacity 0.3s;pointer-events:none}
 .action-tile::after{content:'';position:absolute;top:0;left:0;width:100%;height:2px;pointer-events:none}
 .action-tile:active{transform:scale(0.94) translateY(2px);box-shadow:var(--elevation-1)}
-.action-tile .tile-icon{position:relative;z-index:1;width:30px;height:30px;clip-path:var(--clip-hex);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.action-tile .tile-icon{position:relative;z-index:1;width:22px;height:22px;clip-path:var(--clip-hex);display:flex;align-items:center;justify-content:center;margin-bottom:2px}
 .action-tile .tile-body{position:relative;z-index:1}
-.action-tile .tile-icon svg{width:16px;height:16px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.action-tile .tile-icon svg{width:12px;height:12px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .action-tile .tile-title{font-family:var(--font-d);font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
 .action-tile .tile-sub{font-size:11px;color:var(--slip);margin-top:2px;font-weight:500}
 .action-tile.auction{border-left:3px solid var(--gold-bright)}
@@ -712,7 +712,7 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .action-tile.match .tile-sub{color:rgba(255,255,255,0.85)}
 
 .quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
-.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:0 5px;min-height:32px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
+.quick-tile{background:linear-gradient(145deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border:1px solid rgba(var(--hl-rgb),0.06);border-radius:4px;padding:0 5px;min-height:26px;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all 0.3s var(--spring-bounce);box-shadow:var(--elevation-1);position:relative;overflow:hidden}
 .quick-tile::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:transparent;transition:background 0.2s}
 .quick-tile:active{transform:scale(0.90);background:rgba(var(--hl-rgb),0.08);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 .quick-tile:active::after{background:var(--align-accent)}
@@ -728,7 +728,7 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
    worst-case 2-line message. Padding/margin trimmed hard; mb-text's size is trimmed moderately, not
    collapsed to base body size, to respect docs/visual-design-system.md §3.1's "Dramatic/Mafia/Quotes
    -> Teko, oversized" rule (still visibly bigger than mb-title/mb-action, just not 19px). */
-.mafia-banner{background:linear-gradient(145deg,rgba(15,13,26,0.95),rgba(26,26,46,0.85));border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;padding:10px 14px 10px 16px;cursor:pointer;position:relative;overflow:hidden;animation:mafiaGlow 4s ease-in-out infinite;margin-bottom:6px}/* perf: dropped backdrop-filter -- persistent hub banner, not an overlay; bg already 85-95% opaque */
+.mafia-banner{background:linear-gradient(145deg,rgba(15,13,26,0.95),rgba(26,26,46,0.85));border:1px solid rgba(220,38,38,0.2);border-left:3px solid var(--crimson);border-radius:3px;padding:7px 11px 7px 13px;cursor:pointer;position:relative;overflow:hidden;animation:mafiaGlow 4s ease-in-out infinite;margin-bottom:3px}/* perf: dropped backdrop-filter -- persistent hub banner, not an overlay; bg already 85-95% opaque */
 .mafia-banner::before{content:'';position:absolute;top:0;left:3px;right:0;height:1px;background:linear-gradient(90deg,rgba(220,38,38,0.5),transparent 80%)}
 .mafia-banner::after{content:'';position:absolute;top:0;right:0;bottom:0;width:100px;background:radial-gradient(ellipse at right center,rgba(220,38,38,0.08) 0%,transparent 70%);pointer-events:none}
 .mafia-banner .mb-title{font-family:var(--font-d);font-size:12px;font-weight:600;color:var(--blood);text-transform:uppercase;letter-spacing:2px;margin-bottom:2px}
@@ -2187,7 +2187,11 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 @keyframes crestGlow{0%{opacity:0.4;transform:scale(0.95)}100%{opacity:0.7;transform:scale(1.05)}}
 
 /* Mini crests for prematch, league table */
-.crest-mini svg{width:36px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))}
+/* 2026-09-10: display:block added -- inline SVGs reserve a few px of baseline/descender space below
+   themselves (classic "mystery gap" under inline replaced elements), found while measuring the
+   battle card's crest at exactly 5px taller than its own explicit 22px svg size. Fixes it everywhere
+   .crest-mini is used (hub header, battle card, league table, prematch), not just the battle card. */
+.crest-mini svg{width:36px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));display:block}
 .crest-xs svg{width:24px;height:24px;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.3))}
 
 /* ================================================================
@@ -2195,7 +2199,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    ================================================================ */
 
 /* Stadium silhouette backdrop */
-.hub-stadium-backdrop{position:relative;margin:-12px -13px 0;padding:8px 16px 4px;overflow:hidden;min-height:130px;display:flex;flex-direction:column;justify-content:flex-end}
+.hub-stadium-backdrop{position:relative;margin:-12px -13px 0;padding:6px 16px 3px;overflow:hidden;min-height:118px;display:flex;flex-direction:column;justify-content:flex-end}
 /* 2026-09-09 no-vertical-scroll redesign: -4px/-6px off the backdrop's own top/bottom padding and
    -6px off the meters' vertical padding below -- small, deliberately conservative trims on the
    persistent band's identity block since it's the highest-visibility content on the whole screen;
@@ -2249,7 +2253,7 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 /* LED news ticker — decorative marquee, static flavor text, zero JS/state
    binding. Appended as a normal flex child AFTER .hub-meters (see markup) so
    it lays out below the opaque meters panel instead of behind it. */
-.hub-news-ticker{position:relative;z-index:2;margin-top:4px;padding:3px 0;overflow:hidden;background:linear-gradient(180deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border-top:1px solid rgba(var(--hl-rgb),0.08);border-bottom:1px solid rgba(var(--hl-rgb),0.08)}
+.hub-news-ticker{position:relative;z-index:2;margin-top:2px;padding:1px 0;overflow:hidden;background:linear-gradient(180deg,rgba(var(--hl-rgb),0.04),rgba(var(--hl-rgb),0.01));border-top:1px solid rgba(var(--hl-rgb),0.08);border-bottom:1px solid rgba(var(--hl-rgb),0.08)}
 /* FIX (2026-08-02, ui-designer audit item 2): VERIFIED the marquee itself is not
    broken -- .ticker-track's content list is already duplicated once (10 spans =
    5 unique x2) and hubTickerScroll already drives a continuous translateX(0)->
@@ -2274,10 +2278,10 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 
 /* Manager header — larger, cinematic */
 .hub-header{display:flex;align-items:center;gap:12px;margin-bottom:0;padding:0;position:relative;z-index:2}
-.hub-header .team-crest{width:64px;height:64px}
-.hub-header .team-crest svg{width:64px;height:64px}
+.hub-header .team-crest{width:58px;height:58px}
+.hub-header .team-crest svg{width:58px;height:58px}
 .hub-header .manager-info{flex:1}
-.hub-header .manager-name{font-family:var(--font-d);font-size:20px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 16px rgba(0,0,0,0.4)}
+.hub-header .manager-name{font-family:var(--font-d);font-size:18px;font-weight:700;line-height:1;letter-spacing:1px;text-shadow:0 2px 16px rgba(0,0,0,0.4)}
 /* 2026-09-09 no-vertical-scroll redesign: 32px->26px (round 1) -- this text stack (name+league+
    align-tag+star-pips, 97px measured) turned out to be the actual height driver in the identity
    header, not the crest/power-ring (80px/76px respectively, both shorter, confirmed by direct
@@ -2287,8 +2291,8 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    round 1 already proved they aren't the bottleneck. */
 
 /* Power ring — larger, with label */
-.hub-power-ring{position:relative;width:64px;height:64px;flex-shrink:0}
-.hub-power-ring svg{width:64px;height:64px;transform:rotate(-90deg)}
+.hub-power-ring{position:relative;width:58px;height:58px;flex-shrink:0}
+.hub-power-ring svg{width:58px;height:58px;transform:rotate(-90deg)}
 .hub-power-ring .ring-track{fill:none;stroke:rgba(var(--hl-rgb),0.06);stroke-width:5}
 .hub-power-ring .ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s var(--spring),stroke 0.8s;filter:drop-shadow(0 0 6px var(--align-accent-dim))}
 .hub-power-ring .power-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-d);font-size:19px;font-weight:700;color:var(--white);text-shadow:0 0 16px rgba(var(--hl-rgb),0.1);line-height:1}
@@ -2337,10 +2341,10 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    layout rule below still owns flex/gap/padding; .cu-card owns background/
    border/shadow/clip-path. Extra inset consumes --border-lit for a real
    top-lit catch-light edge (previously an orphaned token — see :root). */
-.hub-meters{display:flex;gap:8px;margin:4px 0 0;padding:5px 5px;position:relative;z-index:2}
+.hub-meters{display:flex;gap:6px;margin:2px 0 0;padding:3px 4px;position:relative;z-index:2}
 .hub-meters.cu-card{box-shadow:var(--glass-shadow), inset 0 1px 0 var(--border-lit)}
-.hub-meter{flex:1;min-width:0;padding:5px 8px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:2px;transition:border-color 0.3s}
-.hub-meter .meter-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hub-meter{flex:1;min-width:0;padding:4px 7px;background:rgba(var(--hl-rgb),0.03);border:1px solid rgba(var(--hl-rgb),0.05);border-radius:4px;display:flex;flex-direction:column;gap:1px;transition:border-color 0.3s}
+.hub-meter .meter-icon{width:17px;height:17px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .hub-meter .meter-header{min-width:0}
 .hub-meter .meter-icon svg{width:12px;height:12px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hub-meter .meter-header{display:flex;align-items:center;gap:6px}
@@ -2387,11 +2391,11 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 /* (red-hero .action-tile.match::before is set earlier, near .action-tile's base
    rules — no v3-kit re-tint here, or this later rule would win the cascade and
    put the old green glow back over the CTA-red hero) */
-.action-tile .tile-title{font-size:17px;letter-spacing:2px}
+.action-tile .tile-title{font-size:15px;letter-spacing:1.5px}
 
 /* Quick tiles — color-coded per function. v3 kit: .cu-card on the row supplies the chamfered
    frame + spotlight sheen (surface-only) — padding added here since .cu-card sets no layout. */
-.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:0;padding:3px}
+.quick-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:0;padding:2px}
 .quick-tile{position:relative;overflow:hidden}
 .quick-tile svg{width:18px;height:18px;transition:all 0.3s var(--spring-bounce)}
 .quick-tile:active svg{transform:scale(1.15)}
@@ -2410,14 +2414,18 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 
 /* Next rival — battle card — dramatic VS display */
 /* v3 kit: surface (bg/border/shadow/clip-path) now comes from .cu-card.cu-red on the element (see markup) */
-.hub-battle-card{position:relative;padding:6px 8px;margin-bottom:4px;overflow:hidden;transition:all 0.3s var(--spring)}
+.hub-battle-card{position:relative;padding:3px 6px;margin-bottom:1px;overflow:hidden;transition:all 0.3s var(--spring)}
 .hub-battle-card:active{transform:scale(0.98);box-shadow:var(--elevation-1)}
 .battle-card-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(220,38,38,0.06) 0%,transparent 50%),radial-gradient(circle at 20% 20%,var(--align-accent-dim) 0%,transparent 40%),radial-gradient(circle at 80% 80%,rgba(220,38,38,0.05) 0%,transparent 40%);pointer-events:none;animation:battleBg 6s ease-in-out infinite alternate}
 @keyframes battleBg{0%{opacity:0.6}100%{opacity:1}}
-.battle-label{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--gold-bright);text-align:center;margin-bottom:3px;position:relative;display:flex;align-items:center;gap:10px;justify-content:center}
+.battle-label{font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--gold-bright);text-align:center;margin-bottom:2px;position:relative;display:flex;align-items:center;gap:10px;justify-content:center}
 .battle-label::before,.battle-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,210,63,0.2),transparent)}
 .battle-vs-row{display:flex;align-items:center;justify-content:center;gap:12px;position:relative}
-.hub-battle-card .crest-mini svg{width:22px;height:22px}
+.hub-battle-card .crest-mini svg{width:17px;height:17px}
+#battle-your-str,#rival-str{font-size:12px}
+#battle-your-name,#rival-name{font-size:10px}
+.hub-battle-card .text-sm{font-size:10px}
+.hub-battle-card .text-xs{font-size:9.5px}
 .battle-team{text-align:center;flex:1;display:flex;flex-direction:column;align-items:center}
 .battle-vs{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--white);padding:8px 16px;background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(255,210,63,0.1));border-radius:4px;border:1px solid rgba(var(--hl-rgb),0.1);letter-spacing:4px;flex-shrink:0;clip-path:var(--clip-diamond);width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:11px}
 
@@ -2427,7 +2435,15 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    All values below restyle EXISTING real data (see PROGRESS.md entry
    for the exact GS field -> element mapping). No new GS fields.
    ================================================================ */
-.hub-header.cu-card{padding:14px 16px;margin:0 0 10px}
+/* 2026-09-10: this compound-class rule (.hub-header.cu-card, specificity (0,2,0)) was silently
+   beating the v3-kit's intended .hub-header{padding:0;margin-bottom:0} (single class, (0,1,0)) on
+   the padding/margin properties specifically -- found by measuring .hub-header's own computed style
+   directly rather than trusting the backdrop's aggregate height. This rule predates the whole
+   no-vertical-scroll redesign (2026-08-02 wider-scope pass) and has been silently adding 14px*2
+   padding + 10px margin (38px) to the header this entire redesign, on top of the backdrop's own
+   padding which already handles the card's outer spacing -- doubly redundant. Zeroed out to match
+   the v3-kit's actual intent. */
+.hub-header.cu-card{padding:0;margin-bottom:0}
 
 /* Achievement rail — computed-threshold badges (renderHubAchievements()) */
 /* FIX (2026-08-02, ui-designer audit item 3): (a) contrast -- .hub-ach-name was
@@ -2547,33 +2563,33 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .hub-pass-panel:active{border-color:rgba(240,200,80,0.5)}
 .hub-pass-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--crimson))}
 /* F2 — Empire net-worth + rank line */
-.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 4px;padding:5px 13px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
+.hub-empire-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 2px;padding:3px 13px;background:linear-gradient(120deg,rgba(240,200,80,0.06),rgba(var(--ov-rgb),0.35) 60%,rgba(59,130,246,0.05));border:1px solid rgba(240,200,80,0.18);clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));position:relative;z-index:2}
 .hub-empire-line::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold-bright),var(--blue-bright))}
 .hub-empire-line .hel-label{font-family:var(--font-d);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--slip)}
-.hub-empire-line .hel-value{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--gold-bright);line-height:1;letter-spacing:0.5px;margin-top:2px}
+.hub-empire-line .hel-value{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--gold-bright);line-height:1;letter-spacing:0.5px;margin-top:1px}
 .hub-empire-line .hel-rank{text-align:right}
-.hub-empire-line .hel-rank .helr-num{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--white);line-height:1}
+.hub-empire-line .hel-rank .helr-num{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--white);line-height:1}
 .hub-empire-line .hel-rank .helr-lbl{font-size:9px;color:var(--slip);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
 /* F1 — Daily login streak */
-.hub-login-panel{margin:0 0 4px;padding:4px 13px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
+.hub-login-panel{margin:0 0 2px;padding:2px 13px;background:linear-gradient(135deg,rgba(34,212,126,0.05),rgba(var(--ov-rgb),0.4) 55%,rgba(240,200,80,0.05));border:1px solid rgba(34,212,126,0.18);clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));position:relative;overflow:hidden}
 .hub-login-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--green-bright),var(--gold-bright))}
 .hlp-row{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 /* Premium port: chamfered pips (was rounded 3px corners) + a gold-grad "today"
    cell with glow, matching the approved prototype/_scratch/hub-premium.html
    streak strip — same JS-generated markup (renderLoginPanel()), CSS only. */
-.hlp-day{position:relative;text-align:center;padding:3px 2px 2px;border:1px solid rgba(255,255,255,0.08);clip-path:var(--clip-6);background:rgba(255,255,255,0.02);opacity:0.55}
+.hlp-day{position:relative;text-align:center;padding:2px 2px 1px;border:1px solid rgba(255,255,255,0.08);clip-path:var(--clip-6);background:rgba(255,255,255,0.02);opacity:0.55}
 .hlp-day.claimed{opacity:0.5;border-color:rgba(34,212,126,0.25);background:rgba(34,212,126,0.06)}
 .hlp-day.today{opacity:1;border-color:transparent;background:var(--gold-grad);box-shadow:var(--glow-gold)}
 .hlp-day .hd-n{font-size:8px;color:var(--slip);text-transform:uppercase;letter-spacing:0.5px}
-.hlp-day .hd-r{font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--gold-bright);margin-top:1px;line-height:1.1}
+.hlp-day .hd-r{font-family:var(--font-d);font-size:10px;font-weight:700;color:var(--gold-bright);margin-top:0;line-height:1.1}
 .hlp-day.today .hd-n{color:var(--gold-ink);opacity:.75}
 .hlp-day.today .hd-r{color:var(--gold-ink)}
 .hlp-day .hd-g{display:block;font-size:8px;color:var(--blue-bright);margin-top:1px;line-height:1}
 .hlp-day.today .hd-g{color:var(--gold-ink)}
 .hlp-day .hd-tick{position:absolute;top:-5px;right:-4px;width:14px;height:14px;border-radius:50%;background:var(--green-bright);color:#04140b;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.hlp-foot{display:flex;align-items:center;gap:10px;margin-top:3px}
+.hlp-foot{display:flex;align-items:center;gap:10px;margin-top:2px}
 .hlp-streak{flex:1;min-width:0;font-family:var(--font-d);font-size:11px;font-weight:700;color:var(--green-bright);letter-spacing:0.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hlp-claim{flex:0 0 auto;text-align:center;padding:6px 16px;min-height:28px;font-family:var(--font-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;clip-path:var(--clip-6);cursor:pointer;transition:all 0.2s;background:var(--gold-grad);box-shadow:var(--bevel-top);color:var(--gold-ink);border:none}
+.hlp-claim{flex:0 0 auto;text-align:center;padding:4px 12px;min-height:20px;font-family:var(--font-d);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;clip-path:var(--clip-6);cursor:pointer;transition:all 0.2s;background:var(--gold-grad);box-shadow:var(--bevel-top);color:var(--gold-ink);border:none}
 .hlp-claim:active{transform:scale(0.97)}
 .hlp-claim.done{background:rgba(255,255,255,0.05);color:var(--slip);cursor:default;border:1px solid rgba(255,255,255,0.08)}
 /* ===== F3 — Hub monetization strip ===== */
@@ -2632,6 +2648,11 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
   #hub-tab-club .hub-achieve-rail{margin-bottom:0}
   .mafia-banner{padding:7px 12px 6px 14px;margin-bottom:4px}
   .mafia-banner .mb-text{font-size:14px}
+  /* Play tab hit 0px at 375/390 too but had ~7px left at 320 -- same pattern as Club above. */
+  #hub-tab-play .action-tiles{margin-bottom:2px}
+  #hub-tab-play .hub-battle-card{padding:2px 5px;margin-bottom:0}
+  #hub-tab-play .hub-login-panel{padding:1px 13px;margin-bottom:0}
+  #hub-tab-play .quick-tiles{padding:1px}
 }
 #hub-tab-club .hub-drawer__toggle{padding:6px 14px;gap:9px}
 #hub-tab-club .hd-ico{width:20px;height:20px}
@@ -3395,23 +3416,23 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="battle-vs-row">
           <div class="battle-team">
             <div id="battle-your-crest" class="crest-mini"></div>
-            <div class="font-d fw-600 text-sm" id="battle-your-name" style="margin-top:2px">Your Team</div>
+            <div class="font-d fw-600 text-sm" id="battle-your-name" style="margin-top:1px">Your Team</div>
             <div class="font-d fw-700 text-gold" id="battle-your-str">50</div>
           </div>
           <div class="battle-vs">VS</div>
           <div class="battle-team">
             <div id="rival-avatar" class="crest-mini"></div>
-            <div class="font-d fw-600 text-sm" id="rival-name" style="margin-top:2px">The Shark</div>
+            <div class="font-d fw-600 text-sm" id="rival-name" style="margin-top:1px">The Shark</div>
             <div class="font-d fw-700 text-red" id="rival-str">72</div>
           </div>
         </div>
-        <div class="text-xs text-slip" id="rival-align" style="text-align:center;font-style:italic;margin-top:1px"></div>
+        <div class="text-xs text-slip" id="rival-align" style="text-align:center;font-style:italic;margin-top:0"></div>
         <!-- 2026-09-10 no-vertical-scroll redesign: condensed from 3 stacked label+value blocks
              (a 2-line-tall row) into 1 line of "label value" pairs -- same 3 ids, same data, just
              one line of flow instead of two. Saves a full text row on the single biggest content
              block on Play tab. -->
-        <div style="display:flex;gap:6px;margin-top:3px;padding-top:3px;border-top:1px solid var(--border);align-items:baseline;justify-content:center;flex-wrap:wrap">
-          <span class="text-xs text-slip">Rel <span class="font-d fw-600 text-sm" id="rival-rel-label" style="color:var(--white)">Neutral</span></span>
+        <div style="display:flex;gap:6px;margin-top:1px;padding-top:1px;border-top:1px solid var(--border);align-items:baseline;justify-content:center;flex-wrap:wrap">
+          <span class="text-xs text-slip">Rel <span class="font-d fw-600 text-sm" id="rival-rel-label">Neutral</span></span>
           <span style="opacity:0.3">&middot;</span>
           <span class="text-xs text-slip">H2H <span class="font-d fw-600 text-sm" id="rival-h2h" style="color:var(--white)">0W-0L</span></span>
           <span style="opacity:0.3">&middot;</span>
