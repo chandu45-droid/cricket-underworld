@@ -1,5 +1,95 @@
 # Progress — Cricket Underworld
 
+> ## 🧭 CURRENT STATE & NEXT ACTIONS (2026-09-10, read this first)
+> This is the authoritative status entry — added specifically because the detailed entries below it
+> (a long trail of "Update 1..5" style pieces from the same multi-day session) are individually
+> accurate but easy to misread out of order, and two of them were explicitly retracted mid-session
+> before being corrected. If you only read one thing before starting work, read this one.
+>
+> ### What's done
+> **The entire no-vertical-scroll redesign is complete, verified, and pushed to `master`.** Every
+> screen reachable from the bottom nav — League, Cards, Squad, the XI-picker overlay, and both Hub
+> tabs (Play/Club) — now has genuine `scrollHeight === clientHeight` at 320px/375px/390px, confirmed
+> reproducibly with worst-case dynamic content forced (the mafia-banner's longest flavor message,
+> animations killed before measuring). This was verified with real Playwright measurement scripts,
+> not visual impression, and re-verified multiple times after fixes.
+>
+> Beyond the collapsed/default view, Hub's 3 Club-tab drawers (Store & Rewards, Club Management, The
+> Underworld) — which used to inline-expand and could push the Club tab's own scroll height up by
+> 168-1302px when opened — were converted to destination overlays (same pattern as the game's
+> existing Market/Customise overlays, which are allowed to scroll internally; that's the established,
+> pre-existing convention for drill-down screens and was never part of this redesign's zero-scroll
+> requirement, which applies specifically to the 5 main nav screens).
+>
+> **Commits, in order** (all on `master`, all pushed):
+> | Commit | What |
+> |---|---|
+> | `755392b` | League screen — 1st of 5 |
+> | `01f363e` | Cards screen — 2nd of 5 |
+> | `1d0deba` | Squad screen — 3rd of 5 |
+> | `656d459` | XI-picker overlay — 4th of 5 (different architecture: all rows always rendered, paginated via CSS visibility, not DOM-windowing, so selection state survives page flips) |
+> | `22e55e0` | Hub shared persistent-band fixes (mafia-banner, investigation/debt/ban/injury panels) — Club tab partway |
+> | `9d8aef5` | Hub Play tab trimmed hard (397px→158-180px) |
+> | `732369b` | Hub Club tab reaches genuine 0px |
+> | `c6592f8` | Hub Play tab reaches genuine 0px — **all 5 screens at true zero for the first time** |
+> | `26fc77c` | PROGRESS.md wording fix only (no code) |
+> | `a8d6be1` | Hub's 3 drawers converted to destination overlays — **the actual final piece**, closes the redesign end-to-end |
+>
+> **Two important corrections made mid-session, now resolved — don't trust anything above this entry
+> that contradicts them:**
+> 1. An earlier claim that "Play tab is done, 0px confirmed" (in the entry titled "HUB SCREEN IN
+>    PROGRESS...") was **wrong** — it was verified under a test state that happened to hide the
+>    mafia-banner/next-match content. Retracted, then genuinely fixed in `c6592f8`.
+> 2. A "65px residual, unchanged by a structural fix" finding was **measurement noise** from an
+>    unkilled CSS animation racing the measurement script, not a real stall. Root-caused and the
+>    correct (much larger, ~254-296px) baseline was established before continuing.
+>
+> Two real, previously-invisible **CSS specificity bugs** were also found and fixed during this work
+> (both worth knowing about if touching Hub CSS again): a compound-class rule (`.hub-drawer-row
+> .hub-drawer__toggle`) losing to a higher-specificity ID rule on just the `padding` property while
+> its other declarations still applied — and a much bigger one, `.hub-header.cu-card{padding:14px
+> 16px;margin:0 0 10px}` (a 2026-08-02 leftover), silently beating the intended `.hub-header{padding:
+> 0}` for the entire redesign, worth 38px recovered in one fix once found. Lesson banked: **CSS
+> cascade conflicts resolve per-property, not per-rule** — when a section won't shrink the amount an
+> edit should produce, read `getComputedStyle()` on the actual element before trimming harder on the
+> same rule. A third bug (a missing closing `</div>` that pushed `#bottom-nav` inside the wrong
+> container) was found and fixed in the same session, in `a8d6be1`.
+>
+> ### Test status
+> Full suite: **195 tests across 6 spec files** (`smoke`, `bugfix-2026-08-03`, `bugfix-2026-09-09`,
+> `features-10k`, `p15-visual`, `comprehensive`) — 194 pass reliably, 1 (`field placement setting
+> appears in bowler picker` in `smoke.spec.js`) is a pre-existing environmental flake unrelated to any
+> of this work, confirmed passing in isolation every time it's been re-run this session (at least 4
+> times). Not a real failure — don't chase it without a founder ask.
+>
+> **A real environment issue surfaced late in the session, not a code problem**: background test runs
+> longer than ~5-10 minutes were being killed externally (even a plain static file server with
+> nothing to do with tests got killed once). Worked around by running the suite in smaller synchronous
+> chunks that each finish before getting cut off, rather than one long backgrounded run. If this
+> resurfaces next session, use the same chunking approach (by spec file, or by `--grep` on describe
+> block names) instead of retrying one giant run repeatedly.
+>
+> ### Next actions
+> 1. **Nothing is currently blocking or in-progress.** `feature_list.json` shows 46/46 features
+>    passing (last touched 2026-07-11, predates this whole redesign — the redesign was a layout/UX
+>    pass across existing screens, not a new feature, so it didn't need new entries there; the file's
+>    stale test-count in its `summary` field was refreshed as part of this update, see below).
+> 2. **No founder-flagged design-consistency items remain open** — the two from the 2026-08-03 audit
+>    (captain bonus eligibility gating, Match Fix Lose's loyalty-check skip) were both fixed earlier
+>    in this same multi-day session (see the "🎖️ DESIGN-CONSISTENCY FIXES" entry below). RTM and the
+>    Planted Agent mole mechanic were formally cut from the GDD (see "✂️ RTM + PLANTED AGENT" entry).
+> 3. **Optional, not urgent**: the leftover `_scratch/measure/` directory (throwaway Playwright
+>    verification scripts + screenshots used throughout this redesign) is untracked/gitignored and
+>    harmless to leave, but could be deleted for tidiness — a sandbox permission blocked `rm -rf` from
+>    this session; a manual delete or a differently-scoped removal would clear it.
+> 4. **Natural next step for this project, if the founder wants to keep building**: no specific item
+>    is queued. This would be a good point to either (a) run a fresh `/design-review` pass now that
+>    Hub's whole layout has changed significantly, to catch anything the redesign might have missed
+>    visually, or (b) pick up whatever the founder's actual next priority is — nothing in this file
+>    implies a specific next feature is expected.
+>
+> ---
+
 > ### 📐 NO-VERTICAL-SCROLL REDESIGN — FINAL PIECE: drawer destination-overlay conversion (2026-09-10)
 > The one loose end left after the "ALL 5 SCREENS COMPLETE" milestone (see that entry further down):
 > Hub's 3 Club-tab drawers (Store & Rewards, Club Management, The Underworld) still pushed Club tab's

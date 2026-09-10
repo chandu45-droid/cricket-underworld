@@ -1,6 +1,6 @@
 {
   "version": "3.1",
-  "updated": "2026-07-11",
+  "updated": "2026-09-10",
   "legend": {
     "states": ["not_started", "active", "blocked", "passing"],
     "verification": "Each feature has an executable verification command. State advances to 'passing' ONLY when verification succeeds."
@@ -381,6 +381,6 @@
     "active": 0,
     "blocked": 0,
     "not_started": 0,
-    "automated_test_count": "149 Playwright E2E tests across 4 spec files (13 in features-10k.spec.js incl. store-safety guard; smoke Vault test rewritten to assert no-grant while billing off)"
+    "automated_test_count": "195 Playwright E2E tests across 6 spec files (smoke, bugfix-2026-08-03, bugfix-2026-09-09, features-10k, p15-visual, comprehensive) -- 194 reliable, 1 pre-existing environmental flake (bowler-picker field placement test, passes in isolation). All 46 tracked features still passing after the 2026-09-09/10 no-vertical-scroll redesign (League/Cards/Squad/XI-picker/Hub, see PROGRESS.md) -- no feature entries needed changes since it was a layout/UX pass, not new functionality."
   }
 }
