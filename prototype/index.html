@@ -3824,6 +3824,14 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
         <div class="cu-ribbon-wrap" style="margin:0"><div class="cu-ribbon"><span>Your Squad</span></div></div>
         <div class="squad-count" id="squad-count">0/15</div>
       </div>
+      <!-- 2026-09-10 design-review fix (cricket-consultant): the 3 role-group ribbon headers removed
+           in the 2026-09-09 pagination redesign took the only aggregate "how many bowlers do I have"
+           view with them -- per-row .mini-role-chip only tells you one player's role at a time. This
+           mirrors the XI-picker's own #ss-roles counter strip (same classes, reused verbatim, zero new
+           CSS) so it's an established in-codebase pattern, not a new one, and -- like that strip --
+           lives outside the paginated list so it's unaffected by which page you're on. Needs a
+           Playwright re-check against Squad's zero-scroll invariant -- not run here (founder-gated). -->
+      <div class="ss-roles" id="squad-roles" style="margin:4px 0 0"></div>
       <div class="team-stats-row cu-card">
         <div class="team-stat stat-bat"><div class="ts-val text-green" id="ts-bat">-</div><div class="ts-label">Batting</div></div>
         <div class="team-stat stat-bwl"><div class="ts-val text-gold" id="ts-bwl">-</div><div class="ts-label">Bowling</div></div>
@@ -8189,6 +8197,17 @@ function updateSquadScreen() {
   if ($('morale-bar-fill')) $('morale-bar-fill').style.width = m + '%';
   var roleOrder = ['Top-Order Batter','Middle-Order Batter','All-Rounder','Wicket-Keeper','Fast Bowler','Spin Bowler'];
   var sorted = GS.squad.slice().sort(function(a,b) { return roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role); });
+  // 2026-09-10 design-review fix: aggregate role-count strip, same pattern/classes as the XI-picker's
+  // #ss-roles (renderSSRoles), just counting the whole owned squad instead of the current selection.
+  if ($('squad-roles')) {
+    var sqRoles = {};
+    GS.squad.forEach(function(p) { var rs = ROLE_SHORT[p.role] || 'AR'; sqRoles[rs] = (sqRoles[rs]||0) + 1; });
+    var sqRoleHtml = '';
+    ['BAT','WK','AR','PACE','SPIN'].forEach(function(r) {
+      sqRoleHtml += '<div class="ss-role-tag' + (sqRoles[r] ? ' has' : '') + '">' + r + ' ' + (sqRoles[r]||0) + '</div>';
+    });
+    $('squad-roles').innerHTML = sqRoleHtml;
+  }
   // 2026-09-09 no-vertical-scroll redesign: the 3 role-group ribbon headers (Batters/All-Rounders/
   // Bowlers) are gone -- under pagination a page could open mid-way through a group, which reads
   // worse than no header at all. Each row's own .mini-role-chip (renderPlayerMini) already shows
