@@ -332,8 +332,7 @@
 > method and rendered identically in both — fixed by calling the real `applyTheme()`/`GS.darkTheme`
 > path instead of hacking the `data-theme` attribute directly).
 >
-> **Club tab is genuinely done.** Full suite run in progress to confirm before committing; not yet
-> committed as of this entry.
+> **Club tab is genuinely done.** Full suite confirmed 194/194 green afterward; committed as `732369b`.
 >
 > **Play tab is NOT done — still ~158-180px, entirely untouched since Update 4.** That's the next
 > and last piece of the whole 5-screen no-vertical-scroll redesign.
@@ -381,12 +380,22 @@
 > {320,375,390}.png`) — clean, legible, no clipping, no cramping, real breathing room even at the
 > tightest width. This is not a "technically zero but ugly" result.
 >
-> **Full suite run in progress to confirm before committing.** Once green: this closes the entire
-> no-vertical-scroll redesign that started with League. Next session (or later this one) should do a
-> final closing summary entry once the drawer-open destination-overlay conversion (the one piece
-> explicitly deferred throughout — the ~1600-2221px overflow when a Club-tab drawer is expanded, a
-> different problem from anything measured in this whole entry) is also done, since that's the one
-> loose end left from the original redesign scope.
+> **Test verification took a detour worth recording**: the full suite kept getting killed by something
+> external to the test run itself — backgrounded processes over roughly 5-10 minutes were being
+> terminated mid-run, including a plain static file server with nothing to do with tests, across 3
+> consecutive attempts. Not a code or test problem. Worked around it by running every spec file to
+> completion in smaller synchronous chunks that could each finish before getting cut off: the
+> Hub-focused subset (42 tests), smoke+bugfix+features-10k+p15-visual (84 tests, the same single
+> known-flaky bowler-picker test confirmed passing in isolation again), and `comprehensive.spec.js`
+> in full (110 tests, plus a redundant 69-test partial re-run that also passed). Every file accounted
+> for, all green — equivalent coverage to one full run, just assembled from parts. Committed as
+> `c6592f8`, pushed.
+>
+> **This closes the entire no-vertical-scroll redesign that started with League.** Remaining loose
+> end, explicitly deferred throughout and unchanged in scope: the drawer inline-expand → destination-
+> overlay conversion (the ~1600-2221px overflow when a Club-tab drawer is actually opened, a different
+> problem from every collapsed-state number measured in this whole entry). That's the one piece left
+> before the redesign is 100% done end-to-end, not just at the collapsed/default state.
 >
 > **Corrected next steps (superseded twice now — this is the current version, from Update 3):**
 > 1. Play tab needs its own dedicated trim/structural pass against its real ~341-356px overflow —
