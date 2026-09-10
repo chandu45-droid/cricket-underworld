@@ -990,6 +990,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .ss-role-tag{font-family:var(--font-b);font-size:10px;font-weight:700;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:0.5px;background:rgba(var(--hl-rgb),0.04);color:var(--slip);border:1px solid rgba(var(--hl-rgb),0.06)}
 .ss-role-tag.has{color:var(--green-bright);border-color:rgba(34,212,126,0.15);background:rgba(34,212,126,0.05)}
 .ss-player-list{flex:1;overflow-y:auto;padding:6px 16px;-webkit-overflow-scrolling:touch}
+.ss-role-divider{font-family:var(--font-b);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--slip);padding:4px 2px 2px;opacity:0.7}
+.ss-role-divider:first-child{padding-top:0}
 /* 2026-09-09 no-vertical-scroll redesign: trimmed vertical padding 12px->6px -- with only one
    .ss-page's 5 rows visible at a time, this container's own top/bottom padding was enough on its
    own to keep scrollHeight > clientHeight by a small margin at 320px, meaning a tiny residual
@@ -9432,9 +9434,22 @@ function renderSquadSelect(sel) {
   if (ssPage >= totalSSPages) ssPage = totalSSPages - 1;
   if (ssPage < 0) ssPage = 0;
   var html = '';
+  // 2026-09-10 design-review fix (cricket-consultant): role clusters can straddle a page boundary
+  // (e.g. 6 openers -> 5 on page 1, 1 alone atop page 2) with nothing marking that. Not restructuring
+  // SS_PER_PAGE/page-grouping itself -- that's the mechanism the "selection survives page flips" fix
+  // depends on -- just a small inline divider wherever the role actually changes, so a role that DOES
+  // span two pages at least reads as "still the same group" via its own label reappearing, instead of
+  // looking like an arbitrary 5-player chunk. Needs a Playwright re-check that this doesn't push any
+  // page over its per-page height budget -- not run here (founder-gated).
+  var ssLastRole = null;
   sorted.forEach(function(p, idx) {
     var pageNum = Math.floor(idx / SS_PER_PAGE);
     if (idx % SS_PER_PAGE === 0) html += '<div class="ss-page" data-page="' + pageNum + '">';
+    if (p.role !== ssLastRole) {
+      ssLastRole = p.role;
+      var ssRoleCount = sorted.filter(function(q) { return q.role === p.role; }).length;
+      html += '<div class="ss-role-divider">' + p.role + ' (' + ssRoleCount + ')</div>';
+    }
     var isSel = sel.indexOf(p.id) >= 0;
     var isCap = GS.captainId === p.id;
     var ovr = Math.round((p.bat + p.bwl) / 2);
