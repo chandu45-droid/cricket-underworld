@@ -9189,12 +9189,28 @@ function pickBowler(bowlers, phase, overNum) {
   // audit deliberately added). Now: among lineup bowlers who are eligible (under cap, not the
   // last bowler), take whoever has bowled fewest balls, tie-broken by the player's chosen order.
   // That rotates through the whole lineup IN ORDER and can't exceed the cap.
-  if (match.bowlerLineup && match.bowlerLineup.length > 0) {
+  // 2026-09-11 systems-audit fix (docs/FINDINGS.md systems #2, found by the cricket audit).
+  // The block below applied YOUR locked lineup regardless of which side was bowling, and ignored
+  // its own `bowlers` argument entirely -- so if you locked a lineup and batted first, the entire
+  // opposition attack was your own squad, and your players showed up in the opponent's bowling
+  // figures. Verified in-browser before fixing: locked lineup MINE_2/MINE_4..., opposition squad
+  // Ravi Nair/Nitish Agarwal..., and the bowlers who actually bowled at me were MINE_2, MINE_4,
+  // MINE_2, MINE_4. This was PRE-EXISTING (the original .find() version had no side-guard either),
+  // but the 2026-09-11 rotation fix rewrote this branch and inherited it -- that fix reasoned about
+  // "which bowler, in what order" and never asked "whose bowler".
+  // Two guards now: (a) the lineup is only consulted when YOU are the bowling side, and (b) it is
+  // intersected with the `bowlers` list actually passed in for the side that's bowling, so a player
+  // who isn't on the bowling side can never be selected even if the lineup somehow holds them.
+  var youAreBowling = match.batting !== 'you';
+  if (youAreBowling && match.bowlerLineup && match.bowlerLineup.length > 0) {
     var ballsBowled = {};
     var bowlingSide = match.batting === 'you' ? 'opp' : 'you';
     var bwlStats = (match.scorecard && match.scorecard[bowlingSide]) ? match.scorecard[bowlingSide].bowlers : [];
     bwlStats.forEach(function(b) { ballsBowled[b.name] = b.balls; });
+    var sideNames = {};
+    (bowlers || []).forEach(function(b) { sideNames[b.name] = true; });
     var lineupEligible = match.bowlerLineup.filter(function(b) {
+      if (!sideNames[b.name]) return false; // must actually be on the bowling side
       if (maxed[b.name]) return false;
       if (match.lastBowler && b.name === match.lastBowler.name) return false;
       return true;
@@ -10780,7 +10796,13 @@ function skipMatch() {
     var phase = ov < 6 ? 0 : ov < 15 ? 1 : 2;
     var batter = match.batXI[Math.min(cWkts, match.batXI.length - 1)];
     if (!batter) { endMatch(); return; }
-    if (bIO === 0) match.curBowler = pickBowler(match.bowlers, phase, ov);
+    // 2026-09-11 systems-audit fix (docs/FINDINGS.md systems #5, cricket audit): skipMatch() set
+    // curBowler but NEVER match.lastBowler, so pickBowler()'s anti-consecutive-over filter compared
+    // against a frozen stale name for the whole match -- on the DEFAULT fast-forward path most
+    // players will use. Traced: an XI with one Fast Bowler had him bowl overs 0,1,2,3 back-to-back
+    // until the 24-ball cap finally pulled him. Bowling consecutive overs is illegal in cricket.
+    // The live ball-by-ball path already maintained lastBowler correctly; skip simply didn't.
+    if (bIO === 0) { match.lastBowler = match.curBowler; match.curBowler = pickBowler(match.bowlers, phase, ov); }
     if (!match.curBowler) match.curBowler = pickBowler(match.bowlers, phase, ov);
     var outcome = calcBallOutcome(batter, match.curBowler, match.pitchType, phase, GS.strategy, GS.morale, isYou, match.innings, match.target, cRuns, match.ball);
     var runs = outcome.runs, wkt = outcome.wicket;
