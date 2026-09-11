@@ -96,7 +96,17 @@ the +300 rewarded-ad purse boost can drive `GS.coins` negative (purse is aliased
 `:9028`); and the auction can never offer a common or uncommon card (`slice(0,12)` off a rarity-desc
 sort — **58% of the player pool is auction-invisible**).
 
-**Status: awaiting founder triage.** Nothing fixed yet — 21 red findings across three systems is too
+**Status: 3 of 21 red fixed 2026-09-11 (session ended at context limit) — 18 still open.**
+See `SESSION-HANDOFF.md` for the prioritised resume list and the two design decisions the founder
+has already made but which aren't implemented yet.
+
+| Fixed | Commit |
+|---|---|
+| #1 Pack coin-printer — `acqCost` provenance + `getSellPrice()`; verified +624/flip → **−207** over 40 real cycles; 2 permanent regression tests added so a third rediscovery isn't possible | `b3d27e3` |
+| #2 Locked lineup bowled for the OPPOSITION — verified in-browser both directions. Pre-existing (git-checked), but inherited by this session's own rotation fix, which asked "which bowler, in what order" and never "whose bowler" | `a332db7` |
+| #5 `skipMatch()` never set `lastBowler` → consecutive overs (illegal) on the DEFAULT fast-forward path | `a332db7` |
+
+**Original triage note (still applies to the remaining 18):** 21 red findings across three systems is too
 much to act on blind, and at least two (rubber-banded rival generation, archetypes-don't-exist)
 are design decisions rather than patches. Suggested order if acting: the pack loop first (cheapest
 fix, largest blast radius), then the bowling side-leak and `skipMatch` lastBowler (both are
