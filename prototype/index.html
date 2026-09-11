@@ -560,6 +560,12 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .btn.full{width:100%}
 .btn.lg{padding:16px 40px;font-size:18px;min-height:54px}
 .btn:disabled,.btn.disabled{opacity:0.35;pointer-events:none;filter:grayscale(0.5)}
+/* 2026-09-11 audit fix (docs/FINDINGS.md, systemic afford-state gap): "you can't afford this" state
+   for spend controls. Deliberately NOT .disabled -- that sets pointer-events:none, which would
+   swallow the tap, and this codebase's established convention is tap-and-explain (the tap still
+   fires the handler's own specific toast; see the DRS .unavailable note). This only changes how the
+   control LOOKS, never whether it responds. Applied via markAffordable(). */
+.cant-afford{opacity:0.45;filter:grayscale(0.65)}
 .btn-hero{background:var(--cta-red);color:#fff;box-shadow:var(--cta-red-shadow);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
 .btn-hero:active{box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.25),0 4px 10px rgba(204,17,0,0.35)}
 
@@ -6586,6 +6592,30 @@ window.confirmAction = confirmAction;
 // change with it. Deliberately does NOT block the click: tapping a locked card still fires the
 // handler's own specific toast, matching this codebase's established tap-and-explain convention
 // (see the DRS .unavailable note) rather than silently swallowing the tap.
+// 2026-09-11 audit fix (docs/FINDINGS.md, systemic afford-state gap). Every spend control in the
+// game shared one anti-pattern: the button rendered identically whether or not you could afford it,
+// the check lived only inside the click handler, and failure surfaced only as a toast that fades in
+// 2.5s. Same root cause as the founder's original calibration bug (state exists in GS; the control
+// representing it never reflects that state) -- just applied to affordability. One helper instead of
+// ~10 separate patches.
+//
+// Returns true when affordable, so callers can use it inline while building markup.
+// currency: 'coins' | 'gems' | 'black'
+function canAfford(cost, currency) {
+  var have = currency === 'gems' ? GS.gems : currency === 'black' ? GS.blackMoney : GS.coins;
+  return have >= cost;
+}
+// Class string helper for innerHTML-built controls (most of this codebase builds markup as strings).
+function affordClass(cost, currency) {
+  return canAfford(cost, currency) ? '' : ' cant-afford';
+}
+// DOM helper for controls that already exist as elements.
+function markAffordable(el, cost, currency) {
+  if (!el) return;
+  el.classList.toggle('cant-afford', !canAfford(cost, currency));
+}
+window.canAfford = canAfford; window.affordClass = affordClass; window.markAffordable = markAffordable;
+
 function updateFacilitiesPanel() {
   if (!$('pep-lock')) return;
   var setCard = function(cardId, lockId, reason) {
@@ -7696,13 +7726,13 @@ function showBhaiScreen() {
   if (f.haftaDue <= 0) {
     h += '<div class="str-hafta str-hafta-due"><div class="str-hafta-head">HAFTA DUE</div>' +
          '<div class="str-hafta-desc">His boys are at the gate. Pay up to keep the stands friendly.</div>' +
-         '<div class="str-favor-btn" id="str-pay-hafta">Pay Hafta · ' + haftaAmt + '</div></div>';
+         '<div class="str-favor-btn' + affordClass(haftaAmt, 'coins') + '" id="str-pay-hafta">Pay Hafta · ' + haftaAmt + '</div></div>';
   } else {
     h += '<div class="str-hafta"><div class="str-hafta-head">Hafta in ' + f.haftaDue + ' match' + (f.haftaDue === 1 ? '' : 'es') + '</div>' +
          '<div class="str-hafta-desc">Keep it flowing and the home end stays yours.</div></div>';
   }
   // Court button
-  h += '<div class="str-court-btn" id="str-court-btn">Pay Your Respects · 130</div>';
+  h += '<div class="str-court-btn' + affordClass(130, 'coins') + '" id="str-court-btn">Pay Your Respects · 130</div>';
   // Favours
   h += '<div class="cu-ribbon-wrap" style="margin:14px 0 4px"><div class="cu-ribbon"><span>Available Favors</span></div></div>' +
        '<div class="str-favors-title" style="text-transform:none;letter-spacing:0.3px;font-size:10px">Next home match</div>';
@@ -7716,7 +7746,7 @@ function showBhaiScreen() {
          '<div class="str-favor-desc">' + fav.desc + '</div>';
     if (lineup) h += '<div class="str-favor-lock">Something is already lined up for next match</div>';
     else if (!unlocked) h += '<div class="str-favor-lock">Needs +' + fav.need + ' respect — court him first</div>';
-    else h += '<div class="str-favor-btn" data-fav="' + fav.key + '">Arrange it</div>';
+    else h += '<div class="str-favor-btn' + affordClass(fav.cost, fav.cur === 'coins' ? 'coins' : 'black') + '" data-fav="' + fav.key + '">Arrange it</div>';
     h += '</div>';
   }
   // Memory ledger
@@ -7951,7 +7981,7 @@ function showPlayerDetail(id) {
       var o = opts[ti];
       html += '<div class="pd-train-opt">' +
         '<div class="train-info"><div class="train-name">' + o.label + '</div><div class="train-desc">' + o.desc + '</div></div>' +
-        '<div class="btn btn-outline" style="padding:5px 12px;font-size:10px" data-trainstat="' + o.stat + '" data-traingain="' + (o.gain || 0) + '">' + o.cost + 'C</div></div>';
+        '<div class="btn btn-outline' + affordClass(o.cost, 'coins') + '" style="padding:5px 12px;font-size:10px" data-trainstat="' + o.stat + '" data-traingain="' + (o.gain || 0) + '">' + o.cost + 'C</div></div>';
     }
     html += '</div>';
     html += '<div class="pd-actions"><div class="btn btn-outline" id="close-detail-btn">Close</div><div class="btn pd-release" id="release-detail-btn">Release (+' + Math.round(p.bat * 2 + p.bwl * 1.5) + ' coins)</div></div>';
@@ -8517,6 +8547,10 @@ function renderPager(containerId, page, totalPages, gotoFn) {
 var cardsPage = 0;
 var CARDS_PER_PAGE = 3;
 function updateCardsScreen() {
+  // 2026-09-11 audit fix (systemic afford-state gap): the two pack tiles are static markup, so they
+  // get the DOM form of the helper on every render rather than a class baked into a string.
+  markAffordable($('pack-standard'), 500, 'coins');
+  markAffordable($('pack-premium'), 15, 'gems');
   var filterEl = document.querySelector('.card-filter.active');
   var filter = filterEl ? filterEl.getAttribute('data-filter') : 'all';
   var players = GS.squad;
@@ -9487,7 +9521,7 @@ function updateStaffPanel() {
       html += '<span class="badge rarity-' + (staffTab === 'fixer' ? 'epic' : 'rare') + '">' + (onCooldown ? 'COOLING' : 'HIRED') + '</span>';
     } else {
       var currency = s.currency === 'black' ? 'B$' : 'C';
-      html += '<div class="btn btn-outline text-xs" style="padding:4px 10px' + (staffTab === 'fixer' ? ';border-color:rgba(220,38,38,0.3);color:var(--blood)' : '') + '" data-staff="' + s.id + '">' + s.cost + currency + '</div>';
+      html += '<div class="btn btn-outline text-xs' + affordClass(s.cost, s.currency === 'black' ? 'black' : 'coins') + '" style="padding:4px 10px' + (staffTab === 'fixer' ? ';border-color:rgba(220,38,38,0.3);color:var(--blood)' : '') + '" data-staff="' + s.id + '">' + s.cost + currency + '</div>';
     }
     html += '</div>';
   }
@@ -11354,7 +11388,7 @@ function getAcademyHtml(){
   if(GS.academySlots.length===0){
     html+='<div class="text-xs text-slip mb-8">Develop youth prospects into squad players over 2-3 seasons.</div>';
     if(GS.alignment>=30){
-      html+='<div class="btn btn-outline full text-xs" id="academy-recruit-btn" style="padding:8px">Recruit Prospect (300C)</div>';
+      html+='<div class="btn btn-outline full text-xs'+affordClass(300,'coins')+'" id="academy-recruit-btn" style="padding:8px">Recruit Prospect (300C)</div>';
     } else {
       html+='<div class="text-xs text-amber">Need alignment 30+ to recruit</div>';
     }
@@ -11368,7 +11402,7 @@ function getAcademyHtml(){
         '<div class="stat-bar"><div class="fill blue" style="width:'+pct+'%"></div></div></div>';
     }
     if(GS.academySlots.length<2&&GS.alignment>=30){
-      html+='<div class="btn btn-outline full text-xs" id="academy-recruit-btn" style="padding:8px;margin-top:6px">Recruit Another (300C)</div>';
+      html+='<div class="btn btn-outline full text-xs'+affordClass(300,'coins')+'" id="academy-recruit-btn" style="padding:8px;margin-top:6px">Recruit Another (300C)</div>';
     }
   }
   html+='</div>';
@@ -11943,10 +11977,10 @@ function renderMarket() {
           '<div class="mi-role">' + p.role + '</div>' +
           '<div class="mi-stats">B <span>' + p.bat + '</span> W <span>' + p.bwl + '</span> F <span>' + p.fld + '</span></div></div>' +
           '<div class="mi-price"><div class="mi-cost">' + price + ' C</div>' +
-          '<div class="mi-action buy" data-buyid="' + p.id + '">Buy</div></div></div>';
+          '<div class="mi-action buy' + affordClass(price, 'coins') + '" data-buyid="' + p.id + '">Buy</div></div></div>';
       });
     }
-    $('market-refresh-area').innerHTML = '<div class="btn btn-outline full text-xs" id="market-refresh-btn" style="padding:10px">Refresh Listings (100C)</div>';
+    $('market-refresh-area').innerHTML = '<div class="btn btn-outline full text-xs' + affordClass(100, 'coins') + '" id="market-refresh-btn" style="padding:10px">Refresh Listings (100C)</div>';
   } else {
     if (GS.squad.length === 0) {
       html = '<div class="empty-state">' +
