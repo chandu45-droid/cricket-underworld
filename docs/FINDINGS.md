@@ -18,11 +18,21 @@
 
 ## 🔴 Open — needs a founder decision
 
-### 2026-09-11 — Full-game UI/UX audit (every screen, every button, every text)
+*(none currently open — the 2026-09-11 audit's 11 red items were all fixed; see ✅ Fixed. Its
+still-unfixed 🟡/🟢 items were moved down to the 🟡 section where they belong.)*
+
+---
+
+## 📋 Reference — 2026-09-11 full-game UI/UX audit (context for the entries below)
+
+> Kept as a record of *how* the audit was run and what it covered. The red findings it produced are
+> in ✅ Fixed; the yellow/green ones it produced are in 🟡 Flagged. This section is background, not
+> an open-work list.
+
 Founder ask, verbatim: *"I still didn't feel satisfied with the way the game is designed. I want a
 rigorous review of each and every screen... For example while selecting bowlers during match
 lineup... after clicking one option unable to understand which is selected."* Confirmed that exact
-bug in code first (see below), then ran 3 parallel static-code audits (no browser available — every
+bug in code first, then ran 3 parallel static-code audits (no browser available — every
 finding is read from actual markup + click-handler code, not inferred), split by screen group:
 match-flow, collection/progression, underworld/corruption. **37 findings total** (18 🔴, 12 🟡, 7 🟢),
 plus ~25 "confirmed working correctly" call-outs across all three passes — this is not a
@@ -119,7 +129,8 @@ are genuinely well executed and explicitly verified, not just assumed fine by om
     for a HIRED/COOLING badge — the better pattern exists in the same overlay. `prototype/index.html:4097-4119`
     (markup), CSS `1642-1665` (no `.used`/`.disabled`/`.maxed` variant), handlers `12077-12116`.
 
-**🟡 minor-friction findings (12 total, grouped by theme):**
+**🟡 minor-friction findings (12 total, grouped by theme) — STILL OPEN, see the 🟡 section below;
+listed here only to keep the audit's own tally intact:**
 - **Systemic afford-state gap** — ~10 spend controls across the whole game (pack purchases, training,
   Transfer Market buy + refresh, staff hires, Academy recruit, Bhai's Arrange-it/Pay-Respects/Pay-Hafta)
   all follow the identical pattern: button renders in one visual state regardless of `GS.coins`/
@@ -172,6 +183,47 @@ could not have seen. 🟡 and 🟢 items remain open and unactioned.
 ---
 
 ## 🟡 Flagged, not fixed
+
+### ⭐ Systemic: ~10 spend buttons never show affordability before you tap (2026-09-11 audit)
+- **What:** Pack purchases, training, Transfer Market buy + refresh, staff hires, Academy recruit,
+  and Bhai's Arrange-it / Pay-Respects / Pay-Hafta all share one anti-pattern: the button renders
+  identically regardless of `GS.coins` / `GS.gems` / `GS.blackMoney`, the afford check lives entirely
+  inside the click handler, and failure surfaces only as a toast that fades in 2.5s.
+- **Why it matters:** this is the same root cause as the founder's original calibration bug (state
+  exists in `GS`, the control that represents it never reflects that state) — just applied to
+  affordability instead of mode-selection.
+- **Why it's the highest-value remaining item:** one shared helper (e.g.
+  `bindAffordable(el, costFn, currencyFn)`) fixes all ~10 at once, rather than 10 separate patches.
+  The Facilities fix shipped in `1c5838f` is effectively a hand-rolled instance of this for 3
+  buttons — that pattern could be generalised.
+- **Status:** open, not started.
+
+### Other 🟡 items from the 2026-09-11 audit (open, not started)
+- Bowler-lineup lock/auto choice carried over stale across matches (`startPreMatch()` never reset
+  `match.bowlerLineup`/`bowlerSelected`). **Partially mitigated** by the `825f149` fix — the mode is
+  now visible, and `promoteBowler()` re-syncs a locked lineup — but the underlying reset-on-new-match
+  question was flagged for component-architect and hasn't been separately addressed.
+- Pack card count silently shrinks near a full squad (`count > slotsLeft`) with no on-screen notice.
+- Squad row's single bare stat number has no BAT/BWL label; All-Rounders lose their bowling stat
+  entirely on that screen.
+- Release-player / Sell-player stay tappable at the hard 3-player minimum — always fails via toast,
+  never pre-disabled. Duplicated in 2 places.
+- Two entry points to the same daily Sponsor Pack (Cards screen vs Rewards overlay) don't fully
+  refresh each other — narrow, self-correcting in practice.
+- Academy shows an explicit "Need alignment 30+" locked message; Mentorship (same alignment-gate
+  mechanic, same overlay) just silently hides instead.
+- Drop-rates overlay shows identical percentages under all 3 packs — technically correct (one pool,
+  one distribution) but easy to misread as a bug; the explanation sits far below the numbers.
+- No confirm step before irreversible mafia favors / rival bribes, vs. the two-step confirm IAP
+  purchases get. **Note:** the `confirmAction()` helper added in `25415e6` now exists and could be
+  reused here cheaply if the founder wants that consistency.
+
+### 🟢 polish items from the 2026-09-11 audit (open, not started)
+Boost button gives no upfront explanation before first use · Mafia Intel auction panel is fully dead
+code, never shown · Hub's Auction-tile subtitle is hardcoded and never updates (unlike its sibling
+Match-tile) · Season Stats icon-only button relies on a hover-only `title` tooltip, inert on mobile
+touch · `.tribunal-overlay` CSS has no matching element anywhere · stale code comment claiming DRS's
+`.unavailable` sets `pointer-events:none` when it doesn't (zero player-facing effect).
 
 ### Facilities' Scout Report buried 3 levels deep with no discovery hint
 - **Found:** 2026-09-10, `/design-review` (game-designer agent).
