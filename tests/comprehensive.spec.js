@@ -717,12 +717,42 @@ test.describe('League', () => {
     expect(name).toContain('My Team');
   });
 
-  test('promotion zone highlighted for top 2', async ({ page }) => {
+  // 2026-09-11 audit fix (docs/FINDINGS.md #3): this test used to be called "promotion zone
+  // highlighted for top 2" and only asserted that >=1 .promotion row existed, with a 14-0 record
+  // injected -- which passed under BOTH the old (wrong, rank-based) zone rule and the corrected
+  // (win-rate-pace) one, while its name documented the rule the game never actually implemented.
+  // Rewritten to pin the REAL endSeason() rule and, critically, to fail if zones ever revert to
+  // being rank-based.
+  test('promotion/relegation zones follow the real win-rate rule, not table rank', async ({ page }) => {
     await page.goto('/');
     await injectState(page, { wins: 14, losses: 0, matchNum: 14 });
     await navigateTo(page, 'league');
-    const promRows = await page.locator('.league-row.promotion').count();
-    expect(promRows).toBeGreaterThanOrEqual(1);
+    // A 100%-win record is unambiguously on promotion pace.
+    await expect(page.locator('.league-row.you')).toHaveClass(/promotion/);
+
+    // The regression guard that actually matters: thresholds must agree with endSeason()'s rule
+    // (winRate >= 0.57 promotes, < 0.29 relegates) for every possible win count.
+    const mismatches = await page.evaluate(() => {
+      const bad = [];
+      for (let w = 0; w <= 14; w++) {
+        const realPromo = (w / 14) >= 0.57;
+        const realReleg = (w / 14) < 0.29;
+        const uiPromo = w >= window.leagueWinsToPromote();
+        const uiReleg = w <= window.leagueMaxWinsRelegated();
+        if (realPromo !== uiPromo || realReleg !== uiReleg) bad.push({ w, realPromo, uiPromo, realReleg, uiReleg });
+      }
+      return bad;
+    });
+    expect(mismatches, 'UI thresholds must match endSeason()').toEqual([]);
+
+    // Rank-independence: with every team on an identical losing record, SOMEBODY is still ranked
+    // #1, but nobody is on promotion pace -- so a rank-based implementation would light up the top
+    // rows here and this assertion would fail.
+    const zonesWhenAllLosing = await page.evaluate(() => {
+      return { promo: window.leagueZoneFor(1, 9), releg: window.leagueZoneFor(1, 9) };
+    });
+    expect(zonesWhenAllLosing.promo).not.toContain('promotion');
+    expect(zonesWhenAllLosing.releg).toContain('relegation');
   });
 });
 
