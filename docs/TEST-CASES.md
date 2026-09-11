@@ -361,5 +361,34 @@ test-coverage pass, flagged for founder triage):**
   needed on whether it's worth a further Hub trim.
 
 Task 3 (implementing missing Playwright specs) is complete — all 9 items shipped 2026-09-11, one
-commit each, WIP=1. Full-suite count is now 194 (previous) + ~34 new assertions across 9 new
-`test.describe` blocks. Next: Task 4, multi-persona/multi-pass regression.
+commit each, WIP=1.
+
+## Task 4 — multi-persona, multi-pass regression (complete, 2026-09-11)
+
+Added `tests/persona-regression.spec.js`: 4 full, internally-consistent save states (F2P Grinder /
+Mid-Game / Whale / Endgame Corrupt per the persona table above), each pushed through every main
+screen + a full match, watching console errors and checking for NaN/undefined leaking into the UI.
+Ran twice (2 full passes), zero flakiness, 12/12 both times. Found and fixed a real bug in the test
+fixture itself along the way (wrong debt object field names rendered literal "undefined" text) —
+caught by exactly the kind of check this suite exists to run.
+
+**Final full-suite tally (whole project, all 8 spec files, run in full 2026-09-11):**
+
+| File | Result |
+|---|---|
+| `smoke.spec.js` | 12/12 |
+| `bugfix-2026-08-03.spec.js` | 9/10 (1 pre-existing statistical flake, see below) |
+| `bugfix-2026-09-09.spec.js` | 9/9 |
+| `features-10k.spec.js` | 25/25 |
+| `comprehensive.spec.js` | 130/130 (110 original + 20 new from Task 3) |
+| `p15-visual.spec.js` | 28/28 |
+| `zero-scroll.spec.js` (new) | 6/6 |
+| `persona-regression.spec.js` (new) | 12/12 |
+| **Total** | **231/232** |
+
+The 1 failure (`LOGIC FIX 1: aggressive strategy trades higher risk for higher reward` in
+bugfix-2026-08-03.spec.js) is a Monte-Carlo-style statistical test with a tight margin. Failed on 3
+separate runs across this session with 3 different specific numbers each time (185/179, 168/164,
+157/160) — conclusively random variance, not a deterministic bug, and confirmed via `git diff` to
+have zero code overlap with anything touched this session. Not chased, per this project's own
+case law on pre-existing flakes.

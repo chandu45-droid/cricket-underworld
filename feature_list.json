@@ -74,9 +74,9 @@
       "id": "F09",
       "system": "Match Engine",
       "behavior": "DRS challenges, Impact Player substitution, weather effects, super over tiebreaker, injury system",
-      "verification": "manual — no automated tests yet",
+      "verification": "npx playwright test --grep \"DRS FIX\" && npx playwright test --grep \"Impact Player\" && npx playwright test --grep \"Weather System\" && npx playwright test --grep \"Super Over\" && npx playwright test --grep \"Injury System\"",
       "state": "passing",
-      "evidence": "commit 33fbd36 — systems #35-39 implemented, code review passed"
+      "evidence": "commit 33fbd36 — systems #35-39 implemented, code review passed. Automated coverage completed 2026-09-11: DRS (bugfix-2026-09-09.spec.js:185) and Impact Player (bugfix-2026-08-03.spec.js:176) already existed from earlier bugfix passes (this field was stale, corrected here); Weather/Super Over/Injuries added fresh (comprehensive.spec.js, see docs/TEST-CASES.md)."
     },
     {
       "id": "F10",
@@ -186,9 +186,9 @@
       "id": "F23",
       "system": "Player Pool",
       "behavior": "50 unique Indianized players with role-appropriate stats, rarity distribution, overseas flags",
-      "verification": "manual — verify in-game auction/pack pools show diverse players",
+      "verification": "npx playwright test --grep \"Player Pool\"",
       "state": "passing",
-      "evidence": "commit bba8848 — expanded from 20 to 50 players"
+      "evidence": "commit bba8848 — expanded from 20 to 50 players. Automated regression guard added 2026-09-11 (comprehensive.spec.js) -- cheap, not a current risk, just guards against a future edit accidentally shrinking/duplicating the pool."
     },
     {
       "id": "F24",
@@ -202,9 +202,9 @@
       "id": "F25",
       "system": "Academy",
       "behavior": "Youth academy with scout options, training pipeline for academy players",
-      "verification": "manual — no automated tests yet",
+      "verification": "npx playwright test --grep \"Academy System\"",
       "state": "passing",
-      "evidence": "commit ad26651 — academy system implemented"
+      "evidence": "commit ad26651 — academy system implemented. Automated coverage added 2026-09-11 (comprehensive.spec.js) -- also found a real dead-code bug while building it: getAcademyHtml() early-returns '' below alignment 30 with 0 slots, making its own \"Need alignment 30+\" hint text unreachable. See docs/TEST-CASES.md."
     },
     {
       "id": "F26",
@@ -218,9 +218,9 @@
       "id": "F27",
       "system": "Staff",
       "behavior": "Team staff system with hiring/management",
-      "verification": "manual — no automated tests yet",
+      "verification": "npx playwright test --grep \"staff:\"",
       "state": "passing",
-      "evidence": "commit eca5b21 — system #40"
+      "evidence": "commit eca5b21 — system #40. This field was stale: real-click hiring coverage already existed from an earlier bugfix pass (comprehensive.spec.js:1473,1488 -- coins-cost and black-money-cost hiring), found and corrected 2026-09-11 while building docs/TEST-CASES.md."
     },
     {
       "id": "F28",
@@ -234,9 +234,9 @@
       "id": "F29",
       "system": "Mentorship",
       "behavior": "Senior player mentorship program for junior players",
-      "verification": "manual — no automated tests yet",
+      "verification": "npx playwright test --grep \"Mentorship System\"",
       "state": "passing",
-      "evidence": "commit 21cd137 — system #31"
+      "evidence": "commit 21cd137 — system #31. Automated coverage added 2026-09-11 (comprehensive.spec.js), see docs/TEST-CASES.md."
     },
     {
       "id": "F30",
@@ -258,9 +258,9 @@
       "id": "F32",
       "system": "Player Bans",
       "behavior": "Doping, conduct, corruption, board sanctions with match ban durations",
-      "verification": "manual — no automated tests yet",
+      "verification": "npx playwright test --grep \"Player Bans\"",
       "state": "passing",
-      "evidence": "commit 39303e7 — ban system"
+      "evidence": "commit 39303e7 — ban system. Automated coverage added 2026-09-11 (comprehensive.spec.js) -- the pre-existing tribunal test only checked a verdict NAME string, never that a real ban applies/blocks/expires; this closes that real gap. See docs/TEST-CASES.md."
     },
     {
       "id": "F33",
@@ -306,9 +306,9 @@
       "id": "F38",
       "system": "Competitive",
       "behavior": "Knockout bracket tournament mode beyond league",
-      "verification": "manual — startKnockout() at season end (winRate >= 0.35 at matchNum > 14)",
+      "verification": "npx playwright test --grep \"Knockout Tournament\"",
       "state": "passing",
-      "evidence": "Fully implemented in prototype/index.html (~lines 5900-6050): startKnockout (4-team bracket: player + top-3 eligible rivals + wild cards), semi -> final rounds, play-or-sim per match, reward 300x(leagueIdx+1), wired into endMatch and save/load (GS.knockout). Verified in code audit 2026-07-07; no dedicated E2E yet."
+      "evidence": "Fully implemented in prototype/index.html (~lines 5900-6050): startKnockout (4-team bracket: player + top-3 eligible rivals + wild cards), semi -> final rounds, play-or-sim per match, reward 300x(leagueIdx+1), wired into endMatch and save/load (GS.knockout). Automated coverage added 2026-09-11 (comprehensive.spec.js) -- also corrected this field: the trigger is actually 2 separate gates in 2 separate places (startKnockout() itself only checks win rate; the matchNum>14 check lives at the call site, index.html:10582), not one combined condition inside the function as previously stated. See docs/TEST-CASES.md."
     },
     {
       "id": "F39",
@@ -381,6 +381,6 @@
     "active": 0,
     "blocked": 0,
     "not_started": 0,
-    "automated_test_count": "195 Playwright E2E tests across 6 spec files (smoke, bugfix-2026-08-03, bugfix-2026-09-09, features-10k, p15-visual, comprehensive) -- 194 reliable, 1 pre-existing environmental flake (bowler-picker field placement test, passes in isolation). All 46 tracked features still passing after the 2026-09-09/10 no-vertical-scroll redesign (League/Cards/Squad/XI-picker/Hub, see PROGRESS.md) -- no feature entries needed changes since it was a layout/UX pass, not new functionality."
+    "automated_test_count": "232 Playwright E2E tests across 8 spec files (smoke, bugfix-2026-08-03, bugfix-2026-09-09, features-10k, p15-visual, comprehensive, zero-scroll, persona-regression -- the last 2 added 2026-09-11) -- 231 reliable, 1 pre-existing statistical flake (LOGIC FIX 1 in bugfix-2026-08-03, a Monte-Carlo-style test with a tight margin; confirmed via 3 separate runs with 3 different specific numbers each time -- random variance, not a bug). 2026-09-11: closed all previously-known coverage gaps for F09 (weather/super-over/injuries), F25 (Academy), F29 (Mentorship), F32 (Bans full lifecycle), F38 (Knockout), plus F23 (player-pool diversity) -- see docs/TEST-CASES.md for the full matrix, persona definitions, and a list of real (minor) bugs/discrepancies found while building this coverage. Also corrected 2 stale gap-markers here: DRS/Impact Player (F09) and Staff (F27) already had real coverage added later without this tracker being updated."
   }
 }

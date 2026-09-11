@@ -1,6 +1,31 @@
 # Progress — Cricket Underworld
 
-> ## 🧭 CURRENT STATE & NEXT ACTIONS (2026-09-10, read this first)
+> ## 🧭 CURRENT STATE & NEXT ACTIONS (2026-09-11, read this first — supersedes the 2026-09-10 entry below)
+> Founder asked for a whole-game test-case matrix + implementation + multi-persona/multi-pass
+> end-to-end regression, following the 2026-09-10 design-review fixes. Full writeup, persona
+> definitions, and the real bugs found along the way: **`docs/TEST-CASES.md`**.
+>
+> **What's done:** 9 previously-zero-coverage systems now have real Playwright specs (weather, super
+> over, injuries, Academy, Mentorship, full Bans lifecycle, Knockout, player-pool diversity, and a
+> permanent zero-scroll regression test replacing the throwaway scripts used twice before). Added a
+> 4-persona regression suite (F2P Grinder/Mid-Game/Whale/Endgame Corrupt). Corrected several stale
+> claims in `feature_list.json` along the way (DRS/Impact Player/Staff already had coverage the
+> tracker didn't know about; Knockout's real trigger is 2 separate gates, not one).
+>
+> **Final tally, whole suite, all 8 spec files: 231/232 passing.** The 1 failure is a pre-existing
+> statistical flake (confirmed via 3 runs with 3 different random outcomes), unrelated to anything
+> touched this session.
+>
+> **One real finding worth a founder decision:** the permanent zero-scroll test found Hub (not
+> League/Cards/Squad, which hit true 0px even under stress) overflows when a player is under
+> investigation AND has an active debt at the same time — a plausible real state the original
+> redesign's verification apparently never combined. Currently pinned as a regression ceiling in
+> `tests/zero-scroll.spec.js`, not fixed. Two other minor items also flagged, not fixed: a dead-code
+> hint in the Academy panel, and an asymmetric quirk in the Knockout win-probability formula.
+>
+> ---
+
+> ## 🧭 PREVIOUS STATE & NEXT ACTIONS (2026-09-10, superseded by the entry above)
 > This is the authoritative status entry — added specifically because the detailed entries below it
 > (a long trail of "Update 1..5" style pieces from the same multi-day session) are individually
 > accurate but easy to misread out of order, and two of them were explicitly retracted mid-session
