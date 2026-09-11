@@ -163,10 +163,11 @@ not yet merged verbatim into this summary to keep it scannable): the source file
 deleted after this merge per the project's temp-file convention; re-run `/design-review`-style audits
 again if deeper re-verification is ever needed rather than expecting these to still exist.
 
-**Status: awaiting founder triage.** Nothing here has been fixed or scoped into commits yet — 37
-findings is too much to fix blind. Recommend the founder picks from the top-11 🔴 list above (in
-severity order, or by whatever subset matters most for the next milestone) rather than a blanket
-"fix everything."
+**Status: ALL 11 🔴 items FIXED 2026-09-11** (founder: "work through the red ones"). See the
+✅ Fixed section below for the commit-by-commit record, including three founder decisions taken
+before any code was written (scouting: make-them-real vs cut; League: fix-UI vs change-rule;
+exits: confirm-dialog vs auto-resolve) and two bugs discovered *while* fixing that the static audit
+could not have seen. 🟡 and 🟢 items remain open and unactioned.
 
 ---
 
@@ -222,6 +223,42 @@ severity order, or by whatever subset matters most for the next milestone) rathe
 ---
 
 ## ✅ Fixed
+
+### All 11 🔴 findings from the full-game UI/UX audit (2026-09-11)
+Worked in severity order, WIP=1, one commit each, tests run after every fix.
+
+| # | Finding | Commit |
+|---|---|---|
+| 1, 9, 10a | Case File + Debt overlays went stale after the underlying state resolved (a successful bribe/last debt payment left the screen showing the resolved case/debt with live-looking buttons); Case File's Bribe/Political Pressure showed no afford-or-eligibility state; Pay button's generic "Debt paid" toast destroyed `payDebt()`'s more important "X released from mafia hold" message, and its failure branch claimed "Not enough B$" even when the real cause was a debt that no longer existed | `2282651` |
+| 2 | Two of four scouting purchases sold fake intel — `generateRivalXI()` re-rolls names *and* stats on every call, so Basic Scout and Detailed Report displayed a roster with zero relationship to the team you'd actually face. Now all route through a shared `getOrLockRivalXI()` that locks `GS.scoutedXI`; Market Intel now reads real market listings instead of the whole unowned pool; "top 3" now actually sorts by OVR; all four descriptions rewritten into one coherent price ladder | `d18874d` |
+| 3 | League painted promotion/relegation zones by table **rank**, while `endSeason()` uses a flat win-rate threshold that never reads rank. Now derived from win rate — specifically from *projected pace*, because applying the raw end-of-season fraction mid-season would paint every team relegation-red at match 3. Added a one-line rule/standing readout | `a6397fc` |
+| 4 | Bowler-lineup panel (**the founder's original report**) — see the gameplay-bug note below | `825f149` |
+| 5, 6 | Pack screen said "Tap to reveal" but no card had any click listener (tap now works, idempotent so timers still run); every squad row showed a hardcoded green "available" dot even for banned/injured/held players, contradicting its own adjacent red tag | `c100e90` |
+| 7, 8 | Auction's back button silently forfeited an in-progress winning bid with no warning; XI-picker overlay had no exit except "Confirm XI", which force-saves and navigates. Both now use a shared `confirmAction()` built on the existing `.store-confirm` sheet | `25415e6` |
+| 10b, 11 | Mafia-offer accept fired two toasts synchronously, so the outcome message was destroyed before painting — never once visible for "Evidence Destruction" (100% evidence rate); Facilities' three cards showed none of their real gating conditions until after a tap | `1c5838f` |
+
+**Two bugs found while fixing that the static audit could not have seen:**
+1. **`pickBowler()`'s locked-lineup branch broke the T20 over cap.** It used `.find()`, which always
+   returns the earliest match, so a "locked lineup" just alternated the first two bowlers forever —
+   and because it searched the raw lineup instead of the cap-filtered list, it bypassed the 4-over
+   cap entirely. Measured on the old code: a locked 5-bowler lineup used **2 bowlers for 10 overs
+   each** in a 20-over innings, 2.5× the legal cap the 2026-08-03 balance audit deliberately added.
+   The founder's UI complaint was sitting directly on top of a real gameplay bug. Fixed and verified:
+   all 5 bowlers, exactly 4 overs each.
+2. **A flaky test I had authored earlier the same day.** The Weather System test used 1500 samples,
+   where the wicket count's standard deviation (~9) was as large as the 10% effect being measured —
+   it failed roughly 1 run in 3 (observed 96v95, then 100v83). Raised to 40,000 samples; 5/5 clean
+   re-runs, still ~6s.
+
+**Also corrected mid-fix, before shipping:** a reference to `auction.card`, which doesn't exist —
+the current lot is `auction.pool[auction.idx]`. Caught by checking the real object shape rather than
+trusting the property name I'd assumed.
+
+**Test strengthened as part of #3:** the League test was named "promotion zone highlighted for top
+2" and only asserted `>=1 .promotion` row existed with a 14-0 record injected — which passed under
+*both* the old wrong rule and the corrected one, while its name documented the rule the game never
+implemented. It now pins UI thresholds against `endSeason()` across all 15 possible win counts and
+asserts rank-independence, so reverting to rank-based zones would fail loudly.
 
 ### Hub overflowed under simultaneous investigation + debt (founder-requested fix, 2026-09-11)
 - **What it was:** `#hub-screen` (both Play and Club tabs) exceeded the zero-vertical-scroll
