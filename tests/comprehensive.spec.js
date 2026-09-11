@@ -1869,6 +1869,77 @@ test.describe('Academy System', () => {
   });
 });
 
+// ============================================================
+// 28. MENTORSHIP SYSTEM (docs/TEST-CASES.md F29 -- confirmed zero coverage via
+// function-name grep before writing this)
+// ============================================================
+test.describe('Mentorship System', () => {
+  test('panel is gated by alignment 40+; real-click flow selects a mentee and sets GS.mentorship', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { alignment: 20 });
+    await page.click('.hub-tab[data-htab="club"]');
+    await page.click('#drawer-club-toggle');
+    await page.waitForTimeout(300);
+    await expect(page.locator('#mentorship-panel')).toBeHidden();
+
+    await page.evaluate(() => { window.GS.alignment = 50; window.updateHub(); });
+    await page.waitForTimeout(200);
+    await expect(page.locator('#mentorship-panel')).toBeVisible();
+    await page.click('#mentor-select-btn');
+    await page.waitForSelector('.scorecard-overlay.show, #scorecard-overlay.show', { timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(300);
+    // Pick whichever eligible mentee card rendered first -- squad fixture (makeSquad()) includes
+    // uncommon/rare/epic/legendary rarities, so at least one common/uncommon player is guaranteed
+    // eligible (The Anchor / Glove Master, both 'uncommon').
+    const mentorCard = page.locator('[data-mentorid]').first();
+    await expect(mentorCard).toBeVisible();
+    const mentorId = await mentorCard.getAttribute('data-mentorid');
+    await mentorCard.click();
+    await page.waitForTimeout(300);
+    const mentorship = await page.evaluate(() => window.GS.mentorship);
+    expect(mentorship).not.toBeNull();
+    expect(mentorship.playerId).toBe(Number(mentorId));
+    expect(mentorship.seasonsLeft).toBe(3);
+  });
+
+  test('showMentorPicker() toasts an error when no common/uncommon player is eligible', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, {
+      alignment: 50,
+      squad: [{ id: 1, name: 'Legend Only', role: 'All-Rounder', bat: 80, bwl: 80, fld: 80, fit: 80, form: 70, loyalty: 70, greed: 20, rarity: 'legendary', overseas: false }],
+    });
+    await page.evaluate(() => window.showMentorPicker());
+    await page.waitForTimeout(300);
+    await expect(page.locator('#toast')).toContainText(/no eligible players/i);
+  });
+
+  test('processMentorship() boosts the two weakest stats each call and upgrades rarity after 3 seasons', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const result = await page.evaluate(() => {
+      var player = window.GS.squad.find(p => p.rarity === 'uncommon');
+      window.selectMentee(player.id);
+      var weakStats = window.pickMentorStats(player);
+      var before = { s1: player[weakStats[0]], s2: player[weakStats[1]] };
+      window.processMentorship();
+      var afterOne = { s1: player[weakStats[0]], s2: player[weakStats[1]] };
+      window.processMentorship();
+      var afterTwo = window.processMentorship(); // 3rd call -- seasonsLeft hits 0, should upgrade
+      return {
+        before, afterOne,
+        rarityAfter: player.rarity,
+        mentorshipCleared: window.GS.mentorship === null,
+        upgradedFlag: afterTwo.upgraded,
+      };
+    });
+    expect(result.afterOne.s1).toBe(result.before.s1 + 3);
+    expect(result.afterOne.s2).toBe(result.before.s2 + 3);
+    expect(result.rarityAfter).toBe('rare'); // uncommon -> rare per rarityOrder
+    expect(result.upgradedFlag).toBe(true);
+    expect(result.mentorshipCleared).toBe(true);
+  });
+});
+
 test.describe('Player Pool', () => {
   test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
     await page.goto('/');
