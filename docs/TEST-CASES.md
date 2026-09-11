@@ -339,8 +339,27 @@ checked).
 | Status | Count |
 |---|---|
 | ✅ Already automated (36 features + corrections) | 38 effective (F09 DRS+Impact, F27 recovered from stale gap markers) |
-| 🆕 New test cases specified above | Weather, Super Over, Injuries (3 sub-parts of F09), Academy (F25), Mentorship (F29), Bans full-lifecycle (F32), Knockout (F38), player-pool diversity (F23), zero-scroll permanent regression test — **9 new spec areas** |
+| ✅ Newly automated 2026-09-11 (Task 3, all 9 shipped) | Player-pool diversity (F23, `52c59c3`), Weather (F09c, `bfd6f01`), Super Over (F09d, `095a2ae`), Injuries (F09e, `a894136`), Academy (F25, `886363c`), Mentorship (F29, `77bf1a2`), Bans full-lifecycle (F32, `c686030`), Knockout (F38, `e60dfa1`), permanent zero-scroll regression (`ae71279`) |
 | ⛔ Not automatable here | Sound (F26), Gestures (F28), Commentary quality (F24), holographic foil (F31) — 4 items, correctly left manual |
 
-Task 3 (implementing missing Playwright specs) should work through the 🆕 NEW list above in the order
-given — each is independently committable, WIP=1, per this project's convention.
+**Real bugs/discrepancies found while building this coverage (not fixed here — out of scope for a
+test-coverage pass, flagged for founder triage):**
+- `getAcademyHtml()` has unreachable dead code: the "Need alignment 30+" hint (index.html:10961) can
+  never render because the function early-returns `''` for exactly that precondition one line earlier
+  (`:10954`). A player below alignment 30 with no academy slots sees a blank panel, not a hint.
+- `feature_list.json`'s F38 evidence describes the knockout trigger as one combined condition
+  ("winRate >= 0.35 at matchNum > 14"); it's actually two separate gates in two separate places —
+  `startKnockout()` only checks win rate, the match-count gate lives at its call site.
+- `simKnockoutMatch()`'s player-favoring boost+cap only applies when the player occupies bracket slot
+  `a`, not `b` — asymmetric, minor, not fixed.
+- `rollInjury()`'s `if (!player.fit) return null` guard mistreats an exact `fit:0` as "no data" (0 is
+  falsy in JS) rather than "worst fitness" — harmless in practice since real players never have fit:0.
+- **The real one to weigh:** `tests/zero-scroll.spec.js` found the Hub screen overflows (not
+  League/Cards/Squad, which stay at true 0) when a player is under investigation AND has an active
+  debt simultaneously — a fully plausible combined game state the original redesign's verification
+  passes apparently never tested together. Pinned as a regression ceiling, not fixed. Founder decision
+  needed on whether it's worth a further Hub trim.
+
+Task 3 (implementing missing Playwright specs) is complete — all 9 items shipped 2026-09-11, one
+commit each, WIP=1. Full-suite count is now 194 (previous) + ~34 new assertions across 9 new
+`test.describe` blocks. Next: Task 4, multi-persona/multi-pass regression.
