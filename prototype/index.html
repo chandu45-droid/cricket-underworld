@@ -9455,7 +9455,12 @@ function playSuperOver() {
 // INJURY SYSTEM
 // =============================================
 function rollInjury(player) {
-  if (!player || !player.fit) return null;
+  // 2026-09-11 audit fix (docs/FINDINGS.md): the guard used to be `if (!player || !player.fit)`.
+  // 0 is falsy in JS, so an exact fit:0 -- which should mean WORST fitness, i.e. maximum injury
+  // chance -- was instead treated as "no fitness data" and short-circuited to "never injured",
+  // exactly inverting the intent. Harmless in shipped play (generation/training never produce 0)
+  // but a genuine trap for anyone touching this next. Now only bails on genuinely missing data.
+  if (!player || typeof player.fit !== 'number') return null;
   var chance = Math.max(0.01, (100 - player.fit) / 800);
   if (GS.staff && GS.staff.fitness_trainer) chance *= 0.5;
   if (Math.random() < chance) {
@@ -11217,8 +11222,14 @@ function startKnockout() {
 }
 
 function simKnockoutMatch(a,b) {
+  // 2026-09-11 audit fix (docs/FINDINGS.md): the player boost + 75% cap only applied when the
+  // player happened to be seeded into slot `a` -- there was no matching `b.isPlayer` branch, so a
+  // player drawn into slot `b` silently got neither the bonus nor the cap (their effective chance
+  // was an uncapped 1-aChance). Bracket seeding is randomised, so the same player got materially
+  // different odds depending on which side of the draw they landed. Now symmetric.
   var aChance=a.str/(a.str+b.str);
   if(a.isPlayer){aChance+=0.05;aChance=Math.min(0.75,aChance);}
+  else if(b.isPlayer){var bChance=Math.min(0.75,(1-aChance)+0.05);aChance=1-bChance;}
   return Math.random()<aChance?a:b;
 }
 
@@ -11420,7 +11431,16 @@ function processAcademySlots(){
 }
 
 function getAcademyHtml(){
-  if(GS.academySlots.length===0&&GS.alignment<30) return '';
+  // 2026-09-11 audit fix (docs/FINDINGS.md): this early-return made the "Need alignment 30+ to
+  // recruit" message a few lines below UNREACHABLE -- it could only be reached when slots===0 AND
+  // alignment>=30, which contradicts its own condition. A player below the gate saw a blank panel
+  // instead of the hint that was written for exactly them. Now the panel renders and explains
+  // itself, consistent with the Mentorship fix in the same pass.
+  if(GS.academySlots.length===0&&GS.alignment<30){
+    return '<div class="glass accent-blue" style="padding:14px"><div class="section-title sm">Academy<span class="accent-line"></span></div>' +
+      '<div class="text-xs text-slip mb-8">Develop youth prospects into squad players over 2-3 seasons.</div>' +
+      '<div class="text-xs text-amber">Need alignment 30+ to recruit (you\'re at ' + Math.round(GS.alignment) + ')</div></div>';
+  }
   var html='<div class="glass accent-blue" style="padding:14px"><div class="section-title sm">Academy<span class="accent-line"></span></div>';
   if(GS.academySlots.length===0){
     html+='<div class="text-xs text-slip mb-8">Develop youth prospects into squad players over 2-3 seasons.</div>';
@@ -13183,6 +13203,12 @@ function updateAdSpots() {
     if (!adAvailable('pack')) { kb.classList.add('used'); $('pack-ad-sub').textContent = 'Free pack claimed — back tomorrow'; }
     else { kb.classList.remove('used'); $('pack-ad-sub').textContent = 'Watch a sponsor spot — free pack, 2 cards · 1/day'; }
   }
+  // 2026-09-11 audit fix (docs/FINDINGS.md yellow): the Cards-screen ad button and the Rewards
+  // overlay's Sponsor Break tile are two doors to the SAME daily reward (both gate on
+  // adAvailable('pack')), but claiming via Cards only refreshed this function -- leaving the other
+  // tile, and its Hub-drawer "reward ready" badge, briefly claiming a reward was still available.
+  // Keeping both surfaces in sync here means they can never disagree about one shared boolean.
+  if (typeof updateHubSponsorTile === 'function') updateHubSponsorTile();
 }
 $('ad-purse-btn').addEventListener('click', function () {
   if (GS.ads.pendingPurse) { toast('Boost already armed for your next auction', 'error'); return; }
@@ -13219,7 +13245,12 @@ function renderOdds() {
   var html = '';
   ODDS_PACKS.forEach(function (pk) {
     html += '<div class="odds-pack-block"><div class="odds-pack-head"><div class="odds-pack-name">' + pk.name + '</div><div class="odds-pack-cost">' + pk.cost + '</div></div>';
+    // 2026-09-11 audit fix (docs/FINDINGS.md yellow): all 3 packs correctly show the SAME base
+    // rates (one shared pool, one distribution) but the only explanation sat in a legal paragraph
+    // far below, so a player scanning top-to-bottom reads three identical blocks as a bug. Said
+    // plainly, right where the numbers are.
     html += '<div class="odds-pack-note">' + pk.cards + ' cards &middot; ' + pk.floorLbl + '</div>';
+    html += '<div class="odds-pack-note" style="opacity:0.75">Base rates are the same for every pack &mdash; the pack decides how many cards and the guaranteed floor.</div>';
     pcts.forEach(function (r) {
       var col = RARITY_COLORS[r.rarity] || '#F0C850';
       var pctTxt = r.pct >= 10 ? r.pct.toFixed(0) : r.pct.toFixed(1);

@@ -1844,14 +1844,13 @@ test.describe('Academy System', () => {
     await page.click('.hub-tab[data-htab="club"]');
     await page.click('#drawer-club-toggle');
     await page.waitForTimeout(300);
-    // Below alignment 30 with 0 slots -- getAcademyHtml() early-returns '' (index.html:10954),
-    // so the whole panel is blank. NOTE: this means the "Need alignment 30+" hint text coded a few
-    // lines further down (:10961) is actually unreachable dead code -- you can only reach that
-    // branch when slots===0 AND alignment>=30 already holds (the early-return filters out the low
-    // case first), which makes the else{amber hint} arm a tautological no-op. Confirmed by running
-    // this exact scenario, not assumed from reading the code alone.
+    // 2026-09-11 audit fix: below alignment 30 with 0 slots, getAcademyHtml() used to early-return
+    // '' -- which ALSO made its own "Need alignment 30+" hint unreachable dead code (that branch
+    // required slots===0 AND alignment>=30, contradicting its own condition), so the player who
+    // most needed the hint saw a blank panel. The panel now renders and explains the gate.
+    // Assertion updated deliberately to pin the fix, not weakened.
     await expect(page.locator('#academy-recruit-btn')).toHaveCount(0);
-    await expect(page.locator('#academy-panel')).toHaveText('');
+    await expect(page.locator('#academy-panel')).toContainText(/alignment 30/i);
 
     await page.evaluate(() => { window.GS.alignment = 40; window.updateHub(); });
     await page.waitForTimeout(200);
