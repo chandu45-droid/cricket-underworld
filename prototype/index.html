@@ -654,6 +654,13 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .player-card-mini .mini-stats span{color:var(--white)}
 .player-card-mini .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .player-card-mini .status-dot.playing{background:var(--green-bright);box-shadow:0 0 10px var(--green-bright),0 0 4px var(--green-bright)}
+/* 2026-09-11 audit fix (docs/FINDINGS.md #6): .playing was the ONLY variant that existed, and
+   renderPlayerMini() emitted it unconditionally -- so a banned player's row showed a red
+   "BANNED 2M" tag and a glowing green "available" dot at the same time, flatly contradicting
+   itself. These three variants mirror the colours already used by the adjacent text tags. */
+.player-card-mini .status-dot.unavailable{background:var(--blood);box-shadow:0 0 10px var(--blood),0 0 4px var(--blood)}
+.player-card-mini .status-dot.injured{background:var(--amber);box-shadow:0 0 10px var(--amber),0 0 4px var(--amber)}
+.player-card-mini .status-dot.held{background:var(--purple);box-shadow:0 0 10px var(--purple),0 0 4px var(--purple)}
 
 /* ================================================================
    HUB SCREEN — Stadium backdrop, glass tiles
@@ -7799,7 +7806,11 @@ function renderPlayerMini(p) {
     '<div class="mini-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.4))">' + ovr + '</div>' +
     '<div class="mini-info"><div class="mini-name">' + p.name + banTag + '</div><div class="mini-role">' + p.role + (p.overseas ? ' · OS' : '') + '</div></div>' +
     '<div class="mini-stats"><span>' + (p.role.indexOf('Bowler') >= 0 ? p.bwl : p.bat) + '</span><span class="cu-chip mini-role-chip">' + roleShort + '</span></div>' +
-    '<div class="status-dot playing"></div></div>';
+    // 2026-09-11 audit fix (docs/FINDINGS.md #6): was hardcoded `status-dot playing` for EVERY
+    // player, so an unavailable player's row contradicted its own BANNED/INJ/HELD text tag with a
+    // green "available" dot. Now reflects the same state that drives banTag/opacity above.
+    '<div class="status-dot ' + (p.banned ? 'unavailable' : p.injured ? 'injured' : p.debtHeld ? 'held' : 'playing') + '"' +
+      ' title="' + (p.banned ? 'Banned' : p.injured ? 'Injured' : p.debtHeld ? 'Held by mafia' : 'Available') + '"></div></div>';
 }
 
 // =============================================
@@ -11620,18 +11631,30 @@ function openPack(type) {
   html += '</div><div class="btn btn-gold lg" id="pack-collect-btn" style="margin-top:20px">Collect All</div>';
   $('pack-opening-content').innerHTML = html;
   $('pack-overlay').classList.add('show');
+  // 2026-09-11 audit fix (docs/FINDINGS.md #5): the screen said "Tap to reveal" but the flip was
+  // 100% timer-driven and neither .pack-flip-container nor .pack-flip-inner had any click listener
+  // anywhere in the file -- tapping a card, exactly as instructed, did nothing at all. Rather than
+  // delete the copy, the tap now works: revealCard() is idempotent, so a tap reveals that card
+  // immediately and its pending timer becomes a no-op. Impatient players can skip ahead; everyone
+  // else still gets the staggered cinematic.
   var flips = document.querySelectorAll('.pack-flip-inner');
-  var flipped = 0;
+  function revealCard(el) {
+    if (!el || el.classList.contains('flipped')) return;
+    el.classList.add('flipped'); SFX.reveal();
+    var cont = el.parentNode;
+    cont.classList.add('revealed');
+    var r = cont.getAttribute('data-r');
+    var n = r === 'legendary' ? 18 : r === 'epic' ? 12 : r === 'rare' ? 8 : r === 'uncommon' ? 5 : 0;
+    if (n) setTimeout(function() { spawnPackSparks(cont, n); }, 350);
+  }
   for (var f = 0; f < flips.length; f++) {
     (function(el, delay) {
-      setTimeout(function() {
-        el.classList.add('flipped'); SFX.reveal(); flipped++;
-        var cont = el.parentNode;
-        cont.classList.add('revealed');
-        var r = cont.getAttribute('data-r');
-        var n = r === 'legendary' ? 18 : r === 'epic' ? 12 : r === 'rare' ? 8 : r === 'uncommon' ? 5 : 0;
-        if (n) setTimeout(function() { spawnPackSparks(cont, n); }, 350);
-      }, delay);
+      setTimeout(function() { revealCard(el); }, delay);
+      var cont = el.parentNode;
+      if (cont) {
+        cont.style.cursor = 'pointer';
+        cont.addEventListener('click', function() { revealCard(el); });
+      }
     })(flips[f], 600 + f * 500);
   }
   $('pack-collect-btn').onclick = function() {
