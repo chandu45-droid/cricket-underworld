@@ -6490,6 +6490,26 @@ function payDebt(idx) {
   return true;
 }
 
+// 2026-09-11 audit fix (docs/FINDINGS.md #1 sibling + #10a). Replaces a long inline onclick that
+// had two bugs: (1) it unconditionally fired toast('Debt paid') immediately after payDebt(), which
+// SYNCHRONOUSLY overwrote payDebt()'s own far more important "X released from mafia hold" message
+// (toast() is a single global element with no queue -- the first message never got a paint frame,
+// 100% of the time a held-player debt was cleared); (2) its failure branch always said
+// "Not enough B$" even when the real reason was that the debt no longer existed (e.g. tapping a
+// stale Pay button), which was actively misleading. payDebt()'s boolean API is unchanged -- tests
+// call it directly.
+function payDebtFromUI(idx) {
+  if (idx < 0 || idx >= GS.debts.length) { toast('That debt is already settled', 'info'); updateHub(); return; }
+  var hadHeldPlayer = !!GS.debts[idx].heldPlayer;
+  if (GS.blackMoney < GS.debts[idx].principal) { toast('Not enough B$', 'error'); return; }
+  if (payDebt(idx)) {
+    updateHub();
+    // Only fire the generic confirmation when payDebt() didn't already fire its own, better one.
+    if (!hadHeldPlayer) toast('Debt paid', 'success');
+  }
+}
+window.payDebtFromUI = payDebtFromUI;
+
 function getDebtUrgencyClass(d) {
   if (d.stage >= 2) return 'text-red';
   if (d.stage === 1 || d.matchesLeft <= 1) return 'text-amber';
@@ -7123,7 +7143,20 @@ function bindUnderworldEvent(ev) {
 function renderCaseFile() {
   var inv = GS.investigation;
   var track = $('case-stage-track'), actions = $('case-actions');
-  if (!inv || !track || !actions) return;
+  if (!track || !actions) return;
+  // 2026-09-11 audit fix (docs/FINDINGS.md #1): this used to early-return when the case was
+  // already closed, which left #case-file-overlay frozen showing the RESOLVED case forever --
+  // stale stage pills (including a still-animating "now" pip), stale inspector narration, and
+  // live-looking Bribe/Political Pressure buttons. A successful bribe sets GS.investigation=null,
+  // so the very action that closes the case was the one that left the screen lying about it.
+  // Now renders an explicit closed state instead of bailing out.
+  if (!inv) {
+    track.innerHTML = '';
+    actions.innerHTML = '<div class="text-xs text-slip" style="text-align:center;padding:10px 0;line-height:1.6">' +
+      '<div class="font-d fw-700 text-green text-sm" style="text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Case Closed</div>' +
+      'No open investigation. The file stays on record — they remember.</div>';
+    return;
+  }
   var idx = caseStageIndex(inv.matchesLeft);
   var h = '';
   for (var i = 0; i < CASE_STAGES.length; i++) {
@@ -7134,12 +7167,30 @@ function renderCaseFile() {
   var insp = getInspector(inv.inspector);
   var ah = '<div class="pw-insp"><span class="pw-insp-name">' + insp.name + '</span><span class="pw-insp-tag ' + insp.trait + '">' + insp.tag + '</span><span class="pw-insp-desc">' + insp.desc + '</span></div>';
   ah += '<div class="text-xs text-slip" style="margin-top:6px;line-height:1.5">' + caseStageNarration(idx, insp) + '</div>';
-  ah += '<div class="flex gap-10" style="margin-top:8px">';
-  if (insp.trait !== 'incorruptible' && !inv.bribeTried) {
-    var cost = Math.round(insp.bribeBase * (inv.matchesLeft >= 3 ? 1 : 1.6));
-    ah += '<div class="btn btn-outline text-xs flex-1" style="padding:6px 10px" id="bribe-inspector-btn">Bribe · ' + cost + ' B$</div>';
+  // 2026-09-11 audit fix (docs/FINDINGS.md #9): both action buttons used to render identically
+  // "active-looking" regardless of whether the player could actually afford/qualify -- the real
+  // gates (blackMoney >= cost for bribe; allied MLA in power AND 30+ favor for pressure) only
+  // surfaced as a fading toast AFTER tapping. Political Pressure didn't even show a cost or a
+  // requirement, just the words. Now both use the .disabled + inline-reason pattern this codebase
+  // already uses correctly in the Mafia Offer screen and the Rival Profile bribe-to-throw button.
+  initFactions();
+  var _neta = GS.factions.neta;
+  var ppReason = '';
+  if (!_neta.ally || !_neta.power) ppReason = 'Needs your own candidate in power';
+  else if (_neta.rel < 30) ppReason = 'Needs 30+ favor with ' + _neta.power + ' (have ' + Math.max(0, Math.round(_neta.rel)) + ')';
+  var bribeReason = '', bribeCost = 0;
+  var canBribe = insp.trait !== 'incorruptible' && !inv.bribeTried;
+  if (canBribe) {
+    bribeCost = Math.round(insp.bribeBase * (inv.matchesLeft >= 3 ? 1 : 1.6));
+    if (GS.blackMoney < bribeCost) bribeReason = 'Not enough black money (have ' + GS.blackMoney + ' B$)';
   }
-  ah += '<div class="btn btn-outline text-xs flex-1" style="padding:6px 10px" id="political-pressure-btn">Political Pressure</div></div>';
+  ah += '<div class="flex gap-10" style="margin-top:8px">';
+  if (canBribe) {
+    ah += '<div class="btn btn-outline text-xs flex-1' + (bribeReason ? ' disabled' : '') + '" style="padding:6px 10px" id="bribe-inspector-btn">Bribe · ' + bribeCost + ' B$</div>';
+  }
+  ah += '<div class="btn btn-outline text-xs flex-1' + (ppReason ? ' disabled' : '') + '" style="padding:6px 10px" id="political-pressure-btn">Political Pressure</div></div>';
+  if (bribeReason) ah += '<div class="text-xs text-red" style="margin-top:5px">' + bribeReason + '</div>';
+  if (ppReason) ah += '<div class="text-xs text-red" style="margin-top:5px">' + ppReason + '</div>';
   actions.innerHTML = ah;
   var bb = $('bribe-inspector-btn');
   if (bb) bb.onclick = function(e) { e.stopPropagation(); var r = bribeInspector(); toast(r.msg, r.success ? 'success' : 'error'); save(); updateHub(); updateCurrency(); };
@@ -8047,8 +8098,12 @@ function updateHub() {
     // selector, see docs/CODEBASE-MAP.md), so this stays compatible.
     $('investigation-info').textContent = GS.investigation.matchesLeft + ' matches until tribunal';
     $('evidence-count').textContent = GS.evidence.length;
-    renderCaseFile();
   } else { hide('investigation-panel'); }
+  // 2026-09-11 audit fix (docs/FINDINGS.md #1): moved OUT of the if-branch above. It used to only
+  // run while a case was open, so when a successful bribe/political-pressure set
+  // GS.investigation=null this never fired and #case-file-overlay kept rendering the resolved case
+  // indefinitely. renderCaseFile() now handles both states itself (see its own comment).
+  renderCaseFile();
   // Wider-scope pass (2026-08-02b): Hub nav dot mirrors the same two conditions that gate
   // investigation-panel/debt-panel, so it can never drift out of sync with what it represents.
   if (GS.investigation || GS.debts.length > 0) { show('hub-nav-dot'); } else { hide('hub-nav-dot'); }
@@ -8064,7 +8119,7 @@ function updateHub() {
       dHtml += '<div class="cu-card flex items-center gap-10 mb-8" style="padding:9px 10px 9px 12px;border-left:3px solid ' + (db.stage >= 2 ? 'var(--blood)' : db.stage === 1 ? 'var(--amber)' : 'rgba(var(--hl-rgb),0.12)') + '">' +
         '<div class="flex-1"><div class="font-d fw-600 text-sm">' + db.source + stageChip + '</div>' +
         '<div class="text-xs text-slip">' + db.principal + ' B$ · ' + (db.matchesLeft >= 0 ? db.matchesLeft + ' matches left' : Math.abs(db.matchesLeft) + ' overdue') + '</div>' + heldTag + '</div>' +
-        '<div class="btn btn-outline text-xs" style="padding:4px 10px;font-size:11px" onclick="if(payDebt(' + di + ')){updateHub();toast(\'Debt paid\',\'success\')}else{toast(\'Not enough B$\',\'error\')}" data-debt="' + di + '">Pay</div></div>';
+        '<div class="btn btn-outline text-xs' + (GS.blackMoney < db.principal ? ' disabled' : '') + '" style="padding:4px 10px;font-size:11px" onclick="payDebtFromUI(' + di + ')" data-debt="' + di + '">Pay</div></div>';
     }
     $('debt-list').innerHTML = dHtml;
     // 2026-09-11 fix: compact "at a glance" line for the collapsed debt-panel now that the full
@@ -8073,7 +8128,17 @@ function updateHub() {
     var soonest = GS.debts.reduce(function(a, b) { return a.matchesLeft <= b.matchesLeft ? a : b; });
     var soonestText = soonest.matchesLeft >= 0 ? soonest.matchesLeft + ' matches left' : Math.abs(soonest.matchesLeft) + ' overdue';
     $('debt-summary-line').textContent = GS.debts.length + ' debt' + (GS.debts.length > 1 ? 's' : '') + ' · nearest ' + soonest.principal + ' B$, ' + soonestText;
-  } else { hide('debt-panel'); }
+  } else {
+    hide('debt-panel');
+    // 2026-09-11 audit fix (docs/FINDINGS.md #1 sibling): this branch used to only hide the Hub-band
+    // panel and never touch #debt-list, so paying off your LAST debt from inside #debt-overlay left
+    // the paid debt's card (and its live-looking Pay button) rendered there indefinitely.
+    if ($('debt-list')) {
+      $('debt-list').innerHTML = '<div class="text-xs text-slip" style="text-align:center;padding:12px 0;line-height:1.6">' +
+        '<div class="font-d fw-700 text-green text-sm" style="text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">All Clear</div>' +
+        'No outstanding debts. Keep it that way.</div>';
+    }
+  }
   var bannedPlayers = GS.squad.filter(function(p){return p.banned;});
   if (bannedPlayers.length > 0) {
     show('ban-panel');
