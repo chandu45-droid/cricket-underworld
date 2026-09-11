@@ -1655,6 +1655,12 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .facility-card .fc-name{font-family:var(--font-d);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--white);line-height:1.2;margin-bottom:5px}
 .facility-card .fc-cost{font-family:var(--font-d);font-size:11px;font-weight:700;margin-bottom:3px}
 .facility-card .fc-effect{font-size:10px;font-weight:600;letter-spacing:0.3px}
+/* 2026-09-11 audit fix (docs/FINDINGS.md #11): unavailable state + inline reason for facility
+   cards, which previously rendered identically in every state. Mirrors the .disabled treatment
+   already used elsewhere (greyscale + non-interactive) rather than inventing a new look. */
+.facility-card .fc-lock{font-size:9px;font-weight:600;letter-spacing:0.2px;color:var(--amber);margin-top:4px;line-height:1.25;min-height:0}
+.facility-card.fc-unavailable{opacity:0.45;filter:grayscale(0.7);cursor:not-allowed}
+.facility-card.fc-unavailable:active{transform:none}
 .facility-card.pep::before{background:linear-gradient(90deg,transparent,rgba(52,211,153,0.4),transparent)}
 .facility-card.pep .fc-icon{background:linear-gradient(135deg,rgba(52,211,153,0.15),rgba(5,150,105,0.06));border:1px solid rgba(52,211,153,0.2)}
 .facility-card.pep .fc-icon svg{stroke:var(--green-bright);filter:drop-shadow(0 0 4px rgba(52,211,153,0.3))}
@@ -4120,23 +4126,30 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
   <div class="glass" id="facilities-panel">
     <div class="section-title sm">Facilities<span class="accent-line"></span></div>
     <div class="facility-cards">
+      <!-- 2026-09-11 audit fix (docs/FINDINGS.md #11): these three cards had NO dynamic state at
+           all -- no afford styling, and none of their real gating conditions (already-used-today,
+           morale-maxed, heat-zero, no-squad) were visible until you tapped and read a toast. The
+           .fc-lock line below is populated by updateFacilitiesPanel(). -->
       <div class="facility-card pep" id="morale-boost-btn">
         <div class="fc-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1.5"/><circle cx="15" cy="9" r="1.5"/></svg></div>
         <div class="fc-name">Pep Talk</div>
         <div class="fc-cost">150 C</div>
         <div class="fc-effect">+15 Morale</div>
+        <div class="fc-lock" id="pep-lock"></div>
       </div>
       <div class="facility-card scout" id="scout-report-btn">
         <div class="fc-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
         <div class="fc-name">Scout</div>
         <div class="fc-cost">200 C</div>
         <div class="fc-effect">See Rival XI</div>
+        <div class="fc-lock" id="scout-lock"></div>
       </div>
       <div class="facility-card bribe" id="heat-bribe-btn">
         <div class="fc-icon"><svg viewBox="0 0 24 24"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1"/><path d="M21 12H9"/><path d="M21 12l-4-4"/><path d="M21 12l-4 4"/></svg></div>
         <div class="fc-name">Media Bribe</div>
         <div class="fc-cost">300 C</div>
         <div class="fc-effect">-15 Heat</div>
+        <div class="fc-lock" id="bribe-lock"></div>
       </div>
     </div>
   </div>
@@ -6566,6 +6579,33 @@ function confirmAction(opts) {
 }
 window.confirmAction = confirmAction;
 
+// 2026-09-11 audit fix (docs/FINDINGS.md #11). The Facilities cards had the least state feedback
+// of anything in the audit: three buttons, each with multiple real gating conditions, none of them
+// visible until you tapped and read a toast. Conditions below are lifted verbatim from the three
+// click handlers (bindEvents) so they can't drift apart -- if a handler gate changes, this must
+// change with it. Deliberately does NOT block the click: tapping a locked card still fires the
+// handler's own specific toast, matching this codebase's established tap-and-explain convention
+// (see the DRS .unavailable note) rather than silently swallowing the tap.
+function updateFacilitiesPanel() {
+  if (!$('pep-lock')) return;
+  var setCard = function(cardId, lockId, reason) {
+    var card = $(cardId), lock = $(lockId);
+    if (!card || !lock) return;
+    lock.textContent = reason || '';
+    card.classList.toggle('fc-unavailable', !!reason);
+  };
+  setCard('morale-boost-btn', 'pep-lock',
+    GS.pepTalkUsed ? 'Used this match day'
+    : GS.morale >= 95 ? 'Morale already high'
+    : GS.coins < 150 ? 'Need 150 C' : '');
+  setCard('scout-report-btn', 'scout-lock',
+    GS.squad.length === 0 ? 'No squad yet'
+    : GS.coins < 200 ? 'Need 200 C' : '');
+  setCard('heat-bribe-btn', 'bribe-lock',
+    GS.heat <= 0 ? 'No heat to reduce'
+    : GS.coins < 300 ? 'Need 300 C' : '');
+}
+
 function getDebtUrgencyClass(d) {
   if (d.stage >= 2) return 'text-red';
   if (d.stage === 1 || d.matchesLeft <= 1) return 'text-amber';
@@ -8257,6 +8297,7 @@ function updateHub() {
   for (var hb = 0; hb < haBtns.length; hb++) {
     haBtns[hb].onclick = function() { executeHeatAction(this.getAttribute('data-heatact')); };
   }
+  updateFacilitiesPanel(); // 2026-09-11 audit fix #11
   $('academy-panel').innerHTML = getAcademyHtml();
   setTimeout(function() {
     var recruitBtn = $('academy-recruit-btn');
@@ -11801,6 +11842,12 @@ function showMafiaOffer() {
     synF.rel = Math.min(100, synF.rel + 5);
     synF.favorsDone = (synF.favorsDone || 0) + 1;
     updateCurrency(); $('mafia-overlay').classList.remove('show');
+    // 2026-09-11 audit fix (docs/FINDINGS.md #10b): this used to toast the favour's outcome and
+    // then, on the very next line, toast the evidence warning. toast() is a single global element
+    // with no queue, so the second call synchronously destroyed the first before it ever painted --
+    // the player never learned which favour effect actually landed. addEvidence() returns truthy at
+    // 5-65% depending on offer type and 100% for 'evidencedestroy', so for that offer the outcome
+    // message was NEVER once visible. Now composed into a single toast.
     var msg = '';
     if (!skipLoyalty && !lc.success) {
       if (lc.shieldBlocked) {
@@ -11809,16 +11856,15 @@ function showMafiaOffer() {
         msg = 'Players refused the fix! (' + lc.chance + '% success rate)';
         if (lc.report) { GS.heat = Math.min(100, GS.heat + 25); msg += ' A player REPORTED you! +25 heat!'; }
       }
-      toast(msg, 'error');
     } else if (offer.bonus.type === 'matchfixlose') {
-      toast('You will throw the next match. +' + (offer.earn || 300) + ' B$', 'error');
+      msg = 'You will throw the next match. +' + (offer.earn || 300) + ' B$';
     } else if (offer.bonus.type === 'evidencedestroy') {
-      toast('1 evidence removed. But the mafia remembers.', 'error');
+      msg = '1 evidence removed. But the mafia remembers.';
     } else {
       msg = offer.bonus.type === 'injection' ? '+500 coins! Debt: ' + offer.debt + ' B$' : 'Fix active: ' + offer.name;
-      toast(msg, 'error');
     }
-    if (ev) toast('Evidence generated: ' + ev, 'error');
+    if (ev) msg += ' · Evidence generated: ' + ev;
+    toast(msg, 'error');
     hide('mafia-banner'); save(); updateHub();
   };
   $('decline-mafia-btn').onclick = function() {
