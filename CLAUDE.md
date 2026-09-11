@@ -48,7 +48,9 @@ npx playwright test --grep "Match Engine"
 1. Run `npx playwright test` — must pass
 2. Update `PROGRESS.md` (completed work, decisions, next steps)
 3. Update `feature_list.json` states
-4. Commit and push
+4. **Append any real bug/discrepancy/gap found this session to `docs/FINDINGS.md`** — even if fixed,
+   even if minor. Move fixed entries there with the commit hash; leave undecided ones for the founder.
+5. Commit and push
 
 ## Topic Docs (read when relevant)
 
@@ -60,6 +62,8 @@ npx playwright test --grep "Match Engine"
 | [`docs/visual-design-system.md`](docs/visual-design-system.md) | Color palette, typography, design tokens |
 | [`feature_list.json`](feature_list.json) | Machine-readable feature tracker with verification commands |
 | [`PROGRESS.md`](PROGRESS.md) | Cross-session state: what's done, what's next, decisions log |
+| [`docs/TEST-CASES.md`](docs/TEST-CASES.md) | Whole-game test-case matrix, persona definitions (F2P/Mid-Game/Whale/Endgame Corrupt) |
+| [`docs/FINDINGS.md`](docs/FINDINGS.md) | **Living log of every real bug/discrepancy/gap found in any session** (design reviews, test-writing, audits, incidental discoveries). Append before ending a session — don't rewrite past entries. Check it before starting design/test work so you don't rediscover something already logged. |
 
 ## Subagent Panel
 
