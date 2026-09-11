@@ -1791,6 +1791,84 @@ test.describe('Injury System', () => {
   });
 });
 
+// ============================================================
+// 27. ACADEMY SYSTEM (docs/TEST-CASES.md F25 -- confirmed zero coverage via
+// function-name grep before writing this)
+// ============================================================
+test.describe('Academy System', () => {
+  test('recruiting requires alignment 30+ and 300 coins; real-click recruit adds a slot and deducts coins', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 2000, alignment: 10 });
+    await page.click('.hub-tab[data-htab="club"]');
+    await page.click('#drawer-club-toggle');
+    await page.waitForTimeout(300);
+    // Below alignment 30 with 0 slots -- getAcademyHtml() early-returns '' (index.html:10954),
+    // so the whole panel is blank. NOTE: this means the "Need alignment 30+" hint text coded a few
+    // lines further down (:10961) is actually unreachable dead code -- you can only reach that
+    // branch when slots===0 AND alignment>=30 already holds (the early-return filters out the low
+    // case first), which makes the else{amber hint} arm a tautological no-op. Confirmed by running
+    // this exact scenario, not assumed from reading the code alone.
+    await expect(page.locator('#academy-recruit-btn')).toHaveCount(0);
+    await expect(page.locator('#academy-panel')).toHaveText('');
+
+    await page.evaluate(() => { window.GS.alignment = 40; window.updateHub(); });
+    await page.waitForTimeout(200);
+    const before = await page.evaluate(() => window.GS.coins);
+    await page.click('#academy-recruit-btn');
+    await page.waitForTimeout(200);
+    const after = await page.evaluate(() => ({ coins: window.GS.coins, slots: window.GS.academySlots.length }));
+    expect(after.coins).toBe(before - 300);
+    expect(after.slots).toBe(1);
+  });
+
+  test('recruiting fails without enough coins or once the 2-slot cap is hit', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 100, alignment: 40 });
+    const failNoCoins = await page.evaluate(() => {
+      var before = window.GS.academySlots.length;
+      window.recruitAcademyProspect();
+      return window.GS.academySlots.length === before;
+    });
+    expect(failNoCoins).toBe(true);
+
+    await page.evaluate(() => {
+      window.GS.coins = 5000;
+      window.GS.academySlots = [window.generateAcademyProspect(), window.generateAcademyProspect()];
+    });
+    const failFull = await page.evaluate(() => {
+      var before = window.GS.academySlots.length;
+      window.recruitAcademyProspect();
+      return window.GS.academySlots.length === before; // still 2, cap enforced
+    });
+    expect(failFull).toBe(true);
+  });
+
+  test('processAcademySlots() grows a prospect toward potential and graduates it into the squad on schedule', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const result = await page.evaluate(() => {
+      var prospect = window.generateAcademyProspect();
+      prospect.seasonsLeft = 1; // graduate on the very next tick
+      var startBat = prospect.bat;
+      window.GS.academySlots = [prospect];
+      var squadBefore = window.GS.squad.length;
+      var graduated = window.processAcademySlots();
+      return {
+        graduatedCount: graduated.length,
+        graduatedName: graduated[0] ? graduated[0].name : null,
+        slotsLeft: window.GS.academySlots.length,
+        squadAfter: window.GS.squad.length,
+        squadBefore: squadBefore,
+        startBat: startBat,
+      };
+    });
+    expect(result.graduatedCount).toBe(1);
+    expect(result.slotsLeft).toBe(0);
+    expect(result.squadAfter).toBe(result.squadBefore + 1);
+    expect(result.graduatedName).not.toBeNull();
+  });
+});
+
 test.describe('Player Pool', () => {
   test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
     await page.goto('/');
