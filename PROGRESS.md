@@ -89,10 +89,36 @@
 > regressions shipped alongside it).
 >
 > **All 8 fixable findings were implemented same day, later in the session (commits `efec8bf` through
-> `e973040`, 8 commits, WIP=1, each committed+pushed individually).** None of this has been
-> Playwright-verified — testing is founder-gated on this project, so every commit below was
-> implemented, committed, and reported as needs-testing per the project's own stated workflow, not
-> silently assumed safe. **Run the suite before trusting anything past the scroll-reset fix.**
+> `e973040`, 8 commits, WIP=1, each committed+pushed individually).**
+>
+> **Verified same day, founder explicitly asked for the test run:**
+> - Full Playwright suite (194 tests, all 6 spec files, run in chunks since the full serial run
+>   exceeds a single command's timeout): **192 passed.** The 2 failures (`LOGIC FIX 1` in
+>   bugfix-2026-08-03.spec.js, `CAPTAIN FIX 3` in bugfix-2026-09-09.spec.js) are Monte-Carlo-style
+>   statistical tests comparing simulated averages with tight margins — re-running one in isolation
+>   failed on a *different* assertion line with *different* numbers both times, the signature of real
+>   random variance, not a deterministic bug. Confirmed via `git diff` that every line touched across
+>   all 8 fix commits is Hub/Squad/XI-picker CSS+markup or `updateSquadScreen`/`renderSquadSelect`/
+>   `updatePassPanel` — zero overlap with match-simulation strategy/wicket logic. Newly observed (not
+>   in the previously-documented flake list), but demonstrably unrelated to this session's work.
+> - **The zero-scroll invariant itself** (not covered by any test — `grep scrollHeight tests/` finds
+>   nothing) was checked with a throwaway measurement script (old-code-vs-new-code, same script, same
+>   injected state, diffed) rather than trusted from the passing test suite alone. Absolute numbers
+>   weren't directly comparable to the prior session's own baseline claims — this session's test state
+>   (15-player squad + simultaneous investigation + debt, to stress the exact areas that changed)
+>   turned out to be heavier than whatever combo was originally verified against, so even the pre-fix
+>   code showed nonzero overflow on Hub under this exact combined state. The trustworthy signal is the
+>   **delta**: Hub Play +4px, Hub Club +9px, Squad +20px — each matching its fix's expected footprint
+>   exactly (tap-target bump, restored subtitle line, new role-count strip) — while League, Cards, and
+>   every XI-picker page showed **+0px**, confirming those fixes added no overflow anywhere. No
+>   runaway/unexpected growth beyond each fix's direct footprint was found. Script and the temporary
+>   old-code copy used for the comparison were both deleted after use, not committed.
+> - **Honest limit of this verification:** the above proves today's fixes are well-behaved and bounded
+>   — it does NOT certify the whole system is at a hard 0px under every possible combined state, since
+>   this session's test state differs from whatever exact worst-case the original redesign checked. If
+>   the founder wants a hard 0px guarantee under the *original* verification conditions specifically,
+>   that needs the original session's exact test state reproduced, which wasn't recorded in enough
+>   detail here to redo precisely.
 >
 > | Commit | Fix | Risk |
 > |---|---|---|
