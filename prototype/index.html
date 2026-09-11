@@ -9365,10 +9365,16 @@ function applyFixerEffects() {
 // =============================================
 // SCOUT SYSTEM — Multiple options
 // =============================================
+// 2026-09-11 audit fix (docs/FINDINGS.md #2): descriptions rewritten so the three XI-scouting
+// options read as one coherent price ladder for the SAME underlying thing (locking in the rival XI
+// you'll actually face) at increasing levels of visibility -- 100C top-3 < 200C full XI (the
+// Facilities "Scout" card) < 250C full XI + form. Previously nothing told the player that Basic and
+// Detailed were even about the same roster as the Facilities card, and two of them didn't lock
+// anything at all. Every option below now has a real, persistent effect.
 var SCOUT_OPTIONS = [
-  {id:'basic',name:'Basic Scout',cost:100,desc:'Preview rival\'s top 3 players',tier:1},
-  {id:'detailed',name:'Detailed Report',cost:250,desc:'Full rival XI with stats and form',tier:2},
-  {id:'market',name:'Market Intel',cost:150,desc:'Reveal 2 hidden transfer market gems',tier:1},
+  {id:'basic',name:'Basic Scout',cost:100,desc:'Lock in rival XI · see their top 3',tier:1},
+  {id:'detailed',name:'Detailed Report',cost:250,desc:'Lock in rival XI · full stats and form',tier:2},
+  {id:'market',name:'Market Intel',cost:150,desc:'Name the 2 best players listed right now',tier:1},
   {id:'weakness',name:'Weakness Analysis',cost:300,desc:'Find rival\'s weakest link (+10% vs them)',tier:2},
 ];
 
@@ -9397,10 +9403,27 @@ function updateScoutPanel() {
   }
 }
 
+// 2026-09-11 audit fix (docs/FINDINGS.md #2). THE core fix for "scouting sells fake intel":
+// generateRivalXI() re-rolls every name AND stat with Math.random() on every call, so any scout
+// option that called it directly for display was showing a roster with zero relationship to the
+// team actually generated at startMatch(). Only GS.scoutedXI is read back verbatim by startMatch()
+// (line ~9796), so "real intel" means: lock the XI into GS.scoutedXI, then display THAT.
+// Also makes repeat purchases self-consistent -- buying Basic then Detailed now shows the same XI
+// rather than two contradictory random rosters. startMatch() consumes and clears it, so nothing
+// leaks into a later match.
+function getOrLockRivalXI(rival) {
+  if (GS.scoutedXI && GS.scoutedXI.length > 0) return GS.scoutedXI;
+  GS.scoutedXI = generateRivalXI(rival);
+  save();
+  return GS.scoutedXI;
+}
+
 function executeScout(sc) {
   var rival = getNextRival();
   if (sc.id === 'basic') {
-    var topPlayers = generateRivalXI(rival).slice(0, 3);
+    // "Top 3" now actually means the 3 best by OVR -- it used to slice(0,3) off an arbitrarily
+    // ordered roster, so the label was wrong too. .slice() first so the stored XI isn't reordered.
+    var topPlayers = getOrLockRivalXI(rival).slice().sort(function(a, b) { return getOVR(b) - getOVR(a); }).slice(0, 3);
     var html = '<div class="font-d fw-700 text-center mb-12" style="font-size:18px;text-transform:uppercase;letter-spacing:3px">' + rival.name + ' — Top 3</div>';
     for (var i = 0; i < topPlayers.length; i++) {
       var p = topPlayers[i];
@@ -9411,7 +9434,7 @@ function executeScout(sc) {
     $('scorecard-overlay').classList.add('show');
     setTimeout(function() { $('scout-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); }; }, 50);
   } else if (sc.id === 'detailed') {
-    var fullXI = generateRivalXI(rival);
+    var fullXI = getOrLockRivalXI(rival);
     var html = '<div class="font-d fw-700 text-center mb-12" style="font-size:18px;text-transform:uppercase;letter-spacing:3px">' + rival.name + ' — Full XI</div>';
     for (var i = 0; i < fullXI.length; i++) {
       var p = fullXI[i];
@@ -9422,9 +9445,14 @@ function executeScout(sc) {
     $('scorecard-overlay').classList.add('show');
     setTimeout(function() { $('scout-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); }; }, 50);
   } else if (sc.id === 'market') {
-    var avail = ALL_PLAYERS.filter(function(p) { return !GS.squad.some(function(s) { return s.id === p.id; }); });
-    var gems = avail.sort(function(a, b) { return getOVR(b) - getOVR(a); }).slice(0, 2);
-    toast('Market gems: ' + gems.map(function(g) { return g.name + ' (OVR ' + getOVR(g) + ')'; }).join(', '), 'info');
+    // 2026-09-11 audit fix (docs/FINDINGS.md #2): this used to name the 2 best players from the
+    // ENTIRE unowned pool -- players who usually aren't in the market at all, so the "intel" was
+    // unactionable (no link to buy them, no guarantee they'd ever be listed). Now reads the real
+    // current marketListings, so what you're told about is what you can actually go and buy.
+    if (!marketListings || marketListings.length === 0) generateMarketListings();
+    var gems = marketListings.slice().sort(function(a, b) { return getOVR(b) - getOVR(a); }).slice(0, 2);
+    if (gems.length === 0) { toast('Market is empty right now — nothing to report', 'info'); return; }
+    toast('Best in the market now: ' + gems.map(function(g) { return g.name + ' (OVR ' + getOVR(g) + ', ' + getPlayerPrice(g) + 'C)'; }).join(' · '), 'info');
   } else if (sc.id === 'weakness') {
     GS.scoutWeakness = rival.name;
     save();
@@ -12153,8 +12181,10 @@ function bindEvents() {
     if (GS.squad.length === 0) { toast('No matches to scout', 'error'); return; }
     GS.coins -= 200; SFX.reveal(); save(); updateCurrency();
     var rival = getNextRival();
-    var xi = generateRivalXI(rival);
-    GS.scoutedXI = xi;
+    // 2026-09-11 audit fix (docs/FINDINGS.md #2): routed through the shared getOrLockRivalXI()
+    // helper so this card and the Scout Options panel's Basic/Detailed can never show the player
+    // two different "predicted XI"s for the same upcoming match.
+    var xi = getOrLockRivalXI(rival);
     var html = '<div class="font-d fw-700 text-center text-blue" style="font-size:20px;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Scout Report</div>';
     html += '<div class="text-center text-slip text-sm mb-16">' + rival.name + ' · Predicted XI</div>';
     xi.forEach(function(p) {
