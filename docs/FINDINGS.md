@@ -18,8 +18,89 @@
 
 ## 🔴 Open — needs a founder decision
 
-*(none open. As of 2026-09-11 all 37 findings from the full-game UI/UX audit — 18 🔴, 12 🟡, 7 🟢 —
-are fixed, plus 2 long-standing test-suite flakes. See ✅ Fixed.)*
+### 2026-09-11 — Deep SYSTEMS audit (balance · economy · cricket authenticity): 21 🔴 open
+Run after the UI audit closed, on the founder's call for "another deep pass". Three parallel
+specialist audits of the **systems underneath** the interface. Calibrated against the locked-lineup
+over-cap bug (2 bowlers × 10 overs, 2.5× the T20 legal cap) that the UI pass only found by accident.
+
+**Full evidence with line citations is preserved in three permanent docs — read these before fixing
+anything, they contain traced numbers, not assertions:**
+- `docs/audit-2026-09-11-balance.md` — 6 🔴 · 14 🟡 · 6 🟢 + 18 confirmed-healthy.
+  Method: the auditor re-implemented the real engine functions in a Monte-Carlo harness seeded from
+  the actual `ALL_PLAYERS` table, 700–5,000 matches per cell, so balance claims are **measured**.
+- `docs/audit-2026-09-11-economy.md` — 7 🔴 · 10 🟡 · 3 🟢 + full coin/gem/black-money source-sink
+  table + 15 confirmed-healthy.
+- `docs/audit-2026-09-11-cricket.md` — 8 🔴 · 12 🟡 · 5 🟢 + 18 confirmed-authentic.
+
+**Independently verified by the orchestrator before being recorded here** (each re-checked against
+live code//browser rather than relayed on trust):
+
+1. 🔴 **The Standard Pack is an unbounded coin printer.** 500 coins buys 3 cards; instant market
+   resale averages **1,124** (verified against the real 50-card pool: avg price 599, uncommon+
+   sub-pool 675, sell rate 0.6×). **Net +624 per pack, repeatable forever.** Nullifies every coin
+   sink and all three coin IAP tiers. *Found independently by BOTH the economy and balance audits.*
+   Sharp detail: the 2026-08-03 audit closed this exact exploit for the **auction** (floor moved to
+   0.6× `getPlayerPrice`) but nobody checked packs. `index.html:11856`, `:12194`.
+2. 🔴 **Your locked bowling lineup bowls for the opposition.** `pickBowler()`'s lineup branch never
+   checks which side is bowling and ignores its own `bowlers` argument; `switchInnings()` resets
+   `bowlers`/`curBowler`/`lastBowler` but never `bowlerLineup`. Verified in-browser: locked lineup
+   `MINE_2, MINE_4…`, opposition squad `Ravi Nair, Nitish Agarwal…`, and the bowlers who actually
+   bowled at me were `MINE_2, MINE_4, MINE_2, MINE_4…`. Your players appear in the opponent's bowling
+   figures. **Pre-existing** (git-checked: the original `.find()` version had no side-guard either) —
+   but the 2026-09-11 rotation fix rewrote that branch and inherited it, scoping the fix to *which
+   bowler, in what order* without asking *whose bowler*. `:9187`, `:10222`, `:10720`.
+3. 🔴 **Opponent strength is generated from YOUR squad average, so hoarding junk makes the game
+   easier.** `generateRivalXI()` does `base = getTeamStrength() + rand(-3..+4)` — and
+   `getTeamStrength()` averages the whole **squad** while your XI comes from `selectedXI`. Measured:
+   adding 4 never-picked junk cards moved an elite squad **85.8% → 98.2%** win rate, a mid squad
+   **78.3% → 90.4%**. It punishes collecting — the core loop of a card game — and makes the pre-match
+   "STR" readout fiction. Needs a **design decision**, not a patch. `:9123`.
+4. 🔴 **Morale is a null stat that also buffs your opponent.** `moraleMod = 0.9 + GS.morale/500` is
+   applied to whoever is batting with **no `isYourBatting` gate**, unlike every other side-scoped
+   modifier in the same function. Measured win rate is flat across morale 20/50/75/100, so the
+   150-coin Pep Talk buys nothing. *Found independently by BOTH the balance and cricket audits.*
+   `:9236`, `:9252`.
+5. 🔴 **`skipMatch()` never assigns `match.lastBowler`**, so the no-consecutive-overs rule dies on the
+   **default fast-forward path**. Traced: a one-fast-bowler XI bowls him overs 0,1,2,3 back-to-back
+   until the 24-ball cap pulls him. Illegal in cricket, and skip is how most players will play.
+   `:10778` (live path correctly sets it at `:10355`, `:10301`).
+6. 🔴 **Three more scout-bug-class dishonest purchases.** (a) `media_contact` (60 B$ Fixer) has
+   **zero implementation** — verified: exactly one grep hit in 13,000 lines, its own definition at
+   `:9613`. (b) Academy graduates are **silently deleted** when the squad is full, yet `endSeason`
+   still prints "Academy Grad — <name>" after 300 coins and 2–3 seasons (`:11516` vs `:11806`).
+   (c) The **entire sponsor `purseBonus` ladder is dead code** (+500 Tata … −200 No Sponsor):
+   `endSeason` computes `auctionPurse = basePurse + sp.purseBonus` (`:11776`) and the UI displays it
+   (`:8283`), then `startAuction` overwrites with `GS.auctionPurse = GS.coins` (`:8836`) — wiping the
+   sponsor bonus AND the tribunal −20% penalty. That ladder is the alignment system's main economic
+   payoff, and it has never once applied.
+7. 🔴 **Aggressive batting is STILL strictly dominant** despite the 2026-08-03 fix: +13.0 runs for
+   +0.48 wickets, in an innings that only loses 4.7. The intended trade-off cannot exist while
+   wickets are non-binding. Plus **"Contain" field is a free, unlimited dominant button** (opponent
+   176 → 158, +12–14pp win rate; every `field=defensive` row beat every row without it).
+8. 🔴 **`cleanStreak` never resets across seasons** — verified absent from `endSeason`'s reset list
+   (which does reset wins/losses/matchNum/seasonStats/rivalWins/winStreak/streakShield). Compounds to
+   **+1,960 coins/win by season 14**. `:10893`.
+9. 🔴 **The design brief's archetypes don't exist in the simulation.** `calcBallOutcome` reads `role`
+   only to pick a pitch modifier, so Top-Order / Middle-Order / Wicket-Keeper with equal `bat` are
+   **byte-identical** in play, and `fld` is never read by the match engine at all. Anchor, power
+   hitter, finisher, death bowler, powerplay specialist — all currently cosmetic.
+10. 🔴 **DRS has no recency gate** (`:9424`) — `batIdx` is derived from the wicket count, so it's a
+    "delete one wicket" button that can resurrect a batter dismissed 10 overs ago.
+11. 🔴 **Nothing in XI validation requires a wicket-keeper or a bowler** (`:10105-10109` checks only
+    size and the overseas cap), so a legal XI can have one man bowl all 20 overs consecutively.
+
+**Also flagged, lower severity but cheap:** daily login pays ~7× more than winning a match (4,900
+coins/week passive vs 80/win — ~68% of all coin inflow); the premium pass refunds 120 of its 150 gems
+making it permanently self-funding; the ₹199 pass SKU is strictly dominated by the ₹199/300-gem pack;
+the +300 rewarded-ad purse boost can drive `GS.coins` negative (purse is aliased to coins, no clamp,
+`:9028`); and the auction can never offer a common or uncommon card (`slice(0,12)` off a rarity-desc
+sort — **58% of the player pool is auction-invisible**).
+
+**Status: awaiting founder triage.** Nothing fixed yet — 21 red findings across three systems is too
+much to act on blind, and at least two (rubber-banded rival generation, archetypes-don't-exist)
+are design decisions rather than patches. Suggested order if acting: the pack loop first (cheapest
+fix, largest blast radius), then the bowling side-leak and `skipMatch` lastBowler (both are
+correctness bugs with small diffs), then the morale gate, then the design calls.
 
 ---
 
