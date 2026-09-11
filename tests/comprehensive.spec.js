@@ -1940,6 +1940,95 @@ test.describe('Mentorship System', () => {
   });
 });
 
+// ============================================================
+// 29. PLAYER BANS -- full lifecycle (docs/TEST-CASES.md F32 -- the existing
+// tribunal test only checks a verdict NAME string, never that a real ban
+// applies/blocks/expires -- confirmed zero coverage of the actual mechanic
+// via function-name grep before writing this)
+// ============================================================
+test.describe('Player Bans', () => {
+  test('rollBanEvents() applies each of the 4 documented ban types with correct duration and heat', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const result = await page.evaluate(() => {
+      function tryBan(setupFn, wonArg, wasFixArg) {
+        for (var i = 0; i < 400; i++) {
+          setupFn();
+          var events = window.rollBanEvents(wonArg, wasFixArg);
+          if (events.length > 0) return { events: events, banned: window.GS.squad.find(p => p.banned) };
+        }
+        return null;
+      }
+      // doping: fit>=85, 3% per XI player per call
+      var dopingSquad = window.GS.squad.map(p => Object.assign({}, p, { banned: undefined, fit: 90 }));
+      window.match = window.match || {};
+      window.match.yourXI = dopingSquad;
+      var doping = tryBan(() => { window.GS.squad = dopingSquad; dopingSquad.forEach(p => { delete p.banned; }); }, true, false);
+
+      // conduct: form<=25 && greed>=60, 6% per call
+      var conductSquad = window.GS.squad.map(p => Object.assign({}, p, { banned: undefined, fit: 50, form: 10, greed: 90 }));
+      window.match.yourXI = conductSquad;
+      var conduct = tryBan(() => { window.GS.squad = conductSquad; conductSquad.forEach(p => { delete p.banned; }); }, true, false);
+
+      // corruption: wasFix=true, loyalty<60, 15% per call (one target picked randomly from candidates)
+      var corruptSquad = window.GS.squad.map(p => Object.assign({}, p, { banned: undefined, fit: 50, form: 50, greed: 30, loyalty: 10 }));
+      window.match.yourXI = corruptSquad;
+      var corruption = tryBan(() => { window.GS.squad = corruptSquad; corruptSquad.forEach(p => { delete p.banned; }); }, false, true);
+
+      // board: wasFix=false, GS.heat>=60, 5% per call
+      var boardSquad = window.GS.squad.map(p => Object.assign({}, p, { banned: undefined, fit: 50, form: 50, greed: 30, loyalty: 90 }));
+      window.match.yourXI = boardSquad;
+      window.GS.heat = 70;
+      var board = tryBan(() => { window.GS.squad = boardSquad; boardSquad.forEach(p => { delete p.banned; }); }, false, false);
+
+      return { doping, conduct, corruption, board };
+    });
+    expect(result.doping, 'doping ban should trigger within 400 attempts at fit:90').not.toBeNull();
+    expect(result.doping.banned.banned).toMatchObject({ reason: 'doping', matchesLeft: 3 });
+    expect(result.conduct, 'conduct ban should trigger within 400 attempts at form:10/greed:90').not.toBeNull();
+    expect(result.conduct.banned.banned).toMatchObject({ reason: 'conduct', matchesLeft: 2 });
+    expect(result.corruption, 'corruption ban should trigger within 400 attempts under a fix with loyalty:10').not.toBeNull();
+    expect(result.corruption.banned.banned).toMatchObject({ reason: 'corruption', matchesLeft: 4 });
+    expect(result.board, 'board ban should trigger within 400 attempts at heat:70').not.toBeNull();
+    expect(result.board.banned.banned).toMatchObject({ reason: 'board', matchesLeft: 2 });
+  });
+
+  test('a banned player is blocked from XI selection, same guard as debt-held/injured players', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const bannedId = await page.evaluate(() => {
+      window.GS.squad[0].banned = { reason: 'doping', matchesLeft: 3 };
+      return window.GS.squad[0].id;
+    });
+    await page.evaluate(() => window.showSquadSelect());
+    await page.waitForSelector('#ss-player-list', { timeout: 5000 });
+    await page.waitForTimeout(300);
+    const row = page.locator(`.ss-player[data-sid="${bannedId}"]`);
+    await expect(row).toHaveClass(/banned/);
+    await page.evaluate((id) => {
+      document.querySelector('.ss-player[data-sid="' + id + '"]').click();
+    }, bannedId);
+    await page.waitForTimeout(200);
+    await expect(row).not.toHaveClass(/selected/);
+  });
+
+  test('processBanTick() counts matchesLeft down and lifts the ban on schedule', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const result = await page.evaluate(() => {
+      window.GS.squad[0].banned = { reason: 'conduct', matchesLeft: 2 };
+      window.processBanTick();
+      var afterOne = window.GS.squad[0].banned ? window.GS.squad[0].banned.matchesLeft : null;
+      var unbanned = window.processBanTick();
+      var afterTwo = window.GS.squad[0].banned;
+      return { afterOne, afterTwo, unbanned };
+    });
+    expect(result.afterOne).toBe(1);
+    expect(result.afterTwo).toBeUndefined();
+    expect(result.unbanned.length).toBeGreaterThan(0);
+  });
+});
+
 test.describe('Player Pool', () => {
   test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
     await page.goto('/');
