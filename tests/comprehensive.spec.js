@@ -1576,3 +1576,28 @@ test.describe('Real-Click Coverage', () => {
     expect(items).toBeGreaterThan(0);
   });
 });
+
+// ============================================================
+// 23. PLAYER POOL DIVERSITY (docs/TEST-CASES.md F23 -- cheap regression guard,
+// previously "manual -- no automated tests yet" per feature_list.json)
+// ============================================================
+test.describe('Player Pool', () => {
+  test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const pool = await page.evaluate(() => window.ALL_PLAYERS);
+    expect(pool.length).toBe(50);
+    const names = pool.map(p => p.name);
+    expect(new Set(names).size).toBe(names.length); // no duplicate names
+    const roles = new Set(pool.map(p => p.role));
+    ['Top-Order Batter','Middle-Order Batter','All-Rounder','Wicket-Keeper','Fast Bowler','Spin Bowler'].forEach(r => {
+      expect(roles.has(r)).toBe(true);
+    });
+    const rarities = new Set(pool.map(p => p.rarity));
+    ['common','uncommon','rare','epic','legendary'].forEach(r => {
+      expect(rarities.has(r)).toBe(true);
+    });
+    expect(pool.some(p => p.overseas === true)).toBe(true);
+    expect(pool.some(p => p.overseas === false)).toBe(true);
+  });
+});
