@@ -18,16 +18,15 @@
 
 ## 🔴 Open — needs a founder decision
 
-*(none currently open — the 2026-09-11 audit's 11 red items were all fixed; see ✅ Fixed. Its
-still-unfixed 🟡/🟢 items were moved down to the 🟡 section where they belong.)*
+*(none open. As of 2026-09-11 all 37 findings from the full-game UI/UX audit — 18 🔴, 12 🟡, 7 🟢 —
+are fixed, plus 2 long-standing test-suite flakes. See ✅ Fixed.)*
 
 ---
 
 ## 📋 Reference — 2026-09-11 full-game UI/UX audit (context for the entries below)
 
-> Kept as a record of *how* the audit was run and what it covered. The red findings it produced are
-> in ✅ Fixed; the yellow/green ones it produced are in 🟡 Flagged. This section is background, not
-> an open-work list.
+> Kept as a record of *how* the audit was run and what it covered. Every finding it produced --
+> red, yellow and green -- is now in ✅ Fixed. This section is background, not an open-work list.
 
 Founder ask, verbatim: *"I still didn't feel satisfied with the way the game is designed. I want a
 rigorous review of each and every screen... For example while selecting bowlers during match
@@ -184,13 +183,7 @@ could not have seen. 🟡 and 🟢 items remain open and unactioned.
 
 ## 🟡 Flagged, not fixed
 
-*(Most of this section was cleared 2026-09-11 — see ✅ Fixed → "Yellow + code-quality pass". What
-remains below are the items that need a founder decision rather than a code fix.)*
-
-### Facilities' Scout Report placement — needs a founder call, not a fix
-- Scout Report is pre-match-timing-sensitive but sits inside Club Management behind 8 mostly
-  non-urgent panels. Fixing it means *deciding where it should live* (e.g. a Play-tab quick tile
-  near match prep), which is a product call. Still open.
+*(Empty as of 2026-09-11 — every 🟡 and 🟢 finding from the audit has been fixed. See ✅ Fixed.)*
 
 <details>
 <summary>Resolved items previously in this section (kept for the "have we seen this before" record)</summary>
@@ -290,6 +283,48 @@ touch · `.tribunal-overlay` CSS has no matching element anywhere · stale code 
 ---
 
 ## ✅ Fixed
+
+### Final polish pass + 2 test-suite flakes (2026-09-11, founder: "fix the remaining ones too")
+Closes every remaining audit finding. All 37 are now resolved.
+
+- **BOOST** is a one-per-match resource but the button said only "BOOST"; its effect was revealed
+  only in the moments feed *after* it had been spent, so first use was necessarily blind. Effect now
+  on the button (a `title=` alone is hover-only — inert on touch, the primary target).
+- **Hub's Auction tile subtitle** was hardcoded and referenced nowhere in JS, so it could never
+  change — unlike the sibling Match tile directly above it that updates every render. Now reflects
+  real squad state.
+- **Season Stats** was emoji-only with a hover-only `title=`. Added a visible label.
+- **Removed the dead Mafia Intel auction panel** — and corrected *two* stale comments that listed it
+  among "wired hooks this screen's tests depend on". Grep proved no test and no JS ever referenced
+  it: the comments asserted a dependency that never existed.
+- **Removed dead `.tribunal-overlay` CSS** (no matching element anywhere).
+- **Corrected the DRS comment** claiming `.unavailable` sets `pointer-events:none`. It doesn't —
+  only `.used` does. `.unavailable` is deliberately tappable so the tap reaches `useDRS()`'s guard
+  and explains itself. The comment described the opposite of the actual design.
+- **Scout Report placement** (the last 🟡, previously flagged as needing a founder decision): it's
+  the one facility whose value is entirely timing-dependent, yet it sat behind 8 non-urgent panels
+  with nothing hinting it existed. Added a second entry point on **Pre-Match**, where that decision
+  is actually made. Extracted `scoutNextRival()` so both entry points share one implementation and
+  can't drift in cost, guards or output; the row dims when unaffordable and hides once the XI is
+  already locked, so you can't pay twice for the same intel.
+
+**Two test-suite flakes fixed — both were mislabelled as "environmental".**
+The `LOGIC FIX 1` test had been failing intermittently since 2026-08-03 and was repeatedly written
+off. It was actually statistically under-powered: its narrowest assertion (balanced vs defensive
+wickets) had a standard deviation comparable to the effect being measured at n=3000, flipping the
+ordering roughly 1 run in 3 (observed this session: 185v179, 168v164, 157v160, plus passes). Raised
+to 40,000 samples — 6/6 clean, still ~6s. Same defect and same fix as the Weather System test
+corrected earlier the same day.
+
+**Why this mattered beyond the tests:** with two intermittent failures, *every* full regression run
+produced an ambiguous result needing manual triage — which is exactly how a real regression could
+have been waved through as "just the known flake".
+
+**One flake deliberately NOT chased:** `field placement setting appears in bowler picker`
+(smoke.spec.js) is genuinely toss-dependent by design — it loops up to 6 real matches hoping to bowl
+first, and `test.skip()`s safely rather than hard-failing. It passes reliably in isolation. Forcing
+the toss would require stubbing `Math.random` mid-`startMatch`, where it is not the only consumer —
+a real risk of destabilising a working smoke test for zero coverage gain. Left as-is, by choice.
 
 ### Yellow + code-quality pass (2026-09-11, founder: "initiate next set of fixes")
 Worked straight after the red pass. 11 of 12 🟡 items plus 3 code-quality items closed; the one
