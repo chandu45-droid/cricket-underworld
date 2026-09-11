@@ -2029,6 +2029,87 @@ test.describe('Player Bans', () => {
   });
 });
 
+// ============================================================
+// 30. KNOCKOUT BRACKET TOURNAMENT (docs/TEST-CASES.md F38 -- confirmed zero
+// coverage via function-name grep before writing this)
+// ============================================================
+test.describe('Knockout Tournament', () => {
+  test('startKnockout() gates on win rate alone (wins/14 >= 0.35) -- the matchNum>14 half of the documented trigger lives at the call site, not in this function', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const result = await page.evaluate(() => {
+      window.GS.wins = 4; // 4/14 = 0.286, below the 0.35 gate
+      var belowThreshold = window.startKnockout();
+      window.GS.wins = 5; // 5/14 = 0.357, at/above the 0.35 gate
+      var atThreshold = window.startKnockout();
+      return { belowThreshold, atThreshold };
+    });
+    expect(result.belowThreshold).toBeNull();
+    expect(result.atThreshold).not.toBeNull();
+    expect(result.atThreshold.round).toBe('semi');
+    expect(result.atThreshold.matches.length).toBe(2);
+    // 4 teams total across both semis: player + up to 3 rivals/wildcards
+    const totalTeams = new Set();
+    result.atThreshold.matches.forEach(m => { totalTeams.add(m.a.name); totalTeams.add(m.b.name); });
+    expect(totalTeams.size).toBe(4);
+    const playerIsIn = result.atThreshold.matches.some(m => m.a.isPlayer || m.b.isPlayer);
+    expect(playerIsIn).toBe(true);
+  });
+
+  test('advanceKnockout() (the "Simulate" path) progresses semi -> final -> champion with the documented reward formula', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { wins: 6, league: 'sma' }); // leagueIdx 1 -> reward should be 300*(1+1)=600 if player wins
+    const result = await page.evaluate(() => {
+      // simKnockoutMatch()'s player-favoring boost+cap (index.html:10751-10753) only applies when
+      // the player occupies slot `a` (`if(a.isPlayer){aChance+=0.05;aChance=min(0.75,aChance)}` --
+      // there's no equivalent branch checking b.isPlayer), so even a huge strength gap can't push a
+      // single semi+final pair past a bounded win probability when the RNG happens to seat the
+      // player as `a`. Rather than force state the function owns (which broke the first attempt at
+      // this test -- pre-setting final.winner makes advanceKnockout()'s own `!ko.final.winner` guard
+      // skip resolving it), retry the whole real flow with a real strength mismatch until the dice
+      // land in the player's favor, same pattern as every other probabilistic test in this file.
+      var afterSemis = null, champion = null, reward = null;
+      for (var attempt = 0; attempt < 60 && !(champion && champion.isPlayer); attempt++) {
+        var ko = window.startKnockout();
+        ko.matches.forEach(function(m) {
+          if (m.a.isPlayer) m.a.str = 999; else if (m.b.isPlayer) m.b.str = 999;
+        });
+        window.advanceKnockout(); // resolves both semis for real via simKnockoutMatch, builds final
+        afterSemis = { round: window.GS.knockout.round, finalSet: !!window.GS.knockout.final };
+        if (window.GS.knockout.final.a.isPlayer) window.GS.knockout.final.a.str = 999;
+        else if (window.GS.knockout.final.b.isPlayer) window.GS.knockout.final.b.str = 999;
+        window.advanceKnockout(); // resolves the final for real
+        champion = window.GS.knockout.champion;
+        reward = window.GS.knockout.reward;
+      }
+      return { afterSemis, champion, reward };
+    });
+    expect(result.afterSemis.round).toBe('final');
+    expect(result.afterSemis.finalSet).toBe(true);
+    expect(result.champion.isPlayer, 'player should win at least once in 60 heavily-favored attempts').toBe(true);
+    expect(result.reward).toBe(600); // 300 * (leagueIdx(sma=1) + 1)
+  });
+
+  test('resolveKnockoutMatch() (the "Play" path) assigns the winner based on the real match result, not simulation', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { wins: 6 }); // needed so startKnockout()'s winRate gate doesn't return null
+    const result = await page.evaluate(() => {
+      var ko = window.startKnockout();
+      var playerMatch = ko.matches.find(m => m.a.isPlayer || m.b.isPlayer);
+      window.resolveKnockoutMatch(true); // player "won" the real match
+      var winnerIsPlayerOnWin = playerMatch.winner.isPlayer;
+      // Reset and try a loss
+      var ko2 = window.startKnockout();
+      var playerMatch2 = ko2.matches.find(m => m.a.isPlayer || m.b.isPlayer);
+      window.resolveKnockoutMatch(false);
+      var winnerIsPlayerOnLoss = playerMatch2.winner.isPlayer;
+      return { winnerIsPlayerOnWin, winnerIsPlayerOnLoss };
+    });
+    expect(result.winnerIsPlayerOnWin).toBe(true);
+    expect(result.winnerIsPlayerOnLoss).toBe(false);
+  });
+});
+
 test.describe('Player Pool', () => {
   test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
     await page.goto('/');
