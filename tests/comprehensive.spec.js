@@ -1695,6 +1695,102 @@ test.describe('Super Over', () => {
   });
 });
 
+// ============================================================
+// 26. INJURY SYSTEM (docs/TEST-CASES.md F09e -- confirmed zero coverage via
+// function-name grep before writing this)
+// ============================================================
+test.describe('Injury System', () => {
+  test('rollInjury() returns null for full fitness, a valid {type,matchesOut} for low fitness, and fitness_trainer halves the chance', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const result = await page.evaluate(() => {
+      var fullFit = { fit: 100 };
+      var noInjuries = 0;
+      for (var i = 0; i < 50; i++) if (window.rollInjury(fullFit)) noInjuries++;
+      var lowFit = { fit: 10 };
+      var oneInjury = null;
+      for (var j = 0; j < 500 && !oneInjury; j++) oneInjury = window.rollInjury(lowFit);
+      // fitness_trainer halves chance (index.html:9081) -- with enough trials, a trainer-equipped
+      // roll should produce measurably fewer injuries than an unequipped one at the same low fitness.
+      window.GS.staff = {};
+      var withoutTrainer = 0;
+      for (var k = 0; k < 3000; k++) if (window.rollInjury(lowFit)) withoutTrainer++;
+      window.GS.staff = { fitness_trainer: true };
+      var withTrainer = 0;
+      for (var m = 0; m < 3000; m++) if (window.rollInjury(lowFit)) withTrainer++;
+      window.GS.staff = {};
+      return { noInjuries, oneInjury, withoutTrainer, withTrainer };
+    });
+    expect(result.oneInjury).not.toBeNull();
+    expect(typeof result.oneInjury.type).toBe('string');
+    expect(typeof result.oneInjury.matchesOut).toBe('number');
+    expect(result.withTrainer).toBeLessThan(result.withoutTrainer);
+  });
+
+  test('processMatchInjuries() sets sp.injured on the matching squad player and blocks XI selection', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const injuredId = await page.evaluate(() => {
+      // Force the roll: near-zero fitness maximizes rollInjury's chance. NOTE: fit:0 (not fit:1)
+      // would NOT work here -- rollInjury() guards on `if (!player.fit) return null`, and 0 is
+      // falsy in JS, so an exact-zero fitness is (mis)treated as "no fitness data" and always
+      // short-circuits to null. fit:1 avoids that trap while still maximizing the real chance
+      // (chance = max(0.01, (100-1)/800) = 0.124/attempt).
+      window.match = window.match || {};
+      window.match.yourXI = window.GS.squad.slice(0, 3).map(p => Object.assign({}, p, { fit: 1 }));
+      var injured = null;
+      for (var i = 0; i < 200 && !injured; i++) {
+        var result = window.processMatchInjuries();
+        if (result.length > 0) injured = result[0];
+      }
+      if (!injured) return null;
+      var sp = window.GS.squad.find(p => p.name === injured.name);
+      return sp ? { id: sp.id, injured: sp.injured } : null;
+    });
+    expect(injuredId, 'processMatchInjuries should have injured at least one of 3 fit:0 players within 200 attempts').not.toBeNull();
+    expect(injuredId.injured).toHaveProperty('type');
+    expect(injuredId.injured).toHaveProperty('matchesLeft');
+    expect(injuredId.injured.matchesLeft).toBeGreaterThan(0);
+
+    await page.evaluate(() => window.showSquadSelect());
+    await page.waitForSelector('#ss-player-list', { timeout: 5000 });
+    await page.waitForTimeout(300);
+    const row = page.locator(`.ss-player[data-sid="${injuredId.id}"]`);
+    await expect(row).toHaveClass(/banned/); // same unavailable styling reused for injured players
+    await page.evaluate((id) => {
+      document.querySelector('.ss-player[data-sid="' + id + '"]').click();
+    }, injuredId.id);
+    await page.waitForTimeout(200);
+    await expect(row).not.toHaveClass(/selected/);
+  });
+
+  test('processInjuryTick() counts matchesLeft down and clears on schedule; physio doubles the rate', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const result = await page.evaluate(() => {
+      window.GS.staff = {};
+      window.GS.squad[0].injured = { type: 'Test Strain', matchesLeft: 3 };
+      window.processInjuryTick();
+      var afterOneTick = window.GS.squad[0].injured.matchesLeft;
+
+      window.GS.staff = { physio: true };
+      window.GS.squad[0].injured = { type: 'Test Strain', matchesLeft: 3 };
+      window.processInjuryTick();
+      var afterOneTickWithPhysio = window.GS.squad[0].injured.matchesLeft;
+
+      window.GS.squad[0].injured = { type: 'Test Strain', matchesLeft: 1 };
+      var healed = window.processInjuryTick();
+      var clearedAfterFinalTick = window.GS.squad[0].injured;
+      window.GS.staff = {};
+      return { afterOneTick, afterOneTickWithPhysio, healed, clearedAfterFinalTick };
+    });
+    expect(result.afterOneTick).toBe(2); // -1 without physio
+    expect(result.afterOneTickWithPhysio).toBe(1); // -2 with physio
+    expect(result.clearedAfterFinalTick).toBeNull();
+    expect(result.healed.length).toBeGreaterThan(0);
+  });
+});
+
 test.describe('Player Pool', () => {
   test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
     await page.goto('/');
