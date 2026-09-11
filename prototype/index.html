@@ -1226,7 +1226,9 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .tactic-btn{flex:1;text-align:center;padding:10px 4px;font-family:var(--font-d);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;border:1px solid rgba(var(--hl-rgb),0.06);color:var(--slip);cursor:pointer;transition:all 0.2s var(--spring);background:var(--glass-bg)}
 .tactic-btn.active{border-color:rgba(34,212,126,0.35);color:var(--green-bright);background:rgba(34,212,126,0.1);box-shadow:0 0 16px rgba(34,212,126,0.12),inset 0 0 12px rgba(34,212,126,0.04)}
 .tactic-btn:active{transform:scale(0.94)}
-.tactic-boost{padding:10px 14px;font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;border:1px solid rgba(240,200,80,0.3);color:var(--gold-bright);cursor:pointer;background:rgba(240,200,80,0.08);transition:all 0.2s var(--spring);white-space:nowrap}/* perf: dropped backdrop-filter -- persistent match button, not an overlay */
+.tactic-boost{padding:10px 14px;font-family:var(--font-d);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;border:1px solid rgba(240,200,80,0.3);color:var(--gold-bright);cursor:pointer;background:rgba(240,200,80,0.08);transition:all 0.2s var(--spring);white-space:nowrap;display:flex;flex-direction:column;align-items:center;line-height:1.1}/* perf: dropped backdrop-filter -- persistent match button, not an overlay */
+/* 2026-09-11 audit fix: BOOST's effect shown on the button itself, so first use isn't blind. */
+.tactic-boost .tb-sub{font-size:7.5px;letter-spacing:0.3px;opacity:0.75;margin-top:2px}
 .tactic-boost.used{opacity:0.3;pointer-events:none;border-color:var(--border);color:var(--slip)}
 .tactic-boost:active{transform:scale(0.94)}
 .tactic-boost.active-boost{animation:boostPulse 0.6s ease-in-out infinite;border-color:var(--gold-bright);box-shadow:0 0 20px rgba(240,200,80,0.25)}
@@ -1976,8 +1978,10 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 .custom-overlay .back-btn{color:var(--gold-bright)}
 
 /* Tribunal overlay */
-.tribunal-overlay{position:fixed;inset:0;z-index:280;background:rgba(var(--ov-rgb),0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);/* perf: true overlay, blur radius trimmed 16->12 */display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.8s}
-.tribunal-overlay.show{opacity:1;pointer-events:auto}
+/* 2026-09-11 audit fix (docs/FINDINGS.md polish): .tribunal-overlay + .show removed -- dead CSS with
+   no matching element anywhere in the markup and no JS reference (verified by full-file grep). It
+   dates from an earlier design where the tribunal verdict got its own full-screen overlay before
+   being folded into the match-result screen, where it lives now and works well. */
 .tribunal-title{font-family:var(--font-d);font-size:40px;font-weight:700;letter-spacing:10px;text-transform:uppercase;color:var(--gold-bright);margin-bottom:8px;text-shadow:0 0 60px rgba(240,200,80,0.3)}
 .tribunal-divider{width:200px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:12px auto}
 
@@ -3000,7 +3004,10 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    LOOK ONLY, scoped to #auction-screen's own selectors/generated markup.
    Every wired hook (auction-purse, round-info, auction-spotlight,
    current-bid, bidder-name, timer-circle, timer-bar-fill, timer-sec,
-   bid-btn, pass-btn, bid-log, auction-intel-panel/-text,
+   bid-btn, pass-btn, bid-log,
+   (2026-09-11: auction-intel-panel/-text was listed here as a "wired hook" but was never wired at
+    all -- no JS ever showed it or wrote to it, and no test referenced it. Markup removed as dead
+    code; this list corrected so it stops implying a live dependency that never existed.)
    start-auction-btn, auction-empty-area, ad-purse-btn/-sub) keeps its id —
    only the surfaces/frames around them pick up kit classes. B2 stays B2.
    ================================================================ */
@@ -3050,7 +3057,8 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
    (already-computed values) and toggle CSS classes, nothing else. Every
    wired id this screen's tests depend on (auction-purse, current-bid,
    bidder-name, timer-circle, timer-bar-fill, bid-btn, pass-btn, bid-log,
-   auction-spotlight, auction-intel-panel/-text, start-auction-btn,
+   auction-spotlight, start-auction-btn, /* auction-intel-panel/-text removed 2026-09-11: dead code,
+   never shown by any JS, never referenced by any test -- see the corrected note in the B2 block */
    auction-active-area/-empty-area) is untouched — this block only adds
    new elements/classes around them. Countdown pressure (.timer-progress/
    .timer-bar-fill .warn/.danger, #bid-btn.urgency) and player-entrance
@@ -3694,10 +3702,13 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="btn btn-hero full" id="bid-btn">Bid <span id="bid-amount">120</span></div>
           <div class="btn btn-outline full" id="pass-btn">Pass</div>
         </div>
-        <div class="auction-intel-panel cu-card cu-red" id="auction-intel-panel" style="display:none">
-          <span class="intel-title cu-chip">Mafia Intel</span>
-          <div class="intel-text" id="auction-intel-text"></div>
-        </div>
+        <!-- 2026-09-11 audit fix (docs/FINDINGS.md polish): the "Mafia Intel" panel that used to sit
+             here was dead code -- no JS anywhere ever called show() on it or wrote to
+             #auction-intel-text, so it could never appear to a player. Removed rather than left as a
+             trap for the next person reading this markup. Its CSS (.auction-intel-panel, .intel-text)
+             is kept: .intel-title/.cu-chip styling is shared, and the scoped zone-reskin rules
+             reference it. Re-add the markup alongside a real implementation if the feature is built.
+        -->
         <div class="auction-log-panel glass cu-card" id="bid-log-panel">
           <div class="section-title sm auction-log-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21l6-6M14 3l7 7-3 3-7-7zM10 7l7 7"/></svg>Bid History<span class="accent-line"></span></div>
           <div class="bid-log" id="bid-log"></div>
@@ -3791,6 +3802,19 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="btn btn-outline flex-1 text-xs" id="bowler-lock-btn" style="padding:6px">Auto-Rotate</div>
         </div>
       </div>
+      <!-- 2026-09-11 audit fix (docs/FINDINGS.md, last yellow): Scout Report is the one facility
+           whose value is entirely timing-dependent -- it only matters immediately before a specific
+           match -- yet it lived inside Club Management behind 8 mostly non-urgent panels, with no
+           hint from anywhere that it existed. Surfaced here, on the screen where the decision is
+           actually being made. Same #scout-report-btn handler is NOT reused (that one is bound to
+           the Club Management instance); this calls the shared scoutNextRival() both now use. -->
+      <div class="cu-card" id="pm-scout-row" style="padding:10px 14px;display:flex;align-items:center;gap:10px">
+        <div class="flex-1">
+          <div class="font-d fw-600 text-sm">Scout the Opposition</div>
+          <div class="text-xs text-slip" id="pm-scout-sub">See their predicted XI before you commit</div>
+        </div>
+        <div class="btn btn-outline text-xs" id="pm-scout-btn" style="padding:6px 12px;flex-shrink:0">200 C</div>
+      </div>
       <div class="cu-card cu-red" id="fix-active-banner" style="display:none;text-align:center;padding:14px">
         <div style="display:flex;align-items:center;justify-content:center;gap:8px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blood)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -3857,7 +3881,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
           <div class="tactic-btn" data-strat="aggressive" id="tac-aggro">AGGRO</div>
           <div class="tactic-btn active" data-strat="balanced" id="tac-balanced">BALANCED</div>
           <div class="tactic-btn" data-strat="defensive" id="tac-defense">DEFENSE</div>
-          <div class="tactic-boost" id="boost-btn">BOOST</div>
+          <!-- 2026-09-11 audit fix (docs/FINDINGS.md polish): BOOST is a one-per-match resource but
+               the button said only "BOOST" -- its actual effect (+20% power for 6 balls) was only
+               revealed in the moments feed AFTER the player had already spent it, so first use was
+               necessarily blind. title= alone isn't enough (hover-only, inert on touch), hence the
+               inline sub-label. -->
+          <div class="tactic-boost" id="boost-btn" title="One per match: +20% power for 6 balls">BOOST<span class="tb-sub">+20% · 6 balls</span></div>
           <div class="tactic-btn drs" id="drs-btn">DRS</div>
           <div class="tactic-btn impact" id="impact-btn" style="display:none">IMPACT</div>
         </div>
@@ -3947,7 +3976,10 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
            was needed to fit all 10 hardcoded league teams with zero page scroll at the PRIMARY
            360-390px device target (docs/visual-design-system.md 7.1). Same #season-stats-btn id,
            same click handler (showSeasonLeaderboard) -- only markup/position/styling changed. -->
-      <div class="cu-ribbon-wrap" id="league-ribbon-row"><div class="cu-ribbon"><span>League Table</span></div><div class="btn btn-outline" id="season-stats-btn" title="Season Stats & Leaderboard">&#128202;</div></div>
+      <!-- 2026-09-11 audit fix (docs/FINDINGS.md polish): this was an emoji-only button whose sole
+           explanation was a title= tooltip -- which never appears on touch, the game's primary
+           target. Added a short visible label; kept title= for pointer users. -->
+      <div class="cu-ribbon-wrap" id="league-ribbon-row"><div class="cu-ribbon"><span>League Table</span></div><div class="btn btn-outline" id="season-stats-btn" title="Season Stats &amp; Leaderboard" style="display:flex;align-items:center;gap:5px">&#128202;<span style="font-size:9px;letter-spacing:0.5px">STATS</span></div></div>
       <!-- v3 kit B4: cu-card adds the chamfered frame + gold spotlight sheen; .glass stays so the
            #league-screen>.glass zone-reskin (green top border) keeps applying underneath it -->
       <div class="glass cu-card">
@@ -6626,6 +6658,49 @@ function markAffordable(el, cost, currency) {
 }
 window.canAfford = canAfford; window.affordClass = affordClass; window.markAffordable = markAffordable;
 
+// 2026-09-11 audit fix (docs/FINDINGS.md, last yellow): extracted from #scout-report-btn's inline
+// handler so the Club Management card and the new Pre-Match row share ONE implementation -- they
+// can't drift in cost, guards, or output. Routed through getOrLockRivalXI() (see fix #2) so every
+// scouting surface shows the same XI the match will actually use.
+function scoutNextRival() {
+  if (GS.squad.length === 0) { toast('No matches to scout', 'error'); return; }
+  if (GS.coins < 200) { toast('Need 200 coins', 'error'); return; }
+  GS.coins -= 200; SFX.reveal(); save(); updateCurrency();
+  var rival = getNextRival();
+  var xi = getOrLockRivalXI(rival);
+  var html = '<div class="font-d fw-700 text-center text-blue" style="font-size:20px;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Scout Report</div>';
+  html += '<div class="text-center text-slip text-sm mb-16">' + rival.name + ' · Predicted XI</div>';
+  xi.forEach(function(p) {
+    html += '<div class="flex items-center gap-8 mb-6" style="padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:3px;border:1px solid rgba(255,255,255,0.04)">';
+    html += '<div class="font-d fw-600 text-sm" style="flex:1">' + p.name + '</div>';
+    html += '<div class="text-xs text-slip">' + p.role + '</div>';
+    html += '<div class="font-d fw-600 text-sm" style="width:60px;text-align:right">B' + p.bat + ' W' + p.bwl + '</div>';
+    html += '</div>';
+  });
+  html += '<div class="btn btn-gold full mt-16" id="scout-close-btn">Got It</div>';
+  $('scorecard-content').innerHTML = html;
+  $('scorecard-overlay').classList.add('show');
+  updatePreMatchScoutRow();
+  setTimeout(function() {
+    $('scout-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
+  }, 50);
+}
+window.scoutNextRival = scoutNextRival;
+
+// Keeps the Pre-Match scout row honest: hides it once this match's XI is already locked (paying
+// twice for the same intel would be a trap), and dims it when unaffordable.
+function updatePreMatchScoutRow() {
+  var row = $('pm-scout-row');
+  if (!row) return;
+  var alreadyScouted = !!(GS.scoutedXI && GS.scoutedXI.length > 0);
+  if (alreadyScouted) {
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = '';
+  markAffordable($('pm-scout-btn'), 200, 'coins');
+}
+
 function updateFacilitiesPanel() {
   if (!$('pep-lock')) return;
   var setCard = function(cardId, lockId, reason) {
@@ -8228,6 +8303,16 @@ function updateHub() {
     $('rival-align').className = 'text-xs ' + (r.alignment >= 30 ? 'text-green' : r.alignment <= -30 ? 'text-red' : 'text-slip');
     $('rival-str').textContent = r.strength;
     $('match-sub').textContent = 'vs ' + r.name;
+    // 2026-09-11 audit fix (docs/FINDINGS.md polish): #auction-sub was hardcoded "Build your squad"
+    // in markup and referenced nowhere in JS -- it could never change, unlike its sibling
+    // #match-sub right above, which updates every hub render. The id implied it was meant to be
+    // dynamic. Now reflects real squad state so the tile is useful at a glance.
+    if ($('auction-sub')) {
+      var slotsOpen = GS.maxSquad - GS.squad.length;
+      $('auction-sub').textContent = GS.squad.length === 0 ? 'Build your squad'
+        : slotsOpen <= 0 ? 'Squad full · ' + GS.squad.length + '/' + GS.maxSquad
+        : slotsOpen + ' slot' + (slotsOpen === 1 ? '' : 's') + ' open · ' + formatCompactCoins(GS.auctionPurse) + ' purse';
+    }
     var rd = GS.rivalData[r.name];
     if (rd) {
       var rl = getRelLabel(rd.rel);
@@ -9294,9 +9379,14 @@ function checkRainInterrupt() {
 // not-out call against your own bowling) was silently undoing the wicket they'd just taken,
 // with zero way to ever help themselves. Founder chose: DRS stays a batting-only mechanic
 // (matches what's actually built) rather than adding a new bowling-side outcome branch.
-// syncDrsAvailability() greys out + disables the button (CSS pointer-events:none) whenever
-// match.batting !== 'you'; the guard inside useDRS() below is defense-in-depth in case the
-// button is ever reached directly (same pattern as the BILLING_LIVE grant guard).
+// syncDrsAvailability() greys the button out whenever match.batting !== 'you'; the guard inside
+// useDRS() below is defense-in-depth in case the button is ever reached directly (same pattern as
+// the BILLING_LIVE grant guard).
+// 2026-09-11 audit fix (docs/FINDINGS.md polish): this comment used to claim the .unavailable state
+// sets "CSS pointer-events:none". It does not -- only .used does (line ~1261). .unavailable is
+// deliberately still tappable so the tap reaches useDRS()'s own guard and produces an explanatory
+// toast, which is this codebase's tap-and-explain convention. Zero player-facing effect either way,
+// but the comment described the opposite of the intended design.
 function syncDrsAvailability() {
   var btn = $('drs-btn');
   if (!btn || match.drsUsed) return; // .used styling/state already takes precedence
@@ -10105,6 +10195,7 @@ function startPreMatch() {
     $('fix-active-text').textContent = rtName || fixNames[GS.mafiaBonus.type] || 'Fix Active';
   } else { hide('fix-active-banner'); }
   renderBowlerLineup();
+  updatePreMatchScoutRow(); // 2026-09-11 audit fix: scout row reflects afford/already-scouted state
   goScreen('prematch');
 }
 
@@ -12558,31 +12649,11 @@ function bindEvents() {
     SFX.reveal(); save(); updateCurrency(); updateHub();
     toast('Morale boosted to ' + GS.morale + '!', 'success');
   });
-  $('scout-report-btn').addEventListener('click', function() {
-    if (GS.coins < 200) { toast('Need 200 coins', 'error'); return; }
-    if (GS.squad.length === 0) { toast('No matches to scout', 'error'); return; }
-    GS.coins -= 200; SFX.reveal(); save(); updateCurrency();
-    var rival = getNextRival();
-    // 2026-09-11 audit fix (docs/FINDINGS.md #2): routed through the shared getOrLockRivalXI()
-    // helper so this card and the Scout Options panel's Basic/Detailed can never show the player
-    // two different "predicted XI"s for the same upcoming match.
-    var xi = getOrLockRivalXI(rival);
-    var html = '<div class="font-d fw-700 text-center text-blue" style="font-size:20px;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Scout Report</div>';
-    html += '<div class="text-center text-slip text-sm mb-16">' + rival.name + ' · Predicted XI</div>';
-    xi.forEach(function(p) {
-      html += '<div class="flex items-center gap-8 mb-6" style="padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:3px;border:1px solid rgba(255,255,255,0.04)">';
-      html += '<div class="font-d fw-600 text-sm" style="flex:1">' + p.name + '</div>';
-      html += '<div class="text-xs text-slip">' + p.role + '</div>';
-      html += '<div class="font-d fw-600 text-sm" style="width:60px;text-align:right">B' + p.bat + ' W' + p.bwl + '</div>';
-      html += '</div>';
-    });
-    html += '<div class="btn btn-gold full mt-16" id="scout-close-btn">Got It</div>';
-    $('scorecard-content').innerHTML = html;
-    $('scorecard-overlay').classList.add('show');
-    setTimeout(function() {
-      $('scout-close-btn').onclick = function() { $('scorecard-overlay').classList.remove('show'); };
-    }, 50);
-  });
+  $('scout-report-btn').addEventListener('click', scoutNextRival);
+  // 2026-09-11 audit fix (docs/FINDINGS.md, last yellow): Scout Report now has a second entry point
+  // on the Pre-Match screen, where the decision it informs is actually being made. Same function,
+  // so the two can never diverge in cost, behaviour or output.
+  if ($('pm-scout-btn')) $('pm-scout-btn').addEventListener('click', scoutNextRival);
   $('heat-bribe-btn').addEventListener('click', function() {
     if (GS.coins < 300) { toast('Need 300 coins', 'error'); return; }
     if (GS.heat <= 0) { toast('No heat to reduce', 'error'); return; }
