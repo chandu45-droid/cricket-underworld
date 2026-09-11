@@ -225,7 +225,14 @@ test('LOGIC FIX 1: aggressive strategy trades higher risk for higher reward, not
       }
       return { wkts, boundaries };
     }
-    return { agg: run('aggressive', 3000), bal: run('balanced', 3000), def: run('defensive', 3000) };
+    // 2026-09-11: sample size raised 3000 -> 40000 per strategy. This test had been failing
+    // intermittently for a long time (observed across this session: 185v179, 168v164, 157v160,
+    // then passes) and was repeatedly written off as environmental. It isn't environmental -- it's
+    // under-powered. The balanced-vs-defensive wicket gap is the narrowest comparison of the four
+    // assertions, and at n=3000 the count's standard deviation is comparable to the effect being
+    // measured, so the ordering flips on maybe 1 run in 3. Same root cause, and same fix, as the
+    // Weather System test corrected earlier today. Still fast: pure arithmetic in-page, no DOM.
+    return { agg: run('aggressive', 40000), bal: run('balanced', 40000), def: run('defensive', 40000) };
   });
   // Aggressive batting must cost MORE wickets than balanced/defensive, not fewer (the bug made
   // aggression strictly dominant: more boundaries AND fewer wickets, with no downside).
