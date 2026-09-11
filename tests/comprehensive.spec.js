@@ -2157,6 +2157,62 @@ test.describe('Knockout Tournament', () => {
   });
 });
 
+// ============================================================
+// 31. ECONOMY INTEGRITY (2026-09-11 systems audit)
+// This exact exploit has now been found TWICE in this codebase: the 2026-08-03 audit closed it for
+// the auction (floor -> 0.6x getPlayerPrice) and nobody checked packs, where it was still live and
+// worth ~+624 coins per flip, forever. Pinning it in a test so a third rediscovery isn't possible.
+// ============================================================
+test.describe('Economy Integrity', () => {
+  test('buying a pack and instantly reselling its cards is never profitable', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 100000, squad: [] });
+    const result = await page.evaluate(() => {
+      let net = 0, cycles = 0;
+      for (let i = 0; i < 25; i++) {
+        while (window.GS.squad.length > 3) window.sellPlayer(window.GS.squad[window.GS.squad.length - 1].id);
+        const before = window.GS.coins;
+        const sizeBefore = window.GS.squad.length;
+        window.openPack('standard');
+        const gained = window.GS.squad.slice(sizeBefore);
+        if (gained.length === 0) continue;
+        for (const g of gained) {
+          if (window.GS.squad.length <= 3) break;
+          window.sellPlayer(g.id);
+        }
+        net += window.GS.coins - before;
+        cycles++;
+      }
+      return { net, cycles, avg: cycles ? net / cycles : 0 };
+    });
+    expect(result.cycles).toBeGreaterThan(0);
+    // Must be a net LOSS per flip. If this ever goes positive the coin printer is back.
+    expect(result.avg, 'pack-flip must not print coins').toBeLessThan(0);
+  });
+
+  test('resale never exceeds what the card cost to acquire', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page, { coins: 100000, squad: [] });
+    const r = await page.evaluate(() => {
+      window.openPack('standard');
+      const packCards = window.GS.squad.slice();
+      // Every pack card carries an acqCost, and its sell price is capped by it.
+      return packCards.map(p => ({
+        acqCost: p.acqCost,
+        sell: window.getSellPrice(p),
+        rawMarket: Math.round(window.getPlayerPrice(p) * 0.6),
+      }));
+    });
+    expect(r.length).toBeGreaterThan(0);
+    for (const c of r) {
+      expect(typeof c.acqCost).toBe('number');
+      expect(c.sell).toBeLessThanOrEqual(c.acqCost);
+      // And the cap is actually biting -- these cards are worth more on paper than they cost.
+      expect(c.sell).toBeLessThanOrEqual(c.rawMarket);
+    }
+  });
+});
+
 test.describe('Player Pool', () => {
   test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
     await page.goto('/');

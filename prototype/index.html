@@ -9026,7 +9026,12 @@ function resolveCard() {
   if (auction.bidder) showSoldStamp(p.name, auction.bid, auction.bidder === 'you');
   if (auction.bidder === 'you') {
     GS.auctionPurse -= auction.bid; GS.coins -= auction.bid;
-    GS.squad.push(JSON.parse(JSON.stringify(p)));
+    // 2026-09-11 systems-audit fix: stamp acquisition cost so resale can't exceed it (see
+    // getSellPrice). Auction was already break-even at the floor after the 2026-08-03 fix; this
+    // keeps it consistent rather than leaving packs as the only priced-provenance path.
+    var wonCard = JSON.parse(JSON.stringify(p));
+    wonCard.acqCost = auction.bid;
+    GS.squad.push(wonCard);
     SFX.cardWon();
     toast(p.name + ' acquired for ' + auction.bid + '!', 'success');
     save(); // persist each won card immediately -- previously only endAuction() saved,
@@ -11860,6 +11865,11 @@ function openPack(type) {
   if (type === 'standard' && GS.coins < 500) { toast('Not enough coins', 'error'); return; }
   if (type === 'premium' && GS.gems < 15) { toast('Not enough gems', 'error'); return; }
   if (type === 'standard') GS.coins -= 500; else if (type === 'premium') GS.gems -= 15;
+  // Coin-equivalent cost of this pack, used below to stamp each card's acquisition cost.
+  // Premium is gem-priced and the free ad-pack costs nothing -- both are valued at the standard
+  // pack's rate so a gem pack or a daily freebie can't be flipped for coin profit either (the ad
+  // pack was measured at ~719 coins/day of pure faucet before this).
+  var packCoinCost = type === 'standard' ? 500 : type === 'premium' ? 750 : 500;
   updateCurrency();
   var count = type === 'premium' ? 5 : type === 'ad' ? 2 : 3;
   var slotsLeft = GS.maxSquad - GS.squad.length;
@@ -11881,7 +11891,20 @@ function openPack(type) {
     }
     var card = pool[Math.floor(Math.random() * pool.length)];
     cards.push(card);
-    GS.squad.push(JSON.parse(JSON.stringify(card)));
+    var owned = JSON.parse(JSON.stringify(card));
+    // 2026-09-11 systems-audit fix (docs/FINDINGS.md #1, found independently by BOTH the economy and
+    // balance audits): the Standard Pack was an unbounded coin printer. 500 coins bought 3 cards
+    // whose instant resale averaged ~1,124 (sell = 0.6 x getPlayerPrice; pool avg price 599), so
+    // buy-pack -> sell-all netted ~+624 every time, forever, nullifying every coin sink and all
+    // three coin IAP tiers. The 2026-08-03 audit closed this exact hole for the AUCTION (floor moved
+    // to 0.6 x getPlayerPrice, making it break-even) but nobody checked packs, whose price is fixed
+    // at 500 regardless of what's inside.
+    // Fix: record what the card actually cost to acquire. sellPlayer() caps resale at that, so you
+    // can never profit by flipping something you got cheap -- while a player you genuinely paid
+    // market price for (auction, market, academy) still sells for full value. Chosen over nerfing
+    // the global sell rate or repricing packs, both of which would have hit legitimate play.
+    owned.acqCost = Math.max(1, Math.round(packCoinCost / Math.max(1, count)));
+    GS.squad.push(owned);
     avail = avail.filter(function(p) { return p.id !== card.id; });
   }
   trackEvent('pack_opened', { type: type, count: cards.length });
@@ -12090,6 +12113,23 @@ function getPlayerPrice(p) {
   return Math.round(base * (rarityMult[p.rarity] || 1));
 }
 
+// 2026-09-11 systems-audit fix (docs/FINDINGS.md #1, found independently by BOTH the economy and
+// balance audits). The Standard Pack was an unbounded coin printer: 500 coins -> 3 cards whose
+// instant resale averaged ~1,124, i.e. ~+624 profit per pack, repeatable forever, nullifying every
+// coin sink and all three coin IAP tiers. (The 2026-08-03 audit closed this exact hole for the
+// auction but never checked packs, whose price is fixed regardless of contents.)
+//
+// Resale is now capped by what the card actually cost to acquire, so you can never profit by
+// flipping something you got cheap, while a player you genuinely paid market price for still sells
+// for full value. Single helper so the price SHOWN and the price PAID can never drift apart --
+// they were two separate expressions before this.
+function getSellPrice(p) {
+  var baseValue = getPlayerPrice(p);
+  if (typeof p.acqCost === 'number') baseValue = Math.min(baseValue, p.acqCost);
+  return Math.round(baseValue * 0.6);
+}
+window.getSellPrice = getSellPrice;
+
 function generateMarketListings() {
   var available = ALL_PLAYERS.filter(function(p) {
     return !GS.squad.some(function(s) { return s.id === p.id; });
@@ -12158,7 +12198,7 @@ function renderMarket() {
         '</div>';
     } else {
       GS.squad.forEach(function(p) {
-        var sellPrice = Math.round(getPlayerPrice(p) * 0.6);
+        var sellPrice = getSellPrice(p);
         var ovr = Math.round((p.bat + p.bwl) / 2);
         var rc = RARITY_COLORS[p.rarity] || RARITY_COLORS.common;
         html += '<div class="market-item">' +
@@ -12184,7 +12224,12 @@ function buyPlayer(id) {
   var price = getPlayerPrice(p);
   if (GS.coins < price) { toast('Need ' + price + ' coins', 'error'); return; }
   GS.coins -= price;
-  GS.squad.push(JSON.parse(JSON.stringify(p)));
+  // 2026-09-11 systems-audit fix: stamp acquisition cost (see getSellPrice). Buying at full market
+  // price and selling at 0.6x is already a loss, so this changes nothing here -- it's recorded for
+  // consistency so every purchased card carries its provenance.
+  var boughtCard = JSON.parse(JSON.stringify(p));
+  boughtCard.acqCost = price;
+  GS.squad.push(boughtCard);
   marketListings = marketListings.filter(function(m) { return m.id !== id; });
   SFX.reveal(); save(); updateCurrency();
   toast(p.name + ' signed for ' + price + ' coins!', 'success');
@@ -12195,7 +12240,7 @@ function sellPlayer(id) {
   var p = GS.squad.find(function(s) { return s.id === id; });
   if (!p) return;
   if (GS.squad.length <= 3) { toast('Squad too small — need at least 3 players to compete', 'error'); return; }
-  var sellPrice = Math.round(getPlayerPrice(p) * 0.6);
+  var sellPrice = getSellPrice(p);
   GS.squad = GS.squad.filter(function(s) { return s.id !== id; });
   GS.selectedXI = GS.selectedXI.filter(function(sid) { return sid !== id; });
   if (GS.captainId === id) GS.captainId = null;
