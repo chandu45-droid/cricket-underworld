@@ -1581,6 +1581,83 @@ test.describe('Real-Click Coverage', () => {
 // 23. PLAYER POOL DIVERSITY (docs/TEST-CASES.md F23 -- cheap regression guard,
 // previously "manual -- no automated tests yet" per feature_list.json)
 // ============================================================
+// ============================================================
+// 24. WEATHER SYSTEM (docs/TEST-CASES.md F09c -- confirmed zero coverage via
+// function-name grep before writing this)
+// ============================================================
+test.describe('Weather System', () => {
+  test('rollWeather() produces all 4 documented states over enough samples', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const seen = await page.evaluate(() => {
+      var states = {};
+      for (var i = 0; i < 2000; i++) states[window.rollWeather()] = true;
+      return Object.keys(states);
+    });
+    ['rain', 'overcast', 'dew', 'clear'].forEach(w => expect(seen).toContain(w));
+  });
+
+  test('applyWeather() shows the correct banner text and class per state, hides on clear', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    for (const w of ['rain', 'overcast', 'dew']) {
+      const info = await page.evaluate((weather) => {
+        window.match.weather = weather;
+        window.applyWeather();
+        var el = document.getElementById('weather-banner');
+        return { display: el.style.display, className: el.className, text: el.textContent };
+      }, w);
+      expect(info.display).not.toBe('none');
+      expect(info.className).toContain(w);
+      expect(info.text.length).toBeGreaterThan(0);
+    }
+    const clearInfo = await page.evaluate(() => {
+      window.match.weather = 'clear';
+      window.applyWeather();
+      return document.getElementById('weather-banner').style.display;
+    });
+    expect(clearInfo).toBe('none');
+  });
+
+  test('overcast measurably boosts a pace bowler; dew measurably boosts 2nd-innings batting', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    const results = await page.evaluate(() => {
+      var batter = {name:'Test',bat:80,bwl:10,form:70,fld:60,role:'Top-Order Batter'};
+      var paceBowler = {name:'Test',bat:10,bwl:80,form:70,fld:50,role:'Fast Bowler'};
+      function countWkts(weather, innings) {
+        window.match.weather = weather;
+        var wkts = 0;
+        for (var i = 0; i < 1500; i++) {
+          var o = window.calcBallOutcome(batter, paceBowler, 'FLAT', 1, 'balanced', 75, false, innings, 0, 0, i);
+          if (o.wicket) wkts++;
+        }
+        return wkts;
+      }
+      function sumRuns(weather, innings) {
+        window.match.weather = weather;
+        var runs = 0;
+        for (var j = 0; j < 1500; j++) {
+          var o2 = window.calcBallOutcome(batter, paceBowler, 'FLAT', 1, 'balanced', 75, true, innings, 0, 0, j);
+          runs += o2.runs;
+        }
+        return runs;
+      }
+      var clearWkts = countWkts('clear', 1);
+      var overcastWkts = countWkts('overcast', 1);
+      var clearRunsInn2 = sumRuns('clear', 2);
+      var dewRunsInn2 = sumRuns('dew', 2);
+      window.match.weather = 'clear';
+      return { clearWkts, overcastWkts, clearRunsInn2, dewRunsInn2 };
+    });
+    // Pace bowler's bwlStr *= 1.10 under overcast (index.html:8816) -> more wickets against a
+    // batting-not-bowling side, same comparison style as the existing field-placement test.
+    expect(results.overcastWkts).toBeGreaterThan(results.clearWkts);
+    // batStr *= 1.08 in innings 2 under dew (index.html:8817) -> more runs scored.
+    expect(results.dewRunsInn2).toBeGreaterThan(results.clearRunsInn2);
+  });
+});
+
 test.describe('Player Pool', () => {
   test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
     await page.goto('/');
