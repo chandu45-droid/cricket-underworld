@@ -4017,6 +4017,12 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
   <div class="ss-player-list" id="ss-player-list"></div>
   <div class="page-pager hidden" id="ss-pager"></div>
   <div class="ss-footer">
+    <!-- 2026-09-11 audit fix (docs/FINDINGS.md #8): this overlay had NO way out except "Confirm
+         XI", which force-saves GS.selectedXI/captainId and navigates to Pre-Match. It's also
+         excluded from the generic .overlay backdrop-tap-to-dismiss (its class is
+         .squad-select-overlay) and from the drag-to-dismiss gesture system, so a mis-tap into it
+         trapped the player into mutating state they didn't intend to touch. -->
+    <div class="btn btn-outline" id="ss-cancel-btn" style="flex:0 0 auto;padding-left:14px;padding-right:14px">Cancel</div>
     <div class="btn btn-outline" id="ss-auto-btn">Auto</div>
     <div class="btn btn-hero disabled" id="ss-confirm-btn">Confirm XI</div>
   </div>
@@ -4386,6 +4392,18 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
 <canvas id="particle-canvas"></canvas>
 <div id="outcome-flash"></div>
 <div class="toast" id="toast"></div>
+
+<!-- 2026-09-11 audit fix (docs/FINDINGS.md #7): generic confirm sheet for destructive/irreversible
+     taps. Deliberately reuses the .store-confirm bottom-sheet styling the IAP flow already
+     established rather than inventing a second confirm pattern. Driven by confirmAction(). -->
+<div class="store-confirm" id="action-confirm">
+  <div class="sc-text" id="action-confirm-text"></div>
+  <div class="sc-note" id="action-confirm-note"></div>
+  <div class="sc-btns">
+    <div class="btn btn-outline" id="action-confirm-cancel">Cancel</div>
+    <div class="btn btn-red" id="action-confirm-ok">Confirm</div>
+  </div>
+</div>
 
 <!-- IN-APP BROWSER / STORAGE WARNING -- dismissible banner (session-only), NOT
      a modal/confirm(). Fires from _showInAppBrowserBanner() when UA sniffing
@@ -6528,6 +6546,25 @@ function payDebtFromUI(idx) {
   }
 }
 window.payDebtFromUI = payDebtFromUI;
+
+// 2026-09-11 audit fix (docs/FINDINGS.md #7): shared confirm for irreversible taps. Uses the
+// existing .store-confirm bottom-sheet styling (already proven by the IAP flow) rather than a
+// second bespoke pattern, and never uses window.confirm() -- the project bans modal dialogs
+// because they block the automation harness (see CLAUDE.md browser-automation notes).
+function confirmAction(opts) {
+  var sheet = $('action-confirm');
+  if (!sheet) { if (opts.onConfirm) opts.onConfirm(); return; }
+  $('action-confirm-text').textContent = opts.text || 'Are you sure?';
+  var noteEl = $('action-confirm-note');
+  noteEl.textContent = opts.note || '';
+  noteEl.style.display = opts.note ? '' : 'none';
+  $('action-confirm-ok').textContent = opts.confirmLabel || 'Confirm';
+  var close = function() { sheet.classList.remove('show'); };
+  $('action-confirm-ok').onclick = function() { close(); if (opts.onConfirm) opts.onConfirm(); };
+  $('action-confirm-cancel').onclick = function() { close(); if (opts.onCancel) opts.onCancel(); };
+  sheet.classList.add('show');
+}
+window.confirmAction = confirmAction;
 
 function getDebtUrgencyClass(d) {
   if (d.stage >= 2) return 'text-red';
@@ -12207,7 +12244,25 @@ function bindEvents() {
   $('bid-btn').addEventListener('click', placeBid);
   $('pass-btn').addEventListener('click', passBid);
   $('start-auction-btn').addEventListener('click', startAuction);
-  $('auction-back-btn').addEventListener('click', function() { if (!auction.active) goScreen('hub'); else { clearInterval(auction.interval); auction.active = false; endAuction(); } });
+  // 2026-09-11 audit fix (docs/FINDINGS.md #7): this button is styled and labelled exactly like the
+  // harmless "go back" nav used everywhere else, but mid-auction it force-terminated the auction
+  // via endAuction() -- which never calls resolveCard() -- so leaving while you were the highest
+  // bidder silently threw away the card you were about to win, with no warning whatsoever.
+  // Now confirms first, and says specifically what will be lost. Founder decision: confirm dialog.
+  $('auction-back-btn').addEventListener('click', function() {
+    if (!auction.active) { goScreen('hub'); return; }
+    var quitAuction = function() { clearInterval(auction.interval); auction.active = false; endAuction(); };
+    var youLead = auction.bidder === 'you';
+    var onBlock = auction.pool[auction.idx];
+    confirmAction({
+      text: youLead ? 'Leave the auction? You\'ll lose this player.' : 'Leave the auction?',
+      note: youLead
+        ? 'You hold the top bid on ' + (onBlock ? onBlock.name : 'this lot') + ' — walking away forfeits it.'
+        : 'The rest of the auction will be skipped.',
+      confirmLabel: 'Leave',
+      onConfirm: quitAuction
+    });
+  });
   $('prematch-back-btn').addEventListener('click', function() { goScreen('hub'); });
   $('start-match-btn').addEventListener('click', startMatch);
   $('bowler-auto-btn').addEventListener('click', function() {
@@ -12438,6 +12493,13 @@ function bindEvents() {
   });
   $('ss-auto-btn').addEventListener('click', autoSelectXI);
   $('ss-confirm-btn').addEventListener('click', confirmSquadSelect);
+  // 2026-09-11 audit fix (docs/FINDINGS.md #8): close WITHOUT saving selection/captain or
+  // navigating -- deliberately does not call confirmSquadSelect()/startPreMatch(), so backing out
+  // leaves GS exactly as it was before the overlay opened.
+  $('ss-cancel-btn').addEventListener('click', function() {
+    SFX.tap();
+    $('squad-select-overlay').classList.remove('show');
+  });
   $('ss-player-list').addEventListener('click', function(e) {
     var capBtn = e.target.closest('.ss-cap-btn');
     if (capBtn) { setCaptain(parseInt(capBtn.getAttribute('data-capid'))); e.stopPropagation(); return; }
