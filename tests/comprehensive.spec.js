@@ -1658,6 +1658,43 @@ test.describe('Weather System', () => {
   });
 });
 
+// ============================================================
+// 25. SUPER OVER (docs/TEST-CASES.md F09d -- confirmed zero coverage via
+// function-name grep before writing this)
+// ============================================================
+test.describe('Super Over', () => {
+  test('playSuperOver() resolves a tie to a decisive winner and updates match totals', async ({ page }) => {
+    await page.goto('/');
+    await injectState(page);
+    await page.click('#hub-match-btn');
+    await page.waitForTimeout(600);
+    await dismissOverlays(page);
+    const ss = page.locator('.squad-select-overlay.show');
+    if (await ss.count() > 0) { await page.click('#ss-auto-btn'); await page.waitForTimeout(300); await page.click('#ss-confirm-btn'); }
+    await page.waitForSelector('#prematch-screen.active', { timeout: 5000 });
+    await page.click('#start-match-btn');
+    await page.waitForSelector('#match-screen.active', { timeout: 5000 });
+    const result = await page.evaluate(() => {
+      // Force the tie condition playSuperOver() is meant to resolve -- match.runs/oppRuns are both
+      // 0 immediately after start, which already satisfies "scores tied," so no need to sim a full
+      // match just to reach a tie.
+      window.match.runs = 120; window.match.oppRuns = 120;
+      var won = window.playSuperOver();
+      return {
+        won: won,
+        runs: window.match.runs,
+        oppRuns: window.match.oppRuns,
+        superOverFlag: window.match.superOver,
+      };
+    });
+    expect(typeof result.won).toBe('boolean');
+    expect(result.superOverFlag).toBe(true);
+    // A real super over score was added to at least one side -- totals should no longer both sit
+    // exactly at the pre-tiebreaker value of 120 (the whole point of the function is to add runs).
+    expect(result.runs > 120 || result.oppRuns > 120).toBe(true);
+  });
+});
+
 test.describe('Player Pool', () => {
   test('50-player pool: unique names, every role/rarity represented, overseas mix present', async ({ page }) => {
     await page.goto('/');
