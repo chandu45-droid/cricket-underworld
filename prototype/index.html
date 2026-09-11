@@ -566,6 +566,13 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
    fires the handler's own specific toast; see the DRS .unavailable note). This only changes how the
    control LOOKS, never whether it responds. Applied via markAffordable(). */
 .cant-afford{opacity:0.45;filter:grayscale(0.65)}
+/* 2026-09-11: the generic confirm sheet must outrank every overlay it can be summoned FROM.
+   It shares .store-confirm styling (z-index:216), which is fine for #store-confirm since that
+   lives inside the store overlay -- but #action-confirm is summoned from #mafia-overlay
+   (z-index:300), which covered it completely: visible in the DOM, unreachable by a tap. Caught by
+   elementFromPoint returning a mafia-overlay child at the sheet's own coordinates. 350 clears every
+   overlay (max 301) while staying under the toast layer (400) so messages still read above it. */
+#action-confirm{z-index:350}
 .btn-hero{background:var(--cta-red);color:#fff;box-shadow:var(--cta-red-shadow);text-shadow:0 1px 2px rgba(0,0,0,0.35)}
 .btn-hero:active{box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.25),0 4px 10px rgba(204,17,0,0.35)}
 
@@ -657,6 +664,9 @@ html[data-theme="light"] #app:has(#cards-screen.active){background:radial-gradie
 .player-card-mini .mini-name{font-family:var(--font-d);font-size:16px;font-weight:600;line-height:1.1}
 .player-card-mini .mini-role{font-size:11px;color:var(--slip);text-transform:uppercase;letter-spacing:0.3px}
 .player-card-mini .mini-stats{font-family:var(--font-d);font-size:14px;color:var(--slip);text-align:right;white-space:nowrap}
+/* 2026-09-11 audit fix: BAT/BWL label for the previously-unlabelled squad-row stat number. */
+.player-card-mini .mini-stat-lbl{font-size:9px;color:var(--white-40);margin-right:2px;margin-left:4px}
+.player-card-mini .mini-stat-lbl:first-child{margin-left:0}
 .player-card-mini .mini-stats span{color:var(--white)}
 .player-card-mini .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .player-card-mini .status-dot.playing{background:var(--green-bright);box-shadow:0 0 10px var(--green-bright),0 0 4px var(--green-bright)}
@@ -7912,7 +7922,16 @@ function renderPlayerMini(p) {
   return '<div class="player-card-mini cu-card' + rarityClass + '" data-pid="' + p.id + '" style="' + styleParts.join(';') + '">' +
     '<div class="mini-ovr" style="background:linear-gradient(145deg,' + rc + ',rgba(0,0,0,0.4))">' + ovr + '</div>' +
     '<div class="mini-info"><div class="mini-name">' + p.name + banTag + '</div><div class="mini-role">' + p.role + (p.overseas ? ' · OS' : '') + '</div></div>' +
-    '<div class="mini-stats"><span>' + (p.role.indexOf('Bowler') >= 0 ? p.bwl : p.bat) + '</span><span class="cu-chip mini-role-chip">' + roleShort + '</span></div>' +
+    // 2026-09-11 audit fix (docs/FINDINGS.md yellow): this was one bare, unlabelled number whose
+    // meaning depended on invisible role logic (bwl for bowlers, bat for everyone else) -- a player
+    // had to read the role chip and infer which stat they were looking at. Worse, All-Rounders only
+    // ever showed p.bat, so the bowling half of their defining role was invisible on this screen.
+    // Now labelled, and All-Rounders show both.
+    '<div class="mini-stats">' +
+      (p.role === 'All-Rounder'
+        ? '<span class="mini-stat-lbl">B</span><span>' + p.bat + '</span><span class="mini-stat-lbl">W</span><span>' + p.bwl + '</span>'
+        : '<span class="mini-stat-lbl">' + (p.role.indexOf('Bowler') >= 0 ? 'W' : 'B') + '</span><span>' + (p.role.indexOf('Bowler') >= 0 ? p.bwl : p.bat) + '</span>') +
+      '<span class="cu-chip mini-role-chip">' + roleShort + '</span></div>' +
     // 2026-09-11 audit fix (docs/FINDINGS.md #6): was hardcoded `status-dot playing` for EVERY
     // player, so an unavailable player's row contradicted its own BANNED/INJ/HELD text tag with a
     // green "available" dot. Now reflects the same state that drives banTag/opacity above.
@@ -7984,7 +8003,13 @@ function showPlayerDetail(id) {
         '<div class="btn btn-outline' + affordClass(o.cost, 'coins') + '" style="padding:5px 12px;font-size:10px" data-trainstat="' + o.stat + '" data-traingain="' + (o.gain || 0) + '">' + o.cost + 'C</div></div>';
     }
     html += '</div>';
-    html += '<div class="pd-actions"><div class="btn btn-outline" id="close-detail-btn">Close</div><div class="btn pd-release" id="release-detail-btn">Release (+' + Math.round(p.bat * 2 + p.bwl * 1.5) + ' coins)</div></div>';
+    // 2026-09-11 audit fix (docs/FINDINGS.md yellow): Release rendered identically even at the hard
+    // 3-player squad minimum, where it always fails -- a guaranteed dead-end tap with no warning.
+    // Dimmed + reason shown up front; still tappable so the handler's own specific toast explains
+    // why (tap-and-explain convention, same as .cant-afford).
+    var atSquadMin = GS.squad.length <= 3;
+    html += '<div class="pd-actions"><div class="btn btn-outline" id="close-detail-btn">Close</div><div class="btn pd-release' + (atSquadMin ? ' cant-afford' : '') + '" id="release-detail-btn">Release (+' + Math.round(p.bat * 2 + p.bwl * 1.5) + ' coins)</div></div>';
+    if (atSquadMin) html += '<div class="text-xs text-amber" style="text-align:center;margin-top:6px">Squad at minimum (3) — can\'t release</div>';
   } else {
     html += '<div class="pd-actions"><div class="btn btn-outline" id="close-detail-btn" style="flex:1">Close</div></div>';
   }
@@ -11124,7 +11149,19 @@ function processMentorship() {
 }
 
 function updateMentorshipPanel() {
-  if (!canMentor()) { hide('mentorship-panel'); return; }
+  // 2026-09-11 audit fix (docs/FINDINGS.md yellow): this used to hide('mentorship-panel') outright
+  // below the alignment gate, so a player under 40 alignment never learned the feature existed or
+  // what unlocks it. The Academy -- same overlay, same alignment-gate mechanic -- correctly shows an
+  // explicit "Need alignment 30+" message instead of vanishing. Made consistent with that.
+  if (!canMentor()) {
+    show('mentorship-panel');
+    var lockedEl = $('mentorship-content');
+    if (lockedEl) {
+      lockedEl.innerHTML = '<div class="text-xs text-slip mb-8">Pair a senior player with a Common/Uncommon one to raise their two weakest stats each season.</div>' +
+        '<div class="text-xs text-amber">Need alignment 40+ to mentor (you\'re at ' + Math.round(GS.alignment) + ')</div>';
+    }
+    return;
+  }
   show('mentorship-panel');
   var content = $('mentorship-content');
   if (GS.mentorship) {
@@ -11715,7 +11752,14 @@ function openPack(type) {
   updateCurrency();
   var count = type === 'premium' ? 5 : type === 'ad' ? 2 : 3;
   var slotsLeft = GS.maxSquad - GS.squad.length;
-  if (count > slotsLeft) count = slotsLeft;
+  // 2026-09-11 audit fix (docs/FINDINGS.md yellow): the count was silently capped to the squad
+  // slots remaining, so a player at 14/15 could pay full price for an advertised "5 cards" pack,
+  // receive 1, and be told nothing. Now says so explicitly.
+  var advertised = count;
+  if (count > slotsLeft) {
+    count = slotsLeft;
+    toast('Squad nearly full — only ' + count + ' of ' + advertised + ' cards can be added', 'error');
+  }
   var minRar = type === 'premium' ? 2 : 1;
   var cards = [];
   for (var i = 0; i < count && avail.length > 0; i++) {
@@ -11841,8 +11885,20 @@ function showMafiaOffer() {
     (GS.blackMoney < offer.cost ? '<div class="text-xs text-red text-center" style="margin-top:8px;padding:6px;border:1px solid rgba(220,38,38,0.2);border-radius:3px;background:rgba(220,38,38,0.04)">Not enough Black Money (need ' + offer.cost + ' B$)</div>' : '') +
     '<div class="flex gap-10 mt-16"><div class="btn btn-red pulse flex-1' + (GS.blackMoney < offer.cost ? ' disabled' : '') + '" id="accept-mafia-btn">Accept Favor</div><div class="btn btn-outline flex-1" id="decline-mafia-btn">Decline</div></div>';
   $('mafia-overlay').classList.add('show');
+  // 2026-09-11 audit fix (docs/FINDINGS.md yellow): accepting a favour is irreversible and costs
+  // heat, alignment, a possible new debt and evidence risk -- yet it fired on a single tap, while
+  // IAP purchases (lower stakes) got a two-step confirm. Now reuses the confirmAction() helper
+  // added for the auction-exit fix, so the friction matches the consequence.
   $('accept-mafia-btn').onclick = function() {
     if (GS.blackMoney < offer.cost) { toast('Not enough Black Money', 'error'); return; }
+    confirmAction({
+      text: 'Accept "' + offer.name + '"?',
+      note: 'Costs ' + offer.cost + ' B$ · +' + offer.heat + ' heat · alignment ' + (offer.align >= 0 ? '+' : '') + offer.align + (offer.debt ? ' · creates a ' + offer.debt + ' B$ debt' : '') + '. This cannot be undone.',
+      confirmLabel: 'Accept Favor',
+      onConfirm: function() { acceptMafiaOffer(offer); }
+    });
+  };
+  function acceptMafiaOffer(offer) {
     GS.blackMoney -= offer.cost;
     GS.heat = Math.min(100, GS.heat + offer.heat);
     applyAlignShift(offer.align);
@@ -11900,7 +11956,7 @@ function showMafiaOffer() {
     if (ev) msg += ' · Evidence generated: ' + ev;
     toast(msg, 'error');
     hide('mafia-banner'); save(); updateHub();
-  };
+  }
   $('decline-mafia-btn').onclick = function() {
     var declineShift = applyAlignShift(3);
     GS.consecutiveFavors = 0;
@@ -12000,7 +12056,9 @@ function renderMarket() {
           '<div class="mi-role">' + p.role + '</div>' +
           '<div class="mi-stats">B <span>' + p.bat + '</span> W <span>' + p.bwl + '</span></div></div>' +
           '<div class="mi-price"><div class="mi-cost">' + sellPrice + ' C</div>' +
-          '<div class="mi-action sell" data-sellid="' + p.id + '">Sell</div></div></div>';
+          // 2026-09-11 audit fix (docs/FINDINGS.md yellow): same dead-end-tap issue as Release --
+          // sellPlayer() always fails at the hard 3-player minimum but the control gave no hint.
+          '<div class="mi-action sell' + (GS.squad.length <= 3 ? ' cant-afford' : '') + '" data-sellid="' + p.id + '">Sell</div></div></div>';
       });
     }
     $('market-refresh-area').innerHTML = '';

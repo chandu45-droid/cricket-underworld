@@ -1490,6 +1490,12 @@ test.describe('Real-Click Coverage', () => {
     await expect(page.locator('#mafia-overlay.show')).toBeVisible();
     const before = await page.evaluate(() => ({ heat: window.GS.heat, favors: window.GS.consecutiveFavors || 0 }));
     await page.click('#accept-mafia-btn');
+    // 2026-09-11 audit fix: accepting a favour is irreversible (heat, alignment, possible debt,
+    // evidence risk) and now requires a confirm step, matching the friction IAP purchases already
+    // had. The real click path therefore goes through the confirm sheet.
+    await page.waitForTimeout(200);
+    await expect(page.locator('#action-confirm.show')).toBeVisible();
+    await page.click('#action-confirm-ok');
     await page.waitForTimeout(300);
     const after = await page.evaluate(() => ({ heat: window.GS.heat, favors: window.GS.consecutiveFavors || 0 }));
     // Every offer type in the accept handler adds heat unconditionally before any type-specific
@@ -1916,7 +1922,13 @@ test.describe('Mentorship System', () => {
     await page.click('.hub-tab[data-htab="club"]');
     await page.click('#drawer-club-toggle');
     await page.waitForTimeout(300);
-    await expect(page.locator('#mentorship-panel')).toBeHidden();
+    // 2026-09-11 audit fix: below the gate the panel used to be hidden entirely, so a player never
+    // learned the feature existed. It now stays visible and states what unlocks it (matching how
+    // the Academy -- same overlay, same alignment-gate mechanic -- already behaved). Assertion
+    // updated deliberately to pin the new intent, not weakened.
+    await expect(page.locator('#mentorship-panel')).toBeVisible();
+    await expect(page.locator('#mentorship-content')).toContainText(/alignment 40/i);
+    await expect(page.locator('#mentor-select-btn')).toHaveCount(0);
 
     await page.evaluate(() => { window.GS.alignment = 50; window.updateHub(); });
     await page.waitForTimeout(200);
