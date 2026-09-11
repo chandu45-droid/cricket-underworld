@@ -70,7 +70,7 @@ async function measureOverflow(page, gs, width) {
 
 test.describe('Zero-Vertical-Scroll Invariant', () => {
   for (const width of WIDTHS) {
-    test(`full squad, no simultaneous investigation+debt -- all 5 nav screens hit true 0px at ${width}px`, async ({ page }) => {
+    test(`full squad, no investigation/debt -- all 5 nav screens hit true 0px at ${width}px`, async ({ page }) => {
       await page.goto('/');
       const r = await measureOverflow(page, baseState({}), width);
       expect(r.hubPlay, 'Hub Play tab').toBeLessThanOrEqual(0);
@@ -81,30 +81,29 @@ test.describe('Zero-Vertical-Scroll Invariant', () => {
     });
   }
 
-  // KNOWN GAP, found while building this permanent test (2026-09-11) -- NOT caused by this
-  // session's design-review fixes (confirmed: the state above with a full squad and no
-  // investigation/debt hits genuine 0px, matching the original redesign's claim). Isolating each
-  // condition independently found: investigation alone adds ~60-133px overflow to Hub, debt alone
-  // adds ~38-110px, and the two TOGETHER (a fully plausible real game state -- both are
-  // heat/alignment-driven and can coexist) add ~198-271px. League/Cards/Squad stay at genuine 0px
-  // even under this combined state -- the gap is Hub-specific. This looks like the original redesign
-  // verified investigation and debt as separate cases but never the combination. Founder decision
-  // needed: is this worth a further Hub trim, or an acceptable edge case? This test pins TODAY's
-  // measured overflow as a regression ceiling so a future change can't silently make it worse, NOT
-  // as a claim that this is fine.
+  // FIXED 2026-09-11 (was "KNOWN GAP" -- see docs/FINDINGS.md for the full history). Isolating each
+  // condition independently had found: investigation alone added ~60-133px overflow to Hub, debt
+  // alone ~38-110px, and the two TOGETHER (a fully plausible real game state -- both are
+  // heat/alignment-driven and can coexist) ~198-271px, while League/Cards/Squad stayed at genuine
+  // 0px even under the same combined state -- the gap was Hub-specific. Root cause: investigation-
+  // panel/debt-panel's full detail (stage-track, inspector narration, bribe/pressure buttons, full
+  // per-debt payable cards) lived inline in the always-visible persistent band. Fix: moved that
+  // detail into 2 new destination overlays (#case-file-overlay/#debt-overlay, same drawer-overlay
+  // pattern already proven for Club Management/Store/Underworld), leaving compact glanceable
+  // summaries inline. Closing the remaining ~10% needed finding a real cascade-specificity bug along
+  // the way: `#hub-persistent-band .glass{padding:9px 12px}` (ID+class) was silently beating a plain
+  // `#investigation-panel{padding:...}` override (ID alone) -- the exact same bug class already
+  // documented twice in this file from the original redesign session. Now asserts true 0px, not a
+  // regression ceiling.
   for (const width of WIDTHS) {
-    test(`KNOWN GAP: Hub overflows under simultaneous investigation+debt at ${width}px -- pinned as a regression ceiling, not asserted as correct`, async ({ page }) => {
+    test(`full squad, simultaneous investigation+debt -- all 5 nav screens hit true 0px at ${width}px`, async ({ page }) => {
       await page.goto('/');
       const r = await measureOverflow(page, baseState({
         investigation: { matchesLeft: 3, inspector: null },
-        debts: [{ id: 'd1', amount: 500, type: 'hafta', matchesLeft: 2 }],
+        debts: [{ source: 'Hafta Collector', principal: 500, matchesLeft: 2, stage: 1, heldPlayer: null }],
       }), width);
-      // Regression ceiling, not a correctness claim -- see comment above. If these numbers grow,
-      // something made the known gap worse. If they ever hit <=0, the gap is fixed -- update this
-      // test to move that width to the passing group above.
-      expect(r.hubPlay).toBeLessThanOrEqual(300);
-      expect(r.hubClub).toBeLessThanOrEqual(220);
-      // League/Cards/Squad are NOT part of the known gap -- they should stay at true 0 even here.
+      expect(r.hubPlay, 'Hub Play tab').toBeLessThanOrEqual(0);
+      expect(r.hubClub, 'Hub Club tab').toBeLessThanOrEqual(0);
       expect(r.league, 'League').toBeLessThanOrEqual(0);
       expect(r.cards, 'Cards').toBeLessThanOrEqual(0);
       expect(r.squad, 'Squad').toBeLessThanOrEqual(0);

@@ -1,6 +1,25 @@
 # Progress — Cricket Underworld
 
-> ## 🧭 CURRENT STATE & NEXT ACTIONS (2026-09-11, read this first — supersedes the 2026-09-10 entry below)
+> ## 🧭 CURRENT STATE (2026-09-11, later same day — read this first, supersedes the entry below it)
+> Founder asked to fix the Hub investigation+debt overflow the entry below flagged as needing a
+> decision. **Done — verified true 0px overflow at all 3 widths (320/375/390), both Hub tabs.** Full
+> writeup: `docs/FINDINGS.md`'s "Hub overflowed under simultaneous investigation + debt" entry.
+>
+> Fix moved investigation-panel's/debt-panel's full detail (stage-track, narration, bribe/pressure
+> buttons, full per-debt cards) out of the always-visible persistent band into 2 new destination
+> overlays (`#case-file-overlay`/`#debt-overlay`), same pattern already proven for Club Management/
+> Store/Underworld — compact glanceable summaries stayed inline. Closing the last ~10% of the gap
+> surfaced a real cascade-specificity bug (`#hub-persistent-band .glass` beating a plain-ID override
+> — the same bug class already found twice in this file from the original redesign), not just more
+> padding to trim.
+>
+> `tests/zero-scroll.spec.js` updated to assert true 0px for this scenario instead of pinning it as a
+> regression ceiling. Existing investigation/debt/Underworld Core tests (21 tests) all still pass —
+> confirmed nothing broke. **No open findings remain in `docs/FINDINGS.md`.**
+>
+> ---
+
+> ## 🧭 PREVIOUS STATE & NEXT ACTIONS (2026-09-11, superseded by the entry above)
 > Founder asked for a whole-game test-case matrix + implementation + multi-persona/multi-pass
 > end-to-end regression, following the 2026-09-10 design-review fixes. Full writeup, persona
 > definitions, and the real bugs found along the way: **`docs/TEST-CASES.md`**.

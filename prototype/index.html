@@ -1681,6 +1681,22 @@ html[data-theme="light"] .inapp-banner-copy-btn{color:#241C05}
 
 /* Investigation panel — dashed border, newsprint feel */
 .glass.investigation{border:2px dashed var(--amber)!important;background:linear-gradient(145deg,rgba(245,158,11,0.04) 0%,rgba(var(--hl-rgb),0.02) 50%,rgba(245,158,11,0.03) 100%)!important;border-radius:3px!important;position:relative}
+/* 2026-09-11 fix (docs/FINDINGS.md Hub investigation+debt overflow): these 2 panels are now compact
+   summaries (full detail moved to #case-file-overlay/#debt-overlay) -- the base .glass padding/margin
+   (13px/10px) was sized for panels with much more content. Tightened padding+margin closed the last
+   ~63px of overflow remaining after the overlay-relocation alone got it from 271px down to 63px. */
+/* #hub-persistent-band prefix required: #hub-persistent-band .glass{padding:9px 12px;margin-bottom:
+   6px} (line ~750, ID+class = specificity 1,1,0) otherwise beats a plain #investigation-panel rule
+   (1,0,0) on the padding/margin properties -- found by direct getComputedStyle measurement after
+   this rule appeared to have zero effect, the same class of cascade bug already documented twice in
+   this file from the original redesign session. Using #hub-persistent-band #investigation-panel
+   (2 IDs, 2,0,0) beats it cleanly instead of guessing at yet another workaround. */
+#hub-persistent-band #investigation-panel,#hub-persistent-band #debt-panel{padding:4px 12px;margin-bottom:2px}
+/* .cu-ribbon's default padding (6px 22px 6px 13px, index.html ~line 2844) is sized for full-screen
+   section headers -- oversized for this compact collapsed-summary context. Scoped override, same
+   #hub-persistent-band specificity trick as above. */
+#hub-persistent-band #debt-panel .cu-ribbon{padding:3px 16px 3px 13px}
+.ip-chev{position:absolute;bottom:6px;right:8px;width:11px;height:11px;stroke:var(--amber);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:0.7}
 .glass.investigation::before{background:repeating-linear-gradient(0deg,rgba(var(--hl-rgb),0.01) 0px,rgba(var(--hl-rgb),0.01) 2px,transparent 2px,transparent 4px)!important}
 .glass.investigation .section-title,.glass.investigation .font-d{color:var(--amber)}
 
@@ -3385,7 +3401,15 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
            missing a real deadline because it wasn't on the tab they happened to be looking at.
            Each already defaults to display:none and is toggled by the SAME updateHub() logic as
            before (unmodified) -- a clean playthrough pays zero extra vertical cost for this. -->
-      <div class="glass investigation" id="investigation-panel" style="display:none">
+      <!-- 2026-09-11 fix (docs/FINDINGS.md "Hub overflows under simultaneous investigation+debt"):
+           case-stage-track + case-actions (stage pills, inspector narration, bribe/pressure buttons
+           -- measured 129-233px combined depending on the randomly-assigned inspector's narration
+           length) relocated to a destination overlay, same drawer-overlay pattern already proven for
+           Club Management/Store/Underworld. The compact header row (icon/title/matches-left/evidence
+           count) stays inline -- that's the glanceable info a player needs without tapping. Kept the
+           exact same case-stage-track/case-actions ids so renderCaseFile() (which does global $()
+           lookups, not container-scoped ones) needed zero changes -- relocated, not rebuilt. -->
+      <div class="glass investigation" id="investigation-panel" style="display:none" onclick="showHubDrawerOverlay('case-file-overlay')">
         <div class="flex items-center gap-10">
           <div style="width:30px;height:30px;border-radius:4px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div>
           <div class="flex-1">
@@ -3393,17 +3417,25 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
             <div class="text-xs text-slip" id="investigation-info">5 matches until tribunal</div>
           </div>
           <div class="text-right">
-            <div class="font-d fw-700 text-amber" style="font-size:18px" id="evidence-count">0</div>
+            <div class="font-d fw-700 text-amber" style="font-size:15px;line-height:1.1" id="evidence-count">0</div>
             <div class="text-xs text-slip">Evidence</div>
           </div>
         </div>
-        <div class="pw-case-stages" id="case-stage-track" style="margin-top:6px"></div>
-        <div id="case-actions"></div>
+        <!-- 2026-09-11 fix: "Manage Case" as its own text line cost a full extra line + margin
+             (~20px). Replaced with an absolutely-positioned corner chevron -- same zero-flow-height
+             technique already proven for the Hub drawer tiles' go-to affordance earlier this session
+             (.glass already sets position:relative, no new CSS needed for the anchor). -->
+        <svg class="ip-chev" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
 
-      <div class="glass cu-card cu-red" id="debt-panel" style="display:none">
-        <div class="cu-ribbon-wrap" style="margin-bottom:5px"><div class="cu-ribbon cu-red"><span>Active Debts</span></div></div>
-        <div id="debt-list"></div>
+      <!-- 2026-09-11 fix, same reasoning as investigation-panel above: debt-list (full per-debt
+           payable cards, ~68-132px for 1 debt) relocated to a destination overlay. Kept the exact
+           same #debt-list id so the existing render code (`$('debt-list').innerHTML = dHtml`,
+           unchanged) needed zero changes. New #debt-summary-line gives the "at a glance" count/
+           urgency a player needs without tapping. -->
+      <div class="glass cu-card cu-red" id="debt-panel" style="display:none" onclick="showHubDrawerOverlay('debt-overlay')">
+        <div class="cu-ribbon-wrap" style="margin-bottom:2px"><div class="cu-ribbon cu-red"><span>Active Debts</span></div></div>
+        <div class="text-xs text-slip" id="debt-summary-line">0 debts</div>
       </div>
 
       <div class="mafia-banner" id="mafia-banner" style="display:none">
@@ -4133,6 +4165,31 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
     <div id="heat-actions-content"></div>
   </div>
 
+  </div>
+</div>
+
+<!-- 2026-09-11 fix: case-file detail (stage-track + inspector narration + bribe/pressure buttons),
+     relocated out of the always-visible Hub band -- see the markup comment at #investigation-panel. -->
+<div class="hub-drawer-overlay" id="case-file-overlay">
+  <div style="padding:14px 16px 0">
+    <div class="back-btn" id="case-file-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Hub</div>
+    <div class="section-title" style="justify-content:center">Case File<span class="accent-line"></span></div>
+  </div>
+  <div class="hub-drawer-overlay-content">
+  <div class="pw-case-stages" id="case-stage-track" style="margin-top:6px"></div>
+  <div id="case-actions"></div>
+  </div>
+</div>
+
+<!-- 2026-09-11 fix: full per-debt payable cards, relocated out of the always-visible Hub band --
+     see the markup comment at #debt-panel. -->
+<div class="hub-drawer-overlay" id="debt-overlay">
+  <div style="padding:14px 16px 0">
+    <div class="back-btn" id="debt-overlay-back-btn"><svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Hub</div>
+    <div class="section-title" style="justify-content:center">Active Debts<span class="accent-line"></span></div>
+  </div>
+  <div class="hub-drawer-overlay-content">
+  <div id="debt-list"></div>
   </div>
 </div>
 
@@ -7980,7 +8037,15 @@ function updateHub() {
   if (GS.investigation) {
     show('investigation-panel');
     if (!GS.investigation.inspector) GS.investigation.inspector = pickInspector();
-    $('investigation-info').textContent = GS.investigation.matchesLeft + ' matches until tribunal · ' + caseStage(GS.investigation.matchesLeft) + ' · No new favors';
+    // 2026-09-11 fix (docs/FINDINGS.md Hub investigation+debt overflow): shortened from
+    // "N matches until tribunal · <stage> · No new favors" -- that full string was long enough to
+    // wrap to 2 lines in this compact row's flex-1 column (confirmed via direct measurement, not
+    // assumed: the wrap, not padding, was the real remaining height driver after moving the
+    // stage-track/actions to #case-file-overlay). Stage name and "no new favors" are still shown in
+    // the overlay (stage-track pills + narration) one tap away -- no information actually lost, just
+    // not duplicated inline. Existing test only checks for the "N matches" substring (protected
+    // selector, see docs/CODEBASE-MAP.md), so this stays compatible.
+    $('investigation-info').textContent = GS.investigation.matchesLeft + ' matches until tribunal';
     $('evidence-count').textContent = GS.evidence.length;
     renderCaseFile();
   } else { hide('investigation-panel'); }
@@ -8002,6 +8067,12 @@ function updateHub() {
         '<div class="btn btn-outline text-xs" style="padding:4px 10px;font-size:11px" onclick="if(payDebt(' + di + ')){updateHub();toast(\'Debt paid\',\'success\')}else{toast(\'Not enough B$\',\'error\')}" data-debt="' + di + '">Pay</div></div>';
     }
     $('debt-list').innerHTML = dHtml;
+    // 2026-09-11 fix: compact "at a glance" line for the collapsed debt-panel now that the full
+    // per-debt cards live in #debt-overlay -- soonest-due debt drives the headline since that's the
+    // one with the most urgent consequence (escalation/hold) if ignored.
+    var soonest = GS.debts.reduce(function(a, b) { return a.matchesLeft <= b.matchesLeft ? a : b; });
+    var soonestText = soonest.matchesLeft >= 0 ? soonest.matchesLeft + ' matches left' : Math.abs(soonest.matchesLeft) + ' overdue';
+    $('debt-summary-line').textContent = GS.debts.length + ' debt' + (GS.debts.length > 1 ? 's' : '') + ' · nearest ' + soonest.principal + ' B$, ' + soonestText;
   } else { hide('debt-panel'); }
   var bannedPlayers = GS.squad.filter(function(p){return p.banned;});
   if (bannedPlayers.length > 0) {
@@ -11970,6 +12041,8 @@ function bindEvents() {
   $('rewards-back-btn').addEventListener('click', function() { hideHubDrawerOverlay('rewards-overlay'); });
   $('club-mgmt-back-btn').addEventListener('click', function() { hideHubDrawerOverlay('club-mgmt-overlay'); });
   $('underworld-back-btn').addEventListener('click', function() { hideHubDrawerOverlay('underworld-overlay'); });
+  $('case-file-back-btn').addEventListener('click', function() { hideHubDrawerOverlay('case-file-overlay'); });
+  $('debt-overlay-back-btn').addEventListener('click', function() { hideHubDrawerOverlay('debt-overlay'); });
   document.querySelectorAll('.market-tab').forEach(function(tab) {
     tab.addEventListener('click', function() { SFX.tap(); marketTab = this.getAttribute('data-mtab'); renderMarket(); });
   });

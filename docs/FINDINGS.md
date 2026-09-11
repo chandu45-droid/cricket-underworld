@@ -18,22 +18,7 @@
 
 ## 🔴 Open — needs a founder decision
 
-### Hub overflows under simultaneous investigation + debt
-- **Found:** 2026-09-11, while building the permanent zero-scroll regression test.
-- **What:** `#hub-screen` (both Play and Club tabs) exceeds the zero-vertical-scroll invariant when
-  a player is under investigation **and** has an active debt at the same time — a fully plausible
-  real game state, since both systems are heat/alignment-driven and can coexist. League, Cards, and
-  Squad all stay at genuine 0px even under the same stress state; this is Hub-specific.
-- **How confirmed:** Isolated each condition independently at a correct 844px viewport height (see
-  the height-methodology note below): full squad alone = 0px overflow (confirms the original
-  redesign's "genuine 0px" claim holds); + investigation alone = +60 to +133px; + debt alone = +38 to
-  +110px; + both together = +198 to +271px. Not caused by the 2026-09-10/11 sessions' work — the
-  clean baseline state (no investigation, no debt) still hits true 0px on current code.
-- **Likely cause:** the original redesign's verification passes tested investigation and debt as
-  separate cases, never combined.
-- **Current status:** pinned as a regression ceiling in `tests/zero-scroll.spec.js` (so a future
-  change can't silently make it worse) — not fixed. **Needs a founder call:** further Hub trim, or
-  accept as an edge case?
+*(none currently open)*
 
 ---
 
@@ -89,6 +74,41 @@
 ---
 
 ## ✅ Fixed
+
+### Hub overflowed under simultaneous investigation + debt (founder-requested fix, 2026-09-11)
+- **What it was:** `#hub-screen` (both Play and Club tabs) exceeded the zero-vertical-scroll
+  invariant when a player was under investigation **and** had an active debt at the same time — a
+  fully plausible real state, since both systems are heat/alignment-driven and can coexist. League/
+  Cards/Squad stayed at genuine 0px even under the same stress state, so the gap was Hub-specific.
+  Isolating each condition independently had found: investigation alone added ~60-133px, debt alone
+  ~38-110px, both together ~198-271px. Confirmed NOT caused by the 2026-09-10/11 sessions' other
+  work — the clean baseline (no investigation, no debt) already hit true 0px.
+- **Root cause:** `#investigation-panel` and `#debt-panel` rendered their FULL detail inline in the
+  always-visible persistent band — stage-track pills, inspector narration, bribe/pressure buttons,
+  and full per-debt payable cards. The original redesign's verification passes apparently tested
+  investigation and debt as separate cases, never combined.
+- **Fix:** moved the full detail into 2 new destination overlays (`#case-file-overlay` /
+  `#debt-overlay`), reusing the exact `.hub-drawer-overlay` pattern + `showHubDrawerOverlay()`/
+  `hideHubDrawerOverlay()` functions already proven for Club Management/Store/Underworld — zero new
+  JS functions needed. Kept the exact same `#case-stage-track`/`#case-actions`/`#debt-list` element
+  ids so the existing render functions (which do global `$()` lookups, not container-scoped ones)
+  needed zero code changes — relocated, not rebuilt, same discipline as the original redesign.
+  Compact glanceable summaries stayed inline (investigation: icon+title+matches-left+evidence count;
+  debt: ribbon+count+nearest-due-amount), each with a corner-chevron tap affordance (zero flow-height
+  cost, same technique already used for the Hub drawer tiles).
+- **A second real bug found and fixed along the way:** closing the last ~90% of the gap via CSS
+  padding trims appeared to have ZERO effect for a while, which turned out to be a real cascade-
+  specificity bug, not a caching issue (verified via direct file diff and forced no-cache headers
+  before concluding this) — `#hub-persistent-band .glass{padding:9px 12px;margin-bottom:6px}`
+  (ID+class, specificity 1,1,0) was silently beating a plain `#investigation-panel{padding:...}`
+  override (ID alone, 1,0,0). This is the exact same bug class already documented twice in this file
+  from the original redesign session (compound-class rules beating plain-ID rules). Fixed by matching
+  specificity with `#hub-persistent-band #investigation-panel` instead.
+- **Result:** 271px/198px → 0px/0px, verified at all 3 widths (320/375/390) via direct
+  scrollHeight/clientHeight measurement, and locked in as a real assertion (not a regression ceiling)
+  in `tests/zero-scroll.spec.js`. Also fixed a debt-object schema bug in that test file along the way
+  (`{amount,type}` instead of the real `{source,principal,stage,heldPlayer}` — same bug class already
+  caught once in `persona-regression.spec.js`).
 
 ### Design-review pass (2026-09-10, `/design-review` on the no-vertical-scroll redesign)
 
