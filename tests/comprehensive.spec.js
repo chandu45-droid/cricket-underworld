@@ -1655,10 +1655,16 @@ test.describe('Weather System', () => {
     const results = await page.evaluate(() => {
       var batter = {name:'Test',bat:80,bwl:10,form:70,fld:60,role:'Top-Order Batter'};
       var paceBowler = {name:'Test',bat:10,bwl:80,form:70,fld:50,role:'Fast Bowler'};
+      // 2026-09-11: sample size raised 1500 -> 40000. At 1500 the wicket count's standard
+      // deviation (~9 on a ~90-wicket mean) was as large as the 10% effect being measured, so this
+      // test flaked roughly 1 run in 3 (observed: 96v95 fail, pass, pass, 100v83 fail). 40000
+      // samples puts the effect several sigma clear of the noise. Same reasoning for the runs
+      // assertion. Still fast -- this is pure arithmetic in-page, no DOM work.
+      var N = 40000;
       function countWkts(weather, innings) {
         window.match.weather = weather;
         var wkts = 0;
-        for (var i = 0; i < 1500; i++) {
+        for (var i = 0; i < N; i++) {
           var o = window.calcBallOutcome(batter, paceBowler, 'FLAT', 1, 'balanced', 75, false, innings, 0, 0, i);
           if (o.wicket) wkts++;
         }
@@ -1667,7 +1673,7 @@ test.describe('Weather System', () => {
       function sumRuns(weather, innings) {
         window.match.weather = weather;
         var runs = 0;
-        for (var j = 0; j < 1500; j++) {
+        for (var j = 0; j < N; j++) {
           var o2 = window.calcBallOutcome(batter, paceBowler, 'FLAT', 1, 'balanced', 75, true, innings, 0, 0, j);
           runs += o2.runs;
         }

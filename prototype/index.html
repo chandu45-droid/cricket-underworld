@@ -3750,11 +3750,16 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       </div>
       <div class="cu-card" id="bowler-lineup-panel" style="padding:14px 16px 16px">
         <div class="pm-section"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue-bright)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span class="pm-section-label text-blue">Bowler Lineup</span><span class="pm-section-line"></span></div>
-        <div class="text-xs text-slip mb-8">Set preferred bowling order. You can change mid-match.</div>
+        <!-- 2026-09-11 audit fix (docs/FINDINGS.md #4): labels rewritten. "Auto (ask each over)"
+             and "Lock Lineup" described near-opposite behaviours in confusingly similar phrasing --
+             "Auto" actually meant "you get interrupted every over to pick", i.e. the OPPOSITE of
+             what Auto normally implies, while "Lock Lineup" was the hands-off automatic one. Now
+             each label says plainly what it does, and the active one is visually obvious. -->
+        <div class="text-xs text-slip mb-8">Tap a bowler to move them earlier in the order.</div>
         <div id="bowler-lineup-list"></div>
         <div class="flex gap-8 mt-8">
-          <div class="btn btn-outline flex-1 text-xs" id="bowler-auto-btn" style="padding:6px">Auto (ask each over)</div>
-          <div class="btn btn-outline flex-1 text-xs" id="bowler-lock-btn" style="padding:6px">Lock Lineup</div>
+          <div class="btn btn-outline flex-1 text-xs" id="bowler-auto-btn" style="padding:6px">I Pick Each Over</div>
+          <div class="btn btn-outline flex-1 text-xs" id="bowler-lock-btn" style="padding:6px">Auto-Rotate</div>
         </div>
       </div>
       <div class="cu-card cu-red" id="fix-active-banner" style="display:none;text-align:center;padding:14px">
@@ -4437,6 +4442,7 @@ var GS = {
   staff: {},
   scoutedXI: null,
   scoutWeakness: null,
+  bowlerOrder: [], // 2026-09-11 audit fix #4: player's preferred bowling order (array of player ids)
   tipsSeen: {},
   collusionPacts: [],
   mafiaFixLoseCooldown: 0,
@@ -4846,6 +4852,7 @@ function hydrateGS(d) {
       GS.consecutiveFavors=v(d.consecutiveFavors,0);
       GS.rivalIntel=v(d.rivalIntel,{});
       GS.scoutWeakness=v(d.scoutWeakness,null);
+      GS.bowlerOrder=v(d.bowlerOrder,[]);
       GS.tipsSeen=v(d.tipsSeen,{});
       GS.factions=v(d.factions,null);
       GS.lastLogin=v(d.lastLogin,null); GS.loginStreak=v(d.loginStreak,0); GS.bestLoginStreak=v(d.bestLoginStreak,0); GS.loginClaimedDate=v(d.loginClaimedDate,null);
@@ -8935,9 +8942,35 @@ function pickBowler(bowlers, phase, overNum) {
   if (underCap.length > 0) bowlers = underCap;
   var eligible = bowlers.filter(function(b) { return !match.lastBowler || b.name !== match.lastBowler.name; });
   if (eligible.length === 0) eligible = bowlers;
+  // 2026-09-11 audit fix (docs/FINDINGS.md #4, gameplay half). This branch used to be:
+  //   match.bowlerLineup.find(b => !lastBowler || b.name !== lastBowler.name)
+  // .find() always returns the EARLIEST match, so a "locked lineup" just alternated the first two
+  // bowlers forever -- and because it searched the raw lineup instead of the cap-filtered list, it
+  // bypassed the T20 4-over cap entirely. Measured before fixing: a locked 5-bowler lineup used
+  // only 2 of them, 10 overs each in a 20-over innings (2.5x the legal cap the 2026-08-03 balance
+  // audit deliberately added). Now: among lineup bowlers who are eligible (under cap, not the
+  // last bowler), take whoever has bowled fewest balls, tie-broken by the player's chosen order.
+  // That rotates through the whole lineup IN ORDER and can't exceed the cap.
   if (match.bowlerLineup && match.bowlerLineup.length > 0) {
-    var nextInLine = match.bowlerLineup.find(function(b) { return !match.lastBowler || b.name !== match.lastBowler.name; });
-    if (nextInLine) return nextInLine;
+    var ballsBowled = {};
+    var bowlingSide = match.batting === 'you' ? 'opp' : 'you';
+    var bwlStats = (match.scorecard && match.scorecard[bowlingSide]) ? match.scorecard[bowlingSide].bowlers : [];
+    bwlStats.forEach(function(b) { ballsBowled[b.name] = b.balls; });
+    var lineupEligible = match.bowlerLineup.filter(function(b) {
+      if (maxed[b.name]) return false;
+      if (match.lastBowler && b.name === match.lastBowler.name) return false;
+      return true;
+    });
+    if (lineupEligible.length > 0) {
+      var best = lineupEligible[0];
+      var bestBalls = ballsBowled[best.name] || 0;
+      for (var li = 1; li < lineupEligible.length; li++) {
+        var cand = lineupEligible[li];
+        var candBalls = ballsBowled[cand.name] || 0;
+        if (candBalls < bestBalls) { best = cand; bestBalls = candBalls; }
+      }
+      return best;
+    }
   }
   if (phase === 1) {
     var spin = eligible.filter(function(b){return b.role==='Spin Bowler';});
@@ -9556,29 +9589,79 @@ function executeHeatAction(id) {
 // =============================================
 // BOWLER LINEUP PRE-SELECTION
 // =============================================
-function renderBowlerLineup() {
+// 2026-09-11 audit fix (docs/FINDINGS.md #4): the panel's copy promised "Set preferred bowling
+// order" and the rows were styled cursor:pointer, but data-lineup had NO handler anywhere in the
+// file -- there was no way to set any order, so the promise was false. Now the order is real: rows
+// are tap-to-promote (tap moves a bowler one place earlier), and pickBowler()'s lineup branch
+// rotates through that order. GS.bowlerOrder persists the player's preference across matches.
+function getOrderedBowlers() {
   var xi = GS.selectedXI.map(function(id) { return GS.squad.find(function(p) { return p.id === id; }); }).filter(Boolean);
   var bowlers = xi.filter(function(p) { return p.role === 'Fast Bowler' || p.role === 'Spin Bowler' || p.role === 'All-Rounder'; });
+  var order = GS.bowlerOrder || [];
+  bowlers.sort(function(a, b) {
+    var ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+    if (ia === -1 && ib === -1) return 0;
+    if (ia === -1) return 1;   // unranked bowlers fall to the back, keeping their relative order
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+  return bowlers;
+}
+
+function promoteBowler(id) {
+  var bowlers = getOrderedBowlers();
+  var idx = -1;
+  for (var i = 0; i < bowlers.length; i++) { if (String(bowlers[i].id) === String(id)) { idx = i; break; } }
+  if (idx <= 0) { toast(idx === 0 ? 'Already opening the bowling' : 'Bowler not in your XI', 'info'); return; }
+  var reordered = bowlers.slice();
+  var moved = reordered.splice(idx, 1)[0];
+  reordered.splice(idx - 1, 0, moved);
+  GS.bowlerOrder = reordered.map(function(b) { return b.id; });
+  save();
+  SFX.tap();
+  // Keep a locked lineup in sync with the new order rather than silently going stale.
+  if (match.bowlerSelected) match.bowlerLineup = getOrderedBowlers();
+  renderBowlerLineup();
+}
+window.promoteBowler = promoteBowler;
+
+function renderBowlerLineup() {
+  var bowlers = getOrderedBowlers();
   if (bowlers.length === 0) { $('bowler-lineup-list').innerHTML = '<div class="text-xs text-slip">Select your XI first</div>'; return; }
   var html = '';
   for (var i = 0; i < bowlers.length; i++) {
     var b = bowlers[i];
     var bg = b.role === 'Spin Bowler' ? 'var(--purple)' : b.role === 'Fast Bowler' ? 'var(--green-bright)' : 'var(--blue-bright)';
-    html += '<div class="flex items-center gap-8 mb-4" style="padding:6px 8px;border:1px solid var(--border);border-radius:3px;cursor:pointer" data-lineup="' + b.id + '">' +
+    html += '<div class="flex items-center gap-8 mb-4" style="padding:6px 8px;border:1px solid var(--border);border-radius:3px;cursor:pointer" data-lineup="' + b.id + '" onclick="promoteBowler(\'' + b.id + '\')">' +
+      '<div class="font-d fw-700 text-xs text-slip" style="width:14px;flex-shrink:0">' + (i + 1) + '</div>' +
       '<div style="width:8px;height:8px;border-radius:50%;background:' + bg + ';flex-shrink:0"></div>' +
       '<div class="flex-1 font-d fw-600 text-xs">' + b.name + '</div>' +
-      '<div class="text-xs text-slip">' + b.role.split(' ')[0] + ' · BWL ' + b.bwl + '</div></div>';
+      '<div class="text-xs text-slip">' + b.role.split(' ')[0] + ' · BWL ' + b.bwl + '</div>' +
+      (i > 0 ? '<div class="text-xs text-slip" style="flex-shrink:0;opacity:0.7">&#9650;</div>' : '<div style="width:8px;flex-shrink:0"></div>') +
+      '</div>';
   }
   $('bowler-lineup-list').innerHTML = html;
+  updateBowlerModeUI();
+}
+
+// 2026-09-11 audit fix (docs/FINDINGS.md #4, the founder's original report): neither mode button
+// ever added/removed a class, so after the 2.5s toast faded there was NO way to tell which mode was
+// active. The pattern already existed and worked two panels away (#strategy-opts/.selected) -- it
+// just was never applied here. Mirrors that pattern exactly.
+function updateBowlerModeUI() {
+  var autoBtn = $('bowler-auto-btn'), lockBtn = $('bowler-lock-btn');
+  if (!autoBtn || !lockBtn) return;
+  var locked = !!match.bowlerSelected;
+  autoBtn.className = 'btn flex-1 text-xs' + (locked ? ' btn-outline' : ' btn-gold');
+  lockBtn.className = 'btn flex-1 text-xs' + (locked ? ' btn-gold' : ' btn-outline');
 }
 
 function lockBowlerLineup() {
-  var xi = GS.selectedXI.map(function(id) { return GS.squad.find(function(p) { return p.id === id; }); }).filter(Boolean);
-  var bowlers = xi.filter(function(p) { return p.role === 'Fast Bowler' || p.role === 'Spin Bowler' || p.role === 'All-Rounder'; });
-  match.bowlerLineup = bowlers;
+  match.bowlerLineup = getOrderedBowlers();
   match.bowlerSelected = true;
-  toast('Bowler lineup locked — auto-rotation set', 'success');
+  toast('Auto-rotate on — bowlers follow your order', 'success');
   SFX.tap();
+  updateBowlerModeUI();
 }
 
 // =============================================
@@ -12107,8 +12190,9 @@ function bindEvents() {
   $('bowler-auto-btn').addEventListener('click', function() {
     match.bowlerLineup = [];
     match.bowlerSelected = false;
-    toast('Auto mode — bowler picker each over', 'info');
+    toast('You\'ll pick the bowler each over', 'info');
     SFX.tap();
+    updateBowlerModeUI(); // 2026-09-11 audit fix #4: persist the choice visually, not just via toast
   });
   $('bowler-lock-btn').addEventListener('click', function() {
     lockBowlerLineup();
