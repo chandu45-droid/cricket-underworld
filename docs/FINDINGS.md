@@ -184,6 +184,17 @@ could not have seen. 🟡 and 🟢 items remain open and unactioned.
 
 ## 🟡 Flagged, not fixed
 
+*(Most of this section was cleared 2026-09-11 — see ✅ Fixed → "Yellow + code-quality pass". What
+remains below are the items that need a founder decision rather than a code fix.)*
+
+### Facilities' Scout Report placement — needs a founder call, not a fix
+- Scout Report is pre-match-timing-sensitive but sits inside Club Management behind 8 mostly
+  non-urgent panels. Fixing it means *deciding where it should live* (e.g. a Play-tab quick tile
+  near match prep), which is a product call. Still open.
+
+<details>
+<summary>Resolved items previously in this section (kept for the "have we seen this before" record)</summary>
+
 ### ⭐ Systemic: ~10 spend buttons never show affordability before you tap (2026-09-11 audit)
 - **What:** Pack purchases, training, Transfer Market buy + refresh, staff hires, Academy recruit,
   and Bhai's Arrange-it / Pay-Respects / Pay-Hafta all share one anti-pattern: the button renders
@@ -274,7 +285,38 @@ touch · `.tribunal-overlay` CSS has no matching element anywhere · stale code 
 
 ---
 
+</details>
+
+---
+
 ## ✅ Fixed
+
+### Yellow + code-quality pass (2026-09-11, founder: "initiate next set of fixes")
+Worked straight after the red pass. 11 of 12 🟡 items plus 3 code-quality items closed; the one
+remaining 🟡 (Scout Report placement) is a product decision, not a fix.
+
+| Finding | Commit |
+|---|---|
+| **⭐ Systemic afford-state gap** — every spend control in the game rendered identically whether or not you could afford it; the check lived only in the click handler and failure surfaced only as a fading toast. Fixed with one shared helper (`canAfford`/`affordClass`/`markAffordable`) applied at 10 sites, rather than 10 patches | `ed67eb1` |
+| Squad row's bare unlabelled stat number (meaning depended on invisible role logic; All-Rounders' bowling stat was invisible entirely) · Mentorship hid itself below its gate while Academy explained itself · pack count silently capped near a full squad · Release/Sell dead-end taps at the 3-player minimum · mafia favour accepted on a single tap despite being irreversible | `cdb1c12` |
+| Drop-rates' three identical percentage blocks read as a bug · Sponsor Pack's two entry points could disagree about one shared boolean · `getAcademyHtml()`'s unreachable "Need alignment 30+" hint · `rollInjury()`'s `fit:0` falsy trap · `simKnockoutMatch()`'s slot-`a`-only player boost | `3731666` |
+
+
+**A real bug found in my own fix work, worth recording:** the new generic confirm sheet inherited
+`.store-confirm`'s `z-index:216`, but it gets summoned from `#mafia-overlay` (`z-index:300`) — so it
+was present in the DOM and would pass a naive "is it visible" class check, while being completely
+unreachable by an actual tap. Caught by `elementFromPoint` returning a mafia-overlay child at the
+sheet's own coordinates. Raised to 350 (clears every overlay at max 301, stays under the toast layer
+at 400). Worth remembering: *a class-presence assertion is not proof a control is tappable.*
+
+**Knockout fairness fix verified numerically** rather than by reading: 40,000 sims per case showed
+slot-a vs slot-b player win rates now agree within 0.6% (sampling noise) at even, favoured and
+underdog strengths, with the 75% cap correctly applying from both slots. Before the fix, a player
+drawn into slot `b` got neither the +5% boost nor the cap.
+
+**Three tests updated deliberately** (pinning new intent, not weakened): Mentorship and Academy gates
+now assert their explanatory messages instead of hidden/empty panels, and the mafia real-click test
+now goes through the confirm sheet.
 
 ### All 11 🔴 findings from the full-game UI/UX audit (2026-09-11)
 Worked in severity order, WIP=1, one commit each, tests run after every fix.
