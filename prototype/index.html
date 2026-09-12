@@ -9346,7 +9346,20 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   // stratBatMod/stratBwlMod are kept as plain multipliers, reapplied explicitly to wktP/sixP/
   // fourP after the skill-ratio is computed, so the risk/reward trade-off can't be "solved" by
   // aggression alone. See the block right after wktP/dotP/sixP/fourP below.
-  var batStr = batter.bat * formMod(batter.form) * phaseBat * batMoraleMod * pm.bat * capBatMod;
+  // BATTER ARCHETYPES (2026-09-12 founder design decision, systems audit #9). Before this, the
+  // batter's `role` was never read here at all -- only the BOWLER's was, and only to pick a
+  // pace/spin pitch modifier. So a Top-Order Batter, a Middle-Order Batter and a Wicket-Keeper
+  // with the same `bat` were byte-identical in play, and every archetype in the design brief
+  // (anchor, finisher, powerplay specialist) was pure cosmetics on a card.
+  // Each role now owns a phase: openers cash in on the field restrictions and fade at the death,
+  // middle-order holds the middle overs and the pressure, all-rounders are the finishers.
+  // Applied to batStr so it flows through the same ratio as form/pitch/morale rather than being
+  // bolted onto the outcome probabilities separately.
+  var archMod = 1.0;
+  if (batter.role === 'Top-Order Batter') archMod = phase === 0 ? 1.10 : phase === 2 ? 0.94 : 1.0;
+  else if (batter.role === 'Middle-Order Batter') archMod = phase === 0 ? 0.94 : phase === 1 ? 1.07 : 1.03;
+  else if (batter.role === 'All-Rounder') archMod = phase === 2 ? 1.10 : phase === 0 ? 0.96 : 1.0;
+  var batStr = batter.bat * formMod(batter.form) * phaseBat * batMoraleMod * pm.bat * capBatMod * archMod;
   var bwlStr = bowler.bwl * formMod(bowler.form) * phaseBwl * pitchBwlMod * bwlMoraleMod * capBwlMod;
   if (GS.mafiaBonus) {
     if (GS.mafiaBonus.type==='matchfix' && isYourBatting) batStr *= 1.30;
@@ -9443,6 +9456,27 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   var fs = match.fieldSetting || 'standard';
   if (!isYourBatting && fs === 'attacking') { wktP *= 1.30; fourP *= 1.32; sixP *= 1.32; dotP *= 0.86; }
   else if (!isYourBatting && fs === 'defensive') { wktP *= 0.70; fourP *= 0.72; sixP *= 0.65; dblP *= 1.38; dotP *= 0.94; }
+  // FIELDING + THE KEEPER (2026-09-12, same founder decision). `fld` was read by NOTHING in the
+  // match engine -- a 90-fielding keeper and a 40-fielding one played identically, which is why a
+  // Wicket-Keeper card had no mechanical identity at all. The fielding side's general ground
+  // fielding and, weighted equally, its keeper now move the wicket chance: run-outs, stumpings and
+  // held catches are most of what fielding actually decides in T20.
+  // Centred so an average side (fld 50) is exactly neutral -- this must not inflate wickets
+  // globally, only redistribute them toward sides that picked fielders. Range is about +/-6%.
+  // Guarded on match.bwlXI because calcBallOutcome is also called in isolation (super over, tests),
+  // where there is no fielding side to read.
+  var fieldXI = (match && match.bwlXI && match.bwlXI.length) ? match.bwlXI : null;
+  if (fieldXI) {
+    var fldSum = 0, keeperFld = 45; // no specialist keeper in the XI is itself a penalty
+    for (var fi = 0; fi < fieldXI.length; fi++) {
+      var fp = fieldXI[fi];
+      if (!fp) continue;
+      fldSum += (typeof fp.fld === 'number') ? fp.fld : 50;
+      if (fp.role === 'Wicket-Keeper' && typeof fp.fld === 'number') keeperFld = fp.fld;
+    }
+    var avgFld = fldSum / fieldXI.length;
+    wktP *= 0.92 + ((avgFld + keeperFld) / 2) / 100 * 0.16;
+  }
   var sglP = Math.max(0.10, 1.0 - wktP - dotP - sixP - fourP - triP - dblP);
   var total = wktP + dotP + sglP + dblP + triP + fourP + sixP;
   var r = Math.random() * total;

@@ -629,4 +629,88 @@ test.describe('Systems Integrity 2026-09-12', () => {
     expect(Math.abs(r.after.rival - r.before.rival)).toBeLessThan(1.5); // sampling noise only
   });
 
+  // ============================================================
+  // SYSTEMS FIX 9 (founder design decision): archetypes exist in the simulation
+  // calcBallOutcome read the BOWLER's role (pace/spin pitch modifier) and never the batter's, so
+  // Top-Order / Middle-Order / Wicket-Keeper with equal `bat` were byte-identical in play. `fld`
+  // was read by nothing at all, which left the Wicket-Keeper card with no mechanical identity.
+  // ============================================================
+  test('batting archetypes are not interchangeable: each role owns its phase', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      // IDENTICAL stats, different roles -- so any difference can only come from the archetype.
+      const mk = role => ({ id: 1, name: 'X', role: role, bat: 70, bwl: 20, form: 70, fld: 60, fit: 80 });
+      const bowler = { id: 2, name: 'W', role: 'Fast Bowler', bat: 20, bwl: 70, form: 70, fld: 60, fit: 80 };
+      window.match.fieldSetting = 'standard';
+      window.match.boostBalls = 0;
+      window.match.bwlXI = []; // isolate from the fielding modifier
+      window.match.batterBalls = 8; // settled, so settling isn't what's being measured
+      function runs(role, phase, n) {
+        const b = mk(role);
+        let total = 0;
+        for (let i = 0; i < n; i++) {
+          window.match.batterBalls = 8;
+          const o = window.calcBallOutcome(b, bowler, 'FLAT', phase, 'balanced', 75, true, 1, 0, 0, i);
+          if (!o.wicket) total += o.runs;
+        }
+        return total;
+      }
+      const N = 25000;
+      return {
+        powerplay: { top: runs('Top-Order Batter', 0, N), mid: runs('Middle-Order Batter', 0, N) },
+        middle:    { top: runs('Top-Order Batter', 1, N), mid: runs('Middle-Order Batter', 1, N) },
+        death:     { top: runs('Top-Order Batter', 2, N), ar: runs('All-Rounder', 2, N) }
+      };
+    });
+
+    // The opener cashes in on the powerplay; the middle-order man does not.
+    expect(r.powerplay.top).toBeGreaterThan(r.powerplay.mid);
+    // Through the middle overs that reverses.
+    expect(r.middle.mid).toBeGreaterThan(r.middle.top);
+    // And the all-rounder is the finisher at the death.
+    expect(r.death.ar).toBeGreaterThan(r.death.top);
+  });
+
+  test('fielding and the keeper finally do something', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const batter = { id: 1, name: 'B', role: 'Top-Order Batter', bat: 70, bwl: 20, form: 70, fld: 60, fit: 80 };
+      const bowler = { id: 2, name: 'W', role: 'Fast Bowler', bat: 20, bwl: 70, form: 70, fld: 60, fit: 80 };
+      window.match.fieldSetting = 'standard';
+      window.match.boostBalls = 0;
+      function xi(fld, keeperFld) {
+        const out = [];
+        for (let i = 0; i < 10; i++) out.push({ role: 'Fast Bowler', fld: fld });
+        out.push({ role: 'Wicket-Keeper', fld: keeperFld });
+        return out;
+      }
+      function wkts(fieldXI, n) {
+        window.match.bwlXI = fieldXI;
+        let w = 0;
+        for (let i = 0; i < n; i++) {
+          window.match.batterBalls = 8;
+          if (window.calcBallOutcome(batter, bowler, 'FLAT', 1, 'balanced', 75, true, 1, 0, 0, i).wicket) w++;
+        }
+        return w;
+      }
+      const N = 40000;
+      return {
+        sharp: wkts(xi(88, 90), N),
+        sloppy: wkts(xi(30, 28), N),
+        // keeper alone: identical outfield, only the gloves change
+        keeperGood: wkts(xi(55, 92), N),
+        keeperPoor: wkts(xi(55, 25), N)
+      };
+    });
+
+    // A side that can field takes more wickets than one that can't.
+    expect(r.sharp).toBeGreaterThan(r.sloppy);
+    // ...and the keeper matters on his own, which is what gives the card an identity.
+    expect(r.keeperGood).toBeGreaterThan(r.keeperPoor);
+  });
+
 });
