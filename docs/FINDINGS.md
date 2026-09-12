@@ -18,8 +18,21 @@
 
 ## 🔴 Open — needs a founder decision
 
-### 2026-09-12 — Two incidental finds while fixing the dishonest-purchase batch
-Both found by reading code adjacent to the fixes, neither acted on. Logged per the session protocol.
+### 2026-09-12 — Three incidental finds while fixing the dishonest-purchase batch
+Found by reading code adjacent to the fixes, none acted on. Logged per the session protocol.
+
+0. 🟡 **The sponsor bonus is NOT locked at season start — it tracks current alignment, live.**
+   Surfaced by a test failure while wiring the purse fix, then verified in-browser: a save seeded
+   with `sponsor:{purseBonus:0}` loads as **Ceat Tyres +100**, because `updateHub()` recomputes
+   `GS.sponsor = getSponsorForZone(getAlignmentZone(GS.alignment))` on **every hub render**
+   (`:8285-8286`) — `endSeason` is not the only writer. Two consequences now that the ladder
+   actually reaches the auction: (a) it bites from **season 1**, not season 2 — an earlier code
+   comment of mine claimed the opposite and has been corrected in place; (b) the purse reflects
+   whatever your alignment is **at the moment the auction opens**, so swinging alignment just
+   before an auction is worth up to +700 (−200 → +500) of purse. That may well be intended
+   ("stay clean, get a better sponsor") and it matches what the hub has always displayed — but
+   it's a design call, not something to decide inside a bug fix. **Founder call:** leave it live,
+   or snapshot the sponsor at `endSeason` so the season's purse is locked when the deal is signed.
 
 1. 🔴 **The OTHER academy reward can breach the squad cap.** `endSeason` does
    `var academyCard = getAcademyCard(); if (academyCard) { GS.squad.push(academyCard); … }` with **no

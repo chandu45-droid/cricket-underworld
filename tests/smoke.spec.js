@@ -335,8 +335,14 @@ test('Sponsor Break: rewarded ads — free pack, purse boost, post-match doubler
   expect(await page.evaluate(() => GS.ads.pendingPurse)).toBe(true);
   await expect(page.locator('#ad-purse-btn')).toHaveClass(/used/);
   await page.click('#start-auction-btn');
-  const auctionState = await page.evaluate(() => ({ purse: GS.auctionPurse, coins: GS.coins, pending: GS.ads.pendingPurse }));
-  expect(auctionState.purse).toBe(auctionState.coins + 300);
+  // 2026-09-12: purse is no longer a bare mirror of coins. The founder-approved model is
+  // purse = coins + the sponsor's purseBonus (the ladder used to be wiped by
+  // `GS.auctionPurse = GS.coins` and had never once applied), and the rewarded ad adds its +300
+  // on top of that. Note GS.sponsor is recomputed from current alignment by updateHub(), so the
+  // seeded purseBonus:0 above is NOT what's live here -- read the real one rather than hardcode.
+  const auctionState = await page.evaluate(() => ({ purse: GS.auctionPurse, coins: GS.coins, bonus: (GS.sponsor && GS.sponsor.purseBonus) || 0, pending: GS.ads.pendingPurse }));
+  expect(auctionState.purse).toBe(auctionState.coins + auctionState.bonus + 300);
+  expect(auctionState.bonus).not.toBe(0); // guard: this must keep exercising the ladder, not a 0 no-op
   expect(auctionState.pending).toBe(false);
 
   // --- Post-match coin doubler ---

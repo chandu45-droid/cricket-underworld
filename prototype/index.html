@@ -8846,8 +8846,14 @@ function startAuction() {
   // Your coins are still your money (unchanged mental model); the sponsor bonus is spending power
   // ON TOP of them, which is why placeBid() clamps coins at 0 -- the bonus is meant to let you
   // outbid your own coin pile by exactly the ladder's worth. Read straight off GS.sponsor rather
-  // than a new banked field, so no save migration is needed. Season 1's default sponsor carries a
-  // 0 bonus, so the ladder starts biting from season 2, when alignment has had time to move.
+  // than a new banked field, so no save migration is needed.
+  // CORRECTION (verified in-browser 2026-09-12, after an earlier comment here claimed otherwise):
+  // GS.sponsor is NOT a per-season snapshot. `updateHub()` recomputes it from current alignment on
+  // every hub render (`:8285-8286`), so a fresh save seeded with purseBonus:0 loads as Ceat Tyres
+  // +100 the moment the hub draws. Two consequences: the ladder is live from season 1, not season
+  // 2; and the bonus tracks your CURRENT alignment rather than locking at season start. That is
+  // consistent with what the hub has always displayed to the player, but it is a design nuance --
+  // logged in docs/FINDINGS.md for a founder call, not decided here.
   var purseBonus = (GS.sponsor && GS.sponsor.purseBonus) || 0;
   GS.auctionPurse = Math.max(0, Math.round((GS.coins + purseBonus) * (GS.pursePenalty || 1)));
   GS.pursePenalty = 1; // one season only -- consumed here, see the tribunal suspension branch
