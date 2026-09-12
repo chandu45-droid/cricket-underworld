@@ -106,13 +106,13 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
    wickets in an innings that only loses 4.7 — the trade-off can't exist while wickets are
    non-binding). Plus **"Contain" field is a free unlimited dominant button** (opponent 176 → 158,
    +12–14pp win rate).
-5. 🔴 **DRS has no recency gate** — `batIdx` derives from wicket count, so it can resurrect a batter
+5. ✅ **DONE 2026-09-12 (`47ff8a9`)** — 🔴 **DRS has no recency gate** — `batIdx` derives from wicket count, so it can resurrect a batter
    dismissed 10 overs ago. It's a "delete one wicket" button.
-6. 🔴 **XI validation requires neither a wicket-keeper nor a bowler** — a legal XI can have one man
+6. ✅ **DONE 2026-09-12 (`3cf284c`)** — 🔴 **XI validation requires neither a wicket-keeper nor a bowler** — a legal XI can have one man
    bowl all 20 overs.
 7. 🔴 Misc: ~~rewarded-ad +300 purse boost can drive `GS.coins` **negative**~~ ✅ **FIXED 2026-09-12
    (`86f5503`)** — closed as a side effect of the purse decision, `resolveCard` now clamps coins at 0;
-   auction can **never offer a common or uncommon card** (`slice(0,12)` off a rarity-desc
+   ~~auction can **never offer a common or uncommon card**~~ ✅ **FIXED (`784460c`)**; (`slice(0,12)` off a rarity-desc
    sort → **58% of the pool is auction-invisible**); daily login pays ~7× more than winning a match;
    premium pass refunds 120 of its 150 gems (permanently self-funding).
 

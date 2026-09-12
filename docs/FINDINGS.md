@@ -18,6 +18,26 @@
 
 ## 🔴 Open — needs a founder decision
 
+### 2026-09-12 — Two design questions deliberately left open by the hardening pass
+Both are points where a bug fix had a clearly-correct *core* and a debatable *degree*. The core
+shipped; the degree is a founder call. Neither is blocking anything.
+
+A. 🟡 **How strict should XI legality be — 2 bowlers, or a genuinely legal 5?** Fix `3cf284c`
+   requires a wicket-keeper and **2** bowlers. Two is the smallest number that makes an existing
+   rule satisfiable (no-consecutive-overs is impossible with one bowler). But a legal 20-over
+   innings under the 4-over cap needs **5**, and the engine currently papers over the gap by
+   relaxing the cap "when an alternative exists" (`LOGIC FIX 5`). Going to 5 would be more
+   cricket-honest and would make bowling depth a real squad-building constraint — but it collides
+   with the deliberate allowance for XIs as small as 3, and would invalidate many early-game
+   squads. **Founder call:** keep 2 (permissive, current), or move to 5 and revisit the minimum
+   XI size with it.
+B. 🟡 **Should every auction guarantee a marquee lot?** Fix `784460c` samples the 12 lots uniformly
+   from the whole pool, which fixed 58% of the collection being auction-invisible. With 21 of 50
+   cards rare-or-better a sample still averages ~5 marquee lots, so the "marquee closes the show"
+   intent survives statistically — but it is no longer *guaranteed*, and an unlucky auction can
+   now be all commons. **Founder call:** leave it uniform (current), or force at least one
+   epic/legendary into every pool.
+
 ### 2026-09-12 — Three incidental finds while fixing the dishonest-purchase batch
 Found by reading code adjacent to the fixes, none acted on. Logged per the session protocol.
 
@@ -116,9 +136,9 @@ live code//browser rather than relayed on trust):
    only to pick a pitch modifier, so Top-Order / Middle-Order / Wicket-Keeper with equal `bat` are
    **byte-identical** in play, and `fld` is never read by the match engine at all. Anchor, power
    hitter, finisher, death bowler, powerplay specialist — all currently cosmetic.
-10. 🔴 **DRS has no recency gate** (`:9424`) — `batIdx` is derived from the wicket count, so it's a
+10. ✅ **FIXED 2026-09-12 (`47ff8a9`)** — 🔴 **DRS has no recency gate** (`:9424`) — `batIdx` is derived from the wicket count, so it's a
     "delete one wicket" button that can resurrect a batter dismissed 10 overs ago.
-11. 🔴 **Nothing in XI validation requires a wicket-keeper or a bowler** (`:10105-10109` checks only
+11. ✅ **FIXED 2026-09-12 (`3cf284c`)** — 🔴 **Nothing in XI validation requires a wicket-keeper or a bowler** (`:10105-10109` checks only
     size and the overseas cap), so a legal XI can have one man bowl all 20 overs consecutively.
 
 **Also flagged, lower severity but cheap:** daily login pays ~7× more than winning a match (4,900
@@ -128,7 +148,7 @@ the +300 rewarded-ad purse boost can drive `GS.coins` negative (purse is aliased
 `:9028`); and the auction can never offer a common or uncommon card (`slice(0,12)` off a rarity-desc
 sort — **58% of the player pool is auction-invisible**).
 
-**Status: 6 of 21 red fixed (3 on 2026-09-11, +3 on 2026-09-12) — 15 still open**, plus one sub-item
+**Status: 8 of 21 red fixed (3 on 2026-09-11, +5 on 2026-09-12) — 13 still open**, plus one sub-item
 of the bundled misc finding (coins going negative) closed as a side effect of the purse decision.
 See `SESSION-HANDOFF.md` for the prioritised resume list and the two design decisions the founder
 has already made but which aren't implemented yet.
