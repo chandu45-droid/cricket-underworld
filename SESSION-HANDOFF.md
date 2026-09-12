@@ -42,10 +42,16 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 >   sponsor ladder and the tribunal −20% now actually reach the auction, and `resolveCard` clamps
 >   coins at 0 (which also closes the "rewarded ad can drive coins negative" misc finding).
 >
-> **TESTED — founder asked for a run. FULL SUITE GREEN: 239/239** (was 232; +5 new systems tests,
-> +2 from earlier work). Run in chunks by spec file, as this file recommends:
-> comprehensive 132 (14.1m) · features-10k + zero-scroll 31 · p15-visual 28 · smoke + persona 24 ·
-> the two bugfix specs 19 · systems-2026-09-12 5.
+> **TESTED — founder asked for a run. FULL SUITE GREEN: 240/240** (was 232; +6 new systems tests,
+> +2 from earlier work). Re-run clean after the cleanStreak fix. Run in chunks by spec file, as
+> this file recommends: comprehensive 132 (12.7m) · features-10k + zero-scroll + bugfix-09-09 40 ·
+> p15-visual 28 · smoke + persona + bugfix-08-03 34 · systems-2026-09-12 6.
+>
+> **Infra gotcha that cost a full 14-min run:** a comprehensive run reported 74/132 with
+> `ERR_CONNECTION_REFUSED` on every test after the first failure. That was the **dev server dying
+> mid-run**, not a regression — it had been started with a backgrounded `&` inside a foreground
+> command, which doesn't survive. Start it as a genuinely detached background task and `curl` it
+> before trusting a long run.
 >
 > The 5 new tests were **verified non-vacuous**: each fix was temporarily reverted and all 5 failed
 > against the old code, then passed again once restored. Worth keeping as the default bar — a
