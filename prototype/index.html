@@ -9373,21 +9373,58 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   var dotP = Math.max(0.18, Math.min(0.50, 0.35 / Math.sqrt(ratio)));
   var sixP = Math.max(0.02, Math.min(0.18, 0.07 * Math.pow(ratio, 0.8)));
   var fourP = Math.max(0.04, Math.min(0.20, 0.11 * Math.pow(ratio, 0.5)));
+  // NEW-BATTER SETTLING (2026-09-12 systems-audit fix #7). This is the mechanic that makes wickets
+  // COST something, and it is the root fix for two separate 🔴 findings that both came down to the
+  // same thing: a T20 innings ends on overs, not wickets, so every lever that traded wickets for
+  // runs was free in one direction. Aggressive batting bought +8.5 runs for +0.40 wickets
+  // (+5.4pp win rate, strictly dominant); the "Contain" field bought a huge boundary suppression
+  // for a wicket-rate it never needed (+10.6pp, free, unlimited, one tap).
+  // The 2026-08-03 fix tried to solve this by re-tuning the strategy multipliers and failed --
+  // re-tuning can't create a trade-off when one side of the trade has no value. So instead of
+  // touching those multipliers, a wicket now has an intrinsic price: the incoming batter needs a
+  // few balls to get his eye in, exactly as in real cricket. That price is paid by WHOEVER causes
+  // the wicket, which makes both exploits self-correcting -- aggressive batting pays it more
+  // often, and Contain (which suppresses your own wicket-taking by 30%) means the opposition's
+  // batters settle in and stay settled.
+  // `batterBalls` is maintained by simBall and skipMatch. When it is absent -- a direct call from
+  // the super over or a test -- default to SETTLED so no existing caller silently changes.
+  var settleOver = 8;
+  var bb = (match && typeof match.batterBalls === 'number') ? match.batterBalls : settleOver;
+  var settle = Math.max(0, Math.min(1, bb / settleOver));
+  wktP = wktP * (1.35 - 0.35 * settle);
+  dotP = dotP * (1.30 - 0.30 * settle);
+  sixP = sixP * (0.55 + 0.45 * settle);
+  fourP = fourP * (0.55 + 0.45 * settle);
   // Strategy risk/reward (GDD 6.2: "Aggressive: +10% wickets, +15% runs conceded. Defensive:
   // opposite."), applied directly and independently of the skill/pitch ratio above. wktP moves
   // the SAME direction as the boundary probabilities for whichever side chose the strategy --
   // aggressive batting scores more AND gets out more; aggressive bowling takes more wickets AND
   // leaks more boundaries when it doesn't come off. Re-clamped to the same bounds as above so
   // this can't push probabilities outside the ranges the rest of the sim was tuned against.
-  var stratWktRisk = strategy==='aggressive' ? 1.10 : strategy==='defensive' ? 0.90 : 1.0;
+  // 2026-09-12: aggressive raised 1.10 -> 1.32, defensive 0.90 -> 0.80. GDD 6.2's "+10% wickets"
+  // was a spec number that demonstrably never balanced: measured at n=2500, aggressive batting was
+  // still +3.6pp win rate over balanced even AFTER the settling mechanic gave wickets a real
+  // price, and defensive was -4.3pp -- a strict ordering, i.e. not a choice. The multiplier is now
+  // set from measurement rather than from the spec, and it compounds with settling (more wickets
+  // means more un-set batters), which is what finally makes the trade bite.
+  var stratWktRisk = strategy==='aggressive' ? 1.20 : strategy==='defensive' ? 0.82 : 1.0;
   var stratRunRisk = isYourBatting ? stratBatMod : stratBwlMod;
   wktP = Math.max(0.02, Math.min(0.15, wktP * stratWktRisk));
   sixP = Math.max(0.02, Math.min(0.18, sixP * stratRunRisk));
   fourP = Math.max(0.04, Math.min(0.20, fourP * stratRunRisk));
   var triP = 0.03, dblP = 0.09;
+  // FIELD SETTINGS (2026-09-12 systems-audit fix #7, second half). Measured at n=2500: once the
+  // settling mechanic above made wickets worth taking, BOTH non-standard fields beat `standard`
+  // (attacking +4.7pp, Contain +5.9pp) -- so `standard` had become a trap option and Contain was
+  // still close to free. The reason Contain was free is that it suppressed scoring outright:
+  // fewer boundaries AND *more* dot balls, with no compensating leak anywhere.
+  // A spread field in real cricket doesn't keep you quiet -- it concedes the single and the two
+  // while cutting off the rope. So Contain now leaks MORE strike rotation (fewer dots, many more
+  // twos) in exchange for the boundary suppression, and attacking leaks genuinely expensive
+  // boundaries for its wickets. Each is now better in its own situation rather than better flat.
   var fs = match.fieldSetting || 'standard';
-  if (!isYourBatting && fs === 'attacking') { wktP *= 1.30; fourP *= 1.15; sixP *= 1.15; dotP *= 0.85; }
-  else if (!isYourBatting && fs === 'defensive') { wktP *= 0.70; fourP *= 0.75; sixP *= 0.70; dblP *= 1.20; dotP *= 1.15; }
+  if (!isYourBatting && fs === 'attacking') { wktP *= 1.30; fourP *= 1.32; sixP *= 1.32; dotP *= 0.86; }
+  else if (!isYourBatting && fs === 'defensive') { wktP *= 0.70; fourP *= 0.72; sixP *= 0.65; dblP *= 1.38; dotP *= 0.94; }
   var sglP = Math.max(0.10, 1.0 - wktP - dotP - sixP - fourP - triP - dblP);
   var total = wktP + dotP + sglP + dblP + triP + fourP + sixP;
   var r = Math.random() * total;
@@ -10370,7 +10407,7 @@ function startMatch() {
   match.curBowler = pickBowler(match.bowlers, 0, 0);
   var lockedLineup = (match.bowlerSelected && match.bowlerLineup && match.bowlerLineup.length > 0) ? match.bowlerLineup : [];
   match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false; match.fieldSetting = 'standard';
-  match.drsUsed = false; match.drsWindow = null; match.impactUsed = false; match.superOver = false; match.lastBowler = null; match.bowlerLineup = lockedLineup;
+  match.drsUsed = false; match.drsWindow = null; match.batterBalls = 0; match.batterIdxSeen = -1; match.impactUsed = false; match.superOver = false; match.lastBowler = null; match.bowlerLineup = lockedLineup;
   match.weather = rollWeather(); match.rainOver = 0;
   match.bhaiCrowd = !!(GS.bhaiBonus && GS.bhaiBonus.type === 'crowd');
   match.bhaiTamper = !!(GS.bhaiBonus && GS.bhaiBonus.type === 'pitchtamper');
@@ -10503,6 +10540,12 @@ function simBall() {
   match.curBatter = batIdx >= 0 ? match.batXI[batIdx] : null;
   if (!match.curBatter) match.curBatter = match.batXI[0];
   if (!match.curBatter) { endMatch(); return; }
+  // Track balls faced by the batter currently at the crease, for the new-batter settling mechanic
+  // in calcBallOutcome (2026-09-12 fix #7). The striker is derived from the wicket count, so a
+  // change in batIdx IS a new batter walking in. `batterIdxSeen` is reset by switchInnings and
+  // startMatch so a new innings never inherits the previous batter's settled state.
+  if (match.batterIdxSeen !== batIdx) { match.batterBalls = 0; match.batterIdxSeen = batIdx; }
+  else { match.batterBalls = (match.batterBalls || 0) + 1; }
   if (ballInOver === 0) {
     if (match.batting !== 'you' && !match.skipMode && !match.blitz && !match.bowlerSelected && match.bowlerLineup.length === 0 && over > 0) {
       match.ball--;
@@ -10888,6 +10931,8 @@ function switchInnings() {
   // A wicket can end the innings, which would leave the DRS window open across the break. Close it:
   // a review belongs to the innings it was given in.
   match.drsWindow = null;
+  // Settling state is per-innings: the side coming in starts with an un-set opener.
+  match.batterBalls = 0; match.batterIdxSeen = -1;
   match.phaseScores = [{r:0,w:0},{r:0,w:0},{r:0,w:0}];
   match.batXI = match.batting === 'you' ? match.yourXI : match.oppXI;
   match.bwlXI = match.batting === 'you' ? match.oppXI : match.yourXI;
@@ -10942,8 +10987,16 @@ function skipMatch() {
     var cWkts = isYou ? match.wkts : match.oppWkts;
     var cRuns = isYou ? match.runs : match.oppRuns;
     var phase = ov < 6 ? 0 : ov < 15 ? 1 : 2;
-    var batter = match.batXI[Math.min(cWkts, match.batXI.length - 1)];
+    var skipBatIdx = Math.min(cWkts, match.batXI.length - 1);
+    var batter = match.batXI[skipBatIdx];
     if (!batter) { endMatch(); return; }
+    // Same settling bookkeeping as the live path (`:10410`). Skip is the DEFAULT way most players
+    // finish a match, so leaving it out here would mean the new-batter cost -- and therefore the
+    // whole aggressive/Contain rebalance that depends on it -- silently didn't apply on the path
+    // that matters most. This codebase has already been bitten once by exactly that (systems #5,
+    // skipMatch never setting lastBowler).
+    if (match.batterIdxSeen !== skipBatIdx) { match.batterBalls = 0; match.batterIdxSeen = skipBatIdx; }
+    else { match.batterBalls = (match.batterBalls || 0) + 1; }
     // 2026-09-11 systems-audit fix (docs/FINDINGS.md systems #5, cricket audit): skipMatch() set
     // curBowler but NEVER match.lastBowler, so pickBowler()'s anti-consecutive-over filter compared
     // against a frozen stale name for the whole match -- on the DEFAULT fast-forward path most

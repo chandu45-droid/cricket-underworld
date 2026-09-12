@@ -479,4 +479,106 @@ test.describe('Systems Integrity 2026-09-12', () => {
     expect((r.seen['epic'] || 0) + (r.seen['legendary'] || 0)).toBeGreaterThan(0);
   });
 
+  // ============================================================
+  // SYSTEMS FIX 7: aggressive batting and the "Contain" field were both strictly dominant
+  // Root cause of BOTH: a T20 innings ends on overs, not wickets, so every lever that traded
+  // wickets for runs was free in one direction. Fixed by giving a wicket an intrinsic price --
+  // the incoming batter needs a few balls to get his eye in -- plus a re-tune of the strategy
+  // and field modifiers measured at n=6000 rather than taken from the GDD's spec numbers.
+  //
+  // These tests pin the EXPLOITS, not the tuning constants: they assert that aggression can't buy
+  // runs for free and that Contain can't buy run-suppression for free. That lets the numbers be
+  // re-tuned later without the tests turning into busywork, while still failing loudly if either
+  // dominance comes back.
+  // ============================================================
+  test('a new batter is genuinely un-set: fewer boundaries, more wickets than a settled one', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const batter = { id: 1, name: 'B', bat: 70, bwl: 20, form: 70, fld: 60, role: 'Top-Order Batter' };
+      const bowler = { id: 2, name: 'W', bat: 20, bwl: 70, form: 70, fld: 60, role: 'Fast Bowler' };
+      window.match.fieldSetting = 'standard';
+      window.match.boostBalls = 0;
+      function run(balls, n) {
+        let wkts = 0, boundaries = 0, runs = 0;
+        for (let i = 0; i < n; i++) {
+          window.match.batterBalls = balls;
+          const o = window.calcBallOutcome(batter, bowler, 'FLAT', 1, 'balanced', 75, true, 1, 0, 0, i);
+          if (o.wicket) wkts++; else { runs += o.runs; if (o.runs === 4 || o.runs === 6) boundaries++; }
+        }
+        return { wkts, boundaries, runs };
+      }
+      const N = 30000;
+      return { fresh: run(0, N), settled: run(8, N) };
+    });
+
+    // A batter who has just walked in must score slower and be easier to remove.
+    expect(r.fresh.boundaries).toBeLessThan(r.settled.boundaries);
+    expect(r.fresh.runs).toBeLessThan(r.settled.runs);
+    expect(r.fresh.wkts).toBeGreaterThan(r.settled.wkts);
+  });
+
+  test('aggressive batting buys risk, not free runs; Contain buys wickets, not free silence', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
+      function midXI(shift) {
+        const pool = window.ALL_PLAYERS.slice().sort((a,b) => (a.bat+a.bwl) - (b.bat+b.bwl));
+        const band = pool.slice(12 + shift, 12 + shift + 11).map(p => JSON.parse(JSON.stringify(p)));
+        band.forEach(p => { p.form = 65; p.fit = 80; });
+        return band.sort((a,b) => (order[a.role]||9) - (order[b.role]||9));
+      }
+      // Mirrors simBall's loop: striker derived from the wicket count, settling tracked per batter.
+      function innings(batXI, bwlXI, strategy, field, isYours) {
+        window.match.fieldSetting = field;
+        window.match.boostBalls = 0; window.match.bhaiCrowd = false; window.match.bhaiTamper = false;
+        window.match.weather = 'clear'; window.match.opponent = null;
+        const bowlers = window.extractBowlers(bwlXI);
+        let runs = 0, wkts = 0, lastIdx = -1;
+        for (let ball = 0; ball < 120 && wkts < 10; ball++) {
+          const over = Math.floor(ball / 6);
+          const idx = Math.min(wkts, batXI.length - 1);
+          if (idx !== lastIdx) { window.match.batterBalls = 0; lastIdx = idx; }
+          else { window.match.batterBalls++; }
+          const o = window.calcBallOutcome(batXI[idx], bowlers[over % bowlers.length], 'FLAT',
+                      over < 6 ? 0 : over < 15 ? 1 : 2, strategy, 75, isYours, 1, 0, runs, ball);
+          if (o.wicket) wkts++; else runs += o.runs;
+        }
+        return { runs, wkts };
+      }
+      function avg(strategy, field, isYours, n) {
+        const you = midXI(0), opp = midXI(3);
+        let r = 0, w = 0;
+        for (let i = 0; i < n; i++) {
+          const s = isYours ? innings(you, opp, strategy, field, true) : innings(opp, you, strategy, field, false);
+          r += s.runs; w += s.wkts;
+        }
+        return { runs: r / n, wkts: w / n };
+      }
+      const N = 900;
+      return {
+        bat: { def: avg('defensive','standard',true,N), bal: avg('balanced','standard',true,N), agg: avg('aggressive','standard',true,N) },
+        field: { standard: avg('balanced','standard',false,N), contain: avg('balanced','defensive',false,N) }
+      };
+    });
+
+    // 1. The risk ordering must be real and monotonic -- that IS the trade-off.
+    expect(r.bat.agg.wkts).toBeGreaterThan(r.bat.bal.wkts);
+    expect(r.bat.bal.wkts).toBeGreaterThan(r.bat.def.wkts);
+
+    // 2. ...and aggression must NOT also hand you a big run premium. Pre-fix this gap was +8.5
+    //    runs for +0.40 wickets, which is why it was strictly dominant. Generous tolerance so this
+    //    pins the exploit rather than the exact tuning (innings SD ~25 runs, n=900 -> SE ~0.8).
+    expect(r.bat.agg.runs - r.bat.bal.runs).toBeLessThan(5);
+
+    // 3. Contain must not be free silence. Pre-fix it suppressed the opponent by 8.2 runs while
+    //    costing nothing; it now concedes strike rotation in exchange for the boundary cut.
+    expect(r.field.standard.runs - r.field.contain.runs).toBeLessThan(5);
+    // And it genuinely gives up wickets, which is the price that makes it situational.
+    expect(r.field.contain.wkts).toBeLessThan(r.field.standard.wkts);
+  });
+
 });
