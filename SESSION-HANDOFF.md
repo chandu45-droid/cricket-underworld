@@ -31,7 +31,32 @@ One flake deliberately NOT chased: `field placement setting appears in bowler pi
 toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss would mean stubbing
 `Math.random` mid-`startMatch` where it isn't the only consumer — real risk, zero coverage gain.
 
-## ⚠️ START HERE NEXT SESSION: 17 of 21 red systems findings still open
+## ⚠️ START HERE NEXT SESSION (2026-09-13): the systems-audit backlog is CLEAR — read this first
+
+Every correctness bug and both founder-decided design questions in the curated 11-item list below
+are now fixed (items #1/#2/#5 turned out to already be fixed 2026-09-11, `b3d27e3`/`a332db7` — the
+file's checkmarks just hadn't been added; corrected today, nothing new shipped for those three).
+**245 → 249/249 full-suite green** across the session; see the 2026-09-12 entries further down for
+the actual fixes and their commits.
+
+**What's left is NOT mine to decide blind:**
+1. **3 monetization/economy findings, genuinely unaddressed** — daily login pays ~7× a match win,
+   the premium pass refunds 120 of its 150 gems (self-funding forever), and the ₹199 pass SKU is
+   dominated by the ₹199 gem pack. Full detail + line numbers: `docs/FINDINGS.md`, "2026-09-13 —
+   Three monetization findings" section. Not touched — these are pricing decisions that touch the
+   paid tiers, same class of call as the purse question earlier this session, and I don't have
+   founder authority to reprice IAP blind.
+2. **5 founder-call design questions**, already logged in `docs/FINDINGS.md`'s "🔴 Open" section:
+   sponsor lock timing, the *other* academy squad-cap breach (the alignment-60 free graduate, not
+   the one already fixed), real company names as sponsors, XI legality degree (2 bowlers vs a
+   legally-required 5), and whether every auction should guarantee a marquee lot.
+
+Whoever picks this up next: read `docs/FINDINGS.md` top-to-bottom for the exact founder-call text
+on each of the 8 items above, then take them to the founder rather than re-deriving them.
+
+---
+
+## Older status (superseded by the above, kept for the record): 17 of 21 red systems findings still open
 
 > **Update 2026-09-12 — items 1 and 2 of the "Still open" list below are DONE.**
 > - **Morale gate** (`798d665`): `moraleMod` is now side-scoped to your team (`batMoraleMod` /
@@ -68,6 +93,7 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 > alignment at the moment the auction opens. See finding 0 in `docs/FINDINGS.md` — founder call.
 >
 > Next up is item 3: `cleanStreak` never resetting across seasons.
+> **[SUPERSEDED — see the 2026-09-13 entry near the top of this section for what's actually next.]**
 >
 > ---
 >

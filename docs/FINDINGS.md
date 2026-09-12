@@ -97,13 +97,13 @@ anything, they contain traced numbers, not assertions:**
 **Independently verified by the orchestrator before being recorded here** (each re-checked against
 live code//browser rather than relayed on trust):
 
-1. 🔴 **The Standard Pack is an unbounded coin printer.** 500 coins buys 3 cards; instant market
+1. ✅ **FIXED 2026-09-11 (`b3d27e3`)** — 🔴 **The Standard Pack is an unbounded coin printer.** 500 coins buys 3 cards; instant market
    resale averages **1,124** (verified against the real 50-card pool: avg price 599, uncommon+
    sub-pool 675, sell rate 0.6×). **Net +624 per pack, repeatable forever.** Nullifies every coin
    sink and all three coin IAP tiers. *Found independently by BOTH the economy and balance audits.*
    Sharp detail: the 2026-08-03 audit closed this exact exploit for the **auction** (floor moved to
    0.6× `getPlayerPrice`) but nobody checked packs. `index.html:11856`, `:12194`.
-2. 🔴 **Your locked bowling lineup bowls for the opposition.** `pickBowler()`'s lineup branch never
+2. ✅ **FIXED 2026-09-11 (`a332db7`)** — 🔴 **Your locked bowling lineup bowls for the opposition.** `pickBowler()`'s lineup branch never
    checks which side is bowling and ignores its own `bowlers` argument; `switchInnings()` resets
    `bowlers`/`curBowler`/`lastBowler` but never `bowlerLineup`. Verified in-browser: locked lineup
    `MINE_2, MINE_4…`, opposition squad `Ravi Nair, Nitish Agarwal…`, and the bowlers who actually
@@ -122,7 +122,7 @@ live code//browser rather than relayed on trust):
    modifier in the same function. Measured win rate is flat across morale 20/50/75/100, so the
    150-coin Pep Talk buys nothing. *Found independently by BOTH the balance and cricket audits.*
    `:9236`, `:9252`.
-5. 🔴 **`skipMatch()` never assigns `match.lastBowler`**, so the no-consecutive-overs rule dies on the
+5. ✅ **FIXED 2026-09-11 (`a332db7`)** — 🔴 **`skipMatch()` never assigns `match.lastBowler`**, so the no-consecutive-overs rule dies on the
    **default fast-forward path**. Traced: a one-fast-bowler XI bowls him overs 0,1,2,3 back-to-back
    until the 24-ball cap pulls him. Illegal in cricket, and skip is how most players will play.
    `:10778` (live path correctly sets it at `:10355`, `:10301`).
@@ -151,17 +151,45 @@ live code//browser rather than relayed on trust):
 11. ✅ **FIXED 2026-09-12 (`3cf284c`)** — 🔴 **Nothing in XI validation requires a wicket-keeper or a bowler** (`:10105-10109` checks only
     size and the overseas cap), so a legal XI can have one man bowl all 20 overs consecutively.
 
-**Also flagged, lower severity but cheap:** daily login pays ~7× more than winning a match (4,900
-coins/week passive vs 80/win — ~68% of all coin inflow); the premium pass refunds 120 of its 150 gems
-making it permanently self-funding; the ₹199 pass SKU is strictly dominated by the ₹199/300-gem pack;
-the +300 rewarded-ad purse boost can drive `GS.coins` negative (purse is aliased to coins, no clamp,
-`:9028`); and the auction can never offer a common or uncommon card (`slice(0,12)` off a rarity-desc
-sort — **58% of the player pool is auction-invisible**).
+**Also flagged, lower severity but cheap — 2 of 5 now fixed:**
+~~the +300 rewarded-ad purse boost can drive `GS.coins` negative~~ ✅ **FIXED (`86f5503`)** — coins
+clamp at 0; ~~the auction can never offer a common or uncommon card~~ ✅ **FIXED (`784460c`)** —
+sampled from the whole pool now. **Still open, unaddressed — see below:** daily login pays ~7× more
+than winning a match; the premium pass refunds 120 of its 150 gems, making it permanently
+self-funding; the ₹199 pass SKU is strictly dominated by the ₹199/300-gem pack.
 
-**Status: 11 of 21 red fixed (3 on 2026-09-11, +8 on 2026-09-12) — 10 still open**, plus one sub-item
-of the bundled misc finding (coins going negative) closed as a side effect of the purse decision.
-See `SESSION-HANDOFF.md` for the prioritised resume list and the two design decisions the founder
-has already made but which aren't implemented yet.
+**Status (as of 2026-09-13): every correctness bug and both founder-decided design questions in
+the curated list of 11 above are FIXED.** (Items #1/#2/#5 were fixed 2026-09-11 in `b3d27e3`/
+`a332db7`, before this file's checkmarks were added — corrected here, not newly fixed today.) What
+remains, with no code left to write blind:
+- **3 monetization/economy findings, genuinely unaddressed** (daily login vs match reward, premium
+  pass gem refund, ₹199 SKU cannibalization) — see the new entry below. These are pricing/economy
+  DECISIONS, not bugs with one obviously-correct fix, so they were not touched without a founder
+  call, matching how the purse question was handled.
+- **5 founder-call questions already logged above** (sponsor lock timing, the other academy
+  squad-cap breach, real company names, XI legality degree, guaranteed marquee lot).
+See `SESSION-HANDOFF.md` for full detail.
+
+### 2026-09-13 — Three monetization findings the systems audit flagged, never actioned
+All three are pricing/economy judgment calls, not correctness bugs — flagging for a founder
+decision rather than guessing at numbers that touch the paid tiers.
+
+1. 🔴 **Daily login pays ~7× more than actually playing the game.** The 7-day cycle pays
+   200/300/500/600/800/1000/**1500** = 4,900 coins/week, passive. A match win pays ~80 coins. Over
+   a 14-match season, login income (9,800) is **~68% of all coin inflow** — the optimal play
+   pattern is "open app, claim, close," and the match loop (which this whole rebalance pass just
+   spent effort making fair) is a rounding error next to it. `prototype/index.html:4732-4739`
+   (`LOGIN_REWARDS`). **Founder call:** flatten the curve, or accept passive-dominant retention.
+2. 🔴 **The premium pass is permanently self-funding in gems.** It costs 150 gems and returns 120
+   gems + 2,500 coins. Daily login alone pays ~40 gems/week and the free pass track pays another
+   55/season — against a 30-gem net cost, a player never spends real money after the first unlock.
+   `prototype/index.html:12964-12975` (`PASS_TIERS`). **Founder call:** cut the gem refund, or this
+   is an intentional low-friction retention hook and stays as-is.
+3. 🟡 **The ₹199 Premium Contract SKU is dominated by the ₹199 Gem Case.** The Gem Case (300 gems,
+   ₹199) buys the pass (150 gems) AND leaves 150 gems over, for the identical price — there is no
+   reason to ever tap the pass card directly. `prototype/index.html:13102-13109` (`IAP_PACKS`).
+   **Founder call:** reprice one of the two, or this is acceptable because both routes net the same
+   revenue per buyer and route choice doesn't matter commercially.
 
 | Fixed | Commit |
 |---|---|
