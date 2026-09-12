@@ -100,8 +100,9 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
    dismissed 10 overs ago. It's a "delete one wicket" button.
 6. 🔴 **XI validation requires neither a wicket-keeper nor a bowler** — a legal XI can have one man
    bowl all 20 overs.
-7. 🔴 Misc: rewarded-ad +300 purse boost can drive `GS.coins` **negative** (purse aliased to coins,
-   no clamp); auction can **never offer a common or uncommon card** (`slice(0,12)` off a rarity-desc
+7. 🔴 Misc: ~~rewarded-ad +300 purse boost can drive `GS.coins` **negative**~~ ✅ **FIXED 2026-09-12
+   (`86f5503`)** — closed as a side effect of the purse decision, `resolveCard` now clamps coins at 0;
+   auction can **never offer a common or uncommon card** (`slice(0,12)` off a rarity-desc
    sort → **58% of the pool is auction-invisible**); daily login pays ~7× more than winning a match;
    premium pass refunds 120 of its 150 gems (permanently self-funding).
 
