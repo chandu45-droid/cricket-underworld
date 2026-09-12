@@ -42,9 +42,24 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 >   sponsor ladder and the tribunal −20% now actually reach the auction, and `resolveCard` clamps
 >   coins at 0 (which also closes the "rewarded ad can drive coins negative" misc finding).
 >
-> **⚠️ ALL SIX new regression tests in `tests/systems-2026-09-12.spec.js` are UNRUN**, as is the
-> rest of the suite since these changes. Testing is founder-gated; the code has only been
-> syntax-checked (`new Function()` over both script blocks). Ask the founder before running.
+> **TESTED — founder asked for a run. FULL SUITE GREEN: 239/239** (was 232; +5 new systems tests,
+> +2 from earlier work). Run in chunks by spec file, as this file recommends:
+> comprehensive 132 (14.1m) · features-10k + zero-scroll 31 · p15-visual 28 · smoke + persona 24 ·
+> the two bugfix specs 19 · systems-2026-09-12 5.
+>
+> The 5 new tests were **verified non-vacuous**: each fix was temporarily reverted and all 5 failed
+> against the old code, then passed again once restored. Worth keeping as the default bar — a
+> regression test that has never been seen to fail is not yet evidence.
+>
+> Two smoke failures on the first run, neither a regression:
+> - `Sponsor Break` encoded the OLD purse contract (`purse === coins + 300`), true only while
+>   `startAuction` was wiping the ladder. Updated to `coins + purseBonus + 300`, plus a guard that
+>   the bonus is non-zero so it can't degrade into testing a 0 no-op.
+> - `bowler picker appears when bowling` passes in isolation — the known flake already in case law.
+>
+> **Correction banked:** `GS.sponsor` is NOT a per-season snapshot. `updateHub()` recomputes it from
+> current alignment on every hub render, so the ladder bites from season 1 and the purse tracks
+> alignment at the moment the auction opens. See finding 0 in `docs/FINDINGS.md` — founder call.
 >
 > Next up is item 3: `cleanStreak` never resetting across seasons.
 
