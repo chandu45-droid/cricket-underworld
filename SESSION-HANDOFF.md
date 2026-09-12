@@ -68,6 +68,33 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 > alignment at the moment the auction opens. See finding 0 in `docs/FINDINGS.md` — founder call.
 >
 > Next up is item 3: `cleanStreak` never resetting across seasons.
+>
+> ---
+>
+> ### ⚠️ 2026-09-12 LATER — items 3, 5, 6 + the auction pool also DONE, but the suite is UNVERIFIED
+>
+> Fixes shipped after the 240/240 run above: `26b4b90` (cleanStreak), `47ff8a9` (DRS recency gate),
+> `3cf284c` (XI keeper + 2 bowlers), `784460c` (auction offers commons/uncommons).
+> **8 of 21 red findings now closed, 13 open.**
+>
+> **VERIFIED:** `systems-2026-09-12.spec.js` **9/9**, every test confirmed non-vacuous by
+> temporarily reverting its fix. All **11** change-adjacent comprehensive tests (Squad Selection,
+> Player Bans, Academy System) pass in isolation.
+>
+> **NOT VERIFIED:** the full 132-test `comprehensive.spec.js` has not completed since these four
+> fixes. **Do not read the earlier 240/240 line as covering them.**
+>
+> **Why, and what to do first next session:** the machine ran out of memory — **0.9 GB free of
+> 7.7 GB**, with 13 Chrome processes (the founder's own browser) holding the rest. Playwright could
+> not spawn browsers; runs died with `page.reload` 60s timeouts, "browser has been closed", and one
+> worker crash at `0xC0000142`. A chunked retry produced zero output in 10 minutes.
+> **→ Ask the founder to close some Chrome windows, then run the suite before touching new code.**
+>
+> Compounding cause, now fixed and banked in CORE-MEMORY: every "stop the dev server" step this
+> session used `pkill -f`, which is a **no-op on Windows**. Five `npx serve` instances accumulated
+> and starved the box. Use PowerShell `Get-CimInstance Win32_Process` → `Stop-Process -Force`, kill
+> the npx wrapper AND its child, and **re-count to verify**. Never `Stop-Process -Name chrome` —
+> all 13 chrome processes here are the founder's, none are Playwright's (it uses `headless_shell`).
 
 **Read these three docs — they contain traced numbers and line citations, not assertions:**
 - `docs/audit-2026-09-11-balance.md` (Monte-Carlo harness, 700–5,000 matches per cell — measured)
