@@ -581,4 +581,52 @@ test.describe('Systems Integrity 2026-09-12', () => {
     expect(r.field.contain.wkts).toBeLessThan(r.field.standard.wkts);
   });
 
+  // ============================================================
+  // SYSTEMS FIX 3 (founder design decision): rival strength follows the XI you FIELD
+  // generateRivalXI() scaled the opponent off getTeamStrength() -- the whole-SQUAD average -- so
+  // every junk card you owned but never picked dragged your average down and handed you an easier
+  // opponent. Measured: adding 4 never-played junk cards moved an elite squad from 85.8% to 98.2%
+  // win rate. It punished collecting, in a card-collection game.
+  // ============================================================
+  test('hoarding junk cards you never field cannot weaken your opponent', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
+      const byOvr = window.ALL_PLAYERS.slice().sort((a,b) => window.getOVR(b) - window.getOVR(a));
+      const elite = byOvr.slice(0, 11).map(p => JSON.parse(JSON.stringify(p)));
+      elite.sort((a,b) => (order[a.role]||9) - (order[b.role]||9));
+
+      // The rival's top-order `bat` is `base + v`, v uniform in [-8,+7], so averaging it over many
+      // generations recovers the `base` the opponent was scaled to.
+      function rivalBase(n) {
+        let t = 0;
+        for (let i = 0; i < n; i++) {
+          const xi = window.generateRivalXI({ name: 'R' });
+          const tops = xi.filter(p => p.role === 'Top-Order Batter');
+          t += tops.reduce((s, p) => s + p.bat, 0) / tops.length;
+        }
+        return t / n;
+      }
+
+      window.GS.squad = elite.slice();
+      window.GS.selectedXI = elite.map(p => p.id);
+      const before = { squad: window.getTeamStrength(), xi: window.getXIStrength(), rival: rivalBase(500) };
+
+      // Hoard the 4 weakest cards in the game. They are never added to selectedXI.
+      byOvr.slice(-4).forEach((p, i) => {
+        const c = JSON.parse(JSON.stringify(p)); c.id = 7770 + i; window.GS.squad.push(c);
+      });
+      const after = { squad: window.getTeamStrength(), xi: window.getXIStrength(), rival: rivalBase(500) };
+      return { before, after };
+    });
+
+    // The squad average really does drop -- that's the input the old code used, and why it broke.
+    expect(r.after.squad).toBeLessThan(r.before.squad);
+    // ...but the XI is untouched, and so is the opponent scaled from it.
+    expect(r.after.xi).toBe(r.before.xi);
+    expect(Math.abs(r.after.rival - r.before.rival)).toBeLessThan(1.5); // sampling noise only
+  });
+
 });

@@ -6475,6 +6475,22 @@ function getTeamStrength() {
   for (var i = 0; i < GS.squad.length; i++) sum += getOVR(GS.squad[i]);
   return Math.round(sum / GS.squad.length);
 }
+// Strength of the ELEVEN YOU ACTUALLY FIELD (2026-09-12 founder decision, systems audit #3).
+// getTeamStrength() above averages the whole SQUAD, which is the right number for a collection
+// stat ("how good is my card collection") and the wrong number for anything match-facing.
+// generateRivalXI() used it to scale the opponent, so every junk card you owned but never picked
+// dragged your average down and handed you an easier opponent: measured, adding 4 never-played
+// junk cards moved an elite squad from 85.8% to 98.2% win rate. That punished collecting -- the
+// core loop of a card-collection game -- and made the pre-match "STR" readout fiction.
+// Uses buildSelectedXI() so it respects bans and the same fallback the match itself uses, i.e.
+// it reports the eleven that will really walk out, not the eleven you wish you had.
+function getXIStrength() {
+  var xi = (typeof buildSelectedXI === 'function') ? buildSelectedXI() : [];
+  if (!xi || xi.length === 0) return getTeamStrength();
+  var sum = 0;
+  for (var i = 0; i < xi.length; i++) sum += getOVR(xi[i]);
+  return Math.round(sum / xi.length);
+}
 function getNextRival() { return RIVALS[(GS.matchNum - 1) % RIVALS.length]; }
 function getRivalRel(name) { return GS.rivalData[name] ? GS.rivalData[name].rel : 0; }
 function getRelLabel(rel) {
@@ -8309,7 +8325,7 @@ function updateHub() {
     $('rival-str').textContent = r.strength;
     $('battle-your-crest').innerHTML = generateCrest(GS.teamName, GS.teamColor, 36);
     $('battle-your-name').textContent = GS.teamName;
-    $('battle-your-str').textContent = getTeamStrength();
+    $('battle-your-str').textContent = getXIStrength(); // 2026-09-12: XI, not squad average -- this sits next to the rival's STR
     $('rival-align').textContent = r.trait;
     $('rival-align').className = 'text-xs ' + (r.alignment >= 30 ? 'text-green' : r.alignment <= -30 ? 'text-red' : 'text-slip');
     $('rival-str').textContent = r.strength;
@@ -9171,7 +9187,9 @@ var RIVAL_LAST = ['Sharma','Dhawan','Rahane','Iyer','Pant','Samson','Kishan','Si
 function generateRivalXI(rival) {
   var roles = ['Top-Order Batter','Top-Order Batter','Top-Order Batter','Wicket-Keeper','Middle-Order Batter','Middle-Order Batter','All-Rounder','All-Rounder','Fast Bowler','Fast Bowler','Spin Bowler'];
   var xi = [];
-  var teamStr = getTeamStrength ? getTeamStrength() : 65;
+  // 2026-09-12: was getTeamStrength() (whole-squad average) -- see getXIStrength()'s comment for
+  // why that made hoarding junk cards an exploit. The opponent now scales to the XI you field.
+  var teamStr = (typeof getXIStrength === 'function') ? getXIStrength() : 65;
   var base = teamStr + Math.floor(Math.random() * 8) - 3;
   var usedNames = {};
   for (var i = 0; i < 11; i++) {
@@ -10339,7 +10357,9 @@ function startPreMatch() {
   $('your-badge').innerHTML = generateCrest(GS.teamName, GS.teamColor, 76);
   $('your-badge').style.background = 'none';
   $('your-team-label').textContent = GS.teamName;
-  var yourStr = getTeamStrength();
+  // 2026-09-12: the pre-match STR must be the XI's strength, not the squad average -- it is the
+  // number the player compares against the rival's, and the rival is now generated from this.
+  var yourStr = getXIStrength();
   $('your-strength').textContent = 'STR: ' + yourStr;
   if ($('your-str-fill')) $('your-str-fill').style.width = Math.min(100, yourStr) + '%'; // v3 kit: additive-only, reuses value already computed above
   if ($('pm-season')) $('pm-season').textContent = 'Season ' + GS.season + ' — Match ' + (GS.matchesPlayed + 1);
