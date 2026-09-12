@@ -71,7 +71,31 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 >
 > ---
 >
-> ### ⚠️ 2026-09-12 LATER — items 3, 5, 6 + the auction pool also DONE, but the suite is UNVERIFIED
+> ### ✅ 2026-09-12 FINAL — items 3, 5, 6 + the auction pool DONE and VERIFIED GREEN
+>
+> **FULL SUITE GREEN: 243/243**, run in chunks on a memory-starved box (see the RAM note below).
+> comprehensive **132/132** (verified by script that the 4 grep patterns covered all 132 — an
+> earlier pass used `^Hub ` which silently matched nothing and skipped 10 tests; always verify
+> chunk coverage against `--list`, never assume a grep matched) · smoke + persona 24 ·
+> bugfix-08-03 + bugfix-09-09 19 · features-10k 25 · p15-visual 28 · systems-2026-09-12 9 ·
+> zero-scroll 6.
+>
+> **The suite caught a real regression from this session's own work** — the one thing that
+> justifies the whole exercise. 5 smoke tests failed after `3cf284c`, and it was NOT an outdated
+> expectation: `getCurrentSSSelection()` ran an unconditional `parseInt()` on `data-sid`, which
+> turns a non-numeric id into `NaN`, so every `GS.squad.find()` missed and a legal XI with the
+> keeper visibly in it was rejected as keeperless — locking the player out of matches entirely.
+> Latent for ages (it only made the overseas cap under-count); the keeper requirement turned it
+> into a blocker. Fixed in `d584d32`. The tell: the picker's requirement hint said the XI was fine
+> while confirm rejected it — two code paths reading ids from different sources.
+> One test WAS an outdated expectation and was updated, not weakened: the 2026-09-09 DRS
+> reachability test used `drsUsed` as its proxy for "the click reached the handler", so it now
+> opens a legitimate review window first.
+>
+> The 4 remaining known flakes (`bowler picker appears when bowling`, `field placement setting
+> appears in bowler picker`) pass in isolation, as documented.
+>
+> #### Superseded interim note (kept for the record)
 >
 > Fixes shipped after the 240/240 run above: `26b4b90` (cleanStreak), `47ff8a9` (DRS recency gate),
 > `3cf284c` (XI keeper + 2 bowlers), `784460c` (auction offers commons/uncommons).
