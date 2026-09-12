@@ -325,4 +325,60 @@ test.describe('Systems Integrity 2026-09-12', () => {
     expect(r.badgeEarned).toBe(true);
   });
 
+  // ============================================================
+  // SYSTEMS FIX 10: DRS was a "delete one wicket" button
+  // useDRS() could be tapped at any moment and just decremented the wicket count. The striker is
+  // derived from that count (`batIdx = Math.min(cWkts, ...)`), so dropping wkts 8 -> 7 put batter
+  // index 7 -- out since over 12 -- back on strike, still flagged out:true on the scorecard while
+  // he accumulated runs on the same row. Now gated to the dismissal just given, as in real cricket.
+  // ============================================================
+  test('DRS only reviews the wicket just given, and a mistimed tap costs nothing', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      // Mid-innings, batting, several wickets down, NO wicket on the last ball.
+      window.match.active = true;
+      window.match.batting = 'you';
+      window.match.innings = 1;
+      window.match.wkts = 8;
+      window.match.drsUsed = false;
+      window.match.drsWindow = null;
+
+      window.useDRS();
+      const stale = { wkts: window.match.wkts, drsUsed: window.match.drsUsed };
+
+      // Now a wicket falls this ball: the window opens and the review becomes legal.
+      const batEntry = { name: 'Given Out', runs: 41, balls: 30, fours: 4, sixes: 1, out: true };
+      const bwlEntry = { name: 'The Bowler', runs: 28, balls: 18, wkts: 3 };
+      window.match.drsWindow = { side: 'you', batEntry: batEntry, bwlEntry: bwlEntry, batterName: 'Given Out' };
+
+      // Force the 40% overturn to land so the success path is what's under test.
+      const realRandom = Math.random;
+      Math.random = () => 0.01;
+      window.useDRS();
+      Math.random = realRandom;
+
+      return {
+        stale: stale,
+        afterWkts: window.match.wkts,
+        batterOut: batEntry.out,
+        bowlerWkts: bwlEntry.wkts,
+        windowClosed: window.match.drsWindow === null
+      };
+    });
+
+    // A tap with no live decision is a no-op WITH the review intact -- it must not be burned.
+    expect(r.stale.wkts).toBe(8);
+    expect(r.stale.drsUsed).toBe(false);
+
+    // A review of the live decision overturns it...
+    expect(r.afterWkts).toBe(7);
+    // ...and undoes BOTH scorecard rows, which decrementing the count alone never did.
+    expect(r.batterOut).toBe(false);
+    expect(r.bowlerWkts).toBe(2);
+    // One decision, one review.
+    expect(r.windowClosed).toBe(true);
+  });
+
 });

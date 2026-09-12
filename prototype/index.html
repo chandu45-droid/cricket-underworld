@@ -9095,7 +9095,7 @@ function endAuction() {
 // =============================================
 // MATCH
 // =============================================
-var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[], lastBowler:null, bowlerLineup:[], drsUsed:false, impactUsed:false, weather:'clear', rainOver:0, superOver:false, blitz:false, blitzNext:false };
+var match = { active:false, innings:1, batting:'you', runs:0, wkts:0, oppRuns:0, oppWkts:0, target:0, phase:0, ball:0, interval:null, opponent:null, phaseScores:[{r:0,w:0},{r:0,w:0},{r:0,w:0}], momentum:50, pitchType:'FLAT', yourXI:[], oppXI:[], batXI:[], bwlXI:[], curBatter:null, curBowler:null, bowlers:[], lastBowler:null, bowlerLineup:[], drsUsed:false, drsWindow:null, impactUsed:false, weather:'clear', rainOver:0, superOver:false, blitz:false, blitzNext:false };
 
 function updateMomentum(runs, wkt, isYou) {
   var shift = runs * 2 + (wkt ? -15 : 0);
@@ -9471,6 +9471,12 @@ function useDRS() {
   // .tactic-btn.drs.unavailable) and moved the reachability guard here instead, matching the
   // captain-lock pattern exactly.
   if (match.batting !== 'you') { toast('DRS is only available while batting', 'error'); return; }
+  // 2026-09-12 systems-audit fix #10: recency gate. A review must answer the decision just given,
+  // exactly as in real cricket -- you cannot bank it and cash it in ten overs later. Note this
+  // returns BEFORE `match.drsUsed = true`, so a mistimed tap costs the player nothing; it is a
+  // no-op with an explanation, not a wasted review.
+  if (!match.drsWindow) { toast('DRS can only review the wicket just given', 'error'); return; }
+  var review = match.drsWindow;
   match.drsUsed = true;
   $('drs-btn').classList.add('used');
   $('drs-btn').textContent = 'DRS USED';
@@ -9487,7 +9493,15 @@ function useDRS() {
   if (cWkts > 0 && Math.random() < 0.40) {
     if (isYou) match.wkts = Math.max(0, match.wkts - 1);
     else match.oppWkts = Math.max(0, match.oppWkts - 1);
-    addMoment('milestone', 'DRS SUCCESSFUL! Wicket overturned!');
+    // Undo the dismissal on the scorecard too. Decrementing the wicket count alone left the batter
+    // flagged `out:true` while he walked back out and kept scoring on the same row -- the scorecard
+    // rendered him without the not-out `*` and the bowler kept a wicket that no longer existed.
+    // The recency gate guarantees this is the batter who was just given, so the striker that
+    // `batIdx = Math.min(cWkts, ...)` recomputes next ball is the right man.
+    if (review.batEntry) review.batEntry.out = false;
+    if (review.bwlEntry) review.bwlEntry.wkts = Math.max(0, review.bwlEntry.wkts - 1);
+    match.drsWindow = null; // one decision, one review -- can't be re-reviewed
+    addMoment('milestone', 'DRS SUCCESSFUL! ' + review.batterName + ' survives — wicket overturned!');
     toast('DRS — Wicket overturned!', 'success');
     SFX.reveal();
   } else {
@@ -10285,7 +10299,7 @@ function startMatch() {
   match.curBowler = pickBowler(match.bowlers, 0, 0);
   var lockedLineup = (match.bowlerSelected && match.bowlerLineup && match.bowlerLineup.length > 0) ? match.bowlerLineup : [];
   match.overRuns = 0; match.boostUsed = false; match.boostBalls = 0; match.skipMode = false; match.bowlerSelected = false; match.fieldSetting = 'standard';
-  match.drsUsed = false; match.impactUsed = false; match.superOver = false; match.lastBowler = null; match.bowlerLineup = lockedLineup;
+  match.drsUsed = false; match.drsWindow = null; match.impactUsed = false; match.superOver = false; match.lastBowler = null; match.bowlerLineup = lockedLineup;
   match.weather = rollWeather(); match.rainOver = 0;
   match.bhaiCrowd = !!(GS.bhaiBonus && GS.bhaiBonus.type === 'crowd');
   match.bhaiTamper = !!(GS.bhaiBonus && GS.bhaiBonus.type === 'pitchtamper');
@@ -10401,6 +10415,13 @@ function simBall() {
     else { endMatch(); return; }
   }
   match.ball++;
+  // DRS recency window (2026-09-12 systems-audit fix #10). Real DRS reviews the decision that was
+  // JUST made, before play resumes -- so the window opens when a wicket falls and closes the moment
+  // the next delivery starts. Cleared here at the top of the ball, set again at the bottom if this
+  // ball is a wicket. Without it, useDRS() just decremented the wicket count at any moment, and
+  // since the striker is derived from that count (batIdx below), it resurrected whoever happened to
+  // sit at the new index -- a batter dismissed ten overs earlier walked back out.
+  match.drsWindow = null;
   var ballInOver = (match.ball - 1) % 6;
   var over = Math.floor((match.ball - 1) / 6);
   var isYou = match.batting === 'you';
@@ -10479,6 +10500,10 @@ function simBall() {
   var bwlEntry = scBwl.find(function(b){return b.name===bowler.name;});
   if (!bwlEntry) { bwlEntry = {name:bowler.name,runs:0,balls:0,wkts:0}; scBwl.push(bwlEntry); }
   bwlEntry.runs += runs; bwlEntry.balls++; if (wkt) bwlEntry.wkts++;
+  // Open the DRS window on this dismissal, carrying the two scorecard rows an overturn has to undo.
+  // Holding the entries themselves (not names) means an overturn can't edit the wrong row if two
+  // players ever share a name.
+  if (wkt) match.drsWindow = { side: scSide, batEntry: batEntry, bwlEntry: bwlEntry, batterName: batter.name };
   var commText = getCommentary(outcome, batter, bowler, phase, match.innings, match.target, cRuns, match.ball, cWkts, match.momentum);
   if (runs === 6) { addMoment('six', commText); SFX.six(); if (!match.skipMode) { flashOutcome('six'); spawnCelebration('six'); animateBallDelivery('six'); } }
   else if (runs === 4) { addMoment('runs', commText); SFX.four(); if (!match.skipMode) { flashOutcome('four'); spawnCelebration('four'); animateBallDelivery('four'); } }
@@ -10789,6 +10814,9 @@ function switchInnings() {
   match.innings = 2;
   match.batting = match.batting === 'you' ? 'opp' : 'you';
   match.ball = 0; match.phase = 0; match.momentum = 50;
+  // A wicket can end the innings, which would leave the DRS window open across the break. Close it:
+  // a review belongs to the innings it was given in.
+  match.drsWindow = null;
   match.phaseScores = [{r:0,w:0},{r:0,w:0},{r:0,w:0}];
   match.batXI = match.batting === 'you' ? match.yourXI : match.oppXI;
   match.bwlXI = match.batting === 'you' ? match.oppXI : match.yourXI;
@@ -10834,6 +10862,10 @@ function skipMatch() {
   var safety = 0;
   while (match.active && safety < 300) {
     safety++; match.ball++;
+    // Same DRS window clear as the live path (`:10403`). Without it, a window left open by the last
+    // watched ball would survive an entire fast-forward, and the player could then review a wicket
+    // from many overs earlier -- reopening the exact hole the recency gate closes.
+    match.drsWindow = null;
     var bIO = (match.ball-1) % 6, ov = Math.floor((match.ball-1)/6);
     var isYou = match.batting === 'you';
     var cWkts = isYou ? match.wkts : match.oppWkts;
