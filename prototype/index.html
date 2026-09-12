@@ -10191,9 +10191,21 @@ function getCurrentSSSelection() {
   // every tap after the first -- selection appeared to collapse to a single row instead of
   // toggling, because a just-tapped player got pushed as a real Number while every
   // already-selected id round-tripped through the DOM as a String that no longer matched.
+  // 2026-09-12 follow-up: the unconditional parseInt above DESTROYS any non-numeric id --
+  // `parseInt('p1', 10)` is NaN, and NaN never matches anything in GS.squad.find(). That was
+  // silently survivable while the only consumer was the overseas cap (an unresolved id just
+  // didn't count, so the cap under-counted instead of erroring), but it became a hard blocker the
+  // moment XI validation started requiring a keeper: every lookup missed, so a perfectly legal XI
+  // was rejected as keeperless. Keep the numeric coercion the 2026-09 fix needed (numeric ids
+  // must round-trip as Numbers, not Strings, or indexOf() breaks on every tap after the first)
+  // and simply stop mangling ids that aren't numeric.
   var sel = [];
   var items = document.querySelectorAll('.ss-player.selected');
-  for (var i = 0; i < items.length; i++) { sel.push(parseInt(items[i].getAttribute('data-sid'), 10)); }
+  for (var i = 0; i < items.length; i++) {
+    var raw = items[i].getAttribute('data-sid');
+    var n = parseInt(raw, 10);
+    sel.push(isNaN(n) ? raw : n);
+  }
   return sel;
 }
 

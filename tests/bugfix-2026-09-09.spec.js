@@ -199,7 +199,18 @@ test('DRS FIX: active while batting, greyed + inert while bowling, guarded even 
   await page.waitForSelector('#match-screen.active', { timeout: 5000 });
 
   // Force batting side and confirm the button is genuinely active + clickable.
-  await page.evaluate(() => { window.match.batting = 'you'; window.match.wkts = 3; window.syncDrsAvailability(); });
+  // 2026-09-12: a DRS review is now gated to the dismissal JUST given (systems audit #10) -- it
+  // used to be tappable at any moment, which let it resurrect a batter dismissed ten overs
+  // earlier. This test is about REACHABILITY (the .unavailable state no longer swallows the tap),
+  // and it uses `drsUsed` as its proxy for "the click reached the handler and did something", so
+  // it now has to open a legitimate review window first. The assertion below is unchanged and
+  // deliberately NOT weakened: a real click while batting must still actually work.
+  await page.evaluate(() => {
+    window.match.batting = 'you';
+    window.match.wkts = 3;
+    window.match.drsWindow = { side: 'you', batEntry: { name: 'Given Out', out: true }, bwlEntry: { name: 'Bowler', wkts: 1 }, batterName: 'Given Out' };
+    window.syncDrsAvailability();
+  });
   const battingState = await page.evaluate(() => {
     const btn = document.getElementById('drs-btn');
     return { unavailable: btn.classList.contains('unavailable'), pointerEvents: getComputedStyle(btn).pointerEvents };
