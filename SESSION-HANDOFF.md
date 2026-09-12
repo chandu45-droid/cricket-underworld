@@ -73,7 +73,7 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 >
 > ### ✅ 2026-09-12 FINAL — items 3, 5, 6 + the auction pool DONE and VERIFIED GREEN
 >
-> **FULL SUITE GREEN: 243/243**, run in chunks on a memory-starved box (see the RAM note below).
+> **FULL SUITE GREEN: 245/245**, run in chunks on a memory-starved box (see the RAM note below).
 > comprehensive **132/132** (verified by script that the 4 grep patterns covered all 132 — an
 > earlier pass used `^Hub ` which silently matched nothing and skipped 10 tests; always verify
 > chunk coverage against `--list`, never assume a grep matched) · smoke + persona 24 ·
@@ -153,7 +153,7 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
    doesn't un-earn at rollover — mirrors the `GS.bestStreak` pattern "Hot Streak" already uses.
    Deliberately did NOT add a separate cap: the reset bounds it, and a ceiling would be an
    economy-balance call, not a correctness fix.
-4. 🔴 **Aggressive batting still strictly dominant** despite the 2026-08-03 fix (+13.0 runs for +0.48
+4. ✅ **DONE 2026-09-12 (`7938463`)** — 🔴 **Aggressive batting still strictly dominant** despite the 2026-08-03 fix (+13.0 runs for +0.48
    wickets in an innings that only loses 4.7 — the trade-off can't exist while wickets are
    non-binding). Plus **"Contain" field is a free unlimited dominant button** (opponent 176 → 158,
    +12–14pp win rate).
