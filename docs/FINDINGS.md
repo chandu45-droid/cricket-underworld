@@ -109,7 +109,7 @@ live code//browser rather than relayed on trust):
    +0.48 wickets, in an innings that only loses 4.7. The intended trade-off cannot exist while
    wickets are non-binding. Plus **"Contain" field is a free, unlimited dominant button** (opponent
    176 → 158, +12–14pp win rate; every `field=defensive` row beat every row without it).
-8. 🔴 **`cleanStreak` never resets across seasons** — verified absent from `endSeason`'s reset list
+8. ✅ **FIXED 2026-09-12 (`26b4b90`)** — 🔴 **`cleanStreak` never resets across seasons** — verified absent from `endSeason`'s reset list
    (which does reset wins/losses/matchNum/seasonStats/rivalWins/winStreak/streakShield). Compounds to
    **+1,960 coins/win by season 14**. `:10893`.
 9. 🔴 **The design brief's archetypes don't exist in the simulation.** `calcBallOutcome` reads `role`
@@ -128,7 +128,7 @@ the +300 rewarded-ad purse boost can drive `GS.coins` negative (purse is aliased
 `:9028`); and the auction can never offer a common or uncommon card (`slice(0,12)` off a rarity-desc
 sort — **58% of the player pool is auction-invisible**).
 
-**Status: 5 of 21 red fixed (3 on 2026-09-11, +2 on 2026-09-12) — 16 still open**, plus one sub-item
+**Status: 6 of 21 red fixed (3 on 2026-09-11, +3 on 2026-09-12) — 15 still open**, plus one sub-item
 of the bundled misc finding (coins going negative) closed as a side effect of the purse decision.
 See `SESSION-HANDOFF.md` for the prioritised resume list and the two design decisions the founder
 has already made but which aren't implemented yet.

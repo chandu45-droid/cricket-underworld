@@ -90,8 +90,12 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
      `auctionPurse = basePurse + sp.purseBonus` and the UI displays it, then `startAuction` does
      `GS.auctionPurse = GS.coins` and wipes it — along with the tribunal −20% penalty. That ladder is
      the alignment system's main economic payoff and has **never once applied**.
-3. 🔴 **`cleanStreak` never resets across seasons** — verified absent from `endSeason`'s reset list.
-   Compounds to **+1,960 coins/win by season 14**.
+3. ✅ **DONE 2026-09-12 (`26b4b90`)** — 🔴 **`cleanStreak` never resets across seasons** — verified absent from `endSeason`'s reset list.
+   Compounds to **+1,960 coins/win by season 14**. Fixed by adding it to the reset list (bounds the
+   bonus at +150/win in a 15-match season). Added `GS.bestCleanStreak` so the "Clean Run" badge
+   doesn't un-earn at rollover — mirrors the `GS.bestStreak` pattern "Hot Streak" already uses.
+   Deliberately did NOT add a separate cap: the reset bounds it, and a ceiling would be an
+   economy-balance call, not a correctness fix.
 4. 🔴 **Aggressive batting still strictly dominant** despite the 2026-08-03 fix (+13.0 runs for +0.48
    wickets in an innings that only loses 4.7 — the trade-off can't exist while wickets are
    non-binding). Plus **"Contain" field is a free unlimited dominant button** (opponent 176 → 158,
