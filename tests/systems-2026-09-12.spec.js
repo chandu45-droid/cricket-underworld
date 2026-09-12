@@ -280,4 +280,49 @@ test.describe('Systems Integrity 2026-09-12', () => {
     // ...while coins floor at 0 instead of going to -400, which is the bug this clamp closes.
     expect(r.coins).toBeGreaterThanOrEqual(0);
   });
+
+  // ============================================================
+  // SYSTEMS FIX 8: cleanStreak never reset across seasons
+  // `cleanBonus = cleanStreak * 10` is added to every win, uncapped, and the streak reset ONLY on
+  // a fixed match -- endSeason reset winStreak and streakShield but not this one. It compounded to
+  // +1,960/win by season 14 (16x the 80-120 base), making late-game coin income unlimited and
+  // inverting the game's central tension: the clean path out-earned the corrupt one forever.
+  // ============================================================
+  test('the clean-streak bonus resets each season and cannot compound across them', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      window.GS.cleanStreak = 40;   // a season-14-scale streak under the old behaviour
+      window.GS.bestCleanStreak = 40;
+      window.GS.season = 14;
+      window.GS.matchNum = 15;
+      window.GS.wins = 8;
+      window.GS.losses = 6;
+      window.GS.league = 'gully';
+      window.GS.alignment = 0;
+      window.endSeason();
+      const afterSeason = {
+        cleanStreak: window.GS.cleanStreak,
+        bestCleanStreak: window.GS.bestCleanStreak,
+        winStreak: window.GS.winStreak
+      };
+      // The badge must still read as earned -- an achievement must not un-earn on rollover.
+      const badgeEarned = window.GS.bestCleanStreak >= 5;
+      // And the bonus a win would now pay, vs what it paid at streak 40.
+      const bonusNow = window.GS.cleanStreak >= 3 ? window.GS.cleanStreak * 10 : 0;
+      return { afterSeason: afterSeason, badgeEarned: badgeEarned, bonusNow: bonusNow, bonusBefore: 40 * 10 };
+    });
+
+    // The streak itself is cleared, exactly like the other two streaks on that line.
+    expect(r.afterSeason.cleanStreak).toBe(0);
+    expect(r.afterSeason.winStreak).toBe(0);
+    // The +400/win it was paying is gone...
+    expect(r.bonusBefore).toBe(400);
+    expect(r.bonusNow).toBe(0);
+    // ...but the career best survives, so the Clean Run badge does not un-earn.
+    expect(r.afterSeason.bestCleanStreak).toBe(40);
+    expect(r.badgeEarned).toBe(true);
+  });
+
 });

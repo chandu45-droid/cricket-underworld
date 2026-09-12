@@ -4506,7 +4506,7 @@ var GS = {
   morale: 75, auctionPurse: 2000,
   strategy: 'balanced', league: 'gully',
   mafiaBonus: null, bhaiBonus: null,
-  fanLoyalty: 50, cleanStreak: 0,
+  fanLoyalty: 50, cleanStreak: 0, bestCleanStreak: 0,
   sponsor: { tier: 3, name: 'Local Brand', purseBonus: 0 },
   rivalData: {},
   debts: [], noAlignMatches: 0,
@@ -4914,6 +4914,9 @@ function hydrateGS(d) {
       GS.season=v(d.season,1); GS.matchNum=v(d.matchNum,1); GS.wins=v(d.wins,0); GS.losses=v(d.losses,0);
       GS.morale=v(d.morale,75); GS.league=v(d.league,'gully'); GS.mafiaBonus=v(d.mafiaBonus,null); GS.bhaiBonus=v(d.bhaiBonus,null);
       GS.fanLoyalty=v(d.fanLoyalty,50); GS.cleanStreak=v(d.cleanStreak,0);
+      // 2026-09-12: seeded to at least the live streak so saves written before bestCleanStreak
+      // existed don't show the Clean Run badge briefly un-earning on first load.
+      GS.bestCleanStreak=Math.max(v(d.bestCleanStreak,0), GS.cleanStreak);
       GS.sponsor=v(d.sponsor,{tier:3,name:'Ceat Tyres',purseBonus:0});
       GS.rivalData=v(d.rivalData,{});
       GS.debts=v(d.debts,[]); GS.noAlignMatches=v(d.noAlignMatches,0);
@@ -8472,7 +8475,7 @@ function renderHubAchievements() {
     { name: 'Season 3', earned: GS.season >= 3, icon: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/>' },
     { name: 'Hot Streak', earned: GS.bestStreak >= 3, icon: '<path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/>' },
     { name: 'Fan Favorite', earned: GS.fanLoyalty >= 80, icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
-    { name: 'Clean Run', earned: GS.cleanStreak >= 5, icon: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>' },
+    { name: 'Clean Run', earned: GS.bestCleanStreak >= 5, icon: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>' },
     { name: '100 Wins', earned: GS.wins >= 100, icon: '<path d="M12 2l3 6 6 1-4.5 4 1 6L12 16l-5.5 3 1-6L3 9l6-1z"/>' }
   ];
   var h = '';
@@ -10960,6 +10963,9 @@ function endMatch() {
   var cleanBonus = 0;
   if (!wasFix) {
     GS.cleanStreak++;
+    // Career best, mirroring GS.bestStreak (`:10726`). The live streak resets at endSeason as of
+    // 2026-09-12, so the "Clean Run" badge reads this instead -- an achievement must not un-earn.
+    if (GS.cleanStreak > GS.bestCleanStreak) GS.bestCleanStreak = GS.cleanStreak;
     if (GS.cleanStreak >= 3 && won) cleanBonus = GS.cleanStreak * 10;
   } else { GS.cleanStreak = 0; }
   coinR += cleanBonus;
@@ -11893,7 +11899,17 @@ function endSeason() {
     else if (leagueOrder[idx] === 'sma' && GS.league === 'challenger') promoBeat = uwActIIIPromoCard();
     else if (leagueOrder[idx] === 'challenger' && GS.league === 'champions' && !GS.reckoningResolved) promoBeat = uwClimaxCard();
   }
-  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0; GS.streakShield = false;
+  // 2026-09-12 systems-audit fix #8: cleanStreak was absent from this reset list -- it reset ONLY
+  // when you fixed a match. `cleanBonus = cleanStreak * 10` is added to every win with no cap, so
+  // it compounded across seasons: +140/win by the end of season 1, +700/win by season 5, and
+  // **+1,960/win by season 14 -- 16x the 80-120 base reward**. That made late-game coin income
+  // effectively unlimited (every coin sink, pack, and IAP tier irrelevant) and inverted the game's
+  // central tension, since the clean path out-earned the corrupt one by an ever-widening margin.
+  // Resetting per season is what the other two streaks in this very line already do, and it bounds
+  // the bonus at +150/win (a 15-match season) instead of growing forever.
+  // NOTE: reset belongs HERE, not in the win/loss branch at `:10735` -- a clean streak is about not
+  // FIXING matches, not about winning them. Losing a match must never break it.
+  GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0; GS.streakShield = false; GS.cleanStreak = 0;
   GS.seasonPass = { xp: 0, premium: false, claimedFree: [], claimedPremium: [] };
   GS.morale = Math.min(100, GS.morale + 10);
   var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
