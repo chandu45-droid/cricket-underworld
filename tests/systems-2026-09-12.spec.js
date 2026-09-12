@@ -80,34 +80,46 @@ test.describe('Systems Integrity 2026-09-12', () => {
       prospect.seasonsLeft = 1; // graduates on the very next tick
       window.GS.academySlots = [prospect];
 
+      // NOTE: every observation below is snapshotted IMMEDIATELY, into a primitive. Reading
+      // `GS.academySlots.length` from the returned object literal instead would report the state
+      // at the END of this function (after he has graduated), not the state being asserted --
+      // which is exactly how the first version of this test failed against correct code.
       const full = window.processAcademySlots();
+      const graduatedWhileFull = full.length;
+      const slotsWhileFull = window.GS.academySlots.length;
+      const squadWhileFull = window.GS.squad.length;
       const held = window.GS.academySlots[0];
-      const batWhileHeld = held.gradCard ? held.gradCard.bat : null;
-      const nameWhileHeld = held.gradCard ? held.gradCard.name : null;
+      const readyFlag = !!(held && held.ready === true);
+      const batWhileHeld = held && held.gradCard ? held.gradCard.bat : null;
+      const nameWhileHeld = held && held.gradCard ? held.gradCard.name : null;
 
       // Tick again while STILL full: he must not train on, and must not re-graduate.
       const fullAgain = window.processAcademySlots();
+      const graduatedWhileStillFull = fullAgain.length;
       const heldAfter = window.GS.academySlots[0];
+      const batAfterSecondTick = heldAfter && heldAfter.gradCard ? heldAfter.gradCard.bat : null;
+      const seasonsLeftAfterSecondTick = heldAfter ? heldAfter.seasonsLeft : null;
 
       // Now free one squad slot and tick again: he should sign for real.
       window.GS.squad.pop();
       const afterFreeing = window.processAcademySlots();
+      const nameAfterFreeing = afterFreeing[0] ? afterFreeing[0].name : null;
 
       return {
-        graduatedWhileFull: full.length,
-        slotsWhileFull: window.GS.academySlots.length,
-        readyFlag: held.ready === true,
-        squadWhileFull: window.GS.squad.length,
+        graduatedWhileFull: graduatedWhileFull,
+        slotsWhileFull: slotsWhileFull,
+        readyFlag: readyFlag,
+        squadWhileFull: squadWhileFull,
         maxSquad: window.GS.maxSquad,
         batWhileHeld: batWhileHeld,
         nameWhileHeld: nameWhileHeld,
-        graduatedWhileStillFull: fullAgain.length,
-        batAfterSecondTick: heldAfter && heldAfter.gradCard ? heldAfter.gradCard.bat : null,
-        seasonsLeftAfterSecondTick: heldAfter ? heldAfter.seasonsLeft : null,
+        graduatedWhileStillFull: graduatedWhileStillFull,
+        batAfterSecondTick: batAfterSecondTick,
+        seasonsLeftAfterSecondTick: seasonsLeftAfterSecondTick,
         graduatedAfterFreeing: afterFreeing.length,
-        nameAfterFreeing: afterFreeing[0] ? afterFreeing[0].name : null,
+        nameAfterFreeing: nameAfterFreeing,
         slotsAfterFreeing: window.GS.academySlots.length,
-        squadHasHim: window.GS.squad.some(p => afterFreeing[0] && p.name === afterFreeing[0].name)
+        squadHasHim: window.GS.squad.some(p => nameAfterFreeing && p.name === nameAfterFreeing)
       };
     });
 
