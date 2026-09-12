@@ -9254,7 +9254,19 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   var stratBatMod = 1.0, stratBwlMod = 1.0;
   if (isYourBatting) { stratBatMod = strategy==='aggressive'?1.15:strategy==='defensive'?0.85:1.0; }
   else { stratBwlMod = strategy==='aggressive'?1.10:strategy==='defensive'?0.90:1.0; }
+  // MORALE (2026-09-12 systems-audit fix #1): `morale` is YOUR team's morale (GS.morale) --
+  // every caller passes GS.morale, for both innings. It used to multiply into `batStr` with no
+  // isYourBatting gate, i.e. it buffed WHOEVER was batting -- so raising your morale made the
+  // OPPOSITION bat better by exactly the same factor when they batted, and never touched your
+  // bowling at all. Net effect: perfectly symmetric, measured win rate flat across morale
+  // 20/50/75/100, and the 150-coin Pep Talk bought literally nothing.
+  // GDD 7.5 formula is unchanged (0.9 + morale/500 === 1 + (morale-50)/500: 50 neutral,
+  // 100 -> +10%, 0 -> -10%); only the SIDE it applies to is fixed. It now modifies your team:
+  // your batting when you bat, your bowling when you bowl -- same side-scoping every other
+  // modifier in this function already uses.
   var moraleMod = 0.9 + morale / 500;
+  var batMoraleMod = isYourBatting ? moraleMod : 1.0;
+  var bwlMoraleMod = isYourBatting ? 1.0 : moraleMod;
   // Captain bonus (2026-09 GDD-alignment fix): was a flat +8% for whoever GS.captainId
   // pointed at, with zero eligibility gating -- GDD 6.2/7.1/7.2 specifies a rare Captaincy
   // trait + Leadership stat (0-99) giving a variable 0-5% bonus (leadership/20 = %). The
@@ -9270,8 +9282,8 @@ function calcBallOutcome(batter, bowler, pitchType, phase, strategy, morale, isY
   // stratBatMod/stratBwlMod are kept as plain multipliers, reapplied explicitly to wktP/sixP/
   // fourP after the skill-ratio is computed, so the risk/reward trade-off can't be "solved" by
   // aggression alone. See the block right after wktP/dotP/sixP/fourP below.
-  var batStr = batter.bat * formMod(batter.form) * phaseBat * moraleMod * pm.bat * capBatMod;
-  var bwlStr = bowler.bwl * formMod(bowler.form) * phaseBwl * pitchBwlMod * capBwlMod;
+  var batStr = batter.bat * formMod(batter.form) * phaseBat * batMoraleMod * pm.bat * capBatMod;
+  var bwlStr = bowler.bwl * formMod(bowler.form) * phaseBwl * pitchBwlMod * bwlMoraleMod * capBwlMod;
   if (GS.mafiaBonus) {
     if (GS.mafiaBonus.type==='matchfix' && isYourBatting) batStr *= 1.30;
     if (GS.mafiaBonus.type==='umpire' && !isYourBatting) bwlStr *= 1.25;
@@ -9537,7 +9549,10 @@ function playSuperOver() {
   var oppBowler = match.oppXI.slice().sort(function(a, b) { return b.bwl - a.bwl; })[0];
   var yourSO = 0, oppSO = 0;
   for (var i = 0; i < 6; i++) {
-    var o = calcBallOutcome(oppBest, yourBowler, match.pitchType, 2, 'aggressive', 70, false, 1, 0, oppSO, i);
+    // was a hardcoded 70: harmless while morale buffed the batting side (it was effectively
+    // an opponent-morale constant), but now that morale is side-scoped to YOUR team this
+    // parameter reaches YOUR bowler, so it must be GS.morale like every other caller.
+    var o = calcBallOutcome(oppBest, yourBowler, match.pitchType, 2, 'aggressive', GS.morale, false, 1, 0, oppSO, i);
     if (o.wicket) break;
     oppSO += o.runs;
   }
