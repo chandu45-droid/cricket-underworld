@@ -18,6 +18,25 @@
 
 ## 🔴 Open — needs a founder decision
 
+### 2026-09-12 — Two incidental finds while fixing the dishonest-purchase batch
+Both found by reading code adjacent to the fixes, neither acted on. Logged per the session protocol.
+
+1. 🔴 **The OTHER academy reward can breach the squad cap.** `endSeason` does
+   `var academyCard = getAcademyCard(); if (academyCard) { GS.squad.push(academyCard); … }` with **no
+   `GS.maxSquad` check at all** (`~:11832-11836`) — unlike `processAcademySlots`, which has one. This
+   is the alignment-60 free graduate, a different code path from the 300-coin academy prospects fixed
+   in `3aa21dd`. Deliberately **not** patched: the obvious one-line gate would silently drop the card,
+   which is the exact bug just fixed one function away. **Needs a founder call** — allow the overflow
+   (cap becomes advisory), hold him like the prospects now are, or convert to coins with an honest
+   message. Verified by reading; not reproduced in-browser.
+2. 🟡 **Real company names are used as in-game sponsors** — `Tata Group`, `Dream11`, `Ceat Tyres`
+   (`:6483-6487`), plus `CricBuzz_Live` / `ESPNcricinfo` / `Sports_Tak` / `Cricket_Next` as social
+   accounts (`:11468`). Hard constraint #2 in `CLAUDE.md` covers *player* names/likenesses only, so
+   this isn't a rule breach as written — but it's the same class of risk, and `Dream11` in particular
+   is a real-money fantasy platform whose name appearing as a paying sponsor inside a game with
+   virtual currency and gacha implies an endorsement that does not exist. Cheap to fix now
+   (find/replace to fictional brands) and much less cheap after a store listing. **Founder call.**
+
 ### 2026-09-11 — Deep SYSTEMS audit (balance · economy · cricket authenticity): 21 🔴 open
 Run after the UI audit closed, on the founder's call for "another deep pass". Three parallel
 specialist audits of the **systems underneath** the interface. Calibrated against the locked-lineup
