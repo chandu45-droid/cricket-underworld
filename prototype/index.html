@@ -11465,9 +11465,9 @@ function resolveKnockoutMatch(won){
 // =============================================
 var SOCIAL_TEMPLATES=[
   {type:'fan',gen:function(ctx){var msgs=ctx.won?[ctx.team+' is on fire! '+ctx.wins+' wins this season!','Yessss! '+ctx.team+' supremacy! What a win!','Match '+ctx.matchNum+' done. '+ctx.team+' looking unstoppable.','Bhai '+ctx.team+' ka time aa gaya! '+ctx.wins+' wins!']:['Tough day for '+ctx.team+'. Better luck next time.','Pain. '+ctx.team+' deserved better today.','What happened '+ctx.team+'? We believe in you still.',''+ctx.losses+' losses now. Time to bounce back, '+ctx.team+'!'];return{user:'@CricFan'+Math.floor(Math.random()*999),text:msgs[Math.floor(Math.random()*msgs.length)],likes:Math.floor(Math.random()*500)+50};}},
-  {type:'journalist',gen:function(ctx){var msgs=[];if(ctx.heat>50)msgs.push('BREAKING: '+ctx.team+' manager under scrutiny as corruption rumours swirl.','Sources say BCCI looking into '+ctx.team+'\'s conduct. Heat index: '+ctx.heat+'.');if(ctx.winRate>0.6)msgs.push(ctx.team+' on promotion track — dominant '+Math.round(ctx.winRate*100)+'% win rate.','Can anyone stop '+ctx.team+'? '+ctx.wins+' wins and counting.');msgs.push('Season update: '+ctx.team+' sitting at '+ctx.wins+'W-'+ctx.losses+'L.','Matchday '+ctx.matchNum+': '+ctx.team+' vs '+ctx.rival+' — key clash in the '+ctx.league+' race.');return{user:['CricBuzz_Live','ESPNcricinfo','Sports_Tak','Cricket_Next'][Math.floor(Math.random()*4)],text:msgs[Math.floor(Math.random()*msgs.length)],likes:Math.floor(Math.random()*2000)+200};}},
-  {type:'rival',gen:function(ctx){var wMsgs=['"Lucky. Next time I will crush you." — '+ctx.rival,'"Enjoy it while it lasts." — '+ctx.rival,'"One win doesn\'t make you champion." — '+ctx.rival];var lMsgs=['"Expected result. You are not ready for this level." — '+ctx.rival,'"I told everyone. Levels." — '+ctx.rival,'"Come back when you have a real squad." — '+ctx.rival];var msgs=ctx.won?wMsgs:lMsgs;return{user:ctx.rival,text:msgs[Math.floor(Math.random()*msgs.length)],likes:Math.floor(Math.random()*300)+30};}},
-  {type:'sponsor',gen:function(ctx){return{user:ctx.sponsor,text:ctx.align>30?'Proud to partner with '+ctx.team+'! A beacon of fair play.':ctx.align<-30?'We are reviewing our association with '+ctx.team+' amid recent controversies.':'Our partnership with '+ctx.team+' continues into matchday '+(ctx.matchNum)+'.',likes:Math.floor(Math.random()*800)+100};}},
+  {type:'journalist',gen:function(ctx){var msgs=[];if(ctx.heat>50)msgs.push('BREAKING: '+ctx.team+' manager under scrutiny as corruption rumours swirl.','Sources say BCCI looking into '+ctx.team+'\'s conduct. Heat index: '+ctx.heat+'.');if(ctx.winRate>0.6)msgs.push(ctx.team+' on promotion track — dominant '+Math.round(ctx.winRate*100)+'% win rate.','Can anyone stop '+ctx.team+'? '+ctx.wins+' wins and counting.');msgs.push('Season update: '+ctx.team+' sitting at '+ctx.wins+'W-'+ctx.losses+'L.','Matchday '+ctx.matchNum+': '+ctx.team+' vs '+ctx.rival+' — key clash in the '+ctx.league+' race.');var ji=Math.floor(Math.random()*msgs.length);return{user:['CricBuzz_Live','ESPNcricinfo','Sports_Tak','Cricket_Next'][Math.floor(Math.random()*4)],text:msgs[ji],neg:(ctx.heat>50&&ji<2),likes:Math.floor(Math.random()*2000)+200};}},
+  {type:'rival',gen:function(ctx){var wMsgs=['"Lucky. Next time I will crush you." — '+ctx.rival,'"Enjoy it while it lasts." — '+ctx.rival,'"One win doesn\'t make you champion." — '+ctx.rival];var lMsgs=['"Expected result. You are not ready for this level." — '+ctx.rival,'"I told everyone. Levels." — '+ctx.rival,'"Come back when you have a real squad." — '+ctx.rival];var msgs=ctx.won?wMsgs:lMsgs;return{user:ctx.rival,text:msgs[Math.floor(Math.random()*msgs.length)],neg:!ctx.won,likes:Math.floor(Math.random()*300)+30};}},
+  {type:'sponsor',gen:function(ctx){return{user:ctx.sponsor,text:ctx.align>30?'Proud to partner with '+ctx.team+'! A beacon of fair play.':ctx.align<-30?'We are reviewing our association with '+ctx.team+' amid recent controversies.':'Our partnership with '+ctx.team+' continues into matchday '+(ctx.matchNum)+'.',neg:ctx.align<-30,likes:Math.floor(Math.random()*800)+100};}},
   {type:'fan_poll',gen:function(ctx){var polls=[{q:'What defines '+ctx.team+'\'s season?',a:ctx.align>0?'Clean Legend':'Dark Horse'},{q:'Rate '+ctx.team+'\'s manager this season?',a:ctx.winRate>0.5?'Genius':'Needs improvement'},{q:'Will '+ctx.team+' get promoted?',a:ctx.winRate>0.5?'Definitely':'Not this season'}];var p=polls[Math.floor(Math.random()*polls.length)];return{user:'@PollsCricket',text:'Fan poll: '+p.q+' 67% say "'+p.a+'". Do you agree?',likes:Math.floor(Math.random()*1200)+300};}},
   {type:'meme',gen:function(ctx){var memes=['When '+ctx.team+' wins but your fantasy team still loses','Nobody: ... '+ctx.team+' fans after match '+(ctx.matchNum-1)+': *celebration noises*','That face when '+ctx.team+' nearly lost to a team with 30 OVR',''+ctx.team+' fans checking the points table every 5 minutes','POV: You told your friend '+ctx.team+' would win and they actually did',''+ctx.rival+' after losing to '+ctx.team+': "I wasn\'t even trying"','Me watching '+ctx.team+' matches at 2 AM: "This is fine"'];return{user:'@CricMemes',text:memes[Math.floor(Math.random()*memes.length)],likes:Math.floor(Math.random()*3000)+500};}},
   {type:'breaking',gen:function(ctx){if(ctx.heat>70) return{user:'ESPN_Cricket',text:'DEVELOPING: Board sources confirm investigation into '+ctx.team+' is gathering evidence. Tribunal possible.',likes:Math.floor(Math.random()*5000)+1000};if(ctx.align>60) return{user:'ESPN_Cricket',text:ctx.team+' receives Fair Play nomination. Manager praised for clean approach.',likes:Math.floor(Math.random()*3000)+500};return{user:'ESPN_Cricket',text:'Season '+ctx.season+' standings update: '+ctx.team+' at '+ctx.wins+'W-'+ctx.losses+'L in '+(LEAGUE_NAMES[ctx.league]||'the league')+'.',likes:Math.floor(Math.random()*2000)+300};}},
@@ -11486,6 +11486,33 @@ function generateSocialPosts(won,opponent){
     post.type=SOCIAL_TEMPLATES[idx].type;
     post.time='Just now';
     posts.push(post);
+  }
+  // 2026-09-12 systems-audit fix #6(a): MEDIA CONTACT (60 B$ Fixer, "Block 1 negative social post,
+  // cooldown 3 matches") had ZERO implementation -- `media_contact` appeared exactly once in 13,000
+  // lines, in its own STAFF_TYPES definition. It took the money, marked the row HIRED, and did
+  // nothing, ever. Same dishonest-purchase class as the scout bug. Every other fixer was wired
+  // (pr_manager, cleaner, lawyer, inside_man, bagman) -- this one was simply missed.
+  // Negativity is declared by the generators themselves (`neg`), NOT sniffed out of post text:
+  // journalist scrutiny lines (only reachable at heat>50), a sponsor publicly reviewing the
+  // association (alignment<-30), and a rival's post-loss taunt. Fan sympathy after a loss is
+  // deliberately NOT counted -- it's support, not an attack, and a fixer shouldn't be spending a
+  // 3-match cooldown on it. When several qualify, the most damaging one goes: journalist (a
+  // corruption story) > sponsor (money walking away) > rival (trash talk).
+  // Scope note: this implements the advertised effect and nothing more -- no heat reduction, no
+  // alignment change. A blocked story is replaced by a visible "story pulled" post so 60 B$ buys
+  // something the player can actually SEE; an invisible effect is its own kind of dishonesty.
+  if(GS.staff.media_contact){
+    var negRank={journalist:3,sponsor:2,rival:1};
+    var negIdx=-1,bestRank=0;
+    for(var mi=0;mi<posts.length;mi++){
+      if(!posts[mi].neg) continue;
+      var r=negRank[posts[mi].type]||0;
+      if(r>bestRank){bestRank=r;negIdx=mi;}
+    }
+    if(negIdx>=0&&activateFixer('media_contact')){
+      posts.splice(negIdx,1);
+      posts.push({user:'@PressRoom',text:'A story about '+GS.teamName+' was pulled minutes before publication. Nobody at the desk is saying why.',type:'breaking',time:'Just now',likes:Math.floor(Math.random()*400)+60});
+    }
   }
   GS.socialFeed=posts.concat(GS.socialFeed).slice(0,20);
   save();
@@ -11533,19 +11560,32 @@ function generateAcademyProspect(){
   };
 }
 
+// 2026-09-12 systems-audit fix #6(b): a graduate was SILENTLY DELETED when the squad was full.
+// The old code did `if(GS.squad.length<GS.maxSquad) GS.squad.push(card)` but then pushed to
+// `graduated` and spliced the slot UNCONDITIONALLY -- so after 300 coins and 2-3 seasons of
+// waiting, endSeason still printed "Academy Grad -- <name>" for a player who was never added to
+// anything and no longer existed. Same dishonest-purchase class as the scout bug.
+// Fix: a finished prospect with no squad room is HELD in his academy slot (`ready:true`) instead
+// of being destroyed. He keeps occupying one of the 2 slots -- which is honest, since he really
+// is still at the academy -- and signs automatically the season after you free up squad space.
+// His card is generated ONCE at graduation and cached on the slot (`gradCard`), so waiting does
+// not reroll his form/loyalty every season, and a `ready` slot skips training entirely so the
+// hold can't be farmed for free stat growth or drive `seasonsLeft` negative.
 function processAcademySlots(){
   var graduated=[];
   for(var i=GS.academySlots.length-1;i>=0;i--){
     var slot=GS.academySlots[i];
-    var growth=3+Math.floor(Math.random()*4);
-    slot.bat=Math.min(slot.potential,slot.bat+growth);
-    slot.bwl=Math.min(slot.potential,slot.bwl+growth);
-    slot.fld=Math.min(slot.potential,slot.fld+Math.floor(growth*0.7));
-    slot.fit=Math.min(95,slot.fit+2);
-    slot.progress++;
-    slot.seasonsLeft--;
+    if(!slot.ready){
+      var growth=3+Math.floor(Math.random()*4);
+      slot.bat=Math.min(slot.potential,slot.bat+growth);
+      slot.bwl=Math.min(slot.potential,slot.bwl+growth);
+      slot.fld=Math.min(slot.potential,slot.fld+Math.floor(growth*0.7));
+      slot.fit=Math.min(95,slot.fit+2);
+      slot.progress++;
+      slot.seasonsLeft--;
+    }
     if(slot.seasonsLeft<=0){
-      var card={
+      var card=slot.gradCard||{
         id:900+Date.now()%1000+i,name:slot.name,role:slot.role,
         bat:slot.bat,bwl:slot.bwl,fld:slot.fld,fit:slot.fit,
         form:60+Math.floor(Math.random()*20),
@@ -11555,9 +11595,15 @@ function processAcademySlots(){
         rarity:slot.potential>=80?'rare':slot.potential>=65?'uncommon':'common',
         overseas:false
       };
-      if(GS.squad.length<GS.maxSquad) GS.squad.push(card);
-      graduated.push(card);
-      GS.academySlots.splice(i,1);
+      if(GS.squad.length<GS.maxSquad){
+        GS.squad.push(card);
+        graduated.push(card);
+        GS.academySlots.splice(i,1);
+      } else {
+        slot.ready=true;
+        slot.seasonsLeft=0;
+        slot.gradCard=card;
+      }
     }
   }
   return graduated;
@@ -11585,6 +11631,17 @@ function getAcademyHtml(){
   } else {
     for(var i=0;i<GS.academySlots.length;i++){
       var s=GS.academySlots[i];
+      // 2026-09-12: a `ready` prospect has finished his development but had no squad room to go
+      // to, so he is being held here rather than deleted (see processAcademySlots). Say so --
+      // otherwise the panel shows "0 seasons left" forever with no explanation, and the player
+      // has no way to know that freeing a squad slot is what signs him.
+      if(s.ready){
+        html+='<div style="padding:8px;border:1px solid var(--amber);border-radius:3px;margin-bottom:6px">'+
+          '<div class="flex items-center justify-between"><span class="font-d fw-600 text-sm">'+s.name+'</span><span class="badge rarity-uncommon">'+ROLE_SHORT[s.role]+'</span></div>'+
+          '<div class="text-xs text-amber" style="margin:4px 0">READY TO SIGN · POT '+s.potential+'</div>'+
+          '<div class="text-xs text-slip">Squad is full ('+GS.squad.length+'/'+GS.maxSquad+') — free a slot and he joins at the end of next season.</div></div>';
+        continue;
+      }
       var pct=Math.round(s.progress/(s.progress+s.seasonsLeft)*100);
       html+='<div style="padding:8px;border:1px solid var(--border);border-radius:3px;margin-bottom:6px">'+
         '<div class="flex items-center justify-between"><span class="font-d fw-600 text-sm">'+s.name+'</span><span class="badge rarity-uncommon">'+ROLE_SHORT[s.role]+'</span></div>'+
@@ -11847,6 +11904,14 @@ function endSeason() {
   var academyGradHtml = '';
   for (var ag = 0; ag < academyGrads.length; ag++) {
     academyGradHtml += '<div class="reward-row"><span>Academy Grad</span><span class="val" style="color:var(--blue-bright)">' + academyGrads[ag].name + ' (' + academyGrads[ag].role + ')</span></div>';
+  }
+  // 2026-09-12: report the held graduates too. Previously a squad-full graduate was deleted and
+  // STILL printed as a success row here -- the player was told he'd received a player he hadn't.
+  // processAcademySlots() now leaves him in GS.academySlots flagged `ready`, so read them back
+  // and say plainly what happened and what the player has to do about it.
+  var academyHeld = GS.academySlots.filter(function(s) { return s.ready; });
+  for (var ah = 0; ah < academyHeld.length; ah++) {
+    academyGradHtml += '<div class="reward-row"><span>Academy Grad</span><span class="val text-amber">' + academyHeld[ah].name + ' — squad full, waiting</span></div>';
   }
   if (result === 'PROMOTED') SFX.promote();
   else if (result === 'RELEGATED') SFX.relegate();
