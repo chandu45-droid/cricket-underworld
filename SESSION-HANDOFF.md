@@ -33,11 +33,20 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 
 ## ⚠️ START HERE NEXT SESSION: 17 of 21 red systems findings still open
 
-> **Update 2026-09-12:** picked this up from here. Fixed the morale gate (item 1 of the "Still open"
-> list below) in `798d665` — `moraleMod` is now side-scoped to your team (`batMoraleMod` /
-> `bwlMoraleMod`), the super-over's hardcoded `70` became `GS.morale`, and a 40k-balls-per-cell
-> regression test landed at `tests/systems-2026-09-12.spec.js`. **That test has NOT been run**
-> (testing is founder-gated). Next up is item 2: the three dishonest purchases.
+> **Update 2026-09-12 — items 1 and 2 of the "Still open" list below are DONE.**
+> - **Morale gate** (`798d665`): `moraleMod` is now side-scoped to your team (`batMoraleMod` /
+>   `bwlMoraleMod`); the super-over's hardcoded `70` became `GS.morale`.
+> - **Three dishonest purchases** (`3aa21dd` + the purse commit): `media_contact` wired to its own
+>   advertised effect; squad-full academy graduates are HELD instead of destroyed; and the purse
+>   question went to the founder, who chose **purse = coins + seasonal sponsor bonus** — so the
+>   sponsor ladder and the tribunal −20% now actually reach the auction, and `resolveCard` clamps
+>   coins at 0 (which also closes the "rewarded ad can drive coins negative" misc finding).
+>
+> **⚠️ ALL SIX new regression tests in `tests/systems-2026-09-12.spec.js` are UNRUN**, as is the
+> rest of the suite since these changes. Testing is founder-gated; the code has only been
+> syntax-checked (`new Function()` over both script blocks). Ask the founder before running.
+>
+> Next up is item 3: `cleanStreak` never resetting across seasons.
 
 **Read these three docs — they contain traced numbers and line citations, not assertions:**
 - `docs/audit-2026-09-11-balance.md` (Monte-Carlo harness, 700–5,000 matches per cell — measured)
@@ -58,7 +67,7 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
    the same function. Measured win rate flat across morale 20/50/75/100 → the 150-coin Pep Talk buys
    nothing. Found independently by BOTH balance and cricket audits. `~:9236`, `~:9252`.
    *(Small diff, clearly correct — do this first.)*
-2. 🔴 **Three dishonest purchases** (same class as the already-fixed scout bug):
+2. ✅ **DONE 2026-09-12 (`3aa21dd` + purse commit, needs testing)** — 🔴 **Three dishonest purchases** (same class as the already-fixed scout bug):
    - `media_contact` (60 B$) has **zero implementation** — verified: one grep hit, its own definition.
    - Academy graduates **silently deleted** when squad is full, yet `endSeason` still prints
      "Academy Grad — <name>" after 300 coins and 2–3 seasons.

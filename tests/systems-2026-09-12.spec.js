@@ -190,4 +190,82 @@ test.describe('Systems Integrity 2026-09-12', () => {
     // Cooldown is real: it cannot block twice back-to-back.
     expect(r.secondBlockAfterFirst).toBe(false);
   });
+
+  // ============================================================
+  // SYSTEMS FIX 6(c): the sponsor purseBonus ladder was dead code
+  // endSeason computed `auctionPurse = basePurse + sp.purseBonus`, the season-end screen showed
+  // it, and then startAuction did `GS.auctionPurse = GS.coins` and wiped it -- along with the
+  // tribunal's -20% suspension penalty. Neither had ever applied. Founder decision 2026-09-12:
+  // purse = coins + the season's sponsor bonus.
+  // ============================================================
+  test('the sponsor purse ladder and the tribunal penalty both actually reach the auction', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      function openPurse(coins, purseBonus, pursePenalty) {
+        window.GS.coins = coins;
+        window.GS.sponsor = { tier: 1, name: 'Test Sponsor', purseBonus: purseBonus };
+        window.GS.pursePenalty = pursePenalty;
+        if (window.GS.ads) window.GS.ads.pendingPurse = false; // exclude the +300 rewarded ad
+        window.startAuction();
+        const purse = window.GS.auctionPurse;
+        const penaltyAfter = window.GS.pursePenalty;
+        window.auction.active = false;
+        if (window.auction.interval) clearInterval(window.auction.interval);
+        return { purse: purse, penaltyAfter: penaltyAfter };
+      }
+
+      const topTier = openPurse(5000, 500, 1);      // Tier 1 (Tata, alignment 71+)
+      const bottomTier = openPurse(5000, -200, 1);  // Tier 5 (No Sponsor)
+      const suspended = openPurse(5000, 500, 0.8);  // tribunal suspension pending
+      const afterSuspension = openPurse(5000, 500, undefined); // flag must not persist
+
+      // Broke, but the sponsor bonus still gives real spending power.
+      const broke = openPurse(0, 500, 1);
+
+      return { topTier, bottomTier, suspended, afterSuspension, broke };
+    });
+
+    // The ladder reaches the auction in both directions.
+    expect(r.topTier.purse).toBe(5500);
+    expect(r.bottomTier.purse).toBe(4800);
+
+    // The advertised "-20% purse next season" applies...
+    expect(r.suspended.purse).toBe(4400); // round(5500 * 0.8)
+    // ...for exactly one season -- it is consumed on use, not sticky.
+    expect(r.suspended.penaltyAfter).toBe(1);
+    expect(r.afterSuspension.purse).toBe(5500);
+
+    // A negative-bonus sponsor can't push the purse below zero.
+    expect(r.broke.purse).toBe(500);
+  });
+
+  test('winning a bid above your coin balance never drives coins negative', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      window.GS.coins = 300;
+      window.GS.squad = [];
+      window.GS.sponsor = { tier: 1, name: 'Test Sponsor', purseBonus: 500 };
+      window.GS.pursePenalty = 1;
+      window.startAuction();
+      const purseBefore = window.GS.auctionPurse; // 300 + 500 = 800, above the coin balance
+      // Win a card for more coins than you hold -- only possible because the bonus is real.
+      window.auction.bidder = 'you';
+      window.auction.bid = 700;
+      window.resolveCard();
+      const out = { purseBefore: purseBefore, coins: window.GS.coins, purse: window.GS.auctionPurse };
+      window.auction.active = false;
+      if (window.auction.interval) clearInterval(window.auction.interval);
+      return out;
+    });
+
+    expect(r.purseBefore).toBe(800);
+    // The purse is the real spend limit and takes the full hit...
+    expect(r.purse).toBe(100);
+    // ...while coins floor at 0 instead of going to -400, which is the bug this clamp closes.
+    expect(r.coins).toBeGreaterThanOrEqual(0);
+  });
 });

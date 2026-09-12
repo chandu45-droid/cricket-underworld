@@ -7896,7 +7896,12 @@ function resolveTribunal() {
     GS.losses += 1; GS.matchNum = Math.min(15, GS.matchNum + 1);
   } else {
     verdict = { name: 'SEASON SUSPENSION', desc: 'Banned for the rest of the season. -20% purse next season.', cls: 'text-red' };
-    GS.auctionPurse = Math.round(GS.auctionPurse * 0.8);
+    // 2026-09-12: was `GS.auctionPurse = Math.round(GS.auctionPurse * 0.8)`, which startAuction
+    // then overwrote wholesale -- the advertised -20% never applied. Stored as a one-season flag
+    // that startAuction consumes instead. A multiplier (not a subtraction off the bonus) because
+    // the bonus can be NEGATIVE at the bottom of the ladder (-200, No Sponsor), where scaling it
+    // by 0.8 would have made a suspension a REWARD.
+    GS.pursePenalty = 0.8;
     for (var di = 0; di < GS.debts.length; di++) GS.debts[di].principal = Math.round(GS.debts[di].principal * 1.5);
     GS.matchNum = 15;
   }
@@ -8833,7 +8838,19 @@ function startAuction() {
   // and couldn't field an XI (playtest 2026-07-15).
   auction.pool.sort(function(a, b) { return getPlayerPrice(a) - getPlayerPrice(b); });
   auction.idx = 0; auction.active = true;
-  GS.auctionPurse = GS.coins;
+  // PURSE (2026-09-12 systems-audit fix #6c, founder decision: "coins + seasonal bonus").
+  // This line used to read `GS.auctionPurse = GS.coins`, which silently wiped BOTH the sponsor
+  // purseBonus ladder that endSeason had just computed AND the tribunal's -20% suspension
+  // penalty -- the ladder is the alignment system's main economic payoff and had never once
+  // applied in the game's history, while the season-end screen displayed the number as if it had.
+  // Your coins are still your money (unchanged mental model); the sponsor bonus is spending power
+  // ON TOP of them, which is why placeBid() clamps coins at 0 -- the bonus is meant to let you
+  // outbid your own coin pile by exactly the ladder's worth. Read straight off GS.sponsor rather
+  // than a new banked field, so no save migration is needed. Season 1's default sponsor carries a
+  // 0 bonus, so the ladder starts biting from season 2, when alignment has had time to move.
+  var purseBonus = (GS.sponsor && GS.sponsor.purseBonus) || 0;
+  GS.auctionPurse = Math.max(0, Math.round((GS.coins + purseBonus) * (GS.pursePenalty || 1)));
+  GS.pursePenalty = 1; // one season only -- consumed here, see the tribunal suspension branch
   if (GS.ads && GS.ads.pendingPurse) {
     GS.auctionPurse += 300;
     GS.ads.pendingPurse = false;
@@ -9025,7 +9042,11 @@ function resolveCard() {
   var p = auction.pool[auction.idx];
   if (auction.bidder) showSoldStamp(p.name, auction.bid, auction.bidder === 'you');
   if (auction.bidder === 'you') {
-    GS.auctionPurse -= auction.bid; GS.coins -= auction.bid;
+    // 2026-09-12: coins clamped at 0. The purse can legitimately exceed your coin pile now (by
+    // the sponsor bonus, and by the rewarded ad's +300 which was already purse-only), and an
+    // unclamped subtraction here is exactly how GS.coins went NEGATIVE -- a separate red finding
+    // in the same audit. The purse remains the real spend limit; coins simply can't go below 0.
+    GS.auctionPurse -= auction.bid; GS.coins = Math.max(0, GS.coins - auction.bid);
     // 2026-09-11 systems-audit fix: stamp acquisition cost so resale can't exceed it (see
     // getSellPrice). Auction was already break-even at the floor after the 2026-08-03 fix; this
     // keeps it consistent rather than leaving packs as the only priced-provenance path.
@@ -11869,10 +11890,14 @@ function endSeason() {
   GS.coins += bonus; GS.season++; GS.matchNum = 1; GS.wins = 0; GS.losses = 0; GS.seasonStats = {}; GS.rivalWins = {}; GS.winStreak = 0; GS.streakShield = false;
   GS.seasonPass = { xp: 0, premium: false, claimedFree: [], claimedPremium: [] };
   GS.morale = Math.min(100, GS.morale + 10);
-  var basePurse = 2000 + idx * 500;
   var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
   GS.sponsor = sp;
-  GS.auctionPurse = basePurse + sp.purseBonus;
+  // 2026-09-12: this row used to show `2000 + idx*500 + sp.purseBonus` -- a number startAuction
+  // immediately overwrote with GS.coins, so the player was shown a purse they never got. It now
+  // previews exactly what startAuction will compute (coins + sponsor bonus, and the tribunal
+  // penalty if one is pending), so the screen can't lie. The old league-scaled `basePurse` is
+  // gone with it: it had never applied either, so dropping it changes no live behaviour.
+  GS.auctionPurse = Math.max(0, Math.round((GS.coins + sp.purseBonus) * (GS.pursePenalty || 1)));
   var fanVoteHtml = '';
   var fanVoteBonus = 0;
   if (GS.alignment > 30 && GS.fanLoyalty >= 60) {

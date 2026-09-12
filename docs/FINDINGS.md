@@ -64,7 +64,7 @@ live code//browser rather than relayed on trust):
    **default fast-forward path**. Traced: a one-fast-bowler XI bowls him overs 0,1,2,3 back-to-back
    until the 24-ball cap pulls him. Illegal in cricket, and skip is how most players will play.
    `:10778` (live path correctly sets it at `:10355`, `:10301`).
-6. 🔴 **Three more scout-bug-class dishonest purchases.** (a) `media_contact` (60 B$ Fixer) has
+6. ✅ **FIXED 2026-09-12 (`3aa21dd` + purse commit)** — 🔴 **Three more scout-bug-class dishonest purchases.** (a) `media_contact` (60 B$ Fixer) has
    **zero implementation** — verified: exactly one grep hit in 13,000 lines, its own definition at
    `:9613`. (b) Academy graduates are **silently deleted** when the squad is full, yet `endSeason`
    still prints "Academy Grad — <name>" after 300 coins and 2–3 seasons (`:11516` vs `:11806`).
@@ -96,12 +96,15 @@ the +300 rewarded-ad purse boost can drive `GS.coins` negative (purse is aliased
 `:9028`); and the auction can never offer a common or uncommon card (`slice(0,12)` off a rarity-desc
 sort — **58% of the player pool is auction-invisible**).
 
-**Status: 4 of 21 red fixed (3 on 2026-09-11, +1 on 2026-09-12) — 17 still open.**
+**Status: 5 of 21 red fixed (3 on 2026-09-11, +2 on 2026-09-12) — 16 still open**, plus one sub-item
+of the bundled misc finding (coins going negative) closed as a side effect of the purse decision.
 See `SESSION-HANDOFF.md` for the prioritised resume list and the two design decisions the founder
 has already made but which aren't implemented yet.
 
 | Fixed | Commit |
 |---|---|
+| #6 Three dishonest purchases — **(a)** `media_contact` wired to its own advertised effect (blocks the single most damaging negative post, `neg` declared by the generators rather than sniffed from text; visible "story pulled" post so the 60 B$ buys something you can see); **(b)** squad-full academy graduates are now HELD in their slot (`ready` + cached `gradCard`) and sign once space is freed, instead of being silently destroyed while the season screen congratulated you; **(c)** purse — see below. 3 regression tests. **Not yet run — founder-gated** | `3aa21dd`, `<purse>` |
+| #6(c) + misc sub-item — **founder decision 2026-09-12: purse = coins + seasonal sponsor bonus.** `startAuction`'s `GS.auctionPurse = GS.coins` no longer wipes the ladder; the tribunal's −20% became a one-season `pursePenalty` flag consumed at the next auction (a multiplier, not a cut to the bonus, because the bottom of the ladder is −200 and scaling that by 0.8 would have made a suspension a *reward*); the season-end screen now previews the number that will actually apply; `resolveCard` clamps coins at 0, which closes the **"rewarded-ad +300 can drive `GS.coins` negative"** misc finding. Dead `basePurse` (`2000 + idx*500`) dropped — it had never applied either. 2 regression tests. **Not yet run — founder-gated** | `<purse>` |
 | #4 Morale null-stat — `moraleMod` is now side-scoped (`batMoraleMod`/`bwlMoraleMod`): your batting when you bat, your bowling when you bowl. GDD 7.5 formula unchanged; only the side it applies to was wrong. Super-over call's hardcoded `70` corrected to `GS.morale` (that parameter now reaches YOUR bowler). Regression test at 40k balls/cell in `tests/systems-2026-09-12.spec.js`. **Not yet run — founder-gated** | `798d665` |
 | #1 Pack coin-printer — `acqCost` provenance + `getSellPrice()`; verified +624/flip → **−207** over 40 real cycles; 2 permanent regression tests added so a third rediscovery isn't possible | `b3d27e3` |
 | #2 Locked lineup bowled for the OPPOSITION — verified in-browser both directions. Pre-existing (git-checked), but inherited by this session's own rotation fix, which asked "which bowler, in what order" and never "whose bowler" | `a332db7` |
