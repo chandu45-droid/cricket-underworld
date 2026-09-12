@@ -73,7 +73,7 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 >
 > ### ✅ 2026-09-12 FINAL — items 3, 5, 6 + the auction pool DONE and VERIFIED GREEN
 >
-> **FULL SUITE GREEN: 245/245**, run in chunks on a memory-starved box (see the RAM note below).
+> **FULL SUITE GREEN: 249/249**, run in chunks on a memory-starved box (see the RAM note below).
 > comprehensive **132/132** (verified by script that the 4 grep patterns covered all 132 — an
 > earlier pass used `^Hub ` which silently matched nothing and skipped 10 tests; always verify
 > chunk coverage against `--list`, never assume a grep matched) · smoke + persona 24 ·
@@ -168,11 +168,11 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
    premium pass refunds 120 of its 150 gems (permanently self-funding).
 
 ### Two DESIGN decisions already made by the founder — not yet implemented
-- **Rival strength**: base it on the **XI you actually field**, not the whole squad. Currently
+- ✅ **DONE 2026-09-12 (`ae7e385`)** — **Rival strength**: base it on the **XI you actually field**, not the whole squad. Currently
   `generateRivalXI()` uses `getTeamStrength()` (squad average), so hoarding junk cards you never play
   makes the game easier — measured **85.8% → 98.2%** win rate by adding 4 junk cards. It punishes
   collecting, in a card-collection game. `~:9123`.
-- **Archetypes**: make roles matter in `calcBallOutcome` (top-order strong in powerplay, middle-order
+- ✅ **DONE 2026-09-12 (`94d5686`)** — **Archetypes**: make roles matter in `calcBallOutcome` (top-order strong in powerplay, middle-order
   under pressure, finishers at death, keepers get `fld` value). Currently `role` is read *only* for a
   pitch modifier, so Top-Order / Middle-Order / Keeper with equal `bat` are **byte-identical**, and
   `fld` is never read by the match engine at all.
