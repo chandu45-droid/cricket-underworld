@@ -31,7 +31,13 @@ One flake deliberately NOT chased: `field placement setting appears in bowler pi
 toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss would mean stubbing
 `Math.random` mid-`startMatch` where it isn't the only consumer — real risk, zero coverage gain.
 
-## ⚠️ START HERE NEXT SESSION: 18 of 21 red systems findings still open
+## ⚠️ START HERE NEXT SESSION: 17 of 21 red systems findings still open
+
+> **Update 2026-09-12:** picked this up from here. Fixed the morale gate (item 1 of the "Still open"
+> list below) in `798d665` — `moraleMod` is now side-scoped to your team (`batMoraleMod` /
+> `bwlMoraleMod`), the super-over's hardcoded `70` became `GS.morale`, and a 40k-balls-per-cell
+> regression test landed at `tests/systems-2026-09-12.spec.js`. **That test has NOT been run**
+> (testing is founder-gated). Next up is item 2: the three dishonest purchases.
 
 **Read these three docs — they contain traced numbers and line citations, not assertions:**
 - `docs/audit-2026-09-11-balance.md` (Monte-Carlo harness, 700–5,000 matches per cell — measured)
@@ -47,7 +53,7 @@ toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss wou
 
 
 ### Still open — suggested order
-1. 🔴 **Morale is a null stat that buffs your opponent.** `moraleMod = 0.9 + GS.morale/500` applied
+1. ✅ **DONE 2026-09-12 (`798d665`, needs testing)** — 🔴 **Morale is a null stat that buffs your opponent.** `moraleMod = 0.9 + GS.morale/500` applied
    to whoever is batting with **no `isYourBatting` gate**, unlike every other side-scoped modifier in
    the same function. Measured win rate flat across morale 20/50/75/100 → the 150-coin Pep Talk buys
    nothing. Found independently by BOTH balance and cricket audits. `~:9236`, `~:9252`.

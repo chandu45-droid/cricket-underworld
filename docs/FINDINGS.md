@@ -55,7 +55,7 @@ live code//browser rather than relayed on trust):
    adding 4 never-picked junk cards moved an elite squad **85.8% → 98.2%** win rate, a mid squad
    **78.3% → 90.4%**. It punishes collecting — the core loop of a card game — and makes the pre-match
    "STR" readout fiction. Needs a **design decision**, not a patch. `:9123`.
-4. 🔴 **Morale is a null stat that also buffs your opponent.** `moraleMod = 0.9 + GS.morale/500` is
+4. ✅ **FIXED 2026-09-12 (`798d665`)** — 🔴 **Morale is a null stat that also buffs your opponent.** `moraleMod = 0.9 + GS.morale/500` is
    applied to whoever is batting with **no `isYourBatting` gate**, unlike every other side-scoped
    modifier in the same function. Measured win rate is flat across morale 20/50/75/100, so the
    150-coin Pep Talk buys nothing. *Found independently by BOTH the balance and cricket audits.*
@@ -96,12 +96,13 @@ the +300 rewarded-ad purse boost can drive `GS.coins` negative (purse is aliased
 `:9028`); and the auction can never offer a common or uncommon card (`slice(0,12)` off a rarity-desc
 sort — **58% of the player pool is auction-invisible**).
 
-**Status: 3 of 21 red fixed 2026-09-11 (session ended at context limit) — 18 still open.**
+**Status: 4 of 21 red fixed (3 on 2026-09-11, +1 on 2026-09-12) — 17 still open.**
 See `SESSION-HANDOFF.md` for the prioritised resume list and the two design decisions the founder
 has already made but which aren't implemented yet.
 
 | Fixed | Commit |
 |---|---|
+| #4 Morale null-stat — `moraleMod` is now side-scoped (`batMoraleMod`/`bwlMoraleMod`): your batting when you bat, your bowling when you bowl. GDD 7.5 formula unchanged; only the side it applies to was wrong. Super-over call's hardcoded `70` corrected to `GS.morale` (that parameter now reaches YOUR bowler). Regression test at 40k balls/cell in `tests/systems-2026-09-12.spec.js`. **Not yet run — founder-gated** | `798d665` |
 | #1 Pack coin-printer — `acqCost` provenance + `getSellPrice()`; verified +624/flip → **−207** over 40 real cycles; 2 permanent regression tests added so a third rediscovery isn't possible | `b3d27e3` |
 | #2 Locked lineup bowled for the OPPOSITION — verified in-browser both directions. Pre-existing (git-checked), but inherited by this session's own rotation fix, which asked "which bowler, in what order" and never "whose bowler" | `a332db7` |
 | #5 `skipMatch()` never set `lastBowler` → consecutive overs (illegal) on the DEFAULT fast-forward path | `a332db7` |
