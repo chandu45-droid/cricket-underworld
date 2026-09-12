@@ -8837,7 +8837,20 @@ function startAuction() {
   trackEvent('auction_entered', { squadSize: GS.squad.length });
   var avail = ALL_PLAYERS.filter(function(p) { return !GS.squad.some(function(s) { return s.id === p.id; }); });
   if (avail.length === 0) { toast('No more players available', 'error'); return; }
-  avail.sort(function(a, b) { return RARITIES.indexOf(b.rarity) - RARITIES.indexOf(a.rarity); });
+  // 2026-09-12 systems-audit fix: this used to be `sort(rarity DESC).slice(0, 12)` -- the pool was
+  // ALWAYS the 12 rarest unowned cards. With 21 rare-or-better cards in the game, the other 29
+  // (58% of the collection) could never appear at an auction, ever. The price sort below then only
+  // reordered those same 12, so "budget lots open" actually meant "the cheapest of the twelve most
+  // expensive", and the cheapest possible lot in the game was a rare at 339 coins.
+  // Now sampled from the WHOLE available pool. Deliberately a plain uniform sample rather than an
+  // invented rarity quota: with 21 of 50 cards rare-or-better, a 12-card sample still averages ~5
+  // marquee lots, so the "marquee closes the show" intent below survives on its own without
+  // hard-coding a split nobody asked for. Whether a headline lot should be GUARANTEED every
+  // auction is a design call -- logged in docs/FINDINGS.md, not decided here.
+  for (var si = avail.length - 1; si > 0; si--) {
+    var sj = Math.floor(Math.random() * (si + 1));
+    var tmp = avail[si]; avail[si] = avail[sj]; avail[sj] = tmp;
+  }
   auction.pool = avail.slice(0, 12);
   // Budget lots open, marquee closes the show. Rarity-first order was a purse
   // trap: day-1 players drained ~75% of the purse on the first 3-4 star cards

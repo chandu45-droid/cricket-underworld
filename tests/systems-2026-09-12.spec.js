@@ -446,4 +446,37 @@ test.describe('Systems Integrity 2026-09-12', () => {
     expect(r.noneOwned.accepted).toBe(true);
   });
 
+  // ============================================================
+  // SYSTEMS FIX: 58% of the card pool was auction-invisible
+  // `sort(rarity DESC).slice(0, 12)` meant the pool was always the 12 rarest unowned cards, so the
+  // 29 common/uncommon cards could never appear at an auction. The cheapest possible lot in the
+  // game was a rare at 339 coins.
+  // ============================================================
+  test('the auction can offer common and uncommon cards, not just the 12 rarest', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const seen = {};
+      let poolSize = 0;
+      for (let i = 0; i < 40; i++) {          // 40 auctions is far more than enough to expose a filter
+        window.GS.squad = [];
+        window.GS.coins = 50000;
+        window.startAuction();
+        poolSize = window.auction.pool.length;
+        window.auction.pool.forEach(p => { seen[p.rarity] = (seen[p.rarity] || 0) + 1; });
+        window.auction.active = false;
+        if (window.auction.interval) clearInterval(window.auction.interval);
+      }
+      return { seen: seen, poolSize: poolSize };
+    });
+
+    expect(r.poolSize).toBe(12);
+    // The two tiers that were structurally unreachable before.
+    expect(r.seen['common'] || 0).toBeGreaterThan(0);
+    expect(r.seen['uncommon'] || 0).toBeGreaterThan(0);
+    // ...without losing the marquee end of the pool, which the price sort still closes the show on.
+    expect((r.seen['epic'] || 0) + (r.seen['legendary'] || 0)).toBeGreaterThan(0);
+  });
+
 });
