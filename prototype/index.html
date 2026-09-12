@@ -1012,6 +1012,8 @@ html[data-theme="light"] .auction-purse-zone .purse{
 .ss-roles{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap}
 .ss-role-tag{font-family:var(--font-b);font-size:10px;font-weight:700;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:0.5px;background:rgba(var(--hl-rgb),0.04);color:var(--slip);border:1px solid rgba(var(--hl-rgb),0.06)}
 .ss-role-tag.has{color:var(--green-bright);border-color:rgba(34,212,126,0.15);background:rgba(34,212,126,0.05)}
+.ss-role-tag.short{color:var(--amber);border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.07)}
+.ss-req{font-family:var(--font-b);font-size:10px;font-weight:600;letter-spacing:0.3px;color:var(--amber);text-align:center;margin-top:6px}
 .ss-player-list{flex:1;overflow-y:auto;padding:6px 16px;-webkit-overflow-scrolling:touch}
 .ss-role-divider{font-family:var(--font-b);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--slip);padding:4px 2px 2px;opacity:0.7}
 .ss-role-divider:first-child{padding-top:0}
@@ -4067,6 +4069,7 @@ html[data-theme="light"] #mafia-overlay .modal[data-zone="streets"] {
       <div class="ss-counter" id="ss-count-os"><span class="num" id="ss-os-num">0</span>/4 Overseas</div>
     </div>
     <div class="ss-roles" id="ss-roles"></div>
+    <div class="ss-req" id="ss-req" style="display:none"></div>
   </div>
   <div class="ss-player-list" id="ss-player-list"></div>
   <div class="page-pager hidden" id="ss-pager"></div>
@@ -10055,11 +10058,28 @@ function renderSquadSelect(sel) {
     var p = GS.squad.find(function(q){return q.id===id;});
     if (p) { var rs = ROLE_SHORT[p.role] || 'OTH'; roles[rs] = (roles[rs]||0) + 1; }
   });
+  // 2026-09-12: the keeper/bowler requirements added to confirmSquadSelect() must be visible
+  // BEFORE the player taps confirm. This codebase already took a red finding for toast-only
+  // gating (UI audit #11, Facilities), so the same mistake isn't repeated here -- a missing
+  // requirement reads as an amber tag in the strip the player is already looking at.
+  var bowlerCount = (roles['AR']||0) + (roles['PACE']||0) + (roles['SPIN']||0);
+  var ownedKeepersR = GS.squad.filter(function(p){ return p.role==='Wicket-Keeper'; }).length;
+  var ownedBowlersR = GS.squad.filter(function(p){ return p.role==='Fast Bowler'||p.role==='Spin Bowler'||p.role==='All-Rounder'; }).length;
+  var wkShort = ownedKeepersR > 0 && !(roles['WK']||0);
+  var bowlShort = bowlerCount < Math.min(2, ownedBowlersR);
   var roleHtml = '';
   ['BAT','WK','AR','PACE','SPIN'].forEach(function(r) {
-    roleHtml += '<div class="ss-role-tag' + (roles[r] ? ' has' : '') + '">' + r + ' ' + (roles[r]||0) + '</div>';
+    var short = (r === 'WK' && wkShort) || (bowlShort && (r === 'AR' || r === 'PACE' || r === 'SPIN'));
+    roleHtml += '<div class="ss-role-tag' + (roles[r] ? ' has' : '') + (short ? ' short' : '') + '">' + r + ' ' + (roles[r]||0) + '</div>';
   });
   $('ss-roles').innerHTML = roleHtml;
+  var reqEl = $('ss-req');
+  if (reqEl) {
+    if (wkShort) reqEl.textContent = 'Needs a wicket-keeper';
+    else if (bowlShort) reqEl.textContent = 'Needs at least 2 bowlers — one man cannot bowl every over';
+    else reqEl.textContent = '';
+    reqEl.style.display = (wkShort || bowlShort) ? 'block' : 'none';
+  }
   var order = {'Top-Order Batter':0,'Wicket-Keeper':1,'Middle-Order Batter':2,'All-Rounder':3,'Spin Bowler':4,'Fast Bowler':5};
   var sorted = GS.squad.slice().sort(function(a,b) { return (order[a.role]||9) - (order[b.role]||9); });
   var totalSSPages = Math.max(1, Math.ceil(sorted.length / SS_PER_PAGE));
@@ -10187,6 +10207,32 @@ function confirmSquadSelect() {
   var osCount = 0;
   sel.forEach(function(id) { var p = GS.squad.find(function(q){return q.id===id;}); if (p && p.overseas) osCount++; });
   if (osCount > 4) { toast('Max 4 overseas', 'error'); return; }
+  // 2026-09-12 systems-audit fix #11: size (>=3, <=11) and the overseas cap were the ENTIRE
+  // validation. No keeper check, no bowler check, anywhere in the selection path. An XI of 11
+  // batters made extractBowlers() fall through to its last-man fallback and return a SINGLE
+  // bowler, at which point pickBowler()'s 4-over cap filter empties, resets to the full list, and
+  // returns the same man every over -- one bowler bowling all 20, consecutively, 5x the legal cap.
+  //
+  // Minimum of TWO bowlers, not five. Five is what a legal 20-over innings actually needs under
+  // the 4-over cap, but this game deliberately allows XIs as small as 3 and the engine already
+  // relaxes the cap "when an alternative exists". Two is the smallest number that makes an
+  // EXISTING rule in this codebase satisfiable -- the no-consecutive-overs rule is impossible to
+  // honour with one bowler. Whether to demand a genuinely legal five is a design call, logged in
+  // docs/FINDINGS.md rather than decided here.
+  //
+  // Both checks are capped by what the player actually OWNS. Requiring a keeper outright would
+  // soft-lock anyone who sold their only one -- they could never confirm an XI again, and the
+  // game has no way back from that. Enforced whenever it is satisfiable; skipped when it isn't.
+  var chosen = [];
+  sel.forEach(function(id) { var p = GS.squad.find(function(q){return q.id===id;}); if (p) chosen.push(p); });
+  var isBowler = function(p) { return p.role==='Fast Bowler' || p.role==='Spin Bowler' || p.role==='All-Rounder'; };
+  var ownedKeepers = GS.squad.filter(function(p){ return p.role==='Wicket-Keeper'; }).length;
+  var ownedBowlers = GS.squad.filter(isBowler).length;
+  var xiKeepers = chosen.filter(function(p){ return p.role==='Wicket-Keeper'; }).length;
+  var xiBowlers = chosen.filter(isBowler).length;
+  if (ownedKeepers > 0 && xiKeepers < 1) { toast('Your XI needs a wicket-keeper', 'error'); return; }
+  var needBowlers = Math.min(2, ownedBowlers);
+  if (xiBowlers < needBowlers) { toast('Your XI needs at least 2 bowlers — one man cannot bowl every over', 'error'); return; }
   var curCapP = GS.squad.find(function(p){return p.id===GS.captainId;});
   if (!GS.captainId || sel.indexOf(GS.captainId) < 0 || !curCapP || !curCapP.captaincy) {
     var bestP = null, bestOvr = 0;

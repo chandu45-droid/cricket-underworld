@@ -381,4 +381,69 @@ test.describe('Systems Integrity 2026-09-12', () => {
     expect(r.windowClosed).toBe(true);
   });
 
+  // ============================================================
+  // SYSTEMS FIX 11: XI validation required neither a keeper nor a bowler
+  // Size (>=3, <=11) and the overseas cap were the whole validation, so an XI of 11 batters was
+  // legal -- extractBowlers() then fell through to its last-man fallback and returned ONE bowler,
+  // who bowled all 20 overs consecutively at 5x the legal 4-over cap.
+  // ============================================================
+  test('XI selection requires a keeper and 2 bowlers, without soft-locking a squad that has none', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      function mk(id, role) {
+        return { id: id, name: 'P' + id, role: role, bat: 60, bwl: 60, fld: 50, fit: 80,
+                 form: 60, loyalty: 50, greed: 50, rarity: 'common', overseas: false, stars: 2 };
+      }
+      // Stub the picker's selection source so confirmSquadSelect() reads what we set.
+      let selection = [];
+      window.getCurrentSSSelection = () => selection;
+      const toasts = [];
+      const realToast = window.toast;
+      window.toast = (msg, kind) => { toasts.push(msg); };
+
+      function attempt(squad, sel) {
+        window.GS.squad = squad;
+        window.GS.selectedXI = [];
+        selection = sel;
+        toasts.length = 0;
+        window.confirmSquadSelect();
+        return { accepted: window.GS.selectedXI.length === sel.length, toast: toasts[0] || null };
+      }
+
+      // 1. An all-batter XI, with keepers and bowlers available on the bench -> rejected.
+      const fullSquad = [];
+      for (let i = 1; i <= 11; i++) fullSquad.push(mk(i, 'Top-Order Batter'));
+      fullSquad.push(mk(12, 'Wicket-Keeper'), mk(13, 'Fast Bowler'), mk(14, 'Spin Bowler'));
+      const allBatters = attempt(fullSquad, [1,2,3,4,5,6,7,8,9,10,11]);
+
+      // 2. Keeper in, but only ONE bowler -> still rejected (can't bowl consecutive overs legally).
+      const oneBowler = attempt(fullSquad, [1,2,3,4,5,6,7,8,9,12,13]);
+
+      // 3. Keeper + two bowlers -> accepted.
+      const legal = attempt(fullSquad, [1,2,3,4,5,6,7,8,12,13,14]);
+
+      // 4. SOFT-LOCK GUARD: a squad that owns no keeper and no bowlers at all must still be able
+      //    to field a side, or the player can never confirm an XI again.
+      const poorSquad = [];
+      for (let i = 1; i <= 11; i++) poorSquad.push(mk(i, 'Top-Order Batter'));
+      const noneOwned = attempt(poorSquad, [1,2,3,4,5,6,7,8,9,10,11]);
+
+      window.toast = realToast;
+      return { allBatters, oneBowler, legal, noneOwned };
+    });
+
+    expect(r.allBatters.accepted).toBe(false);
+    expect(r.allBatters.toast).toMatch(/wicket-keeper/i);
+
+    expect(r.oneBowler.accepted).toBe(false);
+    expect(r.oneBowler.toast).toMatch(/2 bowlers/i);
+
+    expect(r.legal.accepted).toBe(true);
+
+    // The requirement is capped by what the player owns -- it must never make the game unplayable.
+    expect(r.noneOwned.accepted).toBe(true);
+  });
+
 });
