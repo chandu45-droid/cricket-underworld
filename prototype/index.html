@@ -4527,7 +4527,7 @@ var GS = {
   mentorship: null,
   knockout: null,
   socialFeed: [],
-  academySlots: [],
+  academySlots: [], heldAcademyGrad: null,
   staff: {},
   scoutedXI: null,
   scoutWeakness: null,
@@ -4732,14 +4732,24 @@ window.analyticsSessionStart = analyticsSessionStart;
 // 7-day escalating cycle. Streak driven by local date strings
 // (reload-proof: same-day revisits never re-increment or re-grant).
 // =============================================
+// 2026-09-13 founder decision (systems audit, economy finding): this table used to pay
+// 200/300/500/600/800/1000/1500 = 4,900 coins/week PASSIVE, against ~80 coins for actually
+// winning a match -- Day 7 alone was 18.75 match-wins. Measured over a realistic 14-match season,
+// login income (9,800) was ~68% of ALL coin inflow: the optimal play pattern was "open app, claim,
+// close," and the match loop this whole systems-audit pass just spent effort rebalancing was a
+// rounding error next to it.
+// Flattened so the best day (Day 7) lands at ~2.75x an average match win, not ~19x -- rewarding
+// login is intentional (it's a proven retention hook) but it must not out-earn playing the game.
+// Gem payouts (Day 3/5/7) are UNCHANGED -- this decision was specifically about the coin curve;
+// the premium pass's own gem economy is a separate fix, see PASS_TIERS below.
 var LOGIN_REWARDS = [
-  { coins: 200,  gems: 0,  label: 'Day 1' },
-  { coins: 300,  gems: 0,  label: 'Day 2' },
-  { coins: 500,  gems: 5,  label: 'Day 3' },
-  { coins: 600,  gems: 0,  label: 'Day 4' },
-  { coins: 800,  gems: 10, label: 'Day 5' },
-  { coins: 1000, gems: 0,  label: 'Day 6' },
-  { coins: 1500, gems: 25, label: 'Day 7' }
+  { coins: 30,  gems: 0,  label: 'Day 1' },
+  { coins: 50,  gems: 0,  label: 'Day 2' },
+  { coins: 80,  gems: 5,  label: 'Day 3' },
+  { coins: 100, gems: 0,  label: 'Day 4' },
+  { coins: 130, gems: 10, label: 'Day 5' },
+  { coins: 160, gems: 0,  label: 'Day 6' },
+  { coins: 220, gems: 25, label: 'Day 7' }
 ];
 function _todayStr() {
   var d = new Date();
@@ -4920,7 +4930,7 @@ function hydrateGS(d) {
       // 2026-09-12: seeded to at least the live streak so saves written before bestCleanStreak
       // existed don't show the Clean Run badge briefly un-earning on first load.
       GS.bestCleanStreak=Math.max(v(d.bestCleanStreak,0), GS.cleanStreak);
-      GS.sponsor=v(d.sponsor,{tier:3,name:'Ceat Tyres',purseBonus:0});
+      GS.sponsor=v(d.sponsor,{tier:3,name:'Chakra Tyres',purseBonus:0});
       GS.rivalData=v(d.rivalData,{});
       GS.debts=v(d.debts,[]); GS.noAlignMatches=v(d.noAlignMatches,0);
       GS.evidence=v(d.evidence,[]); GS.investigation=v(d.investigation,null); GS.tribunalBonus=v(d.tribunalBonus,0);
@@ -4936,7 +4946,7 @@ function hydrateGS(d) {
       GS.mentorship=v(d.mentorship,null);
       GS.knockout=v(d.knockout,null);
       GS.socialFeed=v(d.socialFeed,[]);
-      GS.academySlots=v(d.academySlots,[]);
+      GS.academySlots=v(d.academySlots,[]); GS.heldAcademyGrad=v(d.heldAcademyGrad,null);
       GS.staff=v(d.staff,{});
       GS.scoutedXI=v(d.scoutedXI,null);
       GS.collusionPacts=v(d.collusionPacts,[]);
@@ -6502,9 +6512,14 @@ function getRelLabel(rel) {
 }
 function getSponsorForZone(zone) {
   var tiers = [
-    { tier: 1, name: 'Tata Group', purseBonus: 500, minAlign: 71 },
-    { tier: 2, name: 'Dream11', purseBonus: 300, minAlign: 31 },
-    { tier: 3, name: 'Ceat Tyres', purseBonus: 100, minAlign: -30 },
+    // 2026-09-13 founder decision: these three were real company names (Tata Group, Dream11,
+    // Ceat Tyres) appearing as PAYING sponsors inside a game with virtual currency and gacha --
+    // Dream11 specifically is a real-money fantasy-sports platform, so its name here implied an
+    // endorsement that does not exist. Replaced with fictional brands, same tier order/gravitas
+    // (tier 1 = prestige conglomerate, tier 2 = fantasy/tech unicorn, tier 3 = mid-tier consumer).
+    { tier: 1, name: 'Suvarna Group', purseBonus: 500, minAlign: 71 },
+    { tier: 2, name: 'Junoon11', purseBonus: 300, minAlign: 31 },
+    { tier: 3, name: 'Chakra Tyres', purseBonus: 100, minAlign: -30 },
     { tier: 4, name: 'Gutka King', purseBonus: 0, minAlign: -70 },
     { tier: 5, name: 'No Sponsor', purseBonus: -200, minAlign: -101 },
   ];
@@ -8304,8 +8319,12 @@ function updateHub() {
   $('power-ring-fill').style.strokeDashoffset = offset;
   $('power-val').textContent = teamOvr;
   renderHubStarPips(teamOvr);
-  var sp = getSponsorForZone(getAlignmentZone(GS.alignment));
-  GS.sponsor = sp;
+  // 2026-09-13 founder decision: the sponsor is now LOCKED for the season at endSeason, not
+  // recomputed live from current alignment on every hub render. Real sponsorship is a signed
+  // contract, not a spot price -- the old behaviour let a player swing alignment right before
+  // opening the auction for up to +700 purse, which is a timing exploit dressed as an incentive.
+  // This function now only DISPLAYS the locked deal; it must not reassign it.
+  var sp = GS.sponsor;
   $('sponsor-name').textContent = sp.name;
   $('sponsor-bonus').textContent = (sp.purseBonus >= 0 ? '+' : '') + sp.purseBonus;
   $('sponsor-bonus').style.color = sp.purseBonus >= 0 ? 'var(--green-bright)' : 'var(--blood)';
@@ -8882,13 +8901,11 @@ function startAuction() {
   // ON TOP of them, which is why placeBid() clamps coins at 0 -- the bonus is meant to let you
   // outbid your own coin pile by exactly the ladder's worth. Read straight off GS.sponsor rather
   // than a new banked field, so no save migration is needed.
-  // CORRECTION (verified in-browser 2026-09-12, after an earlier comment here claimed otherwise):
-  // GS.sponsor is NOT a per-season snapshot. `updateHub()` recomputes it from current alignment on
-  // every hub render (`:8285-8286`), so a fresh save seeded with purseBonus:0 loads as Ceat Tyres
-  // +100 the moment the hub draws. Two consequences: the ladder is live from season 1, not season
-  // 2; and the bonus tracks your CURRENT alignment rather than locking at season start. That is
-  // consistent with what the hub has always displayed to the player, but it is a design nuance --
-  // logged in docs/FINDINGS.md for a founder call, not decided here.
+  // UPDATE (2026-09-13, founder decision): GS.sponsor is now genuinely a per-season snapshot.
+  // It briefly was NOT (updateHub() used to recompute it live from current alignment on every hub
+  // render, letting a player game the bonus right before opening the auction) -- that has been
+  // fixed at the source (`updateHub()` now only displays GS.sponsor, never reassigns it), so this
+  // read is safe to treat as "the deal signed for this season" again, as it was always meant to.
   var purseBonus = (GS.sponsor && GS.sponsor.purseBonus) || 0;
   GS.auctionPurse = Math.max(0, Math.round((GS.coins + purseBonus) * (GS.pursePenalty || 1)));
   GS.pursePenalty = 1; // one season only -- consumed here, see the tribunal suspension branch
@@ -11708,7 +11725,7 @@ function resolveKnockoutMatch(won){
 // =============================================
 var SOCIAL_TEMPLATES=[
   {type:'fan',gen:function(ctx){var msgs=ctx.won?[ctx.team+' is on fire! '+ctx.wins+' wins this season!','Yessss! '+ctx.team+' supremacy! What a win!','Match '+ctx.matchNum+' done. '+ctx.team+' looking unstoppable.','Bhai '+ctx.team+' ka time aa gaya! '+ctx.wins+' wins!']:['Tough day for '+ctx.team+'. Better luck next time.','Pain. '+ctx.team+' deserved better today.','What happened '+ctx.team+'? We believe in you still.',''+ctx.losses+' losses now. Time to bounce back, '+ctx.team+'!'];return{user:'@CricFan'+Math.floor(Math.random()*999),text:msgs[Math.floor(Math.random()*msgs.length)],likes:Math.floor(Math.random()*500)+50};}},
-  {type:'journalist',gen:function(ctx){var msgs=[];if(ctx.heat>50)msgs.push('BREAKING: '+ctx.team+' manager under scrutiny as corruption rumours swirl.','Sources say BCCI looking into '+ctx.team+'\'s conduct. Heat index: '+ctx.heat+'.');if(ctx.winRate>0.6)msgs.push(ctx.team+' on promotion track — dominant '+Math.round(ctx.winRate*100)+'% win rate.','Can anyone stop '+ctx.team+'? '+ctx.wins+' wins and counting.');msgs.push('Season update: '+ctx.team+' sitting at '+ctx.wins+'W-'+ctx.losses+'L.','Matchday '+ctx.matchNum+': '+ctx.team+' vs '+ctx.rival+' — key clash in the '+ctx.league+' race.');var ji=Math.floor(Math.random()*msgs.length);return{user:['CricBuzz_Live','ESPNcricinfo','Sports_Tak','Cricket_Next'][Math.floor(Math.random()*4)],text:msgs[ji],neg:(ctx.heat>50&&ji<2),likes:Math.floor(Math.random()*2000)+200};}},
+  {type:'journalist',gen:function(ctx){var msgs=[];if(ctx.heat>50)msgs.push('BREAKING: '+ctx.team+' manager under scrutiny as corruption rumours swirl.','Sources say BCCI looking into '+ctx.team+'\'s conduct. Heat index: '+ctx.heat+'.');if(ctx.winRate>0.6)msgs.push(ctx.team+' on promotion track — dominant '+Math.round(ctx.winRate*100)+'% win rate.','Can anyone stop '+ctx.team+'? '+ctx.wins+' wins and counting.');msgs.push('Season update: '+ctx.team+' sitting at '+ctx.wins+'W-'+ctx.losses+'L.','Matchday '+ctx.matchNum+': '+ctx.team+' vs '+ctx.rival+' — key clash in the '+ctx.league+' race.');var ji=Math.floor(Math.random()*msgs.length);return{user:['PitchReport_IN','SixerStats','StumpMic','OverByOver_IN'][Math.floor(Math.random()*4)],text:msgs[ji],neg:(ctx.heat>50&&ji<2),likes:Math.floor(Math.random()*2000)+200};}},
   {type:'rival',gen:function(ctx){var wMsgs=['"Lucky. Next time I will crush you." — '+ctx.rival,'"Enjoy it while it lasts." — '+ctx.rival,'"One win doesn\'t make you champion." — '+ctx.rival];var lMsgs=['"Expected result. You are not ready for this level." — '+ctx.rival,'"I told everyone. Levels." — '+ctx.rival,'"Come back when you have a real squad." — '+ctx.rival];var msgs=ctx.won?wMsgs:lMsgs;return{user:ctx.rival,text:msgs[Math.floor(Math.random()*msgs.length)],neg:!ctx.won,likes:Math.floor(Math.random()*300)+30};}},
   {type:'sponsor',gen:function(ctx){return{user:ctx.sponsor,text:ctx.align>30?'Proud to partner with '+ctx.team+'! A beacon of fair play.':ctx.align<-30?'We are reviewing our association with '+ctx.team+' amid recent controversies.':'Our partnership with '+ctx.team+' continues into matchday '+(ctx.matchNum)+'.',neg:ctx.align<-30,likes:Math.floor(Math.random()*800)+100};}},
   {type:'fan_poll',gen:function(ctx){var polls=[{q:'What defines '+ctx.team+'\'s season?',a:ctx.align>0?'Clean Legend':'Dark Horse'},{q:'Rate '+ctx.team+'\'s manager this season?',a:ctx.winRate>0.5?'Genius':'Needs improvement'},{q:'Will '+ctx.team+' get promoted?',a:ctx.winRate>0.5?'Definitely':'Not this season'}];var p=polls[Math.floor(Math.random()*polls.length)];return{user:'@PollsCricket',text:'Fan poll: '+p.q+' 67% say "'+p.a+'". Do you agree?',likes:Math.floor(Math.random()*1200)+300};}},
@@ -12143,11 +12160,35 @@ function endSeason() {
   }
   driftRivalAlignments();
   driftPlayerLoyalty();
-  var academyCard = getAcademyCard();
+  // 2026-09-13 founder decision: this is the SECOND academy reward path, separate from the
+  // 300-coin academySlots prospects fixed earlier this session (3aa21dd). It used to do an
+  // unconditional `GS.squad.push(academyCard)` with NO maxSquad check at all -- a squad-full
+  // player could still be handed a card that broke the cap outright. Same fix pattern as the
+  // prospects: hold the generated graduate instead of dropping or overflowing, sign him once a
+  // slot frees. Only one graduate is ever held at a time (this reward already fires at most once
+  // a season), so no queue is needed -- just a single `GS.heldAcademyGrad` slot.
+  var academyCard = null;
+  if (GS.heldAcademyGrad) {
+    // He may have been independently acquired in the meantime (won at auction, bought on the
+    // market) -- can't push a duplicate id, so drop the stale hold rather than corrupt the squad.
+    if (GS.squad.some(function(s) { return s.id === GS.heldAcademyGrad.id; })) GS.heldAcademyGrad = null;
+  }
+  if (GS.heldAcademyGrad && GS.squad.length < GS.maxSquad) {
+    academyCard = GS.heldAcademyGrad;
+    GS.heldAcademyGrad = null;
+  } else if (!GS.heldAcademyGrad) {
+    var academyCandidate = getAcademyCard();
+    if (academyCandidate) {
+      if (GS.squad.length < GS.maxSquad) academyCard = academyCandidate;
+      else GS.heldAcademyGrad = academyCandidate;
+    }
+  }
   var academyHtml = '';
   if (academyCard) {
     GS.squad.push(academyCard);
     academyHtml = '<div class="reward-row"><span>Academy Graduate</span><span class="val" style="color:var(--green-bright)">' + academyCard.name + ' (Loyalty ' + academyCard.loyalty + ')</span></div>';
+  } else if (GS.heldAcademyGrad) {
+    academyHtml = '<div class="reward-row"><span>Academy Graduate</span><span class="val text-amber">' + GS.heldAcademyGrad.name + ' — squad full, waiting</span></div>';
   }
   var mentorResult = processMentorship();
   var mentorHtml = '';
@@ -13366,17 +13407,27 @@ function bindEvents() {
 var PASS_TIER_XP = 70;
 var PASS_MAX_TIER = 10;
 var PASS_PREMIUM_COST = 150;
+// 2026-09-13 founder decision (systems audit, economy finding): the premium track used to return
+// 120 gems (10+15+20+25+50) for a 150-gem unlock -- net cost 30 gems/season -- against a season's
+// incidental gem income (daily login ~40/week + the free track's own 55/season) comfortably north
+// of that. After the first purchase the pass was PERMANENTLY SELF-FUNDING without ever spending
+// real money, which is precisely the thing the parallel ₹199 Premium Contract SKU is supposed to
+// sell repeatedly. Coin rewards are UNCHANGED (2,500 coins is real progression value and was not
+// part of this decision) -- only the premium GEM column is cut, roughly in half per tier, so the
+// track is a genuine net gem cost (150 - 66 = 84/season) rather than a rebate, and every premium
+// gem tier now pays strictly more than its free-track counterpart (never equal), so premium is
+// never a lateral move on a given tier.
 var PASS_TIERS = [
   { free: { type: 'coins', amt: 100 }, prem: { type: 'coins', amt: 250 } },
-  { free: { type: 'gems',  amt: 5   }, prem: { type: 'gems',  amt: 10  } },
+  { free: { type: 'gems',  amt: 5   }, prem: { type: 'gems',  amt: 6   } },
   { free: { type: 'coins', amt: 150 }, prem: { type: 'coins', amt: 350 } },
-  { free: { type: 'gems',  amt: 5   }, prem: { type: 'gems',  amt: 15  } },
+  { free: { type: 'gems',  amt: 5   }, prem: { type: 'gems',  amt: 8   } },
   { free: { type: 'coins', amt: 250 }, prem: { type: 'coins', amt: 500 } },
-  { free: { type: 'gems',  amt: 10  }, prem: { type: 'gems',  amt: 20  } },
+  { free: { type: 'gems',  amt: 10  }, prem: { type: 'gems',  amt: 12  } },
   { free: { type: 'coins', amt: 300 }, prem: { type: 'coins', amt: 600 } },
-  { free: { type: 'gems',  amt: 10  }, prem: { type: 'gems',  amt: 25  } },
+  { free: { type: 'gems',  amt: 10  }, prem: { type: 'gems',  amt: 12  } },
   { free: { type: 'coins', amt: 400 }, prem: { type: 'coins', amt: 800 } },
-  { free: { type: 'gems',  amt: 25  }, prem: { type: 'gems',  amt: 50  } }
+  { free: { type: 'gems',  amt: 25  }, prem: { type: 'gems',  amt: 28  } }
 ];
 
 function passTier() {
@@ -13510,7 +13561,12 @@ var IAP_PACKS = [
   { id: 'gems_s', kind: 'gems', amt: 100, name: 'Gem Pouch', price: '₹79', tag: '' },
   { id: 'gems_m', kind: 'gems', amt: 300, name: 'Gem Case', price: '₹199', tag: 'POPULAR' },
   { id: 'gems_l', kind: 'gems', amt: 800, name: 'Gem Locker', price: '₹449', tag: 'BEST VALUE' },
-  { id: 'pass_premium', kind: 'pass', amt: 0, name: 'Premium Contract', price: '₹199', tag: '' }
+  // 2026-09-13 founder decision: was ₹199, identical to the Gem Case above -- which buys the
+  // 150-gem pass outright AND leaves 150 gems over, for the same price. There was never a reason
+  // to tap this SKU directly. Repriced down so it's the genuinely cheap/fast route for a player
+  // who only wants the pass, while the Gem Case stays the value pick for anyone who wants gems too
+  // -- both routes now have a real reason to exist instead of one strictly dominating the other.
+  { id: 'pass_premium', kind: 'pass', amt: 0, name: 'Premium Contract', price: '₹99', tag: '' }
 ];
 var pendingPurchase = null;
 // SAFETY GATE (2026-07-11): store is a real-money IAP stub with NO billing wired.
@@ -13546,7 +13602,11 @@ function renderStore() {
   } else {
     passCard.classList.remove('owned');
     $('store-pass-sub').textContent = 'Unlock the Boss Cut reward track this season';
-    $('store-pass-price').innerHTML = '₹199';
+    // 2026-09-13: was a hardcoded '₹199' -- a SECOND price string that IAP_PACKS' own repricing
+    // (₹199 -> ₹99) would have silently drifted past, exactly the class of bug this codebase keeps
+    // getting caught by (comments/labels asserting something the code doesn't actually do). Reads
+    // the live pack price so there is only one place this number can ever be set.
+    $('store-pass-price').innerHTML = iapPack('pass_premium').price;
   }
 }
 

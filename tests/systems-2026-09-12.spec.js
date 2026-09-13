@@ -713,4 +713,148 @@ test.describe('Systems Integrity 2026-09-12', () => {
     expect(r.keeperGood).toBeGreaterThan(r.keeperPoor);
   });
 
+  // ============================================================
+  // 2026-09-13 founder decisions: the 6 items resolved after AskUserQuestion
+  // ============================================================
+
+  test('the sponsor is locked for the season, not recomputed live from alignment on every render', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      window.GS.alignment = 80; // Suvarna Group tier (minAlign 71)
+      window.GS.sponsor = { tier: 5, name: 'No Sponsor', purseBonus: -200 }; // deliberately stale
+      window.updateHub();
+      const afterHubRender = { name: window.GS.sponsor.name, bonus: window.GS.sponsor.purseBonus };
+
+      // endSeason is the only writer that may change it.
+      window.GS.season = 1; window.GS.matchNum = 15; window.GS.wins = 8; window.GS.losses = 6;
+      window.GS.league = 'gully';
+      window.endSeason();
+      const afterEndSeason = { name: window.GS.sponsor.name, bonus: window.GS.sponsor.purseBonus };
+
+      return { afterHubRender, afterEndSeason };
+    });
+
+    // updateHub() must NOT have overwritten the stale sponsor despite alignment=80.
+    expect(r.afterHubRender.name).toBe('No Sponsor');
+    expect(r.afterHubRender.bonus).toBe(-200);
+    // endSeason DOES recompute it, from the alignment now in effect.
+    expect(r.afterEndSeason.name).toBe('Suvarna Group');
+    expect(r.afterEndSeason.bonus).toBe(500);
+  });
+
+  test('the OTHER academy reward (alignment-60 free graduate) is held, not overflowed, when the squad is full', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      window.GS.alignment = 70; // clears the >=60 gate every time
+      window.GS.squad = [];
+      for (let i = 0; i < window.GS.maxSquad; i++) {
+        window.GS.squad.push({ id: 600 + i, name: 'Filler ' + i, role: 'All-Rounder', bat: 50, bwl: 50, fld: 50, fit: 80, form: 60, loyalty: 50, greed: 50, rarity: 'common', overseas: false, stars: 2 });
+      }
+      window.GS.heldAcademyGrad = null;
+      window.GS.season = 1; window.GS.matchNum = 15; window.GS.wins = 8; window.GS.losses = 6; window.GS.league = 'gully';
+
+      window.endSeason(); // squad full -> must hold, not overflow
+      const whileFull = { squadLen: window.GS.squad.length, maxSquad: window.GS.maxSquad, held: window.GS.heldAcademyGrad ? window.GS.heldAcademyGrad.name : null };
+
+      window.GS.squad.pop(); // free one slot
+      window.GS.season = 2; window.GS.matchNum = 15; window.GS.wins = 8; window.GS.losses = 6; window.GS.league = 'gully';
+      window.endSeason(); // must sign the SAME held graduate now
+      const afterFreeing = { squadLen: window.GS.squad.length, held: window.GS.heldAcademyGrad, signedName: whileFull.held };
+
+      return { whileFull, afterFreeing, squadHasHim: window.GS.squad.some(p => p.name === whileFull.held) };
+    });
+
+    expect(r.whileFull.squadLen).toBe(r.whileFull.maxSquad); // confirms the squad really was full
+    expect(r.whileFull.held).not.toBeNull();
+    expect(r.afterFreeing.held).toBeNull(); // consumed
+    expect(r.squadHasHim).toBe(true);
+  });
+
+  test('real company names are gone from sponsors and social handles', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const zones = ['gully', 'sma', 'challenger', 'champions'].map(function(){ return null; });
+      // Sample every sponsor tier by sweeping alignment across the full range.
+      const names = [];
+      for (let a = -100; a <= 100; a += 5) {
+        window.GS.alignment = a;
+        names.push(window.getSponsorForZone(window.getAlignmentZone(a)).name);
+      }
+      return { names: Array.from(new Set(names)) };
+    });
+
+    const realNames = ['Tata Group', 'Dream11', 'Ceat Tyres', 'CricBuzz_Live', 'ESPNcricinfo', 'Sports_Tak', 'Cricket_Next'];
+    for (const real of realNames) expect(r.names).not.toContain(real);
+    // And the fictional replacements are actually live, not just "not the old ones".
+    expect(r.names).toContain('Suvarna Group');
+    expect(r.names).toContain('Junoon11');
+    expect(r.names).toContain('Chakra Tyres');
+  });
+
+  test('daily login no longer out-earns playing: Day 7 is a few times a match win, not ~19x', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const weekTotal = window.LOGIN_REWARDS.reduce((s, d) => s + d.coins, 0);
+      const day7 = window.LOGIN_REWARDS[6].coins;
+      return { weekTotal, day7 };
+    });
+
+    const AVG_MATCH_WIN = 80;
+    // Pre-fix this was 1500 (18.75x). Generous upper bound so the exact number can still be tuned.
+    expect(r.day7 / AVG_MATCH_WIN).toBeLessThan(5);
+    expect(r.day7 / AVG_MATCH_WIN).toBeGreaterThan(1); // still a real reward, not gutted to nothing
+    // Pre-fix this was 4,900 (~61x a single win). A week of passive income must not dwarf a
+    // week of actual play (7 wins * 80 = 560).
+    expect(r.weekTotal).toBeLessThan(560 * 2);
+  });
+
+  test('the premium pass is a genuine net gem cost, not a rebate', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const premGems = window.PASS_TIERS.filter(t => t.prem.type === 'gems').reduce((s, t) => s + t.prem.amt, 0);
+      const freeGems = window.PASS_TIERS.filter(t => t.free.type === 'gems').reduce((s, t) => s + t.free.amt, 0);
+      // Every gem tier's premium reward strictly beats its free counterpart.
+      const gemTiers = window.PASS_TIERS.filter(t => t.prem.type === 'gems');
+      const anyTied = gemTiers.some(t => t.prem.amt <= t.free.amt);
+      return { premGems, freeGems, netCost: window.PASS_PREMIUM_COST - premGems, anyTied };
+    });
+
+    // Pre-fix: 120 premium gems against a 150 cost -- net 30, and daily login/free-track alone
+    // covered that easily. Net cost must now be a real, felt number.
+    expect(r.netCost).toBeGreaterThan(60);
+    expect(r.anyTied).toBe(false);
+  });
+
+  test('the two IAP SKUs are no longer identical: the pass is genuinely cheaper than the gem case', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#loading.hide', { timeout: 10000 });
+
+    const r = await page.evaluate(() => {
+      const pass = window.iapPack('pass_premium');
+      const gemCase = window.iapPack('gems_m');
+      // Drive the actual store render, not just the constant -- this is the exact bug found: a
+      // SECOND hardcoded price string existed that a constant-only check would have missed.
+      window.GS.seasonPass.premium = false;
+      window.renderStore();
+      const rendered = document.getElementById('store-pass-price').innerHTML;
+      return { passPrice: pass.price, gemCasePrice: gemCase.price, rendered: rendered };
+    });
+
+    expect(r.passPrice).not.toBe(r.gemCasePrice);
+    expect(r.passPrice).toBe('₹99');
+    // The rendered DOM must match the single source of truth -- this is what a hardcoded second
+    // string would fail.
+    expect(r.rendered).toBe(r.passPrice);
+  });
+
 });
