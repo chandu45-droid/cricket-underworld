@@ -31,7 +31,44 @@ One flake deliberately NOT chased: `field placement setting appears in bowler pi
 toss-dependent, `test.skip()`s safely, passes in isolation. Forcing the toss would mean stubbing
 `Math.random` mid-`startMatch` where it isn't the only consumer — real risk, zero coverage gain.
 
-## ⚠️ START HERE NEXT SESSION (2026-09-13): the systems-audit backlog is CLEAR — read this first
+## ⚠️ START HERE NEXT SESSION (2026-09-13, paused mid-verification) — read this first
+
+**Founder went through all 8 open items via AskUserQuestion and decided every one.** 6 needed code
+(all shipped, `97ad546` + test-fix `a54944e`); 2 were "keep current behaviour" and needed nothing
+(XI stays at 2 bowlers, auction stays uniform-sampled — closed out in `FINDINGS.md`, no code).
+
+**The 6 code changes, one line each:**
+1. Sponsor locked at `endSeason`, not recomputed live from alignment on every hub render (closed
+   the "swing alignment right before the auction for +700 purse" timing exploit).
+2. The *other* academy reward (alignment-60 free graduate) now holds instead of overflowing the
+   squad cap, same pattern as the earlier academySlots fix.
+3. Real brand names replaced with fictional ones: Tata Group→Suvarna Group, Dream11→Junoon11,
+   Ceat Tyres→Chakra Tyres, plus 4 social-feed handles. **NOT touched, flagged separately for its
+   own founder call:** "IPL Challenger" as an actual league tier name, and "BCCI" in a social post
+   — same risk class, bigger scope, wasn't part of what was asked.
+4. Daily login curve flattened: 4,900→770 coins/week, Day 7 from ~19x a match win to ~2.75x.
+5. Premium pass gem refund cut: was net +30 gems/season (self-funding forever), now net -84.
+6. ₹199 pass SKU repriced to ₹99 so it's no longer dominated by the ₹199 Gem Case. **Caught a
+   second bug for free while doing this:** `renderStore()` had an independent hardcoded `'₹199'`
+   string that the IAP_PACKS reprice would have silently drifted past — fixed to read
+   `iapPack('pass_premium').price` instead.
+
+**Verified so far:** systems spec **20/20** (6 new tests, each confirmed to fail against the
+pre-fix code by reverting and restoring — commit-first, per the case-law rule). bugfix-08-03 +
+bugfix-09-09 + persona-regression **31/31**. smoke **12/12** (one real fixture-assumption break
+found and fixed in `a54944e` — not a regression, the *point* of decision #1 is that a seeded
+`purseBonus:0` no longer gets silently upgraded by a live recompute, so the test needed to seed
+the real tier directly).
+
+**⚠️ NOT YET RUN since these 6 fixes:** `comprehensive.spec.js` (132 tests), `features-10k.spec.js`,
+`p15-visual.spec.js`, `zero-scroll.spec.js`. **Do not claim full-suite green until these run.**
+Paused here at the founder's request ("commit and save progress, resume later") — nothing is
+broken, this is a deliberate stopping point, not a dropped thread. Run these four before touching
+any new code.
+
+---
+
+## Older status (superseded by the above): the systems-audit backlog is CLEAR
 
 Every correctness bug and both founder-decided design questions in the curated 11-item list below
 are now fixed (items #1/#2/#5 turned out to already be fixed 2026-09-11, `b3d27e3`/`a332db7` — the

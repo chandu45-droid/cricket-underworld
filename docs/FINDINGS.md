@@ -18,6 +18,27 @@
 
 ## 🔴 Open — needs a founder decision
 
+### 2026-09-13 — NEW: two real-name issues, bigger scope than the sponsor fix, not yet decided
+Found while implementing the sponsor-name fix below. Same risk class (a real trademark / a real
+regulator inside fictional corruption content) but bigger blast radius, so NOT folded into that
+fix silently — logged for its own call.
+
+1. 🔴 **"IPL Challenger" is an actual league TIER name**, not a sponsor tag. `LEAGUE_NAMES.challenger
+   = 'IPL Challenger'` (`prototype/index.html:4548`) — IPL is a BCCI trademark, and this string is
+   the third of four promotion tiers, appearing in the league table, promotion toasts, and named
+   directly in plot-spine corruption beats ("The Ledger — IPL Challenger": `:11940-11944`, tied to
+   "a file is already open" corruption narrative). This is a real trademark load-bearing across the
+   whole progression system, not flavor text on one screen — cheap to rename NOW (it's a single
+   constant, the game logic keys off `'challenger'` not the display string, verified), much more
+   expensive after players have seen it or a store listing exists.
+2. 🔴 **"BCCI" is named as investigating your club for corruption.** `prototype/index.html:11713`,
+   one of the journalist social-post templates: "Sources say BCCI looking into [team]'s conduct."
+   BCCI is cricket's real governing body, here depicted fictionally opening a corruption
+   investigation — a specific fictional accusation tied to a real institution, arguably a sharper
+   version of the same risk the Dream11-as-sponsor finding already flagged.
+**Founder call:** rename both (recommend fictional league-tier name + a fictional cricket board
+name for social posts), or confirm these are acceptable as flavor text and leave them.
+
 ### 2026-09-12 — Incidental: generated rival players have no `fit`, so getOVR() on one is NaN
 🟡 `generateRivalXI()` (`:9186`) builds players with `name/role/bat/bwl/form/fld` and **no `fit`**,
 but `getOVR()` reads `p.fit` in every branch — so `getOVR(rivalPlayer)` returns **NaN**. Found while
@@ -32,7 +53,7 @@ consumer-arrives bug as the `parseInt` id issue that bit this session (`d584d32`
 Both are points where a bug fix had a clearly-correct *core* and a debatable *degree*. The core
 shipped; the degree is a founder call. Neither is blocking anything.
 
-A. 🟡 **How strict should XI legality be — 2 bowlers, or a genuinely legal 5?** Fix `3cf284c`
+A. ✅ **DECIDED 2026-09-13: keep 2 (no code change).** 🟡 **How strict should XI legality be — 2 bowlers, or a genuinely legal 5?** Fix `3cf284c`
    requires a wicket-keeper and **2** bowlers. Two is the smallest number that makes an existing
    rule satisfiable (no-consecutive-overs is impossible with one bowler). But a legal 20-over
    innings under the 4-over cap needs **5**, and the engine currently papers over the gap by
@@ -41,7 +62,7 @@ A. 🟡 **How strict should XI legality be — 2 bowlers, or a genuinely legal 5
    with the deliberate allowance for XIs as small as 3, and would invalidate many early-game
    squads. **Founder call:** keep 2 (permissive, current), or move to 5 and revisit the minimum
    XI size with it.
-B. 🟡 **Should every auction guarantee a marquee lot?** Fix `784460c` samples the 12 lots uniformly
+B. ✅ **DECIDED 2026-09-13: leave uniform (no code change).** 🟡 **Should every auction guarantee a marquee lot?** Fix `784460c` samples the 12 lots uniformly
    from the whole pool, which fixed 58% of the collection being auction-invisible. With 21 of 50
    cards rare-or-better a sample still averages ~5 marquee lots, so the "marquee closes the show"
    intent survives statistically — but it is no longer *guaranteed*, and an unlucky auction can
@@ -51,7 +72,7 @@ B. 🟡 **Should every auction guarantee a marquee lot?** Fix `784460c` samples 
 ### 2026-09-12 — Three incidental finds while fixing the dishonest-purchase batch
 Found by reading code adjacent to the fixes, none acted on. Logged per the session protocol.
 
-0. 🟡 **The sponsor bonus is NOT locked at season start — it tracks current alignment, live.**
+0. ✅ **FIXED 2026-09-13 (`97ad546`)** — 🟡 **The sponsor bonus is NOT locked at season start — it tracks current alignment, live.**
    Surfaced by a test failure while wiring the purse fix, then verified in-browser: a save seeded
    with `sponsor:{purseBonus:0}` loads as **Ceat Tyres +100**, because `updateHub()` recomputes
    `GS.sponsor = getSponsorForZone(getAlignmentZone(GS.alignment))` on **every hub render**
@@ -64,7 +85,7 @@ Found by reading code adjacent to the fixes, none acted on. Logged per the sessi
    it's a design call, not something to decide inside a bug fix. **Founder call:** leave it live,
    or snapshot the sponsor at `endSeason` so the season's purse is locked when the deal is signed.
 
-1. 🔴 **The OTHER academy reward can breach the squad cap.** `endSeason` does
+1. ✅ **FIXED 2026-09-13 (`97ad546`)** — 🔴 **The OTHER academy reward can breach the squad cap.** `endSeason` does
    `var academyCard = getAcademyCard(); if (academyCard) { GS.squad.push(academyCard); … }` with **no
    `GS.maxSquad` check at all** (`~:11832-11836`) — unlike `processAcademySlots`, which has one. This
    is the alignment-60 free graduate, a different code path from the 300-coin academy prospects fixed
@@ -72,7 +93,7 @@ Found by reading code adjacent to the fixes, none acted on. Logged per the sessi
    which is the exact bug just fixed one function away. **Needs a founder call** — allow the overflow
    (cap becomes advisory), hold him like the prospects now are, or convert to coins with an honest
    message. Verified by reading; not reproduced in-browser.
-2. 🟡 **Real company names are used as in-game sponsors** — `Tata Group`, `Dream11`, `Ceat Tyres`
+2. ✅ **FIXED 2026-09-13 (`97ad546`)** — 🟡 **Real company names are used as in-game sponsors** — `Tata Group`, `Dream11`, `Ceat Tyres`
    (`:6483-6487`), plus `CricBuzz_Live` / `ESPNcricinfo` / `Sports_Tak` / `Cricket_Next` as social
    accounts (`:11468`). Hard constraint #2 in `CLAUDE.md` covers *player* names/likenesses only, so
    this isn't a rule breach as written — but it's the same class of risk, and `Dream11` in particular
@@ -154,42 +175,37 @@ live code//browser rather than relayed on trust):
 **Also flagged, lower severity but cheap — 2 of 5 now fixed:**
 ~~the +300 rewarded-ad purse boost can drive `GS.coins` negative~~ ✅ **FIXED (`86f5503`)** — coins
 clamp at 0; ~~the auction can never offer a common or uncommon card~~ ✅ **FIXED (`784460c`)** —
-sampled from the whole pool now. **Still open, unaddressed — see below:** daily login pays ~7× more
-than winning a match; the premium pass refunds 120 of its 150 gems, making it permanently
-self-funding; the ₹199 pass SKU is strictly dominated by the ₹199/300-gem pack.
+sampled from the whole pool now.
 
-**Status (as of 2026-09-13): every correctness bug and both founder-decided design questions in
-the curated list of 11 above are FIXED.** (Items #1/#2/#5 were fixed 2026-09-11 in `b3d27e3`/
-`a332db7`, before this file's checkmarks were added — corrected here, not newly fixed today.) What
-remains, with no code left to write blind:
-- **3 monetization/economy findings, genuinely unaddressed** (daily login vs match reward, premium
-  pass gem refund, ₹199 SKU cannibalization) — see the new entry below. These are pricing/economy
-  DECISIONS, not bugs with one obviously-correct fix, so they were not touched without a founder
-  call, matching how the purse question was handled.
-- **5 founder-call questions already logged above** (sponsor lock timing, the other academy
-  squad-cap breach, real company names, XI legality degree, guaranteed marquee lot).
-See `SESSION-HANDOFF.md` for full detail.
+**Status (as of 2026-09-13): every item that was open in this file has now been through a founder
+decision.** (Items #1/#2/#5 were fixed 2026-09-11 in `b3d27e3`/`a332db7`, before this file's
+checkmarks were added — corrected here, not newly fixed today.) 6 decisions shipped in `97ad546`
+(+ test-correctness follow-up `a54944e`); 2 decisions required no code (kept current behaviour).
+**One new item surfaced while implementing the fixes and is NOT yet decided** — see "NEW" entry
+at the top of this section (IPL Challenger / BCCI). See `SESSION-HANDOFF.md` for full detail and
+current test status (comprehensive/features-10k/p15-visual/zero-scroll not yet re-run since these
+6 fixes — do not assume full-suite green from this file alone).
 
-### 2026-09-13 — Three monetization findings the systems audit flagged, never actioned
-All three are pricing/economy judgment calls, not correctness bugs — flagging for a founder
-decision rather than guessing at numbers that touch the paid tiers.
+### 2026-09-13 — Three monetization findings: DECIDED and FIXED
+All three were pricing/economy judgment calls put to the founder via AskUserQuestion rather than
+guessed at, since they touch the paid tiers directly.
 
-1. 🔴 **Daily login pays ~7× more than actually playing the game.** The 7-day cycle pays
-   200/300/500/600/800/1000/**1500** = 4,900 coins/week, passive. A match win pays ~80 coins. Over
-   a 14-match season, login income (9,800) is **~68% of all coin inflow** — the optimal play
-   pattern is "open app, claim, close," and the match loop (which this whole rebalance pass just
-   spent effort making fair) is a rounding error next to it. `prototype/index.html:4732-4739`
-   (`LOGIN_REWARDS`). **Founder call:** flatten the curve, or accept passive-dominant retention.
-2. 🔴 **The premium pass is permanently self-funding in gems.** It costs 150 gems and returns 120
-   gems + 2,500 coins. Daily login alone pays ~40 gems/week and the free pass track pays another
-   55/season — against a 30-gem net cost, a player never spends real money after the first unlock.
-   `prototype/index.html:12964-12975` (`PASS_TIERS`). **Founder call:** cut the gem refund, or this
-   is an intentional low-friction retention hook and stays as-is.
-3. 🟡 **The ₹199 Premium Contract SKU is dominated by the ₹199 Gem Case.** The Gem Case (300 gems,
-   ₹199) buys the pass (150 gems) AND leaves 150 gems over, for the identical price — there is no
-   reason to ever tap the pass card directly. `prototype/index.html:13102-13109` (`IAP_PACKS`).
-   **Founder call:** reprice one of the two, or this is acceptable because both routes net the same
-   revenue per buyer and route choice doesn't matter commercially.
+1. ✅ **FIXED (`97ad546`)** — **Daily login pays ~7× more than actually playing the game.** Was
+   200/300/500/600/800/1000/**1500** = 4,900 coins/week passive vs ~80/win (~68% of all coin
+   inflow). **Founder chose: flatten the curve.** Now 30/50/80/100/130/160/220 = 770/week; Day 7 is
+   ~2.75x a match win instead of ~19x. Gem payouts (Day 3/5/7) unchanged — that wasn't part of this
+   decision. `prototype/index.html:4735` (`LOGIN_REWARDS`).
+2. ✅ **FIXED (`97ad546`)** — **The premium pass was permanently self-funding in gems.** 150-gem
+   cost, 120-gem + 2,500-coin return — net +30/season, and login+free-track alone covered that.
+   **Founder chose: cut the gem refund.** Premium gems now 6/8/12/12/28 = 66, net cost 84/season;
+   coin rewards unchanged (real progression value, not part of the decision); every premium gem
+   tier now strictly beats its free-track counterpart. `prototype/index.html:13413` (`PASS_TIERS`).
+3. ✅ **FIXED (`97ad546`)** — **The ₹199 Premium Contract SKU was dominated by the ₹199 Gem Case**
+   (300 gems, which bought the 150-gem pass outright and left 150 over for the same price).
+   **Founder chose: reprice the Premium Contract down.** Now ₹99. Caught a second bug for free
+   while fixing this: `renderStore()` had an independent hardcoded `'₹199'` string that the
+   IAP_PACKS reprice would have silently drifted past — now reads `iapPack('pass_premium').price`.
+   `prototype/index.html:13564` (`IAP_PACKS`), `prototype/index.html` `renderStore()`.
 
 | Fixed | Commit |
 |---|---|
