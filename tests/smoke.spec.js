@@ -334,12 +334,16 @@ test('Sponsor Break: rewarded ads — free pack, purse boost, post-match doubler
   await watchAd();
   expect(await page.evaluate(() => GS.ads.pendingPurse)).toBe(true);
   await expect(page.locator('#ad-purse-btn')).toHaveClass(/used/);
+  // 2026-09-13: GS.sponsor is now LOCKED for the season at endSeason (a founder decision closing
+  // a timing exploit -- swinging alignment right before the auction used to be worth up to +700
+  // purse). This fixture's seeded `purseBonus:0` is therefore exactly what's live here; it no
+  // longer gets silently upgraded by a live recompute the way it briefly did mid-session. Set a
+  // real tier bonus directly so this test still exercises the ladder rather than a 0 no-op.
+  await page.evaluate(() => { GS.sponsor = { tier: 1, name: 'Suvarna Group', purseBonus: 500 }; });
   await page.click('#start-auction-btn');
-  // 2026-09-12: purse is no longer a bare mirror of coins. The founder-approved model is
-  // purse = coins + the sponsor's purseBonus (the ladder used to be wiped by
-  // `GS.auctionPurse = GS.coins` and had never once applied), and the rewarded ad adds its +300
-  // on top of that. Note GS.sponsor is recomputed from current alignment by updateHub(), so the
-  // seeded purseBonus:0 above is NOT what's live here -- read the real one rather than hardcode.
+  // Purse is not a bare mirror of coins: purse = coins + the sponsor's purseBonus (the ladder used
+  // to be wiped by `GS.auctionPurse = GS.coins` and had never once applied), plus the rewarded
+  // ad's +300 on top.
   const auctionState = await page.evaluate(() => ({ purse: GS.auctionPurse, coins: GS.coins, bonus: (GS.sponsor && GS.sponsor.purseBonus) || 0, pending: GS.ads.pendingPurse }));
   expect(auctionState.purse).toBe(auctionState.coins + auctionState.bonus + 300);
   expect(auctionState.bonus).not.toBe(0); // guard: this must keep exercising the ladder, not a 0 no-op
